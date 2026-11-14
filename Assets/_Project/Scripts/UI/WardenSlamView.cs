@@ -11,7 +11,7 @@ namespace Cryptforge.UI
     // the blow.
     //
     // The Glass Regent's mark is its lanes instead (WardenSlamService.Lanes; docs/50 section 6): each a stripe from where
-    // the Regent stood through the hero's spot, RegentLanes.Width across and Length long, drawn by the same rules as the
+    // the Regent stood through the hero's spot, RegentLanes.Width across and LengthOf long, drawn by the same rules as the
     // ring - its edge red-orange and pulsing faster as the blow nears, a fill growing across it from its middle line to its
     // edges through the telegraph, the whole lane flashing hot as the shards run. Each lane is the Regent's two 9-slice
     // sprites (GlassRegent.LaneEdge and LaneFill; Tools/ArtReview/BuildRegentLaneMark.py) at the lane's start, turned in
@@ -184,8 +184,8 @@ namespace Cryptforge.UI
                 lane.localPosition = new Vector3(lanes.OriginX(i), lanes.OriginY(i), 0f);
                 lane.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(dy, dx) * Mathf.Rad2Deg);
                 _laneWidths[i] = lanes.Width;
-                _laneEdges[i].size = new Vector2(lanes.Length, lanes.Width);
-                _laneFills[i].size = new Vector2(lanes.Length, LaneFillFloor * lanes.Width);
+                _laneEdges[i].size = new Vector2(lanes.LengthOf(i), lanes.Width);
+                _laneFills[i].size = new Vector2(lanes.LengthOf(i), LaneFillFloor * lanes.Width);
                 _lanes++;
             }
         }

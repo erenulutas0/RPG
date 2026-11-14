@@ -6,8 +6,9 @@ namespace Cryptforge.Combat
     // The Glass Regent, floor 2's gate boss (docs/50 section 6; the lead's decisions 2026-11-12): the Forge Warden's fight
     // on the Warden's clock (WardenSlamClock: a mark every 6 s, every 4 s below half its health, its weapon held from the
     // mark until RecoverySeconds after the blow) with a longer telegraph, Telegraph, and a sight line for its mark. As
-    // the mark goes down the Regent marks a LANE from where it stands through where the hero stands, LaneLength long and
-    // LaneWidth wide; when it fills, shards run down it and a hero still inside takes LaneShare of its maximum health. The
+    // the mark goes down the Regent marks a LANE from where it stands through where the hero stands, LaneLength long - and
+    // always at least LanePast beyond the hero's spot - and LaneWidth wide; when it fills, shards run down it and a hero
+    // still inside takes LaneShare of its maximum health. The
     // dodge is a sidestep across the lane (FootworkRule.Sidestep), not a run out of a circle: a step along the lane stays in
     // it. Its phase two is the Warden's (the faster beat, the horde thickening round it).
     //
@@ -36,6 +37,14 @@ namespace Cryptforge.Combat
         public const float Telegraph = 1.5f;
         // At most this many bodies cast a lane on one beat.
         public const int MaxLanes = 3;
+        // How far past the hero's spot a lane reaches at the least, where the hero stands farther from its caster than
+        // LaneLength allows: the lane runs through the mark and LanePast beyond it, so every lane runs through the hero's
+        // spot however far the hero stands. Without it the fight's first lane - cast while the Regent still walks out of
+        // the gate, about 12 units from a hero that waited for it - fell short of the hero and missed it, the lane drawn
+        // short of the mark (the Unity run of GlassRegentFlowTests, 2026-11-15). Beyond the 3.2 units the escapes and the
+        // sidestep reach, so a step along a far lane stays in it as a step along a near one does. Measured with the rest
+        // of the tuning (docs/50 "Regent").
+        public const float LanePast = 4f;
 
         // A lane from (ax, ay) through (mx, my), length long from (ax, ay) and halfWidth either side of its line: whether
         // (px, py) stands in it. A lane whose two points meet runs toward the floor's front (0, -1).
@@ -63,6 +72,19 @@ namespace Cryptforge.Combat
             return cx * cx + cy * cy <= halfWidth * halfWidth;
         }
 
+        // How long a lane from (ax, ay) through (mx, my) is: length, or the distance to the mark and past beyond it where
+        // that is farther. A past below zero keeps length whatever the distance (the lane before 2026-11-15, for a
+        // comparison). One body, never inlined, for the scene and the simulation, as InLane.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static float LaneLengthThrough(float ax, float ay, float mx, float my, float length, float past)
+        {
+            if (past < 0f)
+                return length;
+            float dx = mx - ax, dy = my - ay;
+            float d = (float)Math.Sqrt(dx * dx + dy * dy);
+            return Math.Max(length, d + past);
+        }
+
         // The unit direction of a lane from (ax, ay) through (mx, my), as InLane reads it: for the lanes' look.
         public static void LaneDirection(float ax, float ay, float mx, float my, out float dx, out float dy)
         {
@@ -83,30 +105,37 @@ namespace Cryptforge.Combat
     }
 
     // The lanes of one beat of the Regent's clock: where the mark went down (the hero's spot) and where each body that casts
-    // a lane stood as it went down, every lane from its body through the mark. Fixed as the mark goes down - a mark on the
-    // floor, not a beam that follows its caster. The width and length are RegentRule's unless a measurement hands others
-    // (the simulation's levers).
+    // a lane stood as it went down, every lane from its body through the mark and on (RegentRule.LaneLengthThrough). Fixed
+    // as the mark goes down - a mark on the floor, not a beam that follows its caster. The width, length and reach past the
+    // mark are RegentRule's unless a measurement hands others (the simulation's levers).
     public sealed class RegentLanes
     {
         private readonly float[] _x = new float[RegentRule.MaxLanes];
         private readonly float[] _y = new float[RegentRule.MaxLanes];
+        private readonly float[] _length = new float[RegentRule.MaxLanes];
 
         public RegentLanes() : this(RegentRule.LaneWidth, RegentRule.LaneLength)
         {
         }
 
-        public RegentLanes(float width, float length)
+        public RegentLanes(float width, float length, float past = RegentRule.LanePast)
         {
             if (float.IsNaN(width) || float.IsInfinity(width) || width <= 0f)
                 throw new ArgumentOutOfRangeException(nameof(width));
             if (float.IsNaN(length) || float.IsInfinity(length) || length <= 0f)
                 throw new ArgumentOutOfRangeException(nameof(length));
+            if (float.IsNaN(past) || float.IsInfinity(past))
+                throw new ArgumentOutOfRangeException(nameof(past));
             Width = width;
             Length = length;
+            Past = past;
         }
 
         public float Width { get; }
+        // A lane's length from its caster where the mark stands within it.
         public float Length { get; }
+        // How far past the mark a lane reaches at the least (below zero: no farther than Length).
+        public float Past { get; }
         // How many lanes are down, 0 with none.
         public int Count { get; private set; }
         // Where the mark went down: every lane runs through it.
@@ -115,6 +144,8 @@ namespace Cryptforge.Combat
 
         public float OriginX(int lane) => _x[Index(lane)];
         public float OriginY(int lane) => _y[Index(lane)];
+        // A lane's length from its caster: Length, or through the mark and Past beyond it.
+        public float LengthOf(int lane) => _length[Index(lane)];
 
         // A new beat's mark at (markX, markY), with no lane yet.
         public void Mark(float markX, float markY)
@@ -131,6 +162,7 @@ namespace Cryptforge.Combat
                 return false;
             _x[Count] = x;
             _y[Count] = y;
+            _length[Count] = RegentRule.LaneLengthThrough(x, y, MarkX, MarkY, Length, Past);
             Count++;
             return true;
         }
@@ -143,7 +175,7 @@ namespace Cryptforge.Combat
         {
             float half = Width * .5f + margin;
             for (int i = 0; i < Count; i++)
-                if (RegentRule.InLane(x, y, _x[i], _y[i], MarkX, MarkY, Length, half))
+                if (RegentRule.InLane(x, y, _x[i], _y[i], MarkX, MarkY, _length[i], half))
                     return true;
             return false;
         }

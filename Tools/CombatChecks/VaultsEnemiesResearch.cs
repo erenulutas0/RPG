@@ -71,7 +71,15 @@ namespace Cryptforge.Tests
             yield return new Option { Key = "captain-warden", What = "floor 2 before 2026-11-12: the Grunt Captain leads Sentry Hall and the Forge Warden holds the gate", Roles = true, Set = l => { l.VaultsCaptain = true; l.VaultsWarden = true; } };
             // Round 2's holdout cell (docs/50, seeds 201-400): the Captain and the Regent with two copies at 7.0, the port's
             // check - its floor-2 clears are round 2's, which played the same floor 1 and floor 2.
-            yield return new Option { Key = "round2-regent-7.0", What = "round 2's Regent cell: the Grunt Captain leads Sentry Hall, the Glass Regent with two copies at half health, share 7.0, the sidestep", Set = l => { l.VaultsCaptain = true; Regent(7f, 2, true)(l); } };
+            yield return new Option { Key = "round2-regent-7.0", What = "round 2's Regent cell: the Grunt Captain leads Sentry Hall, the Glass Regent with two copies at half health, share 7.0, the sidestep", Set = l =>
+                {
+                    l.VaultsCaptain = true;
+                    Regent(7f, 2, true)(l);
+                    // Round 2's lane: 18 %, the Warden's 1.1 s telegraph, no reach past 10 units; and its Sentry, the Captain.
+                    l.RegentLaneShare = .18f;
+                    l.RegentTelegraph = WardenRule.Telegraph;
+                    l.RegentLanePast = -1f;
+                } };
             yield return new Option { Key = "regent-nosidestep", What = "the shipped Glass Regent, no pilot sidesteps: the careful, standing and first-card pilots leave a lane's mark as the Warden's, away from it", Set = l => l.SidestepsTheRegent = false };
             // The Regent's levers one at a time (docs/50 "Regent"): the lane's share of the hero's maximum, its telegraph,
             // its length and width.
@@ -156,7 +164,8 @@ namespace Cryptforge.Tests
         }
 
         // A Regent variant named by its levers, for a sweep without a build: "regent:" then colon-separated name=value pairs
-        // off the shipped Regent - l the lane's share of the hero's maximum, t its telegraph (s), len its length, w its width,
+        // off the shipped Regent - l the lane's share of the hero's maximum, t its telegraph (s), len its length, past its
+        // least reach past the hero's spot (-1: none, the lane before 2026-11-15), w its width,
         // e the beat and e2 phase two's (s), s the gate share, c the copies, sf and sr the Sentry's front and reflection
         // shares - and "nosidestep", "warden" (the Forge Warden back at its gate) and "roles" (the roles row) as words, e.g.
         // "regent:l=0.14:t=1.3".
@@ -184,6 +193,7 @@ namespace Cryptforge.Tests
                     case "l": sets.Add(l => l.RegentLaneShare = value); break;
                     case "t": sets.Add(l => l.RegentTelegraph = value); break;
                     case "len": sets.Add(l => l.RegentLaneLength = value); break;
+                    case "past": sets.Add(l => l.RegentLanePast = value); break;
                     case "w": sets.Add(l => l.RegentLaneWidth = value); break;
                     case "e": sets.Add(l => l.RegentEvery = value); break;
                     case "e2": sets.Add(l => l.RegentEveryPhaseTwo = value); break;

@@ -27,6 +27,9 @@ namespace Cryptforge.Tests
             Assert.That(WardenRule.RecoverySeconds, Is.LessThan(RegentRule.EveryPhaseTwo - RegentRule.Telegraph),
                 "phase two still leaves the Regent a moment to swing between a blow and the next lane");
             Assert.That(RegentRule.MaxLanes, Is.EqualTo(3), "the Regent and, in section 6's phase two, two copies");
+            Assert.That(RegentRule.LanePast, Is.EqualTo(4f));
+            Assert.That(RegentRule.LanePast, Is.GreaterThan(FootworkRule.SidestepRing(FootworkRule.SidestepRingCount - 1)),
+                "a step along a far lane, as far as the sidestep or the circle's escape walks, stays in it");
         }
 
         // A lane runs from its body through the mark, LaneLength from the body, half its width either side of its line;
@@ -86,6 +89,37 @@ namespace Cryptforge.Tests
             Assert.That(lanes.Holds(2f, 0f, 0f), Is.False, "the beat over, nothing is down");
             Assert.Throws<ArgumentOutOfRangeException>(() => new RegentLanes(0f, 10f));
             Assert.Throws<ArgumentOutOfRangeException>(() => new RegentLanes(1.2f, float.NaN));
+        }
+
+        // A lane always runs through the hero's spot: LaneLength from its caster where the hero stands within it, and
+        // through the mark and LanePast beyond it where the hero stands farther - the fight's first lane, cast while the
+        // Regent still walks out of the gate, fell short of a hero 12 units away before 2026-11-15. A past below zero is
+        // that lane, for a comparison.
+        [Test]
+        public void ALaneRunsThroughTheHerosSpotHoweverFarTheHeroStands()
+        {
+            var lanes = new RegentLanes();
+            lanes.Mark(0f, 0f);
+            lanes.Add(-3f, 0f);
+            Assert.That(lanes.LengthOf(0), Is.EqualTo(RegentRule.LaneLength), "a near hero: the lane's own length");
+            Assert.That(lanes.Holds(6.9f, 0f, 0f), Is.True, "7 past the hero, within 10 of the Regent");
+            Assert.That(lanes.Holds(7.7f, 0f, 0f), Is.False, "past its end (and its round end's half-width)");
+
+            lanes.Mark(0f, 0f);
+            lanes.Add(-12f, 0f);
+            Assert.That(lanes.LengthOf(0), Is.EqualTo(12f + RegentRule.LanePast).Within(1e-4f), "a far hero: through it and on");
+            Assert.That(lanes.Holds(0f, 0f, 0f), Is.True, "the hero's spot, 12 units from the Regent");
+            Assert.That(lanes.Holds(3.2f, 0f, 0f), Is.True, "a step along it stays in it");
+            Assert.That(lanes.Holds(RegentRule.LanePast + .7f, 0f, 0f), Is.False, "and it ends LanePast beyond the spot");
+            Assert.That(RegentRule.LaneLengthThrough(-12f, 0f, 0f, 0f, RegentRule.LaneLength, RegentRule.LanePast),
+                Is.EqualTo(lanes.LengthOf(0)), "one body for the lanes and their look");
+
+            var clipped = new RegentLanes(RegentRule.LaneWidth, RegentRule.LaneLength, -1f);
+            clipped.Mark(0f, 0f);
+            clipped.Add(-12f, 0f);
+            Assert.That(clipped.LengthOf(0), Is.EqualTo(RegentRule.LaneLength));
+            Assert.That(clipped.Holds(0f, 0f, 0f), Is.False, "the lane before: it fell short of a far hero");
+            Assert.Throws<ArgumentOutOfRangeException>(() => new RegentLanes(1.2f, 10f, float.NaN));
         }
 
         // The Warden's clock keeps the Regent's beat when tuned to it; tuned back, it is the Warden's.

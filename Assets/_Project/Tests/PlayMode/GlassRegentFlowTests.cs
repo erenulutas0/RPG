@@ -115,6 +115,14 @@ namespace Cryptforge.Tests
             Assert.That(ArenaFloor.FloorDistanceSquared(service.Lanes.OriginX(0), service.Lanes.OriginY(0), bx, by), Is.LessThan(.01f),
                 "from where the Regent stood");
             Assert.That(rod.IsHeld, Is.True, "its rod is held from the mark, as the Warden's hammer");
+            // The fight's first lane is cast while the Regent still walks out of the gate, about 12 units from a hero that
+            // waited for it: the lane reaches through the hero's spot and on all the same (RegentRule.LanePast).
+            float reach = Mathf.Sqrt(ArenaFloor.FloorDistanceSquared(service.Lanes.MarkX, service.Lanes.MarkY,
+                service.Lanes.OriginX(0), service.Lanes.OriginY(0)));
+            Assert.That(service.Lanes.LengthOf(0), Is.GreaterThanOrEqualTo(RegentRule.LaneLength));
+            Assert.That(service.Lanes.LengthOf(0), Is.GreaterThanOrEqualTo(reach + RegentRule.LanePast - 1e-3f),
+                $"past the hero's spot, {reach:0.0} units from the Regent");
+            Assert.That(service.Lanes.Holds(at.x, at.y, 0f), Is.True, "the hero stands in it");
             yield return null;
             Assert.That(view.ShownLanes, Is.EqualTo(1), "the lane shows on the floor");
             Assert.That(view.IsMarkShown, Is.False, "and no Warden's ring");
@@ -122,7 +130,7 @@ namespace Cryptforge.Tests
             yield return Until(setup, () => service.Clock.TelegraphProgress > .5f, 2f);
             Assert.That(view.LaneFillSize(0).y, Is.GreaterThan(fillBefore), "the fill grows across the lane with the telegraph");
             Assert.That(view.LaneFillSize(0).y, Is.LessThanOrEqualTo(RegentRule.LaneWidth + 1e-4f));
-            Assert.That(view.LaneFillSize(0).x, Is.EqualTo(RegentRule.LaneLength).Within(1e-4f));
+            Assert.That(view.LaneFillSize(0).x, Is.EqualTo(service.Lanes.LengthOf(0)).Within(1e-4f), "drawn as long as it reaches");
 
             // A hero who stays on the lane is caught.
             float full = hero.Current;

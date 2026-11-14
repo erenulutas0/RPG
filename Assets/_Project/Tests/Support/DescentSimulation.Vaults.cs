@@ -151,6 +151,9 @@ namespace Cryptforge.Tests
             // (VaultsChain only) is its gate share in place of the floor's (FloorTwoGateShare); 0 keeps the floor's.
             public float RegentLaneWidth = RegentRule.LaneWidth;
             public float RegentLaneLength = RegentRule.LaneLength;
+            // How far past the hero's spot a lane reaches at the least (RegentRule.LanePast); below zero, no farther than
+            // RegentLaneLength from the Regent, as the lane was before 2026-11-15.
+            public float RegentLanePast = RegentRule.LanePast;
             public float RegentLaneShare = RegentRule.LaneShare;
             public float RegentEvery = RegentRule.Every;
             public float RegentEveryPhaseTwo = RegentRule.EveryPhaseTwo;
@@ -525,7 +528,7 @@ namespace Cryptforge.Tests
             private void RegentMarked(Foe boss)
             {
                 _result.RegentBeats++;
-                _regentLanes ??= new RegentLanes(_levers.RegentLaneWidth, _levers.RegentLaneLength);
+                _regentLanes ??= new RegentLanes(_levers.RegentLaneWidth, _levers.RegentLaneLength, _levers.RegentLanePast);
                 _regentLanes.Mark(_markX, _markY);
                 _regentLanes.Add(boss.X, boss.Y);
                 for (int c = 0; c < _glassCopies.Length; c++)
