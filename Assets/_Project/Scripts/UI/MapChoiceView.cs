@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Cryptforge.Art;
@@ -9,14 +10,18 @@ using UnityEngine.UI;
 
 namespace Cryptforge.UI
 {
-    // The map a run starts on (docs/53): before the first wave, a panel of three cards - the Foundry (floor 1), the
-    // Quicksilver Vaults (floor 2), the Gloam Gardens (floor 3) - each with its name, a line about it, what a hero starting
-    // there begins with and a crop of the floor's own backdrop plate. Drawn in the run's choice cards' look (ChoiceCardPainter
-    // with RunChoiceView's ChoiceCardArtSet; plain colours without one) on its own overlay canvas above the HUD, its cards
-    // stacked full width for a thumb on a portrait phone. A tap on the Foundry begins the run here, as it always began
-    // (CombatSetup.StartOnMap); a deeper map reloads the scene, which then begins on that floor with its catch-up. The hero
-    // stands still while it is open. CombatSetup adds it when DevelopmentStart.OffersMapChoice says so: every run start of
-    // a release build, never with map-choice.txt "off" (the scene tests) or another development start.
+    // The hero and the map a run starts with (docs/53): before the first wave, a row of hero cards - one per hero of the
+    // roster, each with its portrait, name, one-line role and weapon, the chosen one lit, a locked one saying how to unlock
+    // it - above three map cards - the Foundry (floor 1), the Quicksilver Vaults (floor 2), the Gloam Gardens (floor 3) -
+    // each with its name, a line about it, what a hero starting there begins with and a crop of the floor's own backdrop
+    // plate. Drawn in the run's choice cards' look (ChoiceCardPainter with RunChoiceView's ChoiceCardArtSet; plain colours
+    // without one) on its own overlay canvas above the HUD, sized for a thumb on a portrait phone. A hero card chooses the
+    // hero and the profile remembers it, as the forge's chooser does (HeroChoiceView); a map card starts the run: the
+    // Foundry with the scene's own hero begins here, as it always began (CombatSetup.StartOnMap); a deeper map or another
+    // hero reloads the scene once, which then begins with that hero on that floor (with its catch-up). The hero stands
+    // still while it is open. With one hero in the roster there is no hero row. CombatSetup adds it when
+    // DevelopmentStart.OffersMapChoice says so: every run start of a release build, never with map-choice.txt "off" (the
+    // scene tests) or another development start.
     public sealed class MapChoiceView : MonoBehaviour
     {
         public const string CanvasName = "Map Choice";
@@ -25,19 +30,37 @@ namespace Cryptforge.UI
         // cannot choose.
         public const float InputDelay = .35f;
 
-        // On the 1080-wide canvas (CanvasScaler 1080x1920, width matched): a 992-wide surface as the choice panel's, three
-        // 380-tall cards (thumb-sized on a 1080x2340 phone) under the title, the preview in each card's well on its left.
+        // On the 1080-wide canvas (CanvasScaler 1080x1920, width matched): a 992-wide surface as the choice panel's; under
+        // the title a row of 420-tall hero cards side by side, then three 300-tall map cards (thumb-sized on a 1080x2340
+        // phone; 1644 units in all, inside a 16:9 phone's 1920), the preview in each map card's well on its left. A screen
+        // shorter than the panel scales it down whole (FitToSafeArea).
         private const float SurfaceWidth = 992f;
         private const float CardInset = 40f;
-        private const float CardHeight = 380f;
-        private const float CardGap = 36f;
+        private const float CardHeight = 300f;
+        private const float CardGap = 30f;
         private const float TitleTop = 44f;
-        private const float TitleHeight = 112f;
-        private const float CardsTop = 200f;
-        private const float BottomMargin = 48f;
-        private const float PreviewWidth = 330f;
-        private const float PreviewHeight = 300f;
-        private const float TextLeft = 410f;
+        private const float TitleHeight = 100f;
+        private const float HeroRowTop = 180f;
+        public const float HeroCardHeight = 420f;
+        private const float HeroCardGap = 28f;
+        private const float HeroRowGap = 44f;
+        private const float CardsTopWithoutHeroes = 190f;
+        private const float BottomMargin = 40f;
+        private const float PreviewWidth = 280f;
+        private const float PreviewHeight = 236f;
+        private const float TextLeft = 350f;
+        private const float FitMargin = 16f;
+
+        public const string MapTitle = "Choose your map";
+        public const string HeroAndMapTitle = "Choose your hero and map";
+        public const string SelectedText = "Selected";
+        public const string ChooseText = "Tap to choose";
+        public const string LockedWord = "Locked";
+        private const string WeaponFormat = "Weapon: {0}";
+        private const string SubtitleFormat = "{0}\n<size=26>{1}</size>";
+        private static readonly Color SelectedColour = new Color32(238, 191, 108, 255);
+        private static readonly Color IdleColour = new Color32(190, 194, 208, 255);
+        private static readonly Color LockedColour = new Color32(163, 167, 183, 255);
 
         // A line about each map, by floor number.
         private static readonly string[] Flavours =
@@ -56,10 +79,43 @@ namespace Cryptforge.UI
         private readonly List<int> _floors = new List<int>(3);
         private readonly List<Text> _names = new List<Text>(3);
         private readonly List<Sprite> _made = new List<Sprite>(3);
+        private readonly List<HeroCard> _heroCards = new List<HeroCard>(3);
+        private ChoiceCardArtSet _art;
+        private Text _title;
+        private RectTransform _safe;
+        private RectTransform _surface;
+        private float _height;
         private float _inputEnabledAt;
         private bool _chosen;
+        // Whether a hero may be chosen: CombatSetup.IsHeroPlayable, or a test's stand-in (TreatHeroesAs).
+        private Func<HeroDefinition, bool> _isPlayable;
+
+        private sealed class HeroCard
+        {
+            public HeroDefinition Hero;
+            public Button Button;
+            public Image Frame;
+            public Image Portrait;
+            public Text Name;
+            public Text Role;
+            public Text Weapon;
+            public Text State;
+        }
 
         public bool IsOpen => _canvas != null && _canvas.activeSelf;
+        public string TitleText => _title != null ? _title.text : string.Empty;
+        // The hero row, in the roster's order; empty while the roster has one hero.
+        public int HeroCardCount => _heroCards.Count;
+        public Button HeroCardButton(int slot) => _heroCards[slot].Button;
+        public HeroDefinition HeroAt(int slot) => _heroCards[slot].Hero;
+        public string HeroNameAt(int slot) => _heroCards[slot].Name.text;
+        public string HeroRoleAt(int slot) => _heroCards[slot].Role.text;
+        public string HeroWeaponAt(int slot) => _heroCards[slot].Weapon.text;
+        // "Selected", "Tap to choose", or how a locked hero is unlocked.
+        public string HeroStateAt(int slot) => _heroCards[slot].State.text;
+        public Sprite HeroPortraitAt(int slot) => _heroCards[slot].Portrait.enabled ? _heroCards[slot].Portrait.sprite : null;
+        // The hero a map card starts the run with: the scene's own until a hero card is tapped.
+        public HeroDefinition SelectedHero { get; private set; }
         public int CardCount => _cards.Count;
         public Button CardButton(int slot) => _cards[slot];
         // The floor number a card starts the run on, and the name it shows.
@@ -73,6 +129,8 @@ namespace Cryptforge.UI
         {
             _setup = setup;
             _movement = movement;
+            _isPlayable = setup.IsHeroPlayable;
+            SelectedHero = setup.Hero;
             // The hero stands while the player chooses, as at the gate's arrival.
             if (_movement != null)
             {
@@ -90,6 +148,9 @@ namespace Cryptforge.UI
             ChoiceCardArtSet art = choices != null ? choices.CardArt : null;
             if (art != null && !art.IsValid)
                 art = null;
+            _art = art;
+            IReadOnlyList<HeroDefinition> roster = _setup.Heroes;
+            bool heroRow = roster != null && roster.Count > 1;
             Text titleSource = choices != null ? choices.TitleLabel : null;
             Text nameSource = choices != null ? choices.FirstNameLabel : null;
             Text descriptionSource = choices != null ? choices.FirstDescriptionLabel : null;
@@ -116,12 +177,16 @@ namespace Cryptforge.UI
             var safe = new GameObject("Map Choice Safe Area", typeof(RectTransform));
             safe.layer = _canvas.layer;
             safe.transform.SetParent(_canvas.transform, false);
-            Stretch((RectTransform)safe.transform, Vector2.zero, Vector2.zero);
+            _safe = (RectTransform)safe.transform;
+            Stretch(_safe, Vector2.zero, Vector2.zero);
             safe.AddComponent<SafeAreaFitter>();
 
-            float height = CardsTop + 3 * CardHeight + 2 * CardGap + BottomMargin;
+            float cardsTop = heroRow ? HeroRowTop + HeroCardHeight + HeroRowGap : CardsTopWithoutHeroes;
+            float height = cardsTop + 3 * CardHeight + 2 * CardGap + BottomMargin;
+            _height = height;
             Image surface = Part(safe.transform, "Map Choice Surface");
             RectTransform surfaceRect = surface.rectTransform;
+            _surface = surfaceRect;
             surfaceRect.anchorMin = surfaceRect.anchorMax = new Vector2(.5f, .5f);
             surfaceRect.pivot = new Vector2(.5f, .5f);
             surfaceRect.sizeDelta = new Vector2(SurfaceWidth, height);
@@ -135,7 +200,8 @@ namespace Cryptforge.UI
             titleRect.pivot = new Vector2(.5f, 1f);
             titleRect.offsetMin = new Vector2(120f, -(TitleTop + TitleHeight));
             titleRect.offsetMax = new Vector2(-120f, -TitleTop);
-            title.text = "Choose your map";
+            title.text = heroRow ? HeroAndMapTitle : MapTitle;
+            _title = title;
 
             if (art != null)
                 _painter = new ChoiceCardPainter(art, backdrop, surface, title);
@@ -143,14 +209,130 @@ namespace Cryptforge.UI
             FloorDefinition floor = _setup.Encounters != null ? _setup.Encounters.Floor : null;
             for (int number = DescentStart.FirstFloor; number <= DescentStart.DeepestStart && floor != null; number++)
             {
-                AddCard(surface.transform, number, floor, arena, art, nameSource, descriptionSource, fallback);
+                AddCard(surface.transform, cardsTop, number, floor, arena, art, nameSource, descriptionSource, fallback);
                 floor = floor.NextFloor;
+            }
+            if (heroRow)
+            {
+                for (int i = 0; i < roster.Count; i++)
+                {
+                    if (roster[i] != null)
+                        AddHeroCard(surface.transform, roster[i], roster.Count, nameSource, descriptionSource, fallback);
+                }
             }
             _inputEnabledAt = Time.unscaledTime + InputDelay;
             SetInteractable(false);
+            RefreshHeroCards();
         }
 
-        private void AddCard(Transform surface, int number, FloorDefinition floor, ArenaView arena, ChoiceCardArtSet art,
+        // A hero's card in the row: the portrait in the card's well at the top, then its name (and the character's own
+        // name), its role, its weapon and its state. The row's cards share the surface's width.
+        private void AddHeroCard(Transform surface, HeroDefinition hero, int count, Text nameSource, Text descriptionSource,
+            Font fallback)
+        {
+            int slot = _heroCards.Count;
+            float inner = SurfaceWidth - 2 * CardInset;
+            float width = (inner - (count - 1) * HeroCardGap) / count;
+            var cardObject = new GameObject("Hero Card " + hero.Id, typeof(RectTransform), typeof(Image), typeof(Button));
+            cardObject.layer = surface.gameObject.layer;
+            var rect = (RectTransform)cardObject.transform;
+            rect.SetParent(surface, false);
+            rect.anchorMin = rect.anchorMax = new Vector2(0f, 1f);
+            rect.pivot = new Vector2(0f, 1f);
+            rect.anchoredPosition = new Vector2(CardInset + slot * (width + HeroCardGap), -HeroRowTop);
+            rect.sizeDelta = new Vector2(width, HeroCardHeight);
+            var frame = cardObject.GetComponent<Image>();
+            var button = cardObject.GetComponent<Button>();
+            button.targetGraphic = frame;
+            button.onClick.AddListener(() => ChooseHero(slot));
+
+            Image portrait = Part(rect, "Hero Portrait");
+            portrait.preserveAspect = true;
+            Place(portrait.rectTransform, 18f, 168f, 64f);
+            portrait.sprite = hero.Portrait;
+            portrait.enabled = hero.Portrait != null;
+
+            Text name = Label(rect, "Hero Name", nameSource, fallback, 38, TextAnchor.MiddleCenter);
+            Place(name.rectTransform, 196f, 66f, 20f);
+            name.supportRichText = true;
+            name.text = hero.Subtitle.Length > 0
+                ? string.Format(CultureInfo.InvariantCulture, SubtitleFormat, hero.DisplayName, hero.Subtitle)
+                : hero.DisplayName;
+
+            Text role = Label(rect, "Hero Role", descriptionSource, fallback, 26, TextAnchor.MiddleCenter);
+            Place(role.rectTransform, 270f, 64f, 24f);
+            role.text = hero.Role;
+
+            Text weapon = Label(rect, "Hero Weapon", descriptionSource, fallback, 26, TextAnchor.MiddleCenter);
+            Place(weapon.rectTransform, 336f, 32f, 20f);
+
+            Text state = Label(rect, "Hero State", descriptionSource, fallback, 26, TextAnchor.MiddleCenter);
+            Place(state.rectTransform, 370f, 36f, 16f);
+
+            _heroCards.Add(new HeroCard
+            {
+                Hero = hero, Button = button, Frame = frame, Portrait = portrait, Name = name, Role = role, Weapon = weapon,
+                State = state
+            });
+        }
+
+        // Each hero card as the choice stands: the chosen one lit (the gold tier's treatment, or a warm frame unpainted)
+        // and saying so, a playable one inviting a tap, a locked one shaded and saying how to unlock it
+        // (PrototypeTextDefinition.HeroLockedFormat with the hero's UnlockHint, as the forge's chooser says it).
+        private void RefreshHeroCards()
+        {
+            PrototypeTextDefinition text = _setup.Text;
+            for (int i = 0; i < _heroCards.Count; i++)
+            {
+                HeroCard card = _heroCards[i];
+                bool playable = _isPlayable(card.Hero);
+                bool selected = card.Hero == SelectedHero;
+                WeaponDefinition weapon = _setup.WeaponFor(card.Hero);
+                card.Weapon.text = weapon != null
+                    ? string.Format(CultureInfo.InvariantCulture, WeaponFormat, weapon.DisplayName) : string.Empty;
+                if (!playable)
+                {
+                    string hint = card.Hero.UnlockHint;
+                    card.State.text = hint.Length > 0 && text != null
+                        ? string.Format(CultureInfo.InvariantCulture, text.HeroLockedFormat, LockedWord, hint) : LockedWord;
+                    card.State.color = LockedColour;
+                }
+                else
+                {
+                    card.State.text = selected ? SelectedText : ChooseText;
+                    card.State.color = selected ? SelectedColour : IdleColour;
+                }
+                // Interactable before the paint, so the press takes the state the card is in.
+                card.Button.interactable = playable && !_chosen && Time.unscaledTime >= _inputEnabledAt;
+                card.Frame.color = selected ? new Color(.42f, .32f, .15f, 1f)
+                    : playable ? new Color(.2f, .17f, .22f, 1f) : new Color(.12f, .11f, .13f, 1f);
+                if (_painter != null)
+                {
+                    ChoiceCardArtSet.Treatment look = selected ? _art.Tier(UpgradeRarity.Gold) ?? _art.Climb : _art.Neutral;
+                    // After the map cards' slots, so each card breathes in its own phase.
+                    _painter.Paint(DescentStart.DeepestStart + i, card.Button, card.Name, card.Role, card.Portrait, look);
+                }
+            }
+        }
+
+        // For tests: decide which heroes may be chosen as a release build would, and redraw the row.
+        internal void TreatHeroesAs(Func<HeroDefinition, bool> isPlayable)
+        {
+            _isPlayable = isPlayable ?? _setup.IsHeroPlayable;
+            RefreshHeroCards();
+        }
+
+        // A rect across the card (inset on both sides) from top, this tall.
+        private static void Place(RectTransform rect, float top, float height, float inset)
+        {
+            rect.anchorMin = new Vector2(0f, 1f);
+            rect.anchorMax = new Vector2(1f, 1f);
+            rect.pivot = new Vector2(.5f, 1f);
+            rect.offsetMin = new Vector2(inset, -(top + height));
+            rect.offsetMax = new Vector2(-inset, -top);
+        }
+
+        private void AddCard(Transform surface, float cardsTop, int number, FloorDefinition floor, ArenaView arena, ChoiceCardArtSet art,
             Text nameSource, Text descriptionSource, Font fallback)
         {
             int slot = _cards.Count;
@@ -162,7 +344,7 @@ namespace Cryptforge.UI
             rect.anchorMin = new Vector2(0f, 1f);
             rect.anchorMax = new Vector2(1f, 1f);
             rect.pivot = new Vector2(.5f, 1f);
-            float top = CardsTop + slot * (CardHeight + CardGap);
+            float top = cardsTop + slot * (CardHeight + CardGap);
             rect.offsetMin = new Vector2(CardInset, -(top + CardHeight));
             rect.offsetMax = new Vector2(-CardInset, -top);
             var frame = cardObject.GetComponent<Image>();
@@ -181,21 +363,21 @@ namespace Cryptforge.UI
             preview.color = preview.sprite != null ? Color.white : Swatch(floor.Theme);
             preview.enabled = true;
 
-            Text name = Label(rect, "Map Name", nameSource, fallback, 50, TextAnchor.MiddleLeft);
+            Text name = Label(rect, "Map Name", nameSource, fallback, 46, TextAnchor.MiddleLeft);
             RectTransform nameRect = name.rectTransform;
             nameRect.anchorMin = new Vector2(0f, 1f);
             nameRect.anchorMax = new Vector2(1f, 1f);
             nameRect.pivot = new Vector2(.5f, 1f);
-            nameRect.offsetMin = new Vector2(TextLeft, -128f);
-            nameRect.offsetMax = new Vector2(-CardInset, -44f);
+            nameRect.offsetMin = new Vector2(TextLeft, -100f);
+            nameRect.offsetMax = new Vector2(-CardInset, -28f);
             name.text = floor.DisplayName;
 
-            Text description = Label(rect, "Map Description", descriptionSource, fallback, 32, TextAnchor.UpperLeft);
+            Text description = Label(rect, "Map Description", descriptionSource, fallback, 30, TextAnchor.UpperLeft);
             RectTransform descriptionRect = description.rectTransform;
             descriptionRect.anchorMin = Vector2.zero;
             descriptionRect.anchorMax = Vector2.one;
-            descriptionRect.offsetMin = new Vector2(TextLeft, 40f);
-            descriptionRect.offsetMax = new Vector2(-CardInset, -150f);
+            descriptionRect.offsetMin = new Vector2(TextLeft, 26f);
+            descriptionRect.offsetMax = new Vector2(-CardInset, -112f);
             description.text = Describe(number);
 
             _cards.Add(button);
@@ -259,17 +441,48 @@ namespace Cryptforge.UI
                 return;
             if (Time.unscaledTime >= _inputEnabledAt && !_chosen && _cards.Count > 0 && !_cards[0].interactable)
                 SetInteractable(true);
+            FitToSafeArea();
             if (_painter != null)
                 _painter.Tick(Time.unscaledTime);
+        }
+
+        // A screen whose safe area is shorter (or narrower) than the panel shows it whole, scaled down; never up.
+        private void FitToSafeArea()
+        {
+            if (_safe == null || _surface == null || _height <= 0f)
+                return;
+            Rect area = _safe.rect;
+            float scale = Mathf.Min(1f, Mathf.Min((area.height - 2f * FitMargin) / _height, area.width / SurfaceWidth));
+            if (scale <= 0f)
+                return;
+            if (!Mathf.Approximately(_surface.localScale.x, scale))
+                _surface.localScale = new Vector3(scale, scale, 1f);
         }
 
         private void SetInteractable(bool interactable)
         {
             for (int i = 0; i < _cards.Count; i++)
                 _cards[i].interactable = interactable;
+            for (int i = 0; i < _heroCards.Count; i++)
+                _heroCards[i].Button.interactable = interactable && _isPlayable(_heroCards[i].Hero);
         }
 
-        // A card tapped: once, after the input delay.
+        // A hero card tapped, after the input delay: a playable hero becomes the run's, and the profile remembers it as the
+        // forge's chooser does (the default hero as no choice). A locked hero, or the one already chosen, changes nothing.
+        public void ChooseHero(int slot)
+        {
+            if (_chosen || !IsOpen || slot < 0 || slot >= _heroCards.Count || Time.unscaledTime < _inputEnabledAt)
+                return;
+            HeroDefinition hero = _heroCards[slot].Hero;
+            if (hero == SelectedHero || !_isPlayable(hero))
+                return;
+            SelectedHero = hero;
+            _setup.Profile.SelectHero(hero == _setup.Heroes[0] ? null : hero.Id);
+            RefreshHeroCards();
+        }
+
+        // A map card tapped: once, after the input delay. The Foundry with the scene's own hero closes the panel and the run
+        // begins; a deeper map or another hero reloads the scene with the choice, the panel standing until it goes.
         public void Choose(int slot)
         {
             if (_chosen || !IsOpen || slot < 0 || slot >= _cards.Count || Time.unscaledTime < _inputEnabledAt)
@@ -277,9 +490,11 @@ namespace Cryptforge.UI
             _chosen = true;
             SetInteractable(false);
             int floor = _floors[slot];
-            if (floor == DescentStart.FirstFloor)
+            HeroDefinition hero = SelectedHero;
+            bool otherHero = hero != null && hero != _setup.Hero && _setup.IsHeroPlayable(hero);
+            if (floor == DescentStart.FirstFloor && !otherHero)
                 Close();
-            _setup.StartOnMap(floor);
+            _setup.StartOnMap(floor, otherHero ? hero : null);
         }
 
         private void Close()

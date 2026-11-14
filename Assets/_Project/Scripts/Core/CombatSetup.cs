@@ -128,7 +128,9 @@ namespace Cryptforge.Core
             Profile = _profileStore.Load();
             ReportLoadProblems();
             Relics = new RelicShop(Profile, relics);
-            Hero = ChooseHero();
+            // The map and hero chosen before this load (MapChoiceView), if any: taken here, before the hero is chosen.
+            int wanted = RunStartRequest.Take(out string requestedHero);
+            Hero = ChooseHero(requestedHero);
             _weaponOptions = weapons;
             Weapons = new WeaponShop(Profile, weapons, weapons[Array.IndexOf(_weapons, Hero.StartingWeapon)],
                 Hero.StartsWithItsOwnWeaponOnly);
@@ -218,7 +220,6 @@ namespace Cryptforge.Core
             // The map this run starts on (MapChoiceView): the one chosen before this load, if any - the scene reloads to
             // start deeper - or, with none chosen, the choice itself, which holds the first wave and the run's telemetry
             // until the player taps a map.
-            int wanted = RunStartRequest.Take();
             StartFloor = _encounters.ResolveStartFloor(wanted);
             IsChoosingMap = wanted <= 0 && DevelopmentStart.OffersMapChoice();
             RunTelemetryBridge telemetry = AttachTelemetry(equipped);
@@ -314,17 +315,20 @@ namespace Cryptforge.Core
                 _encounters.BeginFirstEncounter();
         }
 
-        // The map the player tapped on the map choice (MapChoiceView): floor 1 begins here and now, as every run began
-        // before the choice existed; a deeper floor reloads the scene with the choice (RunStartRequest), and that load
-        // begins on it (Awake). Once only, and only while the choice is open.
-        public void StartOnMap(int floorNumber)
+        // The map the player tapped on the map choice (MapChoiceView), with the hero chosen beside it: floor 1 with the
+        // scene's own hero begins here and now, as every run began before the choice existed; a deeper floor, or another
+        // playable hero, reloads the scene with the choice (RunStartRequest), and that load begins with that hero on that
+        // floor (Awake) without the choice. Once only, and only while the choice is open.
+        public void StartOnMap(int floorNumber, HeroDefinition hero = null)
         {
             if (!IsChoosingMap || _restarting)
                 return;
             IsChoosingMap = false;
-            if (floorNumber > DescentStart.FirstFloor && DescentStart.IsStart(floorNumber))
+            bool otherHero = hero != null && hero != Hero && IsHeroPlayable(hero);
+            bool deeper = floorNumber > DescentStart.FirstFloor && DescentStart.IsStart(floorNumber);
+            if (deeper || otherHero)
             {
-                RunStartRequest.Set(floorNumber);
+                RunStartRequest.Set(deeper ? floorNumber : DescentStart.FirstFloor, otherHero ? hero.Id : null);
                 RestartRun();
                 return;
             }
@@ -463,11 +467,14 @@ namespace Cryptforge.Core
 
         private void OnHeroDied() => Run.End(RunOutcome.Defeat);
 
-        // The hero the run plays (docs/45): development/hero.txt first, then the profile's choice, each only when it may be
-        // played; otherwise the default. A choice the roster no longer has falls back to the default.
-        private HeroDefinition ChooseHero()
+        // The hero the run plays (docs/45): the one chosen on the map choice for this load, then development/hero.txt, then
+        // the profile's choice, each only when it may be played; otherwise the default. A choice the roster no longer has
+        // falls back to the default.
+        private HeroDefinition ChooseHero(string requested = null)
         {
-            string wanted = DevelopmentStart.HeroId();
+            string wanted = requested;
+            if (string.IsNullOrEmpty(wanted))
+                wanted = DevelopmentStart.HeroId();
             if (string.IsNullOrEmpty(wanted))
                 wanted = Profile.SelectedHeroId;
             if (!string.IsNullOrEmpty(wanted) && _heroes != null)
@@ -482,6 +489,30 @@ namespace Cryptforge.Core
             }
             return _heroDefinition;
         }
+
+        // The weapon a hero would carry from this start (the map choice's hero cards): this run's own for the scene's hero;
+        // for another, as the rack would equip it once that hero is chosen (WeaponShop.Equipped) - its own weapon alone, or
+        // the saved weapon while it is owned, otherwise its starting weapon.
+        public WeaponDefinition WeaponFor(HeroDefinition hero)
+        {
+            if (hero == null)
+                return null;
+            if (hero == Hero)
+                return HeroWeapon;
+            string saved = Profile.EquippedWeaponId;
+            if (!hero.StartsWithItsOwnWeaponOnly && Profile.OwnsWeapon(saved))
+            {
+                for (int i = 0; i < _weapons.Length; i++)
+                {
+                    if (_weapons[i].Id == saved)
+                        return _weapons[i];
+                }
+            }
+            return hero.StartingWeapon;
+        }
+
+        // The game's text, for views built in code.
+        internal PrototypeTextDefinition Text => _text;
 
         // Open from the start, unlocked by play, or any hero on a development build so the owner can try one early.
         public bool IsHeroPlayable(HeroDefinition hero) => HeroUnlock.IsPlayable(hero != null && hero.UnlockedFromStart,

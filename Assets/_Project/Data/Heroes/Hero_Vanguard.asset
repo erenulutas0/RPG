@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _id: hero_vanguard
   _displayName: Vanguard
+  _role: Holds the front line. Forge Burst blasts every foe close by.
   _maximumHealth: 100
   _startingWeapon: {fileID: 11400000, guid: 10000000000000000000000000000001, type: 2}
   _ability: {fileID: 11400000, guid: 10000000000000000000000000000020, type: 2}
