@@ -14,6 +14,8 @@ namespace Cryptforge.Progression
     // carries down its checkpoint, the careful cohort with a typical human's hands, both heroes pooled, P50 -
     //   floor 2: 31 (393 runs; P25 30, range 29-33; every cohort but the auto-farmer 30),
     //   floor 3: 44 (385 runs; range 42-46; every cohort but the auto-farmer 44).
+    // Per hero, now that each run picks its hero beside its map (re-run the same day, docs/53): floor 2 the Vanguard 31 and
+    // Ilya 30 (both P25-P75 30-31), floor 3 both 44 - one level apart at most, inside the spread, so both share these.
     // No gold comes with it: a run's gold buys nothing during the run and is banked into the profile's forge gold as the run
     // ends, so the gold a hero would have carried down would be forge gold the player never earned.
     public static class DescentStart
