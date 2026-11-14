@@ -141,6 +141,33 @@ namespace Cryptforge.Tests
             RunStartRequest.Clear();
         }
 
+        // Map starts unlock as reached (docs/53, 2026-11-14): the Foundry always; the Vaults once floor 1 is cleared, the
+        // Gardens once floor 2 is; never the finale or anything that is not a start. The hint reads the same on a Turkish
+        // phone.
+        [Test]
+        public void ADeeperMapOpensOnceTheFloorAboveItIsCleared()
+        {
+            for (int deepest = 0; deepest <= 4; deepest++)
+            {
+                Assert.That(MapUnlock.IsOpen(1, deepest), Is.True, $"The Foundry, deepest {deepest}");
+                Assert.That(MapUnlock.IsOpen(2, deepest), Is.EqualTo(deepest >= 1), $"The Vaults, deepest {deepest}");
+                Assert.That(MapUnlock.IsOpen(3, deepest), Is.EqualTo(deepest >= 2), $"The Gardens, deepest {deepest}");
+                Assert.That(MapUnlock.IsOpen(4, deepest), Is.False, "The finale is never a start.");
+                Assert.That(MapUnlock.IsOpen(0, deepest), Is.False);
+            }
+            CultureInfo before = Thread.CurrentThread.CurrentCulture;
+            try
+            {
+                Thread.CurrentThread.CurrentCulture = new CultureInfo("tr-TR");
+                Assert.That(MapUnlock.Hint(2), Is.EqualTo("Clear floor 1 to unlock"));
+                Assert.That(MapUnlock.Hint(3), Is.EqualTo("Clear floor 2 to unlock"));
+            }
+            finally
+            {
+                Thread.CurrentThread.CurrentCulture = before;
+            }
+        }
+
         [Test]
         public void EveryMapIsAStartAndTheFinaleIsNot()
         {

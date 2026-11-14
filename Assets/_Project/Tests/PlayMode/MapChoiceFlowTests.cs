@@ -143,11 +143,14 @@ namespace Cryptforge.Tests
 
         private static IEnumerator StartsOn(int slot, int floorNumber, string floorId, FloorTheme theme, string nextId)
         {
+            // A deeper map opens once the floor above it is cleared (MapUnlock): a profile that has reached it.
+            TestProfile.Begin(new PlayerProfile(0, null, null, floorNumber - 1));
             yield return LoadWithTheMapChoice();
             var previous = Object.FindFirstObjectByType<CombatSetup>();
             var view = Object.FindFirstObjectByType<MapChoiceView>();
             Assert.That(view, Is.Not.Null);
             Assert.That(view.FloorAt(slot), Is.EqualTo(floorNumber));
+            Assert.That(view.IsMapOpenAt(slot), Is.True, "Reached, so open.");
             yield return Tap(view, slot);
 
             // The deeper map reloads the scene, which begins there.
