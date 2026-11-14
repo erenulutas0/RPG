@@ -348,6 +348,37 @@ namespace Cryptforge.Tests
             }
         }
 
+        // A run begun on a deeper map (the map choice; run_start's start_floor) is left out of the owner's floors and runs and
+        // counted apart, so a caught-up hero's floor 3 never reads as a floor the owner walked down to; the pull's other runs
+        // read exactly as without it.
+        [Test]
+        public void ARunBegunOnADeeperMapIsLeftOutOfTheOwnersFloors()
+        {
+            InTemp(root =>
+            {
+                string folder = TodaysPull(root);
+                File.WriteAllLines(Path.Combine(folder, "telemetry", "events.2.jsonl"), new[]
+                {
+                    Event("s0", 1, -900, null, "session_start", "\"schema\":1"),
+                    Event("s0", 2, -899, "s0-1", "run_start", "\"run_ordinal\":1,\"hero_id\":\"hero_vanguard\",\"seed\":5,\"start_floor\":3"),
+                    Event("s0", 3, -899, "s0-1", "room_start", Room(3, "combat")),
+                    Event("s0", 4, -600, "s0-1", "floor_complete", "\"floor_index\":3,\"floor_id\":\"f3\",\"active_sec\":299.000,\"rooms\":6"),
+                    Event("s0", 5, -590, "s0-1", "room_start", Room(4, "swarm")),
+                    Event("s0", 6, -500, "s0-1", "run_end", "\"result\":\"victory\",\"cause\":\"cleared\",\"floors_completed\":2,\"active_sec\":390.000")
+                });
+                List<DevicePull.RunRecord> runs = DevicePull.Runs(DevicePull.ReadEvents(new[] { Path.Combine(folder, "telemetry") }));
+                Assert.That(runs.Single(r => r.Id == "s0-1").StartFloor, Is.EqualTo(3));
+                Assert.That(runs.Where(r => r.Id != "s0-1").Select(r => r.StartFloor), Is.All.EqualTo(1), "No start_floor reads as floor 1.");
+
+                FoundryGate.DeviceEvidence device = DevicePull.Read(new[] { folder });
+                Assert.That(device.DeeperStartRuns, Is.EqualTo(1));
+                Assert.That(device.Runs, Is.EqualTo(3), "The pull's own three runs, as without it.");
+                Assert.That(device.Floors.Count(f => f.Seconds == 299f || f.Seconds == 91f), Is.EqualTo(0), "None of its floors.");
+                Assert.That(device.Descents.Select(d => d.Seconds), Is.EqualTo(new[] { 618f }), "Nor its finale as a whole Descent.");
+                return 0;
+            });
+        }
+
         // Several runs and heroes in one pull, across a rotation: each floor under its run's hero, the finale (the swarm
         // room, floor 3) named, floor 2 - its gate at 210 s as floor 1's - read beside the row, the pit's death by its
         // cause, the whole Descent by run_end's active_sec, and the run still on as a floor never finished.
