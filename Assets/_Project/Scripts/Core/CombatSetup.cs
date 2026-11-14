@@ -272,7 +272,35 @@ namespace Cryptforge.Core
             // Last, with every view and service wired: a deeper start's level-ups open the level-up panel one after
             // another, and the first wave waits until the last is chosen (OnChoicesChanged).
             if (catchUp)
+            {
+                gameObject.AddComponent<CatchUpAutoPickView>().Initialize(this);
                 CatchUpToStartFloor();
+            }
+        }
+
+        // A deeper start's level-ups are still queued before its first wave: the level-up panel offers Auto-pick
+        // (CatchUpAutoPickView). Never during a run's own level-ups.
+        public bool IsCatchingUp => _firstWaveAfterChoices && Choices.IsOpen && Choices.Current.Kind == ChoiceKind.Upgrade &&
+            Upgrades.CurrentOffer != null;
+
+        // Takes every queued catch-up level-up as the careful autopilot takes its cards (AutopilotCohort.Careful.Pick, the
+        // build's scoring; the first card on a legacy offer), from the run's own seeded offers, so the same seed and hero
+        // pick the same build. Each through Choices like a tap, so telemetry logs it as a pick. Returns the cards' names in
+        // the order taken; the last pick closes the panel and the first wave comes in (OnChoicesChanged).
+        public List<string> AutoPickCatchUp()
+        {
+            var taken = new List<string>();
+            for (int guard = 0; IsCatchingUp && guard < 1000; guard++)
+            {
+                UpgradeOffer offer = Upgrades.CurrentOffer;
+                bool low = _hero.Current < _hero.Maximum * .5f;
+                int slot = Upgrades.IsCategoryMode ? AutopilotCohort.Careful.Pick(offer, low, Upgrades) : 0;
+                string name = offer.Choices[slot].DisplayName;
+                if (!Choices.TrySelect(Choices.Current, slot))
+                    break;
+                taken.Add(name);
+            }
+            return taken;
         }
 
         // The run begins on a deeper map (DescentStart): the hero raised to the level it typically has arriving there,
