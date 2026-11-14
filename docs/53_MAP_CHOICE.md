@@ -1,14 +1,16 @@
-# 53 - The map choice: starting a run on floor 1, 2 or 3
+# 53 - The map choice: starting a run on floor 1, 2 or 3, with the hero of your choice
 
 Status 2026-11-14: built (`MapChoiceView`, `DescentStart`, `RunStartRequest`), all three maps unlocked. Asked by the owner
 to show the game on the phone: a run can start on the Foundry, the Quicksilver Vaults or the Gloam Gardens.
+Same day, after the owner played it on the S23 ("there is no character selection"): the panel chooses the hero too -
+"Choose your hero and map" (section "Choosing the hero" below).
 
 ## What the player sees
 
 - Every scene load that starts a run (the app's launch, the result screen's Try again, the Relic Forge's Start) opens the
-  map choice over the foundry before the first wave: the title "Choose your map" and three full-width cards, one per map,
-  stacked for a thumb on a portrait phone (each 912 x 380 canvas units on the 1080-wide canvas). A card shows the map's
-  name, a line about it, what a hero starting there begins with, and a crop of the floor's own backdrop plate (the
+  map choice over the foundry before the first wave: the title "Choose your hero and map" (with one hero, "Choose your
+  map"), the hero row, and three full-width cards, one per map, stacked for a thumb on a portrait phone (each 912 x 300
+  canvas units on the 1080-wide canvas, under the hero row). A card shows the map's name, a line about it, what a hero starting there begins with, and a crop of the floor's own backdrop plate (the
   foundry's cavern plate, `ENV_Ice_Vault_v1`, `ENV_Gloam_Garden_v1`, through `ArenaView.CavernBackdrop` and
   `PlatformMaterialSet.BackdropFor`). It is drawn in the run's choice cards' look (`ChoiceCardPainter` with
   `RunChoiceView`'s `ChoiceCardArtSet`: the dim, the surface, the title plate; the Foundry's card in the neutral treatment,
@@ -19,13 +21,48 @@ to show the game on the phone: a run can start on the Foundry, the Quicksilver V
   `CombatSetup.Awake`). That load starts on the chosen floor with no map choice, the hero raised to the floor's arrival
   level; the level-up panel opens at once and offers every level-up of it one after another, and the first wave walks in
   after the last pick.
-- The hero chooser stays on the Relic Forge (between runs); the map is chosen at the start of each run.
+- The hero is chosen on the same panel, above the maps (section "Choosing the hero"); the Relic Forge's chooser (between
+  runs) still works and the panel opens with its choice lit.
 - **Auto-pick.** While a deeper start's level-ups are queued, the level-up panel shows a wide "Auto-pick N level-ups"
   button under the cards (the Climb frame, 720 x 150; `CatchUpAutoPickView`). One tap takes every remaining level-up as the
   careful autopilot takes its cards (`AutopilotCohort.Careful.Pick`, the build's card scoring; the first card on a legacy
   offer) from the run's own seeded offers - the same seed and hero pick the same build - through `RunChoices` like taps,
   so telemetry logs each pick. A one-line summary ("Auto-picked 44 level-ups: Sword x8, ...") shows over the run for 4 s
   and the first wave comes in. The cards stay tappable beside it; the run's own level-ups never show it.
+
+## Choosing the hero
+
+- When the roster has more than one hero (today the Vanguard and Ilya the Cinder Arcanist, docs/45; the Riftblade of
+  docs/46 would join the row by being added to `CombatSetup._heroes`), the title reads "Choose your hero and map" and a
+  row of hero cards stands above the maps: one per hero, side by side, 420 canvas units tall (442 wide for two, 285 for
+  three). Each shows the hero's standing frame (`HeroDefinition.Portrait`, in the card's well), its name with the
+  character's own name under it ("Cinder Arcanist / Ilya Kest"), a one-line role (`HeroDefinition.Role`, new), the
+  weapon it would carry (`CombatSetup.WeaponFor`: the run's own for the scene's hero, otherwise as the forge's rack would
+  equip it) and a state line: "Selected", "Tap to choose", or for a locked hero "Locked: Clear The Foundry with the Staff"
+  (`PrototypeTextDefinition.HeroLockedFormat` with the hero's `UnlockHint`, as the forge's chooser words it). A locked
+  card is shaded and cannot be tapped. Painted like the map cards: the chosen hero in the gold tier's treatment (its
+  crest and ground), the others in the neutral one; plain colours without the art set.
+- To fit the phone with the hero row, the map cards are 300 tall (were 380; 912 x 300, the preview 280 x 236): the panel
+  is 1644 units, inside a 16:9 phone's 1920 and the S23's 2340. A shorter safe area scales the whole panel down.
+- The scene's own hero (the profile's choice, as before) is lit when the panel opens. Tapping another playable hero lights
+  it and stores it in the profile exactly as the forge's chooser does (`PlayerProfile.SelectHero`, the default hero as
+  no choice); nothing starts until a map is tapped.
+- A map tapped with the scene's own hero behaves as before (the Foundry begins here; a deeper map reloads). With another
+  hero, any map reloads the scene once: `RunStartRequest` carries the floor and the hero's id, `CombatSetup.Awake` takes
+  both before choosing the hero (the request's hero wins over `development/hero.txt` and the profile, when playable), and
+  that load starts on the floor with no panel. A floor-1 run with a new hero is then exactly a floor-1 run as before;
+  its telemetry's `hero_id` is the new hero's, and the floor-1 scene it left never began its telemetry.
+
+### Catch-up per hero: pooled stays
+
+Re-run on this branch (the same batch as below, 2026-11-14), the careful cohort's arrival level per hero:
+
+| Arriving on | Vanguard (P50, P25-P75, range) | Ilya (P50, P25-P75, range) | Pooled (shipped) |
+|---|---|---|---|
+| Floor 2 | 31 (30-31, 29-33; 195 runs) | 30 (30-31, 29-32; 198 runs) | 31 |
+| Floor 3 | 44 (44-45, 42-46; 191 runs) | 44 (43-44, 42-46; 194 runs) | 44 |
+
+One level apart on floor 2, inside both heroes' quartiles, and equal on floor 3: the pooled levels stay for both heroes.
 
 ## Starting deeper is the floor a descent reaches
 
@@ -86,5 +123,6 @@ gold a hero would typically carry down would be forge gold the player never earn
 ## Tests
 
 - EditMode: `DescentCatchUpTests` (also in CombatChecks), `MapStartFloorTests`, `RunTelemetryTests.ARunStartedOnADeeperMapTagsItsStartFloor`.
-- PlayMode: `MapChoiceFlowTests`.
+- PlayMode: `MapChoiceFlowTests`, `HeroAndMapChoiceFlowTests` (Ilya + the Foundry; the Vanguard + the Gloam Gardens; a
+  locked hero; the panel opens once). EditMode: `MapStartFloorTests.TheHeroChosenWithTheMapIsReadOnceWithIt`.
 - CombatChecks: `DevicePullTests.ARunBegunOnADeeperMapIsLeftOutOfTheOwnersFloors`.

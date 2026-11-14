@@ -7,7 +7,8 @@ using UnityEngine.UI;
 
 namespace Cryptforge.UI
 {
-    // The hero for the next run, chosen on the Relic Forge panel (docs/45, the Cinder Arcanist). A tap moves to the next
+    // The hero for the next run, chosen on the Relic Forge panel (docs/45, the Cinder Arcanist), as it is also chosen at
+    // every run's start beside the map (MapChoiceView's hero row, docs/53), both into the profile. A tap moves to the next
     // playable hero and the profile remembers it; Start then reloads the scene with that hero. It shares the start
     // button's row - the chooser on the left, the start button narrowed to the right - and its look, so the scene does
     // not change. Built in code by RelicForgeView when the roster has more than one hero. When a hero is still locked,
