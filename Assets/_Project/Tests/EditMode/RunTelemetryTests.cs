@@ -1111,6 +1111,45 @@ namespace Cryptforge.Tests
             recorded.Recorder.Dispose();
         }
 
+        // A run begun on a deeper map (MapChoiceView, DescentStart) says so on run_start, after the keys every run writes,
+        // so the V0.1 gate's device rows can set it apart (DevicePull); a floor-1 run's line keeps its keys exactly. The
+        // catch-up's level-ups are then the run's own offers and picks.
+        [Test]
+        public void ARunStartedOnADeeperMapTagsItsStartFloor()
+        {
+            string[] runStartKeys =
+            {
+                "v", "seq", "t", "st", "session", "run", "event",
+                "run_ordinal", "hero_id", "weapon_id", "relic_id", "ability_id", "forge_gold", "deepest_floor", "seed"
+            };
+            foreach (int startFloor in new[] { 0, 1 })
+            {
+                var plain = new Telemetry();
+                var plainScene = new Scene(null);
+                var plainRecorder = new RunTelemetry(Mutated(plainScene, plain, c => c.StartFloor = startFloor));
+                plainRecorder.Begin();
+                Line plainStart = Single(plain.Lines(), "run_start");
+                Assert.That(plainStart.Keys, Is.EqualTo(runStartKeys), "start floor " + startFloor);
+                plainRecorder.Dispose();
+            }
+
+            var telemetry = new Telemetry();
+            var scene = new Scene(null);
+            var recorder = new RunTelemetry(Mutated(scene, telemetry, c => c.StartFloor = 3));
+            recorder.Begin();
+            Assert.That(DescentStart.CatchUp(scene.Run, 3), Is.EqualTo(44));
+            Assert.That(scene.PickUpgrade(0), Is.True);
+            List<Line> lines = telemetry.Lines();
+            AssertLogShape(lines);
+            Line start = Single(lines, "run_start");
+            Assert.That(start.Keys, Is.EqualTo(With(runStartKeys, "start_floor")));
+            Assert.That(start.Integer("start_floor"), Is.EqualTo(3L));
+            Line offered = All(lines, "upgrade_offered")[0];
+            Assert.That((offered.Integer("run_level"), offered.Integer("pending")), Is.EqualTo((44L, 44L)),
+                "The catch-up's first level-up, offered at the start floor's level with all of them pending.");
+            recorder.Dispose();
+        }
+
         [Test]
         public void TheContextIsValidatedBeforeAnythingSubscribes()
         {

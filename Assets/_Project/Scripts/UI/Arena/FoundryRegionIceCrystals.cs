@@ -19,12 +19,14 @@ namespace Cryptforge.UI
         private static readonly Color IceDeep=Hex(0x1F4E66);
         private GameObject _iceCrystals;
 
-        // The finished geometry of a theme prop: positions, colours and triangles, worked out off the main thread.
+        // The finished geometry of a theme prop: positions, colours, triangles (and uvs), worked out off the main thread.
         private sealed class PropGeometry
         {
             public readonly List<Vector3> V=new List<Vector3>();
             public readonly List<Color> C=new List<Color>();
             public readonly List<int> T=new List<int>();
+            // Texture coordinates, for a prop drawn from an atlas (the garden growth); the ice's are left empty.
+            public readonly List<Vector2> U=new List<Vector2>();
         }
 
         private void BuildIceCrystals(PlatformMaterialSet set)

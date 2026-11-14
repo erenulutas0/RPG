@@ -63,6 +63,7 @@ namespace Cryptforge.Tests
                 Assert.That(built, Is.Not.Null, prop + " is built during floor 1.");
                 Assert.That(built.gameObject.activeSelf, Is.False, "Floor 1 never shows " + prop + ".");
             }
+            Assert.That(arena.Region.transform.Find("Garden roots, fungi and moss"), Is.Null, "Floor 1 builds nothing of floor 3's.");
             // The region's meshes keep the foundry's colours for good; no renderer carries a theme stream yet.
             foreach (var renderer in arena.Region.GetComponentsInChildren<MeshRenderer>(true))
                 Assert.That(renderer.additionalVertexStreams, Is.Null, renderer.name + " carries no theme colours on floor 1.");

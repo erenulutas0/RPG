@@ -153,6 +153,8 @@ namespace Cryptforge.Tests
             // away on the phone).
             public int EarlierRuns;
             public int ProbeRuns;
+            // Begun on a deeper map (the map choice, run_start's start_floor 2 or 3): left out of the floors.
+            public int DeeperStartRuns;
             public int UnfinishedFloors;
             // FrameTimeProbe's [Perf] windows and RenderStatsProbe's [RenderStats] ones, in time order, on that APK; the
             // frames past 35 ms the [Perf] lines name one by one; the windows the log held from before the install.
@@ -606,6 +608,8 @@ namespace Cryptforge.Tests
                 left.Add($"{device.EarlierRuns} begun before the install (another APK)");
             if (device.ProbeRuns > 0)
                 left.Add($"{device.ProbeRuns} of the density probe (development/horde-probe.txt, its hero at a million health)");
+            if (device.DeeperStartRuns > 0)
+                left.Add($"{device.DeeperStartRuns} begun on a deeper map (the map choice's floor 2 or 3, its hero caught up)");
             if (device.UnfinishedFloors > 0)
                 left.Add($"{Many(device.UnfinishedFloors, "floor")} never finished (the app closed, the run still on at the pull, or its lines rotated away on the phone)");
             string basis =

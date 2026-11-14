@@ -6,7 +6,8 @@ brass and gold become verdigris #6FA38C; everything else is desaturated toward a
 (alpha) gets a moss cap where the ice pass had rime: the few rows under every top edge of its silhouette go toward
 moss #3F5A32-#4F6B3A. Alpha is kept. No orchid (hue 280-330 is the enemies' alone, docs/51 7.3). Outputs go to
 Assets/_Project/Resources/Gloam/<same name>.png, loaded by name only on floor 3, with the import settings of the
-Resources/Ice twin (its .meta copied under a fresh guid; an existing output keeps its guid).
+Resources/Ice twin, or of the source for a floor-3-only variant (the gate facade), its .meta copied under a fresh guid
+(an existing output keeps its guid).
 Usage: python -I Tools/ArtReview/GenerateGloamGlowTextures.py
 """
 import os
@@ -45,6 +46,9 @@ SOURCES = [
     # The boiler wrap's fire window to a dim gloamlight.
     ("Assets/_Project/Art/Props/Foundry/FoundryBoilerWrap.png", 0.6, 0.85),
     ("Assets/_Project/Art/Environment/Platform/ENV_Platform_Floor.png", 0.85, 0.9),
+    # Floor 3 only (no Ice twin; its source's import): the gate facade, whose brass ring, crest and bands go to
+    # verdigris (docs/51 section 4) - the door leaves share it.
+    ("Assets/_Project/Art/Props/Foundry/GateFacade.png", 0.85),
 ]
 
 
@@ -110,8 +114,10 @@ def main():
         if os.path.exists(meta):
             with open(meta) as f:
                 guid = re.search(r"^guid: (\w+)", f.read(), re.M).group(1)
-        # The Resources/Ice twin's import settings (the same as the source's), under this output's own guid.
-        with open(os.path.join(ICE, name + ".meta"), newline="") as f:
+        # The Resources/Ice twin's import settings (the same as the source's), under this output's own guid; a floor-3
+        # only variant takes its source's.
+        twin = os.path.join(ICE, name + ".meta")
+        with open(twin if os.path.exists(twin) else path + ".meta", newline="") as f:
             text = f.read()
         text = re.sub(r"^guid: \w+", "guid: " + (guid or uuid.uuid4().hex), text, count=1, flags=re.M)
         with open(meta, "w", newline="") as f:
