@@ -2,7 +2,12 @@
 
 **Status 2026-11-12:** the Mirror Sentry is built and **cleared to ship as `sentry-r0-f70`** (step 2 of section 8;
 "Lead decisions 2026-11-12" and "Shipped: `sentry-r0-f70`" at the end). It takes 70 % of a landing from its front and
-reflects nothing; the reflection is a violet glint only. The Wisp, the Clerk and the Regent stay simulation-only research.
+reflects nothing; the reflection is a violet glint only. The Wisp and the Clerk stay simulation-only research.
+
+**Status 2026-11-14:** the Glass Regent is built and **cleared to ship as floor 2's gate boss** (step 6 of section 8,
+stage 1: the lane on the Warden's clock and the sidestep; "The Glass Regent in the game" at the end): share 7.0, its lane
+10 % of the hero's maximum with a 1.5 s telegraph. Under the lead's relative rule it costs the clumsy cohort no completion
+in 800 against the Forge Warden. Stage 2 (the copies) is not built.
 
 A proposal for the owner's decision. Nothing here is built: no code, asset, scene or setting changed. Numbers cited as
 "measured" name their source in docs/41, docs/47 or docs/48. Every other number is a starting value for the simulation
@@ -988,3 +993,138 @@ differed, and runs are seeded, so threads change no result.
   first-card, clumsy, auto-farmer. They were 191 / 191, 180 / 170, 172 / 192, 66 / 108 and 3 / 8 with the Captain.
 - The cohorts that reach the finale number 189 / 190, 165 / 162, 164 / 179, 62 / 98 and 4 / 2. The clumsy cohort's 160 of
   400 is `r0-f70`'s reading above.
+
+## The Glass Regent in the game (stage 1, 2026-11-13 / 14)
+
+**Status: built and cleared to ship** as floor 2's gate boss under the lead's relative rule, at share 7.0, with its lane at
+**10 %** of the hero's maximum and a **1.5 s** telegraph. Section 6's stage 1 only: the lane on the Warden's clock and the
+sidestep habit. The copies and their phase-two beat (stage 2) are not built.
+
+**The lead's decisions** (2026-11-12, round 2 above): the Glass Regent replaces the Forge Warden as floor 2's gate boss
+at a Warden-style share of 7.0, in band as the Warden is; it needs the sidestep habit in `DevelopmentAutopilot` and the
+simulation together; round 2's misses to work on are the careful pilot's lane hits (0.4-0.6 a fight, section 7 asks at
+most 0.3) and the clumsy cohort's lost clears. The ship rule, as for the Sentry since its relative rule: over seeds 1-400
+the Regent may cost the clumsy cohort at most 1 four-floor completion in 800 against the Forge Warden on the same seeds,
+with the shipped Sentry (`r0-f70`) in; careful floor-2 clears within 3 of the Warden's on each range; the Sword keeps its
+lead on the gate boss; the careful fight stays in band.
+
+**What ships.**
+- Floor 2's gate room (`Floor_QuicksilverVaults`, still named "Warden's Vault": section 9's question 2 is open) opens on the
+  Glass Regent and two Cinder Mites, at `_foundryGateHealthShare` 7.0: 300 x 7.0 x 1.4 x the run's difficulty, 4,704 at
+  1.6 (the Warden's 8.5 / 1.4 gave 4,080). Floors 1 and 3 keep the Forge Warden.
+- `RegentRule`: as the Warden's mark goes down where the hero stands, a lane from where the Regent stands through that
+  spot, 1.2 wide and 10 long from the Regent. When it fills, a hero still inside takes 10 % of its maximum health (once,
+  however many lanes it stands in). The Warden's beat: a lane 6 s after the last blow, 4 s below half health, the weapon
+  held from the mark until 1.5 s after the blow; but a telegraph of 1.5 s, not the Warden's 1.1. Phase two is the Warden's
+  (the faster beat, the horde thickening round it). The Glass Rod: 5 every 1.8 s, reach 1.7, 1.0 s before the first.
+- **The sidestep** (`FootworkRule.Sidestep`): a pilot standing within 0.175 of a lane steps to the nearest spot clear of
+  every lane by 0.35 that the floor holds - the first of seven rings, 0.5 to 3.2 units round the hero, 24 bearings a ring,
+  that has one, and on it the spot farthest from the mark. It belongs to the cohorts that leave the Warden's mark away from
+  it (`AutopilotCohort.Sidesteps`: careful, standing, first-card), in `DevelopmentAutopilot` and the simulation alike. The
+  clumsy cohort leaves a lane's mark as it leaves a circle, by the nearest of eight points 3.2 from the mark; the
+  auto-farmer does not leave marks.
+- The clock holds whenever the encounter holds (the reveal, a choice panel), as the Warden's does; no projectile: the lane
+  is a mark on the floor (section 2).
+
+**How it is built.**
+- `Scripts/Combat/RegentRule.cs`: the tuning, `RegentRule.InLane` (the lane test, one never-inlined body for the scene and
+  the simulation) and `RegentLanes` (one beat's lanes: the mark, each caster's spot, `Holds`). `WardenSlamClock.Tune` gives
+  the clock a beat of its own per gate boss (the Warden's by default, byte for byte).
+- Scene: `GlassRegent` on the Regent's prefab marks it as a lane caster and holds the lane's two sprites and the copies'
+  set. `WardenSlamService` (order -40, as before) tunes the clock to the Regent's beat, records the lane as the mark goes
+  down and judges the blow by `RegentLanes.Holds`. `WardenSlamView` lays each lane as the art's two 9-slice sprites
+  (`FX_RegentLane_Edge`, `FX_RegentLane_Fill`; `Tools/ArtReview/BuildRegentLaneMark.py`'s recipe): the edge tinted Ember
+  with the Warden's pulse, the red-orange fill growing across the lane from its middle line with
+  `WardenSlamClock.TelegraphProgress`, both flashing hot on the blow, and no Warden's ring. `DevelopmentAutopilot` steps
+  the sidestep before the circle's escape.
+- `Enemy_GlassRegent` (300, speed 1, gold 50, experience 10), `Weapon_GlassRod`, `GlassRegent.prefab` (a variant of
+  `ForgeWarden.prefab`: its enrage and its windup, wearing `GlassRegentArtSet`, born on floor 2 with no frosted copy; the
+  copies' `GlassRegentCopyArtSet` waits on `GlassRegent` for stage 2), `Resources/Development/Floor_RegentProof` (the gate,
+  the Regent alone).
+- Simulation: `DescentSimulation.GlassRegent` leads floor 2's gate (`FloorTwoGateShare` 7.0); its lanes are marked in
+  `StepWarden` where the service marks them. `FoundryLevers.VaultsWarden` puts the Warden back at 6.071429 for a comparison
+  on the same seeds; `SidestepsTheRegent`, `RegentLaneShare`, `RegentTelegraph`, `RegentLaneLength`, `RegentLaneWidth`,
+  `RegentEvery`, `RegentEveryPhaseTwo`, `RegentHealthShare` and `RegentCopies` move the tuning. The port reproduces round
+  2's holdout Regent cell (`round2-regent-7.0`: the Captain, two copies, share 7.0) cell for cell: careful 196 / 193,
+  standing 183 / 183, first-card 165 / 186, clumsy 56 / 91, careful P50 49 / 46 s. `VaultsEnemiesResearch` reads Regent
+  variants by their levers (`regent:l=0.10:t=1.5`, ...) and `VAULTS_COHORTS` for a quicker screen.
+- Tests: `RegentRuleTests` (the lane, a beat's lanes, the tuned clock, the sidestep across a lane where the circle's
+  escape runs down it, the tuning pinned in one test), `FoundrySimulationSceneValueTests.TheGlassRegentIsTheSimulations`
+  and floor 2's and floor 3's gate bosses, the PlayMode `GlassRegentFlowTests` on `floor_regent_proof` (caught on a lane and
+  along it, not across it; the rod held; the lane drawn and no ring; the enrage; the careful autopilot sidestepping three
+  beats), and the expectations the switch moves (`DescentFlowTests`' floor-2 list, `ClimbFloorContentTests`,
+  `FoundrySimulationTests`, `FoundryFloorThreeTests`, `ForgeWardenArtSetTests`).
+
+**The sweep** (`VaultsEnemiesResearch`, typical hands, the four-floor Descent, the shipped Sentry `r0-f70` beside it, share
+7.0; the careful and clumsy cohorts, both heroes; completion of 400 runs a range, floor-2 cells Vanguard / Ilya). The
+Warden's row is `warden` (`FoundryLevers.VaultsWarden`) on the same seeds.
+
+| Regent lane, telegraph | Clumsy completion 1-200 / 201-400 | Both (of 800), against the Warden | Careful F2 clears 1-200; 201-400 | Careful fight P50 s 1-200; 201-400 | Lane hits a fight, careful; clumsy (1-200) |
+|---|---|---|---|---|---|
+| Forge Warden (shipped before) | 160 / 146 | 306 | 191 / 194; 195 / 194 | 50 / 46; 50 / 46 | - |
+| 18 %, 1.1 s (docs/50's start) | 153 / - | - (-7 on 1-200 alone) | 194 / 196; - | 50 / 45; - | 0.50 / 0.36; 1.10 / 1.21 |
+| 12 %, 1.5 s | 153 / 148 | 301 (-5) | 195 / 193; 196 / 194 | 50 / 46; 49 / 46 | 0.45 / 0.28; 0.99 / 0.94 |
+| 10 %, 1.3 s | 158 / 144 | 302 (-4) | 193 / 194; 195 / 194 | 49 / 45; 49 / 46 | 0.50 / 0.36; 1.07 / 1.05 |
+| **10 %, 1.5 s (ships)** | **155 / 151** | **306 (0)** | 195 / 193; 196 / 194 | 50 / 46; 49 / 46 | 0.45 / 0.28; 0.99 / 0.94 |
+| 8 %, 1.5 s | 157 / 153 | 310 (+4) | 195 / 193; 196 / 194 | 50 / 46; 49 / 46 | 0.45 / 0.28; 1.00 / 0.94 |
+
+What the sweep showed:
+- **The clumsy cohort's cost is the fight's length and the lane's damage, not its floor-2 clears.** At 18 % and 1.1 s
+  it clears floor 2 about as often as with the Warden (57 / 98 against 62 / 101 on the `f50` Sentry, 63 / 107 against
+  64 / 107 at the shipped tuning) but leaves it weaker: its gate fight is 46 / 48 s against the Warden's 40 / 44 (share 7.0
+  is 15 % more health than 8.5 / 1.4, and a pilot that leaves a lane's mark as a circle's walks out of reach as it does
+  from the Warden), and it is caught by about one lane a fight. The completions are lost on floor 3 and in the finale.
+- **The lane's damage and its telegraph both pay; the lane's shape does not.** One lever at a time on seeds 1-200 (the
+  `f50` Sentry then, the Warden at 147): 10 % gave 145, 12 % 142, 14 % 141 (18 %: 139); the 1.5 s telegraph 145, 1.3 s
+  140; a lane 5, 6 or 8 long 142, 141, 139; 1.0 wide 141. The longer telegraph also takes the careful pilot's lane hits
+  from 0.44-0.50 to 0.28-0.45 a fight and the clumsy pilot's from 1.1-1.2 to 0.8-1.0.
+- **A lower share buys the clumsy cohort more but leaves the band.** With 10 % and 1.5 s on the shipped Sentry, seeds
+  1-200: share 6.1 completes 162, 6.4 162, 6.7 158 (the Warden 160), but the careful fight falls to 46 / 42, 47 / 44 and
+  48 / 44 s. The lead kept 7.0, the share that matches the Warden's band.
+- At 10 % and 1.5 s the two ranges split (-5 and +5) as the Sentry's did; the noise is about 10 completions a range (the
+  binomial SD at 40 % of 400). 8 % passes with more room (+4); 12 % and the 1.3 s telegraph do not.
+
+**The ship rule, at the shipped tuning** (every cohort, both heroes, both ranges; the roles row from the careful Vanguard
+started with each weapon):
+
+| Row | Seeds 1-200: Regent / Warden | Seeds 201-400: Regent / Warden | Rule |
+|---|---|---|---|
+| Clumsy completion (of 400) | 155 / 160 | 151 / 146 | **306 / 306 of 800: no cost** (at most 1) |
+| Careful F2 clears, V / I | 195 / 193 against 191 / 194 | 196 / 194 against 195 / 194 | within 3 on each range: met |
+| Careful fight P50 / P90 s, V; I (in 45-65 s) | 50 / 60; 46 / 57 (68 % / 52 %) against 50 / 61; 46 / 55 (69 % / 57 %) | 49 / 59; 46 / 55 (70 % / 57 %) against 50 / 60; 46 / 55 (70 % / 56 %) | in band (the Warden's): met |
+| The Sword's lead on the gate boss | +23 % (Sword 41.5, Staff 33.7) against +20 % | +33 % (Sword 44.3, Staff 33.3) against +25 % | kept: met |
+| Roles (`FoundryGate.LeadsJob`) | met (the Staff the horde, the Daggers the elite by +74 %) | met (the Daggers the elite by +58 %) | - |
+| Careful lane hits a fight, V / I | 0.45 / 0.28 | 0.41 / 0.36 | section 7 asks 0.3: Ilya met, the Vanguard not |
+| Standing F2 clears; boss deaths | 184 / 176; 3 / 3 against 174 / 172; 13 / 7 | 186 / 187; 3 / 5 against 177 / 179; 12 / 13 | - |
+| First-card F2 clears | 178 / 190 against 175 / 189 | 166 / 186 against 161 / 183 | - |
+| Clumsy F2 clears; boss deaths | 63 / 107; 7 / 10 against 64 / 107; 6 / 10 | 60 / 102 against 64 / 102 | - |
+| Completion: careful, standing, first-card (of 400) | 385, 344, 351 against 379, 327, 343 | 387, 356, 320 against 384, 332, 305 | - |
+| Careful-minus-standing F2 gap | 11 / 17 against 17 / 22 | 10 / 7 against 18 / 15 | - |
+
+**What it costs and what it leaves.**
+- The Regent is easier than the Warden for every cohort that sidesteps, the standing one most (its boss deaths fall from
+  13 / 7 to 3 / 3): a sidestep keeps the hero in reach where the Warden's circle sends it out. So it narrows the skill
+  separation the Sentry opened (the careful-minus-standing gap on floor 2 falls from 17 / 22 to 11 / 17 on seeds 1-200).
+  The read it asks (step across, not out) is one the careful, standing and first-card pilots share. The standing,
+  first-card and careful cohorts complete 17, 8 and 6 more Descents on seeds 1-200 and 24, 15 and 3 more on 201-400.
+- Section 7's careful lane-hit row (at most 0.3 a fight) is met for Ilya and not for the Vanguard (0.41-0.45). Most of what
+  is left is the typical hands' half-unit aim error against the sidestep's 0.35 margin and the lapses.
+- The 1.5 s telegraph is longer than the Warden's 1.1 (WardenRule's "0.8-1.2 s for a readable telegraph on a phone"): a
+  lane asks a direction as well as a moment. The owner's play on the phone should say whether it reads as slow.
+- Stage 2 (the copies at half health, three lanes from three sides, the phase-two beat) is not built: the shipped Regent's
+  margin under the rule is nil, and three lanes leave the clumsy cohort's nearest-of-eight escape fewer ways out (expected,
+  not measured on the four-floor Descent). `RegentCopies` stays in the simulation for that round; `GlassRegentCopyArtSet`
+  is on the prefab. The report's killer label for a lane is "Warden slam", the simulation's name for the gate boss's mark.
+
+**The default batch** (`FOUNDRY_SEEDS=200 FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_FLOORS=4 FOUNDRY_REALISM=typical
+FOUNDRY_PARALLEL=1`), before (the Forge Warden at the gate, the shipped Sentry) and after (the Regent): same code but the gate.
+- Floor 1 is byte-identical: `foundry-gate.md` and `foundry-batch.csv` match byte for byte (and match the batch before
+  the Sentry); in `foundry-batch.md` only the header's clock, floor 1's wall seconds and the floor-2 rows differ;
+  `foundry-cohorts.md` keeps every floor-1 line.
+- The cohorts' floor-2 clears move from 191 / 194, 174 / 172, 175 / 189, 64 / 107 and 5 / 7 to 195 / 193, 184 / 176,
+  178 / 190, 63 / 107 and 6 / 17 (careful, standing, first-card, clumsy, auto-farmer) - the research's seeds-1-200 cells
+  above, cell for cell.
+- The cohorts that walk out of the finale move from 189 / 190, 165 / 162, 164 / 179, 62 / 98 and 4 / 2 to 192 / 193,
+  176 / 168, 169 / 182, 57 / 98 and 5 / 4. The careful Descent's P50 stays 14.5 / 14.3 minutes; floor 2's gate fight
+  (the frame-perfect careful Vanguard, P10 / P50 / P90) is 38 / 49 / 61 s against the Warden's 42 / 52 / 64, at 4,704
+  health against 4,080.
