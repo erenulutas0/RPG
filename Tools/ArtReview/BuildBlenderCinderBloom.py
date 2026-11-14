@@ -1013,15 +1013,18 @@ def build_maul():
 
 
 # ---- The bloom and the roots: rebuilt for each pose from a formula, their topology fixed ----
-OUTER_PETALS, INNER_PETALS = 5, 5
-PETAL_ROWS, PETAL_COLS = 6, 5
+OUTER_PETALS, INNER_PETALS = 6, 5
+PETAL_ROWS, PETAL_COLS = 9, 7
 ROOTS_A_FOOT = 4
 ROOT_RINGS = 7
 
 
 def petal_grid(index, count, inner, t, wilt):
     """One petal's rows of points (base to tip) and tones, in the chest's rest space. t opens it (0 a bud deep in the
-    furnace, 1 wide open), wilt droops it and furls it (the death)."""
+    furnace, 1 wide open), wilt droops it and furls it (the death). Two layers read as a lotus, not a cabbage: the outer
+    ring broad, pointed and laid wide with its tips curling back; the inner ring narrow, standing up as a cup a little in
+    front of it and a step lighter. Each petal is cupped and creased down its middle, so its smooth shading shows a midrib
+    and its edges fall darker against the next."""
     a_axis = BLOOM_AXIS
     u1 = Vector((1, 0, 0))
     u2 = a_axis.cross(u1).normalized()
@@ -1029,19 +1032,20 @@ def petal_grid(index, count, inner, t, wilt):
     alpha = 2 * math.pi * index / count + phase + math.radians(90)
     radial = (u1 * math.cos(alpha) + u2 * math.sin(alpha)).normalized()
     tangent = a_axis.cross(radial).normalized()
-    length = lerp(0.07, 0.36, t) * (0.68 if inner else 1.0) * lerp(1.0, 0.85, wilt)
-    width = lerp(0.035, 0.17, t) * (0.72 if inner else 1.0)
-    spread = math.radians(lerp(6, 80 if not inner else 50, t ** 0.8))
-    curl = math.radians(lerp(0, 28 if not inner else 12, t))
+    length = lerp(0.07, 0.37, t) * (0.62 if inner else 1.0) * lerp(1.0, 0.85, wilt)
+    width = lerp(0.035, 0.165, t) * (0.62 if inner else 1.0)
+    spread = math.radians(lerp(6, 84 if not inner else 30, t ** 0.8))
+    curl = math.radians(lerp(0, 34 if not inner else 18, t))
     droop = math.radians(55 * wilt)
-    centre = MOUTH + Vector((0, CAVITY_DEPTH * lerp(0.75, -0.2, t), 0)) + a_axis * (0.02 if inner else 0.0)
+    lift = lerp(0.0, 0.06, t) if inner else 0.0
+    centre = MOUTH + Vector((0, CAVITY_DEPTH * lerp(0.75, -0.2, t), 0)) + a_axis * (0.02 + lift if inner else 0.0)
     down = Vector((0, 0, -1))
     rows, tones = [], []
-    p = centre + radial * (0.012 if inner else 0.02)
+    p = centre + radial * (0.01 if inner else 0.022)
     prev = p
     for k in range(PETAL_ROWS):
         s = k / (PETAL_ROWS - 1)
-        angle = spread * (0.45 + 0.55 * s) + curl * s * s
+        angle = spread * (0.4 + 0.6 * s) + curl * s * s
         direction = (a_axis * math.cos(angle) + radial * math.sin(angle)).normalized()
         if droop > 0:
             direction = (direction * math.cos(droop * s) + down * math.sin(droop * s)).normalized()
@@ -1049,15 +1053,16 @@ def petal_grid(index, count, inner, t, wilt):
             p = prev + direction * (length / (PETAL_ROWS - 1))
         prev = p
         normal = direction.cross(tangent).normalized()
-        w = width * (0.25 + 0.75 * math.sin(math.pi * min(1.0, 0.1 + s * 0.85)) ** 0.5) * (1 - 0.35 * wilt * s)
-        if k == PETAL_ROWS - 1:
-            w *= 0.25
-        cup = 0.32 * width * (1 - 0.6 * s) * lerp(1.0, 1.6, wilt)
+        # Lanceolate: a narrow base, widest past the middle, drawn to a point.
+        w = width * (0.16 + 0.84 * math.sin(math.pi * min(1.0, s ** 0.75)) ** 0.85) * (1 - 0.35 * wilt * s)
+        cup = 0.28 * width * (1 - 0.5 * s) * lerp(1.0, 1.6, wilt)
+        crease = 0.12 * width * (1 - 0.4 * s)
         row, row_tone = [], []
         for c in range(PETAL_COLS):
             u = -1 + 2 * c / (PETAL_COLS - 1)
-            row.append(p + tangent * (u * w) + normal * (cup * (1 - u * u) * -1.0))
-            row_tone.append(min(1.0, lerp(0.3, 1.0, s ** 0.8) + (0.1 if inner else 0.0) - 0.28 * u * u))
+            row.append(p + tangent * (u * w) - normal * (cup * (1 - u * u) + crease * (1 - abs(u))))
+            base = lerp(0.4, 1.0, s ** 0.75) + (0.16 if inner else 0.0)
+            row_tone.append(min(1.0, base - (0.22 if inner else 0.34) * u * u))
         rows.append(row)
         tones.append(row_tone)
     return rows, tones
@@ -1143,7 +1148,7 @@ ROOT_FEET_REST = [('L', Vector((0.2, -0.02, ANKLE_Z))), ('R', Vector((-0.2, -0.0
 
 def build_bloom_and_roots():
     verts, tones, glows = bloom_mesh_data(1.0, 0.0)
-    obj = new_object('Bloom petals', verts, bloom_faces(), 'chest', 'bloom', contour=False, chamfer=0.0,
+    obj = new_object('Bloom petals', verts, bloom_faces(), 'chest', 'bloom', contour=False, chamfer=0.0, flat=False,
                      show=lambda p: p.bloom_t > 0.0)
     for name, values in (('tone', tones), ('glow', glows)):
         attr = obj.data.attributes.new(name, 'FLOAT', 'POINT')
@@ -1325,7 +1330,7 @@ class Pose:
         self.shutters = 0.0       # degrees each shutter swings open
         self.roots = 0.0          # 0 none, 1 grown
         self.seam = (0.8, 0.45)   # the front furnace light's tone and glow (closed: a thin orchid seam)
-        self.grate = (0.34, 0.0)  # the rear grate's (closed: a dim ember of orchid)
+        self.grate = (0.1, 0.0)   # the rear grate's (closed: deep plum, near the bark; only the open grate is pink)
         self.floor = False        # settle the lowest point onto the floor (the death's drawings)
         self.state = 'closed'
 

@@ -71,11 +71,12 @@ ANDROID_MAX = 256           # the Captain's import caps Android at 256: every te
 
 # ---- The bloom: tune here (docs/52: the brightest orchid on the floor, #D86BD0 to #F6C2F0, never red-orange) ----
 BLOOM_VALUE = 1.0
+TONE_LIFT = 0.07            # added to every bloom tone before the ramp: the lit petals' value, their edges kept darker
 # The orchid ramp by tone (0 a shaded base deep in the furnace, 1 a lit tip / the heart), interpolated in linear light.
 RAMP = [(0.0, '#3A1046'), (0.24, '#5A1F66'), (0.46, '#B850B8'), (0.6, '#D86BD0'), (0.78, '#F2A8EC'), (1.0, '#FDE6FA')]
 ORCHID = '#D86BD0'
 GLOW_INSIDE = ((1.2, 0.55), (3.0, 0.35))      # (sigma, gain) pairs, inside the figure only
-GLOW_HALO = (3.5, 1.0, 0.55)                 # the open drawings' halo past the silhouette: sigma, gain, its alpha cap
+GLOW_HALO = (3.5, 1.3, 0.6)                  # the open drawings' halo past the silhouette: sigma, gain, its alpha cap
 
 FRAME_ORDER = ['idle', 'step-a', 'step-b', 'strike', 'pass-a', 'pass-b']
 WALKING = ['idle', 'step-a', 'step-b', 'pass-a', 'pass-b']
@@ -157,7 +158,7 @@ def process(record, ss):
     tone = np.where(m > 1e-4, aux[..., 1] / np.maximum(m, 1e-4), 0)
     value = BLOOM_VALUE * record['bloom']
     # The beauty drew the bloom black, so its colour adds by coverage and an edge texel is never counted twice.
-    lin = lin + ramp(tone) * (m * value)[..., None]
+    lin = lin + ramp(tone + TONE_LIFT * (m > 1e-4)) * (m * value)[..., None]
     glow = aux[..., 2] * value
     light = sum(blur(glow, sigma) * gain for sigma, gain in GLOW_INSIDE)[..., None]
     lin = lin + hexlin(ORCHID) * np.clip(light, 0, 0.7) * alpha * (1 - 0.6 * m[..., None])
@@ -441,7 +442,7 @@ def main():
     report = dict(art_set=dict(file=set_path.name, guid=set_guid), walk_body_size={f: list(walking['%s-idle' % f].shape[1::-1]) for f in FACINGS},
                   walk_body_pivot={f: list(walk_pivots[f]) for f in FACINGS}, visual_top=visual_top, shadow_width=shadow_width,
                   walk_cycle_distance=meta['stride'],
-                  bloom=dict(value=BLOOM_VALUE, ramp=RAMP, orchid=ORCHID, glow_inside=GLOW_INSIDE, halo=GLOW_HALO),
+                  bloom=dict(value=BLOOM_VALUE, tone_lift=TONE_LIFT, ramp=RAMP, orchid=ORCHID, glow_inside=GLOW_INSIDE, halo=GLOW_HALO),
                   open_state=open_state,
                   bark_chip=dict(frames=['CHR_%s_bark-chip-%d.png' % (STEM, k) for k in range(3)], guids=effects,
                                  note='Drawn as seen, pivot the struck point; tint the closed body\'s white flash '

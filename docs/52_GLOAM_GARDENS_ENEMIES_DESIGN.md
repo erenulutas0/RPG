@@ -578,7 +578,12 @@ In Assets, not yet imported by Unity, not yet worn by any prefab (the runtime bu
   `_frost` and `_gloam` empty (rule 6: no themed copy, so EnemyThemeArtTests' painted list is unchanged). The open state
   (unfold-0, unfold-1, open in each facing, each with a flash) and a three-frame bark chip lie beside the set; closing
   plays the unfold back. `CinderBloomArtSetTests` (Editor) checks the contract, the open state, the imports and the budget.
-- **Budget.** 59 textures, 1,306,304 bytes as ASTC 4x4 (closed 0.70 MB, open 0.30, death 0.30, chip 0.01) against the
+- **Budget.** 59 textures, 1,307,392 bytes as ASTC 4x4 (closed 0.70 MB, open 0.30, death 0.30, chip 0.01) against the
   Sentry's 1.07 MB; drawn at 0.88 of the model, 1.21 units tall (the Captain 1.06), about 145 px on the S23.
 - **Review.** `ArtDirection/2026-11-14/cinder-bloom-01/` (untracked): states, cycle, motion, the phone-scale lineup with
   its value map, the squint test, the bark chip, checks.json and sprites.json (the runtime's list of the open drawings).
+- **Polish (the lead's look, 2026-11-15).** Approved; orchid only (no gloamlight stamen). The petals are smooth-shaded
+  and finer, in two layers that read as a lotus: six broad pointed outer petals laid wide with curling tips, five narrow
+  inner petals standing up as a lighter cup in front, each creased down its middle. The closed rear grate is deep plum,
+  near the bark, so only the open grate reads pink; the open halo a little stronger. Open front orchid mean luminance
+  0.51, open rear 0.50; the pass-1 sheets are kept beside the new ones as `*-pass1.png`.
