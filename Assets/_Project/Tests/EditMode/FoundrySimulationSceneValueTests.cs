@@ -179,6 +179,11 @@ namespace Cryptforge.Tests
             Assert.That(art.name, Is.EqualTo("GlassRegentArtSet"));
             Assert.That(art.IsValid, Is.True);
             Assert.That(art.Frosted, Is.Null);
+            // Its glass copies' look, held for section 6's copies (the shipped Regent casts none: RegentCopies 0 below).
+            Assert.That(lanes.CopyArt, Is.Not.Null, "the copies' set");
+            Assert.That(lanes.CopyArt.name, Is.EqualTo("GlassRegentCopyArtSet"));
+            Assert.That(lanes.CopyArt, Is.Not.SameAs(art));
+            Assert.That(lanes.CopyArt.Frosted, Is.Null);
 
             var shipped = new DescentSimulation.FoundryLevers();
             Assert.That(shipped.RegentLaneWidth, Is.EqualTo(RegentRule.LaneWidth));

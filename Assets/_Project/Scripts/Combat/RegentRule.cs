@@ -4,8 +4,8 @@ using System.Runtime.CompilerServices;
 namespace Cryptforge.Combat
 {
     // The Glass Regent, floor 2's gate boss (docs/50 section 6; the lead's decisions 2026-11-12): the Forge Warden's fight
-    // on the Warden's clock (WardenSlamClock: a mark every 6 s, every 4 s below half its health, a 1.1 s telegraph, its
-    // weapon held from the mark until RecoverySeconds after the blow), but its mark is a sight line rather than a circle. As
+    // on the Warden's clock (WardenSlamClock: a mark every 6 s, every 4 s below half its health, its weapon held from the
+    // mark until RecoverySeconds after the blow) with a longer telegraph, Telegraph, and a sight line for its mark. As
     // the mark goes down the Regent marks a LANE from where it stands through where the hero stands, LaneLength long and
     // LaneWidth wide; when it fills, shards run down it and a hero still inside takes LaneShare of its maximum health. The
     // dodge is a sidestep across the lane (FootworkRule.Sidestep), not a run out of a circle: a step along the lane stays in
@@ -13,7 +13,11 @@ namespace Cryptforge.Combat
     //
     // The share of the gate is the Warden's lever (FloorDefinition.FoundryGateHealthShare, WardenRule.GateHealthShareOn):
     // floor 2 sets 7.0 for the Regent (docs/50, round 2 on the holdout seeds 201-400: careful P50 49 / 46 s, in band as the
-    // Warden's 50 / 46). Measured, not chosen: change it only with a re-measurement.
+    // Warden's 50 / 46). The lane's 10 % and its 1.5 s telegraph are docs/50's "Regent" sweep under the lead's relative
+    // rule (VaultsEnemiesResearch, seeds 1-400, typical hands, the shipped Sentry beside it): the clumsy cohort completes
+    // the four-floor Descent 306 times in 800 as with the Forge Warden (docs/50's starting 18 % and 1.1 s cost it 7 on
+    // seeds 1-200 alone), careful clears stay within 3 on both ranges and the fight in band. Measured, not chosen: change
+    // any of them only with a re-measurement.
     //
     // Pure: the scene's WardenSlamService and the foundry simulation (DescentSimulation.Vaults.cs) mark and judge the same
     // RegentLanes, and the lane test is one body that is never inlined, so the scene and the simulation round alike (the
@@ -24,11 +28,12 @@ namespace Cryptforge.Combat
     {
         public const float LaneWidth = 1.2f;
         public const float LaneLength = 10f;
-        public const float LaneShare = .18f;
-        // The clock (WardenSlamClock): the Warden's own beat, phase two's included.
+        public const float LaneShare = .1f;
+        // The clock (WardenSlamClock): the Warden's own beat, phase two's included, with a telegraph of its own - longer
+        // than the Warden's 1.1 s, the time a sidestep across a line needs to be read and walked (docs/50 "Regent").
         public const float Every = WardenRule.SlamEvery;
         public const float EveryPhaseTwo = WardenRule.SlamEveryEnraged;
-        public const float Telegraph = WardenRule.Telegraph;
+        public const float Telegraph = 1.5f;
         // At most this many bodies cast a lane on one beat.
         public const int MaxLanes = 3;
 

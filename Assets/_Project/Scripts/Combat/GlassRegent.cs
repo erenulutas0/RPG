@@ -1,3 +1,4 @@
+using Cryptforge.Art;
 using UnityEngine;
 
 namespace Cryptforge.Combat
@@ -6,7 +7,9 @@ namespace Cryptforge.Combat
     // prefab, it tells WardenSlamService that this gate boss marks a lane - from where it stands through the hero's spot -
     // where the Forge Warden marks a circle, on the same clock and with the same hold of its weapon. It carries the lane's
     // look too, the two 9-slice sprites WardenSlamView lays along the floor (Tools/ArtReview/BuildRegentLaneMark.py): the
-    // edge, tinted as the Warden's mark's edge, and the red-orange fill that grows across the lane with the telegraph.
+    // edge, tinted as the Warden's mark's edge, and the red-orange fill that grows across the lane with the telegraph. And
+    // the look of section 6's phase-two glass copies (GlassRegentCopyArtSet: paler, no heart, no crown, a shard burst for
+    // remains), held for the copies' stage: the shipped Regent casts no copies (RegentRule), so nothing draws it yet.
     // Off the foundry's gate - the hall arena, a swarm's ladder - nothing reads it and the Regent fights as authored.
     [RequireComponent(typeof(Health))]
     [DisallowMultipleComponent]
@@ -14,8 +17,10 @@ namespace Cryptforge.Combat
     {
         [SerializeField] private Sprite _laneEdge;
         [SerializeField] private Sprite _laneFill;
+        [SerializeField] private EnemyArtSet _copyArt;
 
         public Sprite LaneEdge => _laneEdge;
         public Sprite LaneFill => _laneFill;
+        public EnemyArtSet CopyArt => _copyArt;
     }
 }

@@ -43,3 +43,4 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   _laneEdge: {fileID: 21300000, guid: f341de51e2ad4bcabe992e1b9eb24c48, type: 3}
   _laneFill: {fileID: 21300000, guid: ddcdd3cd59d941389477bd340491e89d, type: 3}
+  _copyArt: {fileID: 11400000, guid: ecdcdda3410c42b09e2002674c3b399c, type: 2}
