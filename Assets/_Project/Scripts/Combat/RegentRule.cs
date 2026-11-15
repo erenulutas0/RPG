@@ -14,12 +14,14 @@ namespace Cryptforge.Combat
     //
     // The share of the gate is the Warden's lever (FloorDefinition.FoundryGateHealthShare, WardenRule.GateHealthShareOn):
     // floor 2 sets 7.0 for the Regent (docs/50, round 2 on the holdout seeds 201-400: careful P50 49 / 46 s, in band as the
-    // Warden's 50 / 46). The lane's 6 % and its 1.5 s telegraph are docs/50's "Regent" sweep under the lead's relative
+    // Warden's 50 / 46). The lane's 10 % and its 1.7 s telegraph are docs/50's "Regent" sweep under the lead's relative
     // rule (VaultsEnemiesResearch, seeds 1-400, typical hands, the shipped Sentry beside it, every lane reaching through the
-    // hero's spot since 2026-11-15): the clumsy cohort completes the four-floor Descent 305 times in 800 against the Forge
-    // Warden's 306, careful clears stay within 3 on both ranges and the fight in band; of the three tunings that pass (6 %
-    // and 1.5 s, 10 % and 1.7 s, 8 % and 1.7 s) it keeps the widest careful-minus-standing gap. 10 % and 1.5 s, cleared
-    // before the lanes reached, now cost 5. Measured, not chosen: change any of them only with a re-measurement.
+    // hero's spot since 2026-11-15): the clumsy cohort completes the four-floor Descent 309 times in 800 against the Forge
+    // Warden's 306, careful clears stay within 3 on both ranges and the fight in band. Of the three tunings that pass (6 %
+    // and 1.5 s, 10 % and 1.7 s, 8 % and 1.7 s) the lead chose this one (2026-11-15): their careful-minus-standing gaps lie
+    // inside the noise, and it has the most room under the rule with a lane that still matters beside the Warden's 20 %
+    // circle. 10 % and 1.5 s, cleared before the lanes reached, now cost 5. Measured, not chosen: change any of them only
+    // with a re-measurement.
     //
     // Pure: the scene's WardenSlamService and the foundry simulation (DescentSimulation.Vaults.cs) mark and judge the same
     // RegentLanes, and the lane test is one body that is never inlined, so the scene and the simulation round alike (the
@@ -30,12 +32,14 @@ namespace Cryptforge.Combat
     {
         public const float LaneWidth = 1.2f;
         public const float LaneLength = 10f;
-        public const float LaneShare = .06f;
+        public const float LaneShare = .1f;
         // The clock (WardenSlamClock): the Warden's own beat, phase two's included, with a telegraph of its own - longer
-        // than the Warden's 1.1 s, the time a sidestep across a line needs to be read and walked (docs/50 "Regent").
+        // than the Warden's 1.1 s, the time a sidestep across a line needs to be read and walked (docs/50 "Regent"). Above
+        // the 0.8-1.2 s a phone telegraph is read in: the owner's play on the S23 is to judge it, and it may come down once
+        // the device read is in (re-measured with the lane's share).
         public const float Every = WardenRule.SlamEvery;
         public const float EveryPhaseTwo = WardenRule.SlamEveryEnraged;
-        public const float Telegraph = 1.5f;
+        public const float Telegraph = 1.7f;
         // At most this many bodies cast a lane on one beat.
         public const int MaxLanes = 3;
         // How far past the hero's spot a lane reaches at the least, where the hero stands farther from its caster than
