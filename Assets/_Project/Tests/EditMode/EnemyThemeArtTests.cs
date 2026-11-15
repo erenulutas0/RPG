@@ -8,7 +8,8 @@ namespace Cryptforge.Tests
 {
     // Each painted foundry enemy has a copy per themed floor (EnemyArtSet.ForTheme): frosted on floor 2 (docs/49) and
     // bloomed on floor 3 (docs/51, Tools/ArtReview/GenerateGloamEnemyArt.py), pose for pose with the painted set, the
-    // white flashes shared. A copy has no copies of its own, and the foundry has none.
+    // white flashes shared. A copy has no copies of its own, and the foundry has none. Floor 3's own enemies (the Cinder
+    // Bloom, the Pollen Wraith, the Thornling) are born in the garden's palette and have no copies at all.
     public sealed class EnemyThemeArtTests
     {
         const string Art = "Assets/_Project/Art/Characters/";
@@ -17,6 +18,30 @@ namespace Cryptforge.Tests
             "SlagBrute/SlagBruteArtSet", "Runner/RunnerArtSet", "Tank/TankArtSet", "GruntCaptain/GruntCaptainArtSet",
             "CinderMite/CinderMiteArtSet", "ForgeWarden/ForgeWardenArtSet",
         };
+        // Floor 3's own enemies (docs/52 section 2 rule 6): drawn in the garden's palette from the start, so they have
+        // no themed copies at all - the set is its own look on every floor, and no Ice/ or Gloam/ folder holds copies.
+        static readonly string[] BornOnFloorThree =
+        {
+            "CinderBloom/CinderBloomArtSet", "PollenWraith/PollenWraithArtSet", "Thornling/ThornlingArtSet",
+        };
+
+        [Test]
+        public void FloorThreesOwnEnemiesHaveNoThemedCopies()
+        {
+            foreach (string name in BornOnFloorThree)
+            {
+                Assert.That(System.Array.IndexOf(Sets, name), Is.LessThan(0), name + " is not a painted foundry set.");
+                var own = AssetDatabase.LoadAssetAtPath<EnemyArtSet>(Art + name + ".asset");
+                Assert.That(own, Is.Not.Null, name);
+                Assert.That(own.IsValid, Is.True, name);
+                foreach (FloorTheme theme in new[] { FloorTheme.Foundry, FloorTheme.Ice, FloorTheme.Gloam })
+                    Assert.That(own.ForTheme(theme), Is.Null, name + ": " + theme);
+                Assert.That(own.Frosted, Is.Null, name);
+                string folder = Art + name.Substring(0, name.IndexOf('/'));
+                Assert.That(AssetDatabase.IsValidFolder(folder + "/Ice"), Is.False, name);
+                Assert.That(AssetDatabase.IsValidFolder(folder + "/Gloam"), Is.False, name);
+            }
+        }
 
         [Test]
         public void EveryPaintedEnemyHasAFrostedAndABloomedCopyPoseForPose()
