@@ -13,27 +13,30 @@ Options after the "--":
     --no-render      build and save the .blend, render nothing
 
 THE POLLEN WRAITH (the Mite's contract: idle, step A, step B, strike a facing, the strike windup, the two remains, its
-own death of seven drawings a facing). What the memory-trees shed: a small pale-orchid mote drifting a hand over the
-loam - a teardrop puff of pollen-down (`#F6C2F0` lit) cupped from below by six orchid bracts, a dark seed core
-(`#5A1F66`) on its face like a single eye, a crown of five pappus wisps, three filaments trailing behind. Pale ORCHID,
-never ash-white (Ilya's robe is ash-white, docs/52 section 3). It drifts (the step drawings bob it and sway the
-filaments), snaps (the strike: lunged forward, bracts flared like a closing flower) and bursts (its death: the puff pops,
-the wisps scatter, the spent husk falls and greys). The seed core is a separate part the beauty pass draws black: the aux
-pass writes its coverage and tone and the glow round it, so PackGloamHordeSprites.py lays its plum ramp and the pale
-light about it (and a faint halo round the whole puff) without rendering again (docs/52 "Art": the core a separate
-emissive part).
+own death of seven drawings a facing). What the memory-trees shed: a small drifting spirit of pollen-down a hand over the
+loam - a soft puff, pale lilac-white with only a faint orchid tint (the lead's look, 2026-11-15: the open Cinder Bloom
+must stay the floor's one saturated orchid mass; cool lilac, not Ilya's warm ash-white), a dark plum seed eye
+(`#5A1F66`) on its face, two veil fins at its flanks, a few wisps of down swept back off its crown, and one tapering tail
+that fades to nothing, down and off to the side in a lazy S; every living drawing leans into the drift and a little to
+one side. It drifts (the step drawings bob it and swing the tail), snaps (lunged forward, fins flung forward) and bursts
+(the puff pops, the wisps fly, the spent husk falls and greys). The seed eye is a separate part the beauty pass draws
+black: the aux pass writes its coverage and tone and the glow round it, so PackGloamHordeSprites.py lays its plum ramp
+and the pale light about it (and a faint halo round the whole puff) without rendering again (docs/52 "Art": the core a
+separate emissive part).
 
 THE THORNLING (the Runner's contract: six bodies a facing - idle, step A, step B, strike, pass A, pass B - the strike
 windup, the two remains and its own death of five drawings a facing; plus, outside the set, the dive, the eruption and
 the stuck pose). The Runner's thorned cousin: a lean, hunched runner of dark bark (`#4A3B33`, darker than the Runner's
-recolour: Ilya's robe), long root legs, long arms ending in three thorn claws, a ridge of thorns down its back, three
-swept thorns on its narrow skull and a root tail; the thorns' tips orchid (the only light on it). It lopes low (the
-walk is a run), rakes with its right claws, dives head first into the ash (dive-0..2), bursts out of it (erupt-0..2)
-and sticks, claws caught in the ash (stuck-0..1). Under the floor everything is held out: a holdout plane at the floor
-cuts the body where the ash would, so the dive and the eruption need no masks.
+recolour: Ilya's robe), long tapering root legs and arms with no ball joints (each limb runs on past its joint into the
+next, knuckles of bark along them), the wrists splitting into three thorn claws, a crest of thorns standing up off the
+hunched spine, large collar and shoulder thorns, three swept thorns on its narrow skull and a root tail; the thorns'
+tips orchid (the only light on it). It lopes low (the walk is a run), rakes with its right claws, dives head first into
+the ash (dive-0..2), bursts out of it (erupt-0..2) and sticks, claws caught in the ash (stuck-0..1). Under the floor
+everything is held out: a holdout plane at the floor cuts the body where the ash would, so the dive and the eruption
+need no masks.
 
 Nothing here is generated imagery: lofted rings, plates and primitives, rigid parts riding bones, the Wraith's puff,
-bracts, wisps and filaments rebuilt from a formula for each pose (constant topology), one authored toon node group
+fins, wisps and tail rebuilt from a formula for each pose (constant topology), one authored toon node group
 (BuildBlenderCinderBloom.py's), every frame a pose computed below. Camera, scale and facings as
 BuildBlenderCinderBloom.py: orthographic, 30 degrees down, 128 texels a world unit, both facings looking left.
 No red-orange (the telegraphs') and no gloamlight (the garden's) anywhere on either (docs/52 section 2 rule 3).
@@ -326,12 +329,13 @@ def build_toon_group():
 TOON = build_toon_group()
 
 PALETTES = {
-    # The Wraith: pale orchid pollen-down (docs/52: #F6C2F0 lit), never ash-white - the mid and shade stay plainly
-    # orchid so the mote never sits at Ilya's robe's value AND hue.
-    'puff': ('#F6C2F0', '#E09AD8', '#AE62AE', '#4E1F58'),
-    'wisp': ('#FAD6F4', '#E8AAE2', '#B672B6', '#4E1F58'),
-    'bract': ('#E39CDC', '#C26CBE', '#86408E', '#34123F'),
-    'filament': ('#E7A6E0', '#C47AC2', '#8A4892', '#34123F'),
+    # The Wraith: pale lilac-white pollen-down with only a faint orchid tint (the lead's look, 2026-11-15: the open
+    # Bloom is the floor's one saturated orchid mass). Cool lilac, not ash-white: Ilya's robe (#D8CFC2) is warm, and the
+    # plum seed eye and the outline keep the mote apart from her. Low contrast between the bands: soft, near translucent.
+    'puff': ('#F7EDFB', '#E3D1EE', '#C2A9D5', '#5E4672'),
+    'wisp': ('#FBF4FD', '#EADDF2', '#CBB6DC', '#5E4672'),
+    'fin': ('#EEDDF4', '#D9C0E7', '#B595CB', '#553E6A'),
+    'tail': ('#F1E5F7', '#DECAEB', '#BEA3D2', '#553E6A'),
     # The Thornling: dark bark (docs/52 #4A3B33 the shade), a step below the Runner's recolour; limbs darker still.
     'thorn-bark': ('#7A6758', '#55463C', '#3F322B', '#14100D'),
     'thorn-limb': ('#6C5B4F', '#4A3B33', '#342922', '#110C0A'),
@@ -479,6 +483,24 @@ def plain(name, palette, aux_glow=None, **kw):
     return s.finish(s.toon(palette, **kw), aux=aux)
 
 
+def faded(name, palette, aux_glow):
+    """A toon material that fades along the vertex attribute 'fade' (0 opaque .. 1 at 15 %): a wisp of down that
+    thins to nothing."""
+    s = Shading(name)
+    colour = s.toon(palette, rim=0.2, band_shift=0.06)
+    final = s.mix(s.state('Aux pass'), colour, s.combine(0.0, 0.0, aux_glow))
+    e = s.nodes.new('ShaderNodeEmission')
+    s.links.new(final, e.inputs['Color'])
+    t = s.nodes.new('ShaderNodeBsdfTransparent')
+    m = s.nodes.new('ShaderNodeMixShader')
+    s.links.new(s.math('SUBTRACT', 1.0, s.math('MULTIPLY', s.math('POWER', s.attribute('fade'), 1.6), 0.85)),
+                m.inputs['Fac'])
+    s.links.new(t.outputs[0], m.inputs[1])
+    s.links.new(e.outputs[0], m.inputs[2])
+    s.links.new(m.outputs[0], s.out.inputs['Surface'])
+    return s.mat
+
+
 def outline_material():
     s = Shading('Contour (inverted hull)')
     emit = s.nodes.new('ShaderNodeEmission')
@@ -510,7 +532,7 @@ def thorn_tip_material():
     life = s.state('Life')
     tone = s.math('MULTIPLY', s.attribute('tone'), s.math('MULTIPLY_ADD', s.lit(), 0.7, 0.5), clamp=True)
     beauty = s.mix(s.state('Preview'), s.rgb('#000000'), s.rgb('#D86BD0'))
-    glow = s.math('MULTIPLY', s.math('MULTIPLY', s.attribute('tone'), 0.5), life)
+    glow = s.math('MULTIPLY', s.math('MULTIPLY', s.attribute('tone'), 0.7), life)
     return s.finish(beauty, aux=s.combine(1.0, tone, glow))
 
 
@@ -543,10 +565,11 @@ def build_materials():
     m['outline'] = outline_material()
     m['holdout'] = holdout_material()
     if CREATURE == 'wraith':
-        m['puff'] = plain('Pollen down', 'puff', aux_glow=0.32, spec=0.12, spec_color='#FFF2FC', rim=0.3)
-        m['wisp'] = plain('Pappus wisps', 'wisp', aux_glow=0.25, rim=0.3)
-        m['bract'] = plain('Bracts', 'bract', spec=0.1, spec_color='#FBE3F8', rim=0.35, band_shift=0.02)
-        m['filament'] = plain('Filaments', 'filament', aux_glow=0.12, rim=0.3)
+        m['puff'] = plain('Pollen down', 'puff', aux_glow=0.32, spec=0.1, spec_color='#FFFFFF', rim=0.25,
+                          band_shift=0.06)
+        m['wisp'] = plain('Down wisps', 'wisp', aux_glow=0.25, rim=0.2, band_shift=0.08)
+        m['fin'] = plain('Veil fins', 'fin', aux_glow=0.15, rim=0.25, band_shift=0.04)
+        m['tail'] = faded('Tail (fading to its tip)', 'tail', aux_glow=0.2)
         m['core'] = seed_core_material()
     else:
         m['bark'] = plain('Thorn bark', 'thorn-bark', spec=0.08, rim=0.5, grain=0.45)
@@ -746,7 +769,7 @@ def plate(name, rows, thickness, bone, material, inward, **kw):
     return new_object(name, verts, faces, bone, material, **kw)
 
 
-def thorn(name, base, direction, length, radius, bone, tip_share=0.42, bend=None, material='limb', count=6):
+def thorn(name, base, direction, length, radius, bone, tip_share=0.48, bend=None, material='limb', count=6):
     """A thorn: a tapering cone along direction (curving toward bend over its length), its base bark and its tip an
     orchid part of its own (the 'tone' attribute rising base to tip) - the Thornling's only light."""
     d = Vector(direction).normalized()
@@ -789,87 +812,79 @@ def side_point(v, side):
 # The Pollen Wraith: formula meshes on one 'body' bone
 # ---------------------------------------------------------------------------------------------------------------------
 W_CENTRE = Vector((0, 0, 0.34))     # the puff's centre at rest: a hand over the loam, a clear gap over its shadow
-W_R = (0.142, 0.132, 0.134)
-BRACTS, BRACT_ROWS, BRACT_COLS = 6, 6, 4
-WISPS = 7
-FILAMENTS, FIL_RINGS = 3, 8
+W_R = (0.13, 0.12, 0.118)
+WISPS = 4
+TAIL_RINGS, TAIL_SIDES = 11, 10
+FIN_ROWS, FIN_COLS = 5, 3
 
 
 def wraith_shapes(p):
-    """Every formula part's verts (and faces) for a pose: the puff, the seed core, the bracts, the wisps and their
-    seed-balls, the filaments. In the body bone's rest space (the bone carries the pose's lean and drift)."""
+    """Every formula part's verts (and faces) for a pose: the puff, the seed eye, two veil fins, the crown's swept
+    wisps and the one tapering tail. In the body bone's rest space (the bone carries the pose's lean and drift)."""
     out = {}
     size = p.size
     sx, sy, sz = (p.squash[0] * size, p.squash[1] * size, p.squash[2] * size)
     c = W_CENTRE
     rx, ry, rz = W_R[0] * sx, W_R[1] * sy, W_R[2] * sz
 
-    def tip(lat, lon, q):
-        # A teardrop of pollen-down: the crown drawn up to a soft point, the flanks scalloped into soft lobes so the
-        # silhouette reads as down, not an egg.
-        k = max(0.0, math.sin(lat)) ** 3
-        lobe = 1 + 0.1 * math.cos(lat) ** 2 * math.sin(7 * lon + 1.6 * lat + 0.4)
+    def soft(lat, lon, q):
+        # Pollen-down: a few soft lobes round the flanks, the crown drawn back into a soft point (blown by the drift),
+        # the underside drawn back toward the tail so the puff runs into it.
+        lobe = 1 + 0.06 * math.cos(lat) ** 2 * math.sin(5 * lon + 1.3 * lat + 0.7)
         r = q - c
-        return c + Vector((r.x * lobe, r.y * lobe, r.z)) + Vector((0, 0, 0.032 * size * k))
+        top = max(0.0, math.sin(lat)) ** 3
+        under = max(0.0, -math.sin(lat)) ** 2
+        return c + Vector((r.x * lobe, r.y * lobe, r.z)) + Vector((0, 0.03 * size * top, 0.02 * size * top))             + Vector((0, 0.05 * size * under * p.drag, 0))
 
-    out['Puff'] = ellipsoid_data(c, (rx, ry, rz), rings=10, segments=24, warp=tip)
-    core_c = c + Vector((0, -ry * 0.84, 0.028 * sz))
-    out['Seed core'] = ellipsoid_data(core_c, (0.054 * size * p.core, 0.04 * size * p.core, 0.064 * size * p.core),
+    out['Puff'] = ellipsoid_data(c, (rx, ry, rz), rings=10, segments=24, warp=soft)
+    core_c = c + Vector((0.012 * size, -ry * 0.86, 0.02 * sz))
+    out['Seed core'] = ellipsoid_data(core_c, (0.048 * size * p.core, 0.036 * size * p.core, 0.058 * size * p.core),
                                       rings=6, segments=12)
-    # Bracts: orchid scales cupping the puff from below, peeling out as it opens (the strike, the burst).
-    bottom = c + Vector((0, 0, -rz * 0.96))
-    for i in range(BRACTS):
-        a = 2 * math.pi * i / BRACTS + math.pi / BRACTS + math.radians(8)
-        radial = Vector((math.sin(a), -math.cos(a), 0))
-        tangent = Vector((math.cos(a), math.sin(a), 0))
+    # Two veil fins from the flanks, swept back and down as it drifts (flared forward in the snap), the left one
+    # carried higher: the lean that keeps it from reading as a sack.
+    for side in (-1, 1):
         rows = []
-        for k in range(BRACT_ROWS):
-            s = k / (BRACT_ROWS - 1)
-            phi = lerp(0.18, 1.38, s)                      # from the bottom pole round toward the equator
-            surf = c + radial * (math.sin(phi) * lerp(rx, ry, abs(radial.y))) + Vector((0, 0, -math.cos(phi) * rz))
-            peel = p.open * 0.085 * size * s * s + 0.012 * size
-            droop = p.droop * 0.12 * size * s * s
-            centre_pt = surf + radial * peel + Vector((0, 0, -droop))
-            w = 0.07 * size * math.sin(math.pi * min(1.0, 0.12 + 0.88 * s ** 0.85)) ** 0.75 * (1 - 0.15 * s)
-            row = []
-            for col in range(BRACT_COLS):
-                u = -1 + 2 * col / (BRACT_COLS - 1)
-                cup = 0.01 * size * (1 - u * u)
-                row.append(centre_pt + tangent * (u * w) + radial * cup)
-            rows.append(row)
-        out['Bract %d' % i] = plate_data(rows, 0.012 * size, lambda q, c=c: (q - c).normalized())
-    # Pappus wisps on the crown, each ending in a small seed-ball: the "pollen" in the silhouette.
-    crown = c + Vector((0, 0, rz + 0.03 * size))
+        lift = 0.012 if side > 0 else -0.012
+        base = c + Vector((side * rx * 0.84, 0.012 * size, -0.045 * size + lift * size))
+        out_dir = Vector((side, 0, 0))
+        back = Vector((0, 1, 0))
+        down = Vector((0, 0, -1))
+        length = 0.12 * size
+        for k in range(FIN_ROWS):
+            t = k / (FIN_ROWS - 1)
+            sweep = lerp(0.65, -0.55, (p.open + 0.3) / 1.3)          # +: trailing back, -: flared forward
+            d = (out_dir * 0.85 + back * sweep + down * (0.6 + 0.5 * p.droop)).normalized()
+            centre = base + d * (length * t) + down * (0.025 * size * t * t)
+            w = 0.045 * size * math.sin(math.pi * min(1.0, 0.15 + 0.85 * t)) ** 0.8 * (1 - 0.3 * t)
+            across = Vector((0, 0, 1)).cross(d).normalized()
+            across = (across * 0.4 + Vector((0, 0, 1)) * 0.9).normalized()
+            rows.append([centre + across * (u * w) for u in (-1.0, 0.0, 1.0)])
+        out['Fin %+d' % side] = plate_data(rows, 0.01 * size, lambda q, c=c: (q - c).normalized())
+    # The crown's wisps: fine hairs of down swept back over the head, one way, not a ring of stamens.
+    crown = c + Vector((0, 0.02 * size, rz * 0.92 + 0.02 * size))
     for k in range(WISPS):
-        az = 2 * math.pi * k / WISPS + 0.35
-        tilt = math.radians(lerp(28, 62, p.spread) + (8 if k % 2 else 0))
-        d0 = Vector((math.sin(tilt) * math.sin(az), -math.sin(tilt) * math.cos(az), math.cos(tilt)))
-        length = (0.06 + 0.025 * (k % 2)) * size
-        lift = p.detach * Vector((d0.x, d0.y, 0.6)) * 0.09
-        path = [crown + lift * 0.4]
-        for j in range(1, 4):
-            s = j / 3
-            dd = (d0 + Vector((d0.x, d0.y, -0.6)) * (0.35 * s * p.droop_wisps)).normalized()
-            path.append(path[-1] + dd * (length / 3) + lift * (0.2 * s))
-        out['Wisp %d' % k] = tube_data(path, [0.017 * size, 0.014 * size, 0.01 * size, 0.008 * size], count=6)
-        ball = path[-1] + (path[-1] - path[-2]).normalized() * 0.012 * size + lift * 0.5
-        out['Wisp ball %d' % k] = ellipsoid_data(ball, (0.021 * size, 0.021 * size, 0.019 * size), rings=4, segments=8)
-    # Filaments: trailing behind (+Y, away from where it drifts), swaying.
-    for f in range(FILAMENTS):
-        side = (-1, 0, 1)[f]
-        start = bottom + Vector((0.035 * side * size, 0.02 * size, 0.01))
-        length = (0.17, 0.21, 0.15)[f] * size * p.tail
-        path = []
-        for j in range(FIL_RINGS):
-            s = j / (FIL_RINGS - 1)
-            back = p.drag * 0.75 * s ** 1.3
-            down = (1 - p.drag * 0.72) * s
-            # Each filament curls its own way (a wisp of smoke, not a jellyfish's comb), the sway swinging them.
-            curl = 0.18 * math.sin(math.pi * s * 1.6 + f * 2.1) * s
-            sway = p.sway * 0.35 * math.sin(math.pi * s * 1.2 + f * 0.9) * s + side * 0.22 * s + curl
-            path.append(start + Vector((sway, back, -down)) * length)
-        radii = [(0.02 * (1 - 0.88 * j / (FIL_RINGS - 1)) + 0.0025) * size for j in range(FIL_RINGS)]
-        out['Filament %d' % f] = tube_data(path, radii, count=6)
+        az = math.radians((-40, -12, 18, 46)[k])
+        length = (0.08, 0.115, 0.1, 0.07)[k] * size
+        lift = p.detach * Vector((math.sin(az) * 0.6, 0.4, 0.6)) * 0.1
+        start = crown + Vector((math.sin(az) * 0.03 * size, 0, 0))
+        path = [start + lift * 0.3]
+        for j in range(1, 5):
+            t = j / 4
+            dd = Vector((math.sin(az) * 0.5, lerp(0.3, 1.0, p.spread) * (0.4 + t), lerp(1.0, 0.1, t * p.droop_wisps)))
+            path.append(path[-1] + dd.normalized() * (length / 4) + lift * (0.25 * t))
+        out['Wisp %d' % k] = tube_data(path, [0.017 * size, 0.014 * size, 0.01 * size, 0.006 * size, 0.003 * size],
+                                       count=6)
+    # The tail: one tapering wisp out of the puff's underside, down and back in a lazy S (it streams as it drifts).
+    tail = []
+    for j in range(TAIL_RINGS):
+        t = j / (TAIL_RINGS - 1)
+        # Down under the puff and off to its side and back, so the tail shows below it from the front as well.
+        back = p.drag * 0.17 * t ** 1.15
+        down = 0.07 + 0.21 * t - 0.05 * t * t * p.drag
+        side = p.lean * (0.11 * t + 0.045 * math.sin(math.pi * t * 1.4)) + p.sway * 0.06 * math.sin(2 * math.pi * t * 0.9) * t
+        tail.append(c + Vector((side, 0.015 + back, -down)) * (size * p.tail))
+    radii = [(0.082 * (1 - t) ** 0.95 + 0.003) * size for t in (j / (TAIL_RINGS - 1) for j in range(TAIL_RINGS))]
+    out['Tail'] = tube_data(tail, radii, count=TAIL_SIDES, cap_start=True, cap_end=True, twist_ref=Vector((1, 0, 0)))
     return out
 
 
@@ -878,19 +893,24 @@ def build_wraith():
     shapes = wraith_shapes(p)
     for name, (verts, faces) in shapes.items():
         if name == 'Puff':
-            new_object(name, verts, faces, 'body', 'puff', chamfer=0.0, flat=False, occluder=True, facet=False)
+            new_object(name, verts, faces, 'body', 'puff', chamfer=0.0, flat=False, occluder=True, facet=False,
+                       contour=False)
         elif name == 'Seed core':
             new_object(name, verts, faces, 'body', 'core', chamfer=0.0, flat=False, contour=True)
-        elif name.startswith('Bract'):
-            new_object(name, verts, faces, 'body', 'bract', chamfer=0.0, flat=False)
-        elif name.startswith('Wisp ball'):
-            new_object(name, verts, faces, 'body', 'wisp', chamfer=0.0, flat=False, facet=False,
-                       show=lambda q: q.wisps)
+        elif name.startswith('Fin'):
+            new_object(name, verts, faces, 'body', 'fin', chamfer=0.0, flat=False, facet=False, contour=False)
         elif name.startswith('Wisp'):
-            new_object(name, verts, faces, 'body', 'wisp', chamfer=0.0, flat=False, facet=False,
+            new_object(name, verts, faces, 'body', 'wisp', chamfer=0.0, flat=False, facet=False, contour=False,
                        show=lambda q: q.wisps)
         else:
-            new_object(name, verts, faces, 'body', 'filament', chamfer=0.0, flat=False, facet=False)
+            obj = new_object(name, verts, faces, 'body', 'tail', chamfer=0.0, flat=False, facet=False, contour=False)
+            # How far along the tail each vertex lies: the material fades it toward its tip.
+            fade = []
+            for j in range(TAIL_RINGS):
+                fade.extend([j / (TAIL_RINGS - 1)] * TAIL_SIDES)
+            fade += [0.0, 1.0]
+            attr = obj.data.attributes.new('fade', 'FLOAT', 'POINT')
+            attr.data.foreach_set('value', fade)
 
 
 def shape_wraith(pose):
@@ -915,16 +935,22 @@ HEAD_TOP = 0.96
 
 
 def build_thornling():
-    # Legs: long root legs, a knotted knee, a talon foot of two root toes and a back spur.
+    # Legs: long tapering root legs, no ball joints - the thigh runs on past the knee into the shin's top, knuckles of
+    # bark along them - a talon foot of two root toes and a back spur.
     for side in (-1, 1):
         s = 'L' if side > 0 else 'R'
         x = HIP_X * side
-        tube('Thigh ' + s, [Vector((x, 0.0, HIP_Z)), Vector((x, -0.01, (HIP_Z + KNEE_Z) / 2)), Vector((x, 0.0, KNEE_Z + 0.02))],
-             [0.05, 0.046, 0.04], 'thigh.' + s, 'limb', count=8, occluder=True)
-        ellipsoid('Knee ' + s, Vector((x, -0.02, KNEE_Z + 0.01)), (0.042, 0.042, 0.04), 'shin.' + s, 'bark', rings=4,
-                  segments=8)
-        tube('Shin ' + s, [Vector((x, 0.0, KNEE_Z)), Vector((x, 0.0, (KNEE_Z + ANKLE_Z) / 2)), Vector((x, 0.0, ANKLE_Z))],
-             [0.038, 0.032, 0.03], 'shin.' + s, 'limb', count=8, occluder=True)
+        tube('Thigh ' + s, [Vector((x, 0.0, HIP_Z + 0.02)), Vector((x, -0.012, (HIP_Z + KNEE_Z) / 2)),
+                            Vector((x, -0.004, KNEE_Z + 0.01)), Vector((x, 0.004, KNEE_Z - 0.03))],
+             [0.054, 0.046, 0.038, 0.03], 'thigh.' + s, 'limb', count=9, occluder=True)
+        tube('Shin ' + s, [Vector((x, 0.0, KNEE_Z + 0.025)), Vector((x, 0.006, (KNEE_Z + ANKLE_Z) / 2)),
+                           Vector((x, 0.0, ANKLE_Z - 0.005))],
+             [0.035, 0.028, 0.02], 'shin.' + s, 'limb', count=8, occluder=True)
+        knuckles = (('thigh.', Vector((x + side * 0.03, -0.03, (HIP_Z + KNEE_Z) / 2 + 0.02)), 0.024),
+                    ('thigh.', Vector((x + side * 0.012, -0.03, KNEE_Z + 0.02)), 0.022),
+                    ('shin.', Vector((x - side * 0.008, -0.022, KNEE_Z - 0.05)), 0.02))
+        for k, (bone_name, at, r) in enumerate(knuckles):
+            ellipsoid('Knuckle %s %d' % (s, k), at, (r, r * 0.7, r * 1.25), bone_name + s, 'bark', rings=3, segments=7)
         for k, a in enumerate((-18, 16)):
             d = Vector((math.sin(math.radians(a + 6 * side)), -math.cos(math.radians(a + 6 * side)), 0))
             base = Vector((x, -0.01, ANKLE_Z - 0.01))
@@ -956,11 +982,12 @@ def build_thornling():
             plate('Rib %d %d' % (side, k), rows, 0.012, 'chest', 'bark',
                   inward=lambda q: Vector((q.x, q.y, 0)).normalized(), chamfer=0.0)
     # The back's ridge of thorns, curving back and up, longest over the shoulders.
-    ridge = [('spine', 0.5, 0.075, 0.016), ('spine', 0.58, 0.095, 0.018), ('chest', 0.66, 0.12, 0.022),
-             ('chest', 0.73, 0.15, 0.025), ('chest', 0.79, 0.13, 0.022)]
+    # The crest stands up off the hunched spine, so it breaks the silhouette from the front as well.
+    ridge = [('spine', 0.5, 0.09, 0.018), ('spine', 0.58, 0.11, 0.02), ('chest', 0.66, 0.15, 0.025),
+             ('chest', 0.73, 0.18, 0.028), ('chest', 0.79, 0.16, 0.025)]
     for k, (bone_name, z, length, radius) in enumerate(ridge):
-        thorn('Back thorn %d' % k, Vector((0, 0.06 + 0.02 * (z > 0.6), z)), (0, 0.75, 0.6), length, radius, bone_name,
-              bend=(0, 1.0, 0.25))
+        thorn('Back thorn %d' % k, Vector((0, 0.06 + 0.02 * (z > 0.6), z)), (0, 0.5, 0.86), length, radius, bone_name,
+              bend=(0, 1.0, 0.45))
     for side in (-1, 1):
         thorn('Flank thorn %+d' % side, Vector((side * 0.07, 0.05, 0.7)), (side * 0.6, 0.6, 0.5), 0.09, 0.016, 'chest',
               bend=(side * 0.5, 0.8, 0.1))
@@ -984,34 +1011,41 @@ def build_thornling():
               bend=(x * 4, 1.0, 0.1))
     # A collar of thorns over the chest's top, so the creature reads as thorned from the front as well.
     for side in (-1, 1):
-        for k, (x, z, length) in enumerate(((0.05, 0.79, 0.08), (0.095, 0.755, 0.07))):
-            thorn('Collar thorn %+d %d' % (side, k), Vector((side * x, -0.05, z)), (side * 0.35, -0.45, 0.85), length,
-                  0.016, 'chest', bend=(side * 0.4, -0.1, 1.0))
+        for k, (x, z, length) in enumerate(((0.05, 0.79, 0.115), (0.095, 0.755, 0.1))):
+            thorn('Collar thorn %+d %d' % (side, k), Vector((side * x, -0.05, z)), (side * 0.35, -0.4, 0.85), length,
+                  0.021, 'chest', bend=(side * 0.45, -0.05, 1.0))
         thorn('Chest thorn %+d' % side, Vector((side * 0.07, -0.08, 0.69)), (side * 0.55, -0.8, 0.25), 0.06, 0.014,
               'chest', bend=(side * 0.6, -0.4, 0.7))
     # Arms: lean, an elbow spur, a forearm of two bark splints and three thorn claws.
     for side in (-1, 1):
         s = 'L' if side > 0 else 'R'
         sh, el, wr, fi = (side_point(v, side) for v in (SHOULDER, ELBOW, WRIST, FIST))
-        ellipsoid('Shoulder ' + s, sh + Vector((0.01 * side, 0.0, 0.01)), (0.05, 0.05, 0.045), 'upper_arm.' + s, 'bark',
-                  rings=4, segments=8)
-        thorn('Shoulder thorn ' + s, sh + Vector((0.02 * side, 0.02, 0.03)), (side * 0.45, 0.35, 0.8), 0.085, 0.016,
-              'upper_arm.' + s, bend=(side * 0.3, 0.8, 0.5))
-        tube('Upper arm ' + s, [sh + (el - sh) * t for t in (0.1, 0.55, 1.0)], [0.032, 0.03, 0.028], 'upper_arm.' + s,
-             'limb', count=7)
+        thorn('Shoulder thorn ' + s, sh + Vector((0.015 * side, 0.015, 0.02)), (side * 0.4, 0.25, 0.9), 0.135, 0.024,
+              'upper_arm.' + s, bend=(side * 0.3, 0.7, 0.6))
+        thorn('Shoulder thorn back ' + s, sh + Vector((0.0, 0.04, 0.0)), (side * 0.3, 0.8, 0.6), 0.09, 0.018,
+              'upper_arm.' + s, bend=(side * 0.2, 1.0, 0.3))
+        up_dir = (el - sh).normalized()
+        tube('Upper arm ' + s, [sh - up_dir * 0.02, sh + (el - sh) * 0.5, el + up_dir * 0.022],
+             [0.04, 0.03, 0.024], 'upper_arm.' + s, 'limb', count=8)
+        ellipsoid('Knuckle arm %s' % s, sh + (el - sh) * 0.45 + Vector((side * 0.022, 0.01, 0)), (0.02, 0.016, 0.026),
+                  'upper_arm.' + s, 'bark', rings=3, segments=7)
         thorn('Elbow spur ' + s, el + Vector((0, 0.02, 0)), (side * 0.3, 1.0, 0.3), 0.07, 0.015, 'forearm.' + s,
               bend=(side * 0.2, 0.7, 0.7))
-        tube('Forearm ' + s, [el + (wr - el) * t for t in (0.05, 0.6, 1.0)], [0.03, 0.034, 0.03], 'forearm.' + s, 'bark',
-             count=7)
+        fore_dir = (wr - el).normalized()
+        tube('Forearm ' + s, [el - fore_dir * 0.02, el + (wr - el) * 0.55, wr + fore_dir * 0.01],
+             [0.027, 0.026, 0.017], 'forearm.' + s, 'bark', count=8)
+        ellipsoid('Knuckle wrist %s' % s, el + (wr - el) * 0.8 + Vector((side * 0.012, -0.012, 0)), (0.018, 0.014, 0.022),
+                  'forearm.' + s, 'bark', rings=3, segments=7)
         mid = el + (wr - el) * 0.45
         thorn('Forearm thorn ' + s, mid + Vector((side * 0.025, 0.0, 0)), (side * 1.0, 0.2, 0.35), 0.06, 0.013,
               'forearm.' + s, bend=(side * 0.6, 0.0, 0.8))
         hand = wr + (fi - wr) * 0.5
-        ellipsoid('Hand ' + s, hand, (0.03, 0.028, 0.03), 'hand.' + s, 'limb', rings=3, segments=7)
         down = (fi - wr).normalized()
+        # No palm ball: the wrist splits into the three claws like a root into its rootlets.
+        tube('Palm ' + s, [wr - down * 0.005, hand], [0.018, 0.015], 'hand.' + s, 'limb', count=6, chamfer=0.0)
         for k, spread in enumerate((-0.45, 0.0, 0.45)):
             d = (down + Vector((spread * 0.5 * side, -0.55, 0)) + Vector((spread * 0.3, 0, 0))).normalized()
-            thorn('Claw %s %d' % (s, k), hand + d * 0.02, d, 0.1, 0.012, 'hand.' + s, tip_share=0.3,
+            thorn('Claw %s %d' % (s, k), hand + d * 0.008, d, 0.105, 0.013, 'hand.' + s, tip_share=0.32,
                   bend=(d + Vector((0, -0.6, -0.3))).normalized(), material='root', count=5)
 
 
@@ -1052,6 +1086,7 @@ class Pose:
         self.drag = 0.85
         self.tail = 1.0
         self.core = 1.0
+        self.lean = 1.0           # the Wraith's tail's lazy S
 
     def add(self, bone_name, m):
         self.rot[bone_name] = m @ self.rot.get(bone_name, Matrix.Identity(3))
@@ -1300,61 +1335,63 @@ def apply(pose):
 # ---------------------------------------------------------------------------------------------------------------------
 def wraith_pose(name):
     p = Pose()
+    # Every living drawing leans a little into the drift and to one side: a spirit adrift, not a sack set down.
     if name == 'idle':
-        p.offset = Vector((0, 0, 0.0))
-        p.sway, p.drag = 0.2, 0.85
+        p.add('body', rot(x=8, y=7))
+        p.sway, p.drag, p.lean = 0.2, 0.85, 1.0
     elif name == 'step-a':
-        # The drift's high beat: risen, a little stretched, the filaments swung one way.
+        # The drift's high beat: risen, a little stretched, the tail swung one way, the fins trailing.
         p.offset = Vector((0, 0, 0.03))
         p.squash = (0.96, 0.96, 1.05)
-        p.sway, p.drag = 1.0, 0.92
-        p.add('body', rot(x=6))
+        p.sway, p.drag, p.lean = 1.0, 0.95, 1.2
+        p.add('body', rot(x=12, y=9))
+        p.open = -0.1
         p.spread = 0.3
     elif name == 'step-b':
-        # The low beat: sunk and spread, the filaments swung the other way and lifted behind.
+        # The low beat: sunk and spread, the tail swung the other way and lifted behind.
         p.offset = Vector((0, 0, -0.02))
-        p.squash = (1.06, 1.05, 0.93)
-        p.sway, p.drag = -1.0, 1.0
-        p.add('body', rot(x=10))
+        p.squash = (1.05, 1.04, 0.94)
+        p.sway, p.drag, p.lean = -1.0, 1.0, 0.7
+        p.add('body', rot(x=14, y=4))
+        p.open = 0.25
         p.spread = 0.55
     elif name == 'windup':
-        # Drawn back and up before the snap: stretched tall, bracts clenched, the wisps bristling.
+        # Drawn back and up before the snap: stretched tall, fins tucked back, the wisps bristling.
         p.offset = Vector((0, 0.05, 0.035))
         p.squash = (0.9, 0.92, 1.12)
-        p.add('body', rot(x=-14))
-        p.open = -0.1
+        p.add('body', rot(x=-14, y=6))
+        p.open = -0.3
         p.spread = 1.0
         p.droop_wisps = 0.2
-        p.sway, p.drag = 0.3, 0.2
+        p.sway, p.drag, p.lean = 0.3, 0.45, 1.3
         p.core = 1.08
     elif name == 'strike':
-        # The snap: lunged forward and down, squashed into the blow, the bracts flared open like a flower closing on
-        # its prey, the filaments streaming behind.
+        # The snap: lunged forward and down, squashed into the blow, the fins flung forward, the tail streaming.
         p.offset = Vector((0, -0.09, -0.04))
-        p.squash = (1.1, 1.0, 0.88)
-        p.add('body', rot(x=26))
+        p.squash = (1.1, 1.0, 0.9)
+        p.add('body', rot(x=26, y=-4))
         p.open = 1.0
         p.spread = 0.75
-        p.sway, p.drag = -0.4, 1.0
+        p.sway, p.drag, p.lean = -0.4, 1.0, 0.6
         p.tail = 1.1
         p.core = 1.12
     elif name.startswith('dying-') or name in REMAINS:
         k = int(name.split('-')[1]) if name.startswith('dying-') else 6
-        # The burst: struck (squashed, flared, the core flaring), the puff popping and the wisps flying, the spent
-        # husk falling, landing and greying.
+        # The burst: struck (squashed, the eye flaring), the puff popping and the wisps flying, the spent husk
+        # falling, landing and greying.
         p.size = (1.0, 0.82, 0.62, 0.48, 0.4, 0.36, 0.34)[k]
         p.squash = ((1.14, 1.1, 0.84), (1.1, 1.08, 0.95), (1.0, 1.0, 1.0), (1.0, 1.0, 0.95), (1.05, 1.05, 0.85),
                     (1.1, 1.1, 0.75), (1.12, 1.12, 0.72))[k]
-        p.open = (0.7, 1.1, 1.4, 1.5, 1.6, 1.7, 1.75)[k]
-        p.droop = (0.0, 0.1, 0.4, 0.8, 1.0, 1.1, 1.15)[k]
+        p.open = (0.6, 0.8, 0.9, 0.9, 0.9, 0.9, 0.9)[k]
+        p.droop = (0.0, 0.2, 0.5, 0.8, 1.0, 1.1, 1.15)[k]
         p.spread = (1.2, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)[k]
         p.wisps = k <= 2
         p.detach = (0.0, 0.7, 1.4, 0, 0, 0, 0)[k]
-        p.droop_wisps = 1.4
+        p.droop_wisps = 1.0
         p.offset = Vector((0, (0.04, 0.03, 0.02, 0.0, 0.0, 0.0, 0.0)[k], (0.0, -0.01, -0.06, -0.13, -0.19, -0.2, -0.2)[k]))
-        p.add('body', rot(x=(-10, -6, 10, 25, 40, 55, 60)[k]))
-        p.sway, p.drag = (0.6, -0.5, 0.2, 0.0, 0.0, 0.0, 0.0)[k], (0.3, 0.2, 0.1, 0.0, 0.0, 0.0, 0.0)[k]
-        p.tail = (1.0, 0.9, 0.8, 0.7, 0.6, 0.55, 0.5)[k]
+        p.add('body', rot(x=(-10, -6, 10, 25, 40, 55, 60)[k], y=6))
+        p.sway, p.drag = (0.6, -0.5, 0.2, 0.0, 0.0, 0.0, 0.0)[k], (0.5, 0.4, 0.3, 0.2, 0.1, 0.1, 0.1)[k]
+        p.tail = (1.0, 0.85, 0.7, 0.6, 0.5, 0.45, 0.42)[k]
         p.glow = (1.6, 1.15, 0.8, 0.55, 0.35, 0.22, 0.15)[k]
         p.life = 1.0
         p.ash = (0.0, 0.0, 0.1, 0.22, 0.35, 0.45, 0.5)[k]
@@ -1362,9 +1399,9 @@ def wraith_pose(name):
         if name == 'death-husk':
             p.glow, p.ash = 0.1, 0.55
         elif name == 'death-dust':
-            p.size, p.squash, p.open, p.droop = 0.3, (1.2, 1.2, 0.55), 1.9, 1.25
+            p.size, p.squash, p.droop = 0.3, (1.2, 1.2, 0.55), 1.25
             p.glow, p.ash = 0.0, 0.72
-            p.tail = 0.4
+            p.tail = 0.35
     return p
 
 

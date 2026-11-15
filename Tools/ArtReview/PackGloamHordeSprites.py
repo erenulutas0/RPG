@@ -10,7 +10,7 @@ run_name='__main__')"` when numpy lives there.)
 Per frame, as PackCinderBloomSprites.py: the 4x render box-filtered down in linear light with premultiplied alpha (the
 floor pivot on a texel corner); the aux family laid in by coverage (the Wraith's seed core on a plum ramp with a wet
 glint, the Thornling's thorn tips and eyes on the orchid ramp) at the frame's own value (the dying dim); its glow
-bloomed softly inside the figure; a one-texel dark outline. The Wraith wears a faint pale-orchid halo (a luminous mote,
+bloomed softly inside the figure; a one-texel dark outline. The Wraith wears a faint lilac-white halo (a luminous mote,
 read at a glance in a crowd); its dying drawings shed pollen motes and grey as the husk spends; the Thornling's
 drawings under the ash get a ring of disturbed ash where the body meets the floor, its far lip behind the body and its
 near lip over the cut. Nothing warm and nothing chartreuse is laid on either creature (docs/52 section 2 rule 3). The
@@ -79,8 +79,8 @@ CREATURES = {
         stem='PollenWraith', folder='PollenWraith', docs='pollen-wraith',
         template_dir='CinderMite', template_set='CinderMiteArtSet.asset', template_meta='CHR_Mite_front_windup.tga.meta',
         ramp=CORE_RAMP, tone_lift=0.0, value=1.0,
-        glow_colour='#F6C2F0', glow_inside=((1.4, 0.55), (3.0, 0.3)), inside_cap=0.6,
-        halo=(1.6, 0.9, 0.3), halo_colour='#E9A8E2',
+        glow_colour='#F4ECF8', glow_inside=((1.4, 0.4), (3.0, 0.2)), inside_cap=0.45,
+        halo=(1.8, 1.0, 0.32), halo_colour='#DCCAEA',
         outline=(0x1C, 0x10, 0x20),
         walking=['idle', 'step-a', 'step-b', 'strike', 'windup'], tight=[],
         extras=[], dying=7, remains=['death-husk', 'death-dust'],
@@ -88,8 +88,8 @@ CREATURES = {
     'thornling': dict(
         stem='Thornling', folder='Thornling', docs='thornling',
         template_dir='Runner', template_set='RunnerArtSet.asset', template_meta='CHR_Runner_front-idle.tga.meta',
-        ramp=ORCHID_RAMP, tone_lift=0.05, value=1.0,
-        glow_colour='#D86BD0', glow_inside=((1.0, 0.45),), inside_cap=0.5,
+        ramp=ORCHID_RAMP, tone_lift=0.12, value=1.0,
+        glow_colour='#D86BD0', glow_inside=((1.0, 0.65),), inside_cap=0.6,
         halo=None, halo_colour=None,
         outline=(0x12, 0x0F, 0x0E),
         walking=['idle', 'step-a', 'step-b', 'pass-a', 'pass-b'], tight=['strike', 'windup'],
@@ -182,8 +182,8 @@ def finish(lin, alpha):
 # ---------------------------------------------------------------------------------------------------------------------
 # Painted additions: the Wraith's shed pollen, the Thornling's disturbed ash
 # ---------------------------------------------------------------------------------------------------------------------
-def motes(shape, centre_px, k, count, spread, rise, rng_seed, colour='#F2B6EC'):
-    """Pollen motes shed by a bursting Wraith: soft pale-orchid dots thrown out round the body centre (texels), on a
+def motes(shape, centre_px, k, count, spread, rise, rng_seed, colour='#EFE4F5'):
+    """Pollen motes shed by a bursting Wraith: soft lilac-white dots thrown out round the body centre (texels), on a
     dark one-texel ring so they hold on light loam too."""
     h, w = shape
     ss = FX_SS
@@ -376,15 +376,15 @@ def shard(x, y, px, py, angle, length, width):
 
 def pollen_mote(k):
     """A pollen mote clinging to a still hero's feet (pooled, scattered at the feet, rising and fading): one, two or
-    three soft pale-orchid motes, each on a dark plum ring so it reads on light and dark loam alike."""
+    three soft lilac-white motes (the Wraith's pollen), each on a dark plum ring so it reads on any loam."""
     w = h = 16
     x, y, img = canvas(w, h)
     spots = [[(8, 8, 2.2)], [(6, 9, 1.9), (10.5, 6.5, 1.5)], [(5.5, 9.5, 1.6), (10, 9, 1.8), (8, 5, 1.4)]][k]
     for px, py, r in spots:
         d = np.hypot(x - px, y - py)
         img = over(img, layer(hexlin('#2A1230'), smoothstep(r + 1.0, r + 0.25, d) * 0.75))
-        img = over(img, layer(hexlin('#D886D2'), smoothstep(r, r * 0.45, d)))
-        img = over(img, layer(hexlin('#FBE0F7'), smoothstep(r * 0.55, 0.0, d)))
+        img = over(img, layer(hexlin('#DCC8E6'), smoothstep(r, r * 0.45, d)))
+        img = over(img, layer(hexlin('#FDF8FF'), smoothstep(r * 0.55, 0.0, d)))
     return fx_finish(img), (8, 8)
 
 
@@ -435,17 +435,27 @@ def ash_puff(k):
     x, y, img = canvas(w, h)
     rng = np.random.default_rng(11)
     spread = (14, 22, 28)[k]
-    fade = (1.0, 0.85, 0.5)[k]
-    for i in range(9):
+    fade = (1.0, 0.9, 0.55)[k]
+    # A darker core where the ash is churned (the hole it went into), then the light ash thrown up round it, each
+    # blot on a soft darker edge so the cloud holds on the loam.
+    d0 = np.hypot(x - cx, (y - cy) * 2.0)
+    core = np.exp(-(d0 / (6, 8, 9)[k]) ** 2) * (0.85, 0.7, 0.4)[k]
+    img = over(img, layer(hexlin('#33312B'), np.clip(core, 0, 1)))
+    blots = []
+    for i in range(10):
         a = rng.uniform(0, 2 * np.pi)
-        r = spread * rng.uniform(0.2, 0.9)
+        r = spread * rng.uniform(0.35, 1.0)
         px, py = cx + r * np.cos(a), cy + 0.45 * r * np.sin(a) - (3, 8, 12)[k] * rng.uniform(0.3, 1.0)
-        size = (8, 11, 13)[k] * rng.uniform(0.8, 1.15)
+        size = (7, 9, 11)[k] * rng.uniform(0.8, 1.15)
+        blots.append((py, px, size))
+    for py, px, size in sorted(blots):
         d = np.hypot(x - px, (y - py) * 1.25)
-        blot = np.exp(-(d / size) ** 2.2) * fade * 1.15
+        edge = np.exp(-(d / (size + 1.6)) ** 2.4) * fade
+        img = over(img, layer(hexlin('#3E3C35'), np.clip(edge * 0.55, 0, 1)))
+        blot = np.clip(np.exp(-(d / size) ** 2.4) * fade * 1.3, 0, 0.95)
         lit = np.clip((-(x - px) - (y - py)) / size * 0.5 + 0.5, 0, 1)
-        col = lit[..., None] * hexlin('#9A978A') + (1 - lit)[..., None] * hexlin('#5E5B52')
-        img = over(img, np.concatenate([col * np.clip(blot, 0, 0.85)[..., None], np.clip(blot, 0, 0.85)[..., None]], axis=-1))
+        col = lit[..., None] * hexlin('#CDCABD') + (1 - lit)[..., None] * hexlin('#8C897D')
+        img = over(img, np.concatenate([col * blot[..., None], blot[..., None]], axis=-1))
     for i in range(6):
         a = rng.uniform(np.pi, 2 * np.pi)
         r = spread * (1.1, 1.4, 1.5)[k] * rng.uniform(0.7, 1.0)

@@ -13,6 +13,7 @@ Writes to DIR (default E:/MobileGame/ArtDirection/2026-11-15/gloam-horde-01, the
                         Wraiths, four Thornlings (one stuck at a ring, one diving), three Grunts and the Cinder Bloom
                         round the Vanguard, and Ilya among Wraiths beside it; contact shadows as the game draws them
     4-crowd-value.png   the same in luminance only
+    4-crowd-saturation.png the same as saturation times value: the open Bloom must be the one saturated orchid mass
     5-squint.png        the crowd at half the phone's scale, sharp and blurred (the glance)
     checks.json         orchid share, warm (red-orange) and chartreuse texels on every body (both 0), luminance against
                         the loam and Ilya's robe, heights against the Mite and the Runner, texture memory
@@ -269,13 +270,13 @@ def main():
     for at in [(180, 420), (930, 420), (420, 650)]:
         cast.append((at, Sprite(ART / 'SlagBrute/Gloam/CHR_Grunt_front-idle.png').mirrored() if at[0] < 560 else
                      Sprite(ART / 'SlagBrute/Gloam/CHR_Grunt_front-idle.png'), 0.78))
-    cast.append(((860, 690), Sprite(ART / 'CinderBloom/CHR_CinderBloom_front-step-a.png'), 0.86))
+    cast.append(((860, 690), Sprite(ART / 'CinderBloom/CHR_CinderBloom_front-open.png'), 0.86))
     paste(crowd, thorn('thorn-burst-2'), ring_at, PHONE)
     for at, sprite, width in sorted(cast, key=lambda c: c[0][1]):
         if width:
             shadow(crowd, at, width, PHONE)
         paste(crowd, sprite, at, PHONE)
-    # Ilya among Wraiths at the right: pale robe, pale orchid motes.
+    # Ilya among Wraiths at the right: her warm ash-white robe among the cool lilac-white motes.
     ilya_at = (1210, 430)
     ilya_cast = [(ilya_at, ilya(), 0.78)]
     for k, (dx, dy) in enumerate([(-80, -60), (70, -50), (-95, 20), (90, 30), (-40, 70), (50, 80), (0, -95),
@@ -287,10 +288,13 @@ def main():
         shadow(crowd, at, width, PHONE)
         paste(crowd, sprite, at, PHONE)
     label(crowd, 'Floor 3\'s horde at the phone\'s scale (120 px a world unit) on GloamPavingV1: 32 Pollen Wraiths, '
-                 'Thornlings (one stuck after its eruption, one diving), Grunts, the Cinder Bloom, the Vanguard; Ilya among '
+                 'Thornlings (one stuck after its eruption, one diving), Grunts, the Cinder Bloom open, the Vanguard; Ilya among '
                  'Wraiths (right)', (8, 6))
     crowd.convert('RGB').save(OUT / ('4-crowd%s.png' % SUFFIX))
     crowd.convert('L').convert('RGB').save(OUT / ('4-crowd-value%s.png' % SUFFIX))
+    hsv = np.asarray(crowd.convert('RGB').convert('HSV')).astype(float) / 255
+    Image.fromarray((hsv[..., 1] * hsv[..., 2] * 255).astype(np.uint8)).convert('RGB').save(
+        OUT / ('4-crowd-saturation%s.png' % SUFFIX))
     # ---- 5. The squint ----
     small = crowd.resize((W // 2, H // 2), Image.LANCZOS)
     blurred = small.filter(ImageFilter.GaussianBlur(1.6))
@@ -331,6 +335,12 @@ def main():
     checks['ilya_idle'] = stats(ilya())
     checks['gloam_mite_idle'] = stats(Sprite(ART / 'CinderMite/Gloam/CHR_Mite_front_idle.png'))
     checks['gloam_runner_idle'] = stats(Sprite(ART / 'Runner/Gloam/CHR_Runner_front-idle.png'))
+    checks['cinder_bloom_open'] = stats(Sprite(ART / 'CinderBloom/CHR_CinderBloom_front-open.png'))
+    # The saturated orchid each body brings to the crowd (orchid texels; 32 Wraiths against one open Bloom).
+    checks['orchid_mass_texels'] = dict(
+        wraith_each=int(checks['wraith']['front-idle']['texels'] * checks['wraith']['front-idle']['orchid_share']),
+        wraith_32=int(32 * checks['wraith']['front-idle']['texels'] * checks['wraith']['front-idle']['orchid_share']),
+        bloom_open=int(checks['cinder_bloom_open']['texels'] * checks['cinder_bloom_open']['orchid_share']))
 
     def figure(sprite):
         al = np.asarray(sprite.image)[..., 3] > 128
