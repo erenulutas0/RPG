@@ -1014,3 +1014,42 @@ the playing cohorts floor 3's Warden P50 is 46-62 s before and after, the Descen
 - The closed Bloom faces as it walked (as every enemy does when it stands); only the open one turns to the hero.
 - The open bloom's frames are drawn by a second view over the look's (`LateUpdate`); a look change that draws later would
   hide them. The flow test reads them through a window.
+
+## Pollen Wraith and Thornling art, pass 1 (2026-11-15)
+
+In Assets, not yet imported by Unity, not yet worn by any prefab (the runtime builds, section 9's Wraith and Thornling
+steps, wire them).
+- **Pipeline.** `Tools/ArtReview/BuildBlenderGloamHorde.py --creature wraith|thornling` (Blender 4.5, the Bloom's toon
+  group, solver, camera and aux-pass method), `PackGloamHordeSprites.py`, `review_gloam_horde.py`. The Wraith's seed
+  core and the Thornling's thorn tips and eyes render black in the beauty pass; the aux pass writes their coverage, tone
+  and glow, so the packer lays the plum and orchid ramps without rendering again. No red-orange and no gloamlight on
+  either body (warm and chartreuse texels counted on every drawing: 0).
+- **Pollen Wraith** (`Art/Characters/PollenWraith`). A small pale-orchid mote hovering about 0.14 over the loam: a
+  teardrop of pollen-down (`#F6C2F0` lit, plainly orchid in its mid and shade, never ash-white), a dark plum seed core
+  with a wet glint on its face, six orchid bracts cupping it, a crown of seven pappus wisps, three filaments trailing
+  behind. It drifts (step A/B bob it), draws back and snaps (bracts flared), and bursts: the puff pops, the wisps fly,
+  the husk falls and greys, shedding pollen motes. `PollenWraithArtSet` is CinderMiteArtSet line for line (36 textures:
+  4 bodies a facing and the windup with flashes, 7+7 deaths listed nine steps, 2 remains), with its own visual top
+  (0.61), shadow (0.34: it hovers) and drift (0.9); `_frost`/`_gloam` empty. 148,720 bytes as ASTC 4x4 against the
+  Mite's 256,624; 0.28 wide and 0.51 tall (the Mite 0.51 and 0.50). Effects beside it: three pollen motes and a
+  four-frame pollen bloom (49,920 bytes).
+- **Thornling** (`Art/Characters/Thornling`). A lean, hunched runner of dark bark (mean luminance 0.23 against the
+  loam's 0.30 and the Runner recolour's 0.32), a thorn ridge down its back, crown, collar, shoulder, elbow and forearm
+  thorns with orchid tips, three thorn claws a hand, a root tail; it lopes, rakes, dies flat into the ash.
+  `ThornlingArtSet` is RunnerArtSet line for line (40 textures), visual top 1.01, shadow 0.5, stride 1.0. Beside it, in
+  each facing: dive-0..2 (gathering, head first, nearly gone), erupt-0..2 (breaking the ash, half out, airborne),
+  stuck-0..1 (claws caught, heaving), a holdout plane at the floor cutting what is under the ash and a ring of disturbed
+  ash painted where the body meets it; those above the ash have flashes (dive-1, dive-2, erupt-0 none). Effects: the
+  ash puff (3), the thorn burst (3), and the ring as a radial pair at a radius of one world unit (scale by 1.2; the
+  pollen meter reuses it at 0.8) - edge (128 texels a unit) and fill (64) - in orchid and in warning `#FF5A3C` for its
+  last second. 910,752 bytes in all (set 474,304, beside it 293,088, effects 143,360).
+- **Tests.** `PollenWraithArtSetTests` and `ThornlingArtSetTests` (Editor: the contract against the Mite's and the
+  Runner's sets, no themed copy, the drawings and effects beside the set, the imports, the Wraith's set at or under the
+  Mite's memory, the Thornling's budget); `EnemyThemeArtTests.FloorThreesOwnEnemiesHaveNoThemedCopies` names the Bloom,
+  the Wraith and the Thornling. Neither file matches CombatChecks' `*ArtTests.cs` glob. The Unity compile check is
+  green; the EditMode suite is unrun (no Unity in a worktree).
+- **Review.** `ArtDirection/2026-11-15/gloam-horde-01/` (untracked): the two sheets, the dive strip with the ring, the
+  phone-scale crowd (32 Wraiths, Thornlings, Grunts, the Bloom, the Vanguard, Ilya among Wraiths), its value map, the
+  squint, checks.json, and `pollen-wraith/sprites.json`, `thornling/sprites.json` (the runtime's list of everything
+  beside the sets); the first look kept beside as `*-pass1.*`, the improvement pass before the stuck claws sank as
+  `*-pass2.*`.
