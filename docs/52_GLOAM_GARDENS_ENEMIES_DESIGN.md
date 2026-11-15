@@ -844,3 +844,173 @@ In Assets, not yet imported by Unity, not yet worn by any prefab (the runtime bu
   inner petals standing up as a lighter cup in front, each creased down its middle. The closed rear grate is deep plum,
   near the bark, so only the open grate reads pink; the open halo a little stronger. Open front orchid mean luminance
   0.51, open rear 0.50; the pass-1 sheets are kept beside the new ones as `*-pass1.png`.
+
+## Lead decisions 2026-11-15 (on the Bloom's measurement)
+
+1. **Ship `bloom-m35-r1.0`.** It passes the relative rule (clumsy 306 against 306 over seeds 1-400, careful within 3 on
+   each range), and the maul alone separates the standing cohort from the careful one by about 12x.
+2. **"Standing at least 2x careful at Thorn Post" becomes a reported row, not a gate.** Careful's share of it is the
+   escort's and the horde's, which no Bloom lever touches. **"Clumsy at most 1.3x careful" likewise** (the Captain
+   already misses it: 1.3-1.6x).
+3. **The rule is not relaxed for `bloom-m50-r1.0`** (a cost of 2 in 800).
+4. **Fallback:** if the Bloom's look fails at reach 1.0 (it stands 0.9 from the hero), ship `bloom-m35-r1.2`.
+5. **The bark blunts burns too**: accepted; the scene and the simulation stay equal.
+6. **Step 2 (the scene) now**, as "What the scene build (step 2) needs" lists, with the art of 2026-11-14
+   (`CinderBloomArtSet` and the open-state sprites the runtime holds itself).
+
+Later the same day, as the integrated code and the capture came in (Step 2 below holds the readings):
+
+7. **Reach 1.2** for readability (the Thorn Post capture), not the measurement's 1.0.
+8. **The rule is kept after a failed reading**: no "noise" exemption. The maul was swept at reach 1.2, then the health on
+   the shipped floor 2 (the Glass Regent at 10 % / 1.7 s, f22dc7ad, settled).
+9. **Ship `bloom-m20-h70-r1.2`** (196 health, the maul 2.16 at reach 1.2): cost 0 in 800, careful within 3. Its careful
+   elite fight, 5.9 / 6.0 s, is recorded as at the floor of section 8's 6-12 s band, not a fail.
+10. **The lesson**: the 1-in-800 tolerance sits inside run-divergence noise; the next creature's research reads seeds
+    1-800 (paired, the same bar scaled) before deciding.
+
+## Step 2: the Cinder Bloom in the game (2026-11-15)
+
+Built on main 40a7df7d (the Glass Regent as shipped at 10 % / 1.7 s, the map unlock, the Bloom's art and this research).
+**It ships `bloom-m20-h70-r1.2`**: 196 health (70 % of docs/52's 280; 384 on floor 3), the Bark Maul 2.16 every 1.8 s
+(20 % of docs/52's 10.8; 3.9 a blow on floor 3) at reach 1.2, the cycle as section 5 has it (closed 3.5 s taking 25 %,
+open 2.5 s rooted and taking all). How it got there is the next section.
+
+### Why reach 1.2, a maul of 20 % and 70 % health: three readings at the integrated code
+
+The rule (the lead's, 2026-11-12, kept after a failed reading - no noise exemption): over seeds 1-400 the creature may cost
+the clumsy cohort at most 1 four-floor completion in 800 against the shipped floor on the same seeds (here the Grunt
+Captain at Thorn Post), careful within 3 floor-3 clears on each range. Every reading below: seeds 1-200 and 201-400, the
+careful, standing, first-card and clumsy cohorts, typical hands, both heroes, the four-floor Descent; "maul only" is the
+leader's own damage at Thorn Post, standing over careful.
+
+**Reach 1.2, for the look.** The Thorn Post capture (`Run-ThornPostProof.ps1`, the lead's run on verify-1115) put the
+reach-1.0 Bloom 0.9-1.04 from the hero: from the camera's side the hero covered much of the Bloom, from the other the
+Bloom covered the hero. The lead took the fallback's reach 1.2 (it stops 1.1 away; 1.25 walked up in the capture's second
+run).
+
+**Reading 1, at 4608af42** (the Regent's lanes made to reach 4 past the hero; Captain clumsy 153 / 148). The measurement's
+pick and its fallback failed, so the maul was swept at reach 1.2:
+
+| Thorn Post | Careful F3 V / I vs Captain, 1-200; 201-400 | Clumsy 1-200 / 201-400 | Cost in 800 | Standing / careful at Thorn Post | Maul only | Elite fight careful / standing |
+|---|---|---|---|---|---|---|
+| Captain | 190 / 192; 193 / 193 | 153 / 148 | - | 0.83x / 0.78x | 1.1x / 1.0x | 2.5 / 4.3 s |
+| `bloom-m35-r1.0` (the measurement's pick) | +1 / +0; +0 / +0 | 156 / 142 | 3 | 1.75x / 1.89x | 11.6x / 9.1x | 9.7 / 10.7 s |
+| `bloom-m35-r1.2` | +2 / +0; +1 / +0 | 153 / 143 | 5 | 1.58x / 1.62x | 4.8x / 4.1x | 9.7 / 10.7 s |
+| `bloom-m30-r1.2` | +2 / +0; +1 / +0 | 154 / 143 | 4 | 1.45x / 1.50x | 4.8x / 4.1x | 9.7 / 10.7 s |
+| `bloom-m25-r1.2` | +2 / +0; +1 / +0 | 154 / 144 | 3 | 1.30x / 1.36x | 4.8x / 4.1x | 9.7 / 10.7 s |
+| `bloom-m20-r1.2` | +2 / +0; +1 / +0 | 155 / 145 | **1, passes** | 1.14x / 1.21x | 4.8x / 4.1x | 9.7 / 10.7 s |
+
+**Reading 2, at 6c9bb2ca** (the Regent's lane at 6 %): `bloom-m20-r1.2` against the Captain, clumsy 158 / 146 against 156 /
+149 - **a cost of 1, passes**; careful +2 / +0 and +1 / +0; maul only 4.8x / 4.1x.
+
+**Reading 3, at f22dc7ad** (the Regent as it ships, 10 % / 1.7 s; the lead: no further floor-2 re-tunes). `bloom-m20-r1.2`
+**failed** (clumsy 158 / 147 against 159 / 150, a cost of 4). The lead's decision: attack the cost driver, the fight's
+length, with the Bloom's health:
+
+| Thorn Post, at f22dc7ad | Careful F3 V / I vs Captain, 1-200; 201-400 | Clumsy 1-200 / 201-400 | Cost in 800 | Elite fight careful / standing | Standing / careful at Thorn Post | Maul only |
+|---|---|---|---|---|---|---|
+| Captain | 190 / 193; 195 / 192 | 159 / 150 | - | 2.5 / 4.3 s | 0.85x / 0.78x | 1.0x / 1.0x |
+| `bloom-m20-r1.2` (100 % health) | +0 / -2; +0 / -1 | 158 / 147 | 4 | 9.7 / 10.7 s | 1.24x / 1.15x | 4.6x / 3.9x |
+| `bloom-m35-h80-r1.2` | +0 / +1; +0 / -1 | 161 / 146 | 2 | 7.3 / 10.2 s | 1.75x / 1.58x | 5.4x / 4.6x |
+| `bloom-m30-h80-r1.2` | +0 / +1; +0 / -1 | 161 / 146 | 2 | 7.3 / 10.2 s | 1.61x / 1.45x | 5.4x / 4.6x |
+| `bloom-m25-h80-r1.2` | +0 / +1; +0 / -1 | 161 / 146 | 2 | 7.3 / 10.2 s | 1.45x / 1.31x | 5.4x / 4.6x |
+| `bloom-m20-h80-r1.2` | +0 / +1; +0 / -1 | 161 / 146 | 2 | 7.3 / 10.2 s | 1.29x / 1.16x | 5.4x / 4.6x |
+| `bloom-m30-h70-r1.2` | +0 / +1; -1 / +0 | 161 / 146 | 2 | 5.9 / 9.9 s | 1.62x / 1.44x | 5.5x / 4.7x |
+| **`bloom-m20-h70-r1.2`** | +0 / +1; -1 / +0 | 161 / 148 | **0, passes** | 5.9 / 9.9 s (6.0 / 10.0 on 201-400) | 1.30x / 1.15x | 5.5x / 4.7x |
+
+`bloom-m20-h70-r1.2` ships (the lead's decision): it passes the rule, and its careful elite fight, 5.9 / 6.0 s, sits at the
+floor of section 8's 6-12 s band - recorded as at the band's floor, not a fail. Over both ranges at f22dc7ad first-card
+gains 15 completions, standing 4, careful none; Thorn Post deaths of the four cohorts 1 and 3 against the Captain's 2 and
+4.
+
+**Why health moved: the fight's length drives the cost.** At reach 1.2 the 201-400 clumsy completions are 143-145 for
+every maul from 35 % down to 20 % (4608af42), and 146 for every 80 % variant at f22dc7ad: the maul's weight barely moves
+them. What moves them is how long Thorn Post lasts - 9.7-10.7 s at full health against the Captain's 2.5-5.9 s, every
+second of it beside the pit and the horde - and 80 % health (7.3 s) gains about 2 on 1-200, 70 % (5.9 s) the rest. The
+standing cohort, whom the Bloom walks up to, still pays its maul 4.6-5.5x what the careful one does at every weight; by
+the whole of Thorn Post it is 1.15-1.30x (the escort and the horde, a reported row since the lead's decisions).
+
+**The seed-level finding: the cost is divergence at the gate.** Seed for seed (`bloom-m25-h80-r1.2` against the Captain,
+clumsy, 201-400), the Bloom loses 7 runs and gains 3, and every one of the ten ends at the Warden's Grove - four to the pit,
+three to the horde in the losses. Some of the lost runs left Thorn Post far worse off (70 health against 41, 95 against
+48); others left it exactly as the Captain's did (8.1 against 8.1) and still died at the gate: once the elite fight
+changes, the rest of the run is a different run, and the Grove's pit and horde decide it differently. The same holds for
+every variant: a creature that changes a fight on floor 3 reshuffles which clumsy runs survive the gate, and the net of
+that reshuffle is a few completions either way.
+
+**A lesson for the next creature.** The 1-in-800 tolerance sits inside that run-divergence noise: a variant passed at two
+bases and failed at a third that changed only floor 2's boss (`bloom-m20-r1.2`: -1, -1, then -4), and neighbouring variants
+one lever apart read 2-4 completions apart. A pass or a fail can flip with any upstream change. **The next creature's
+research should read seeds 1-800** (paired, the same bar scaled: at most 2 completions in 1,600) before deciding, and
+re-read on the shipped base after each upstream re-tune that lands before it ships.
+
+### What was built
+
+- `Scripts/Combat/CinderBloom.cs`, on the Bloom's prefab ahead of its `Health` (`IDamageGuard`, as `MirrorGuard`): while
+  closed it returns `BloomClock.Land` for every landing - weapons, procs, the ability, a burn's tick, the pit's spill -
+  and the whole landing while open. Until `GloamService` has stepped it (the frame it walks in, a hall arena) it guards
+  nothing.
+- `Scripts/Core/GloamService.cs` at script order -38 (after `WardenSlamService` -40 and `MirrorGuardService` -39, before
+  every attacker), foundry only: each running frame it steps every standing Bloom's clock (not on the frame it walks in),
+  roots it while open (`EncounterController.SetWalkShare`, through `PackMotion.SetSpeed`, from the pack's next step), holds
+  its maul (`AttackController.IsHeld`: no tick, no strike) and hands it the hero (`CinderBloom.Hero`). It holds whenever
+  the encounter holds: the reveal, an open choice, the pause. The simulation steps the same `BloomClock` at the same point
+  of its frame.
+- `Scripts/UI/CinderBloomView.cs`: the closed Bloom is `CinderBloomArtSet` on `EnemyLookView`, facing as it walks; while
+  open the view lays the open-state frames over the body after the look has drawn (unfold-0 and unfold-1 0.08 s each as
+  the window opens, open, then unfold-1 and unfold-0 in its last 0.16 s; `BloomRule.OpenFor`) and turns the rooted Bloom
+  to the hero: mirrored when the hero is to its right, its rear only when the hero stands clearly farther from the camera
+  (the walk's thresholds), its open front otherwise - the open bloom is the read. The open frames' flashes go to
+  `EnemyLookView.AddFlash`. A landing the closed bark blunted tints the hit flash 65 % toward bark `#65574C`
+  (`CombatantView.FlashTint`) and plays the three-frame bark chip at the chest (0.46 up, 0.08 s a frame).
+- `Enemy_CinderBloom` (196 health, speed 1.2, 20 gold, 10 experience) and `Weapon_BarkMaul` (2.16 every 1.8 s, reach 1.2,
+  0.6 s before the first); `CinderBloom.prefab`, a variant of the Grunt's wearing `CinderBloomArtSet` with the Captain's
+  look and the two components; `Floor_GloamGardens`' Thorn Post led by it (its Grunt and two Cinder Mites unchanged);
+  `Resources/Development/Floor_BloomProof` (the Bloom alone in an elite room).
+- The simulation ships it: `DescentSimulation.CinderBloom` (the asset's numbers) leads `GloamGardens`' Thorn Post, and its
+  clock steps wherever a Bloom stands. `FoundryLevers.GloamCaptain` puts the Captain back for comparisons;
+  `BloomHealthScale` is read against docs/52's 280 (the shipped 0.7), and the research's `bloom-*` options start from
+  docs/52's 280 health and 10.8 at 1.5 as before, so every cell above keeps its meaning (`bloom-m20-h70-r1.2` is the
+  shipped Bloom, run for run).
+- Tests: `TheCinderBloomIsTheSimulations` and the script order in `FoundrySimulationSceneValueTests`, floor 3's elite in
+  `ClimbFloorContentTests` and `FoundryFloorThreeTests`, `BloomRule.OpenFor` in `BloomRuleTests`, and the PlayMode
+  `CinderBloomFlowTests` on `floor_bloom_proof`, read in game seconds: through a whole open window the closed landings are
+  a quarter of the Daggers' landing and the open ones whole, no maul and the open frames while open; rooted for the rest of
+  a window with the hero 3 away, turned to the hero's side, walking again once closed; no maul on a hero kept 1.5 away and
+  every maul within 1.2; a level-up panel holding the clock and the Bloom's place. CombatChecks 838 green ("Başarılı"),
+  the Unity compile check green; the lead's Unity runs at the reach-1.2 wip: EditMode 41 / 41, PlayMode 6 / 6.
+- `Tools/ArtReview/Run-ThornPostProof.ps1` (with `ThornPostCapture.cs`): the Bloom at its stopping distance on the proof
+  floor dressed as the garden, the hero left, right, below and above it, each closed, opening and open, close up and at
+  the portrait framing; `overlap.txt` gives the two bodies' sprite boxes (the Bloom's body renderer, the hero's puppet
+  parts) and their overlap, the facing and which body is nearer the camera (`ArtDirection/2026-11-15/thorn-post-01`).
+
+### The default batch
+
+Against f22dc7ad (the Glass Regent as shipped; main 40a7df7d adds only docs), `FOUNDRY_SEEDS=200 FOUNDRY_LEVERS=0
+FOUNDRY_COHORTS=1 FOUNDRY_REALISM=typical`: with `FOUNDRY_FLOORS=2` every file is byte-identical but `foundry-batch.md`'s
+clock and wall-seconds column; with `FOUNDRY_FLOORS=4`, `foundry-gate.md`, `foundry-batch.csv`, `foundry-batch-floor2.csv`
+and `foundry-cohorts-floor2.csv` are byte-identical and every floor-1 and floor-2 line of the reports is the same; floor 3
+and the finale move:
+
+| Cohort, Vanguard / Ilya | Floor 3 cleared, Captain | Bloom | Completed the Descent, Captain | Bloom |
+|---|---|---|---|---|
+| careful | 190 / 193 | 190 / 194 | 383 | 384 |
+| standing | 175 / 167 | 177 / 166 | 342 | 343 |
+| first-card | 168 / 178 | 172 / 184 | 346 | 356 |
+| clumsy | 59 / 100 | 61 / 100 | 159 | 161 |
+| auto-farmer | 5 / 4 | 5 / 6 | 9 | 11 |
+
+These are GloamEnemiesResearch's seeds-1-200 cells at f22dc7ad, the Captain's and `bloom-m20-h70-r1.2`'s, run for run. For
+the playing cohorts floor 3's Warden P50 is 46-62 s before and after, the Descent P50 13.8-14.5 min both.
+
+**Risks the build leaves open.**
+- **A thin margin, inside the noise.** The rule passes by 0 at f22dc7ad; the lesson above says what that is worth. Re-read
+  `GLOAM_OPTIONS=shipped,captain` on both ranges after any change to floors 1-3 before the next APK.
+- **The elite fight at the band's floor.** 5.9-6.0 s for the careful pilot; a stronger build or a later damage change
+  would take it under 6 s.
+- **The read is light.** The standing cohort pays the maul 4.6-5.5x what the careful one does, but it is about 7 a fight;
+  the Bloom's weight on floor 3 is its cycle. If the owner's play finds Thorn Post toothless, the maul is the lever, with a
+  re-read.
+- The closed Bloom faces as it walked (as every enemy does when it stands); only the open one turns to the hero.
+- The open bloom's frames are drawn by a second view over the look's (`LateUpdate`); a look change that draws later would
+  hide them. The flow test reads them through a window.
