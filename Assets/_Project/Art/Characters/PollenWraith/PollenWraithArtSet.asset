@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec76f54135d844f881ee6222cf455ad2, type: 3}
+  m_Name: PollenWraithArtSet
+  m_EditorClassIdentifier:
+  _front:
+  - Body: {fileID: 21300000, guid: e3b3825471e349e296428f313d2a2945, type: 3}
+    Flash: {fileID: 21300000, guid: 9d511c1d44e04dedb1cd54117bb02dba, type: 3}
+  - Body: {fileID: 21300000, guid: 9b90c3980d7642ff8b7baa5cfced37a6, type: 3}
+    Flash: {fileID: 21300000, guid: de0ad56a82164d0c81e37e9a57d15abc, type: 3}
+  - Body: {fileID: 21300000, guid: ff644f1ba6ad46679ee27b9f4970af91, type: 3}
+    Flash: {fileID: 21300000, guid: a303186a328d4588970d8654e9051d21, type: 3}
+  - Body: {fileID: 21300000, guid: 44bb020e3ef94c129fb565d027f6576c, type: 3}
+    Flash: {fileID: 21300000, guid: 17123866ce48434bbf9d6a0ce3de0a40, type: 3}
+  _rear:
+  - Body: {fileID: 21300000, guid: 138fef27e52147139e523e486189f428, type: 3}
+    Flash: {fileID: 21300000, guid: 8b99efa8385845aa985467c0c92ad703, type: 3}
+  - Body: {fileID: 21300000, guid: c56fc72387ba4f1bb83dfd91eeaf2ebe, type: 3}
+    Flash: {fileID: 21300000, guid: a9cb473077e24a40abe0ea3e29792f4c, type: 3}
+  - Body: {fileID: 21300000, guid: 51f51c04b20443169f5c5e9d19e8c1b4, type: 3}
+    Flash: {fileID: 21300000, guid: 60a04a4355ad49719a66773d841d323f, type: 3}
+  - Body: {fileID: 21300000, guid: a86540c4b65643b99dbba64e873ea248, type: 3}
+    Flash: {fileID: 21300000, guid: ad8d1fbae3ef4925bc84f8ab29f23e1e, type: 3}
+  _death:
+  - {fileID: 21300000, guid: a680d41d884849869056671fc1f96c18, type: 3}
+  - {fileID: 21300000, guid: 22a2045dff844be79dbcab499b494b7c, type: 3}
+  _visualTop: 0.61
+  _shadowWidth: 0.34
+  _walkCycleDistance: 0.9
+  _strikeWindup:
+  - Body: {fileID: 21300000, guid: 1c51794449e9429a895b277ee77b71dd, type: 3}
+    Flash: {fileID: 21300000, guid: b25d9f8654ea42b78c571445b240e68a, type: 3}
+  - Body: {fileID: 21300000, guid: 28ec8eb495144368b7e91177a2579cd9, type: 3}
+    Flash: {fileID: 21300000, guid: a8622f08c06b4c0399159af5b6321cae, type: 3}
+  _strikeWindupSeconds: 0.18
+  _deathFront:
+  - {fileID: 21300000, guid: ccfbad901ac94e77b3522275927b9f25, type: 3}
+  - {fileID: 21300000, guid: 0908ed8b923243c78b04e5c9093795f0, type: 3}
+  - {fileID: 21300000, guid: d138f778562a4147b7d0dff33ba97d09, type: 3}
+  - {fileID: 21300000, guid: ed74c2b2f535456fb33676b34c3cf419, type: 3}
+  - {fileID: 21300000, guid: e1543d5c9d624494899ad40671df4be0, type: 3}
+  - {fileID: 21300000, guid: 7e5c9b1670004d5da845871a2dae32d9, type: 3}
+  - {fileID: 21300000, guid: 7e5c9b1670004d5da845871a2dae32d9, type: 3}
+  - {fileID: 21300000, guid: 6762a67b91174ef3954759ec91c7289c, type: 3}
+  - {fileID: 21300000, guid: 6762a67b91174ef3954759ec91c7289c, type: 3}
+  _deathRear:
+  - {fileID: 21300000, guid: 6a33b7a0636e45d887dcd9fc678888df, type: 3}
+  - {fileID: 21300000, guid: 97dc7c31e71c4fe18af571841ba69dff, type: 3}
+  - {fileID: 21300000, guid: 761dc74d57334a38951eb587cc48f070, type: 3}
+  - {fileID: 21300000, guid: 3f938986af8c45e4ac9688d4767c468a, type: 3}
+  - {fileID: 21300000, guid: 54457e2284874d32ac3e2f5f6c3cbdba, type: 3}
+  - {fileID: 21300000, guid: 83a5e0a3cb4541c7b9cd8f90db3185b0, type: 3}
+  - {fileID: 21300000, guid: 83a5e0a3cb4541c7b9cd8f90db3185b0, type: 3}
+  - {fileID: 21300000, guid: 76aef2dc05f64dca9b1b592ce227b599, type: 3}
+  - {fileID: 21300000, guid: 76aef2dc05f64dca9b1b592ce227b599, type: 3}
+  _deathStep: 0.06
+  _frost: {fileID: 0}
+  _gloam: {fileID: 0}
