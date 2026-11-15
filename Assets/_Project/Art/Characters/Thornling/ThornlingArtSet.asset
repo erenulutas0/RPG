@@ -41,7 +41,7 @@ MonoBehaviour:
   _death:
   - {fileID: 21300000, guid: f63d98bbb62b4efba77e994d9ab8e06c, type: 3}
   - {fileID: 21300000, guid: 1713914da9aa4c419e4ddb1f79c91fc9, type: 3}
-  _visualTop: 1.01
+  _visualTop: 1.02
   _shadowWidth: 0.5
   _walkCycleDistance: 1.0
   _strikeWindup:
