@@ -30,8 +30,8 @@ namespace Cryptforge.Tests
             "ash-puff-0", "ash-puff-1", "ash-puff-2", "thorn-burst-0", "thorn-burst-1", "thorn-burst-2",
             "ring-edge-orchid", "ring-edge-warning", "ring-fill-orchid", "ring-fill-warning",
         };
-        // Every texture as ASTC 4x4 (a byte a texel): packed into about 0.87 MiB - the set 0.45 (the Runner's 0.54),
-        // the drawings beside it 0.28, the effects 0.14.
+        // Every texture as ASTC 4x4 (a byte a texel): packed into about 0.86 MiB - the set 0.45 (the Runner's 0.54),
+        // the drawings beside it 0.27, the effects 0.14.
         private const long BudgetBytes = (long)(1.1 * 1024 * 1024);
 
         private static EnemyArtSet Load(string path)
