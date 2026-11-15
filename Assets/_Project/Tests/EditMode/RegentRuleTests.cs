@@ -20,7 +20,7 @@ namespace Cryptforge.Tests
         {
             Assert.That(RegentRule.LaneWidth, Is.EqualTo(1.2f));
             Assert.That(RegentRule.LaneLength, Is.EqualTo(10f));
-            Assert.That(RegentRule.LaneShare, Is.EqualTo(.1f));
+            Assert.That(RegentRule.LaneShare, Is.EqualTo(.06f));
             Assert.That(RegentRule.Every, Is.EqualTo(WardenRule.SlamEvery), "the Warden's beat");
             Assert.That(RegentRule.EveryPhaseTwo, Is.EqualTo(WardenRule.SlamEveryEnraged));
             Assert.That(RegentRule.Telegraph, Is.EqualTo(1.5f), "a telegraph of its own, longer than the Warden's");
