@@ -61,7 +61,7 @@ namespace Cryptforge.Tests
                     continue;
                 Assert.That(three.Rooms[room], Is.EqualTo(DescentSimulation.QuicksilverVaults.Rooms[room]), $"room {room + 1}");
             }
-            Assert.That(three.Rooms[elite][0][0], Is.SameAs(DescentSimulation.Captain));
+            Assert.That(three.Rooms[elite][0][0], Is.SameAs(DescentSimulation.CinderBloom), "Thorn Post's Cinder Bloom since 2026-11-15");
             Assert.That(DescentSimulation.QuicksilverVaults.Rooms[elite][0][0], Is.SameAs(DescentSimulation.MirrorSentry));
             Assert.That(three.Rooms[elite][0].Skip(1), Is.EqualTo(DescentSimulation.QuicksilverVaults.Rooms[elite][0].Skip(1)));
             Assert.That(three.Rooms[gate][0][0], Is.SameAs(DescentSimulation.Warden));
@@ -182,44 +182,49 @@ namespace Cryptforge.Tests
             Assert.That(finales, Is.GreaterThan(0), "a run went on into the finale");
         }
 
-        // docs/52's Cinder Bloom, a simulation research lever (DescentSimulation.GloamChain, off by default): with no Gloam
-        // lever the chain is floor 3 as shipped, the Captain at Thorn Post and the same runs; with FoundryLevers.GloamBloom the
-        // Bloom leads Thorn Post in the Captain's place, its escort and every other room unchanged, at docs/52 section 5's
-        // numbers (549 health and 19.5 a maul on floor 3).
+        // docs/52's Cinder Bloom leads Thorn Post as shipped (`bloom-m20-h70-r1.2`, the lead's decisions 2026-11-15): 196 health
+        // (384 on floor 3), its Bark Maul 2.16 every 1.8 s at reach 1.2 (3.9 a blow on floor 3). With the levers at the shipped
+        // Bloom, GloamChain is the shipped chain and the same runs; FoundryLevers.GloamCaptain puts the Grunt Captain back,
+        // and the Bloom's levers tune it under its own name; the escort and every other room stay.
         [Test]
-        public void TheBloomLeverPutsTheCinderBloomAtThornPostAndNothingElse()
+        public void ThornPostIsTheCinderBloomsAndTheLeversMoveOnlyIt()
         {
             DescentSimulation.FoundryLevers off = Floors(DescentSimulation.FinaleFloor);
             DescentSimulation.FoundryFloor shipped = DescentSimulation.FoundryFloorOne().Next.Next;
-            DescentSimulation.FoundryFloor same = DescentSimulation.GloamChain(off).Next.Next;
             int elite = Array.IndexOf(shipped.Kinds, RoomKind.Elite);
-            Assert.That(same.Rooms[elite][0][0], Is.SameAs(DescentSimulation.Captain));
-
-            DescentSimulation.FoundryLevers on = off.Copy("bloom");
-            on.GloamBloom = true;
-            DescentSimulation.FoundryFloor three = DescentSimulation.GloamChain(on).Next.Next;
-            Assert.That(three.Id, Is.EqualTo(shipped.Id));
-            Assert.That(three.Kinds, Is.EqualTo(shipped.Kinds));
-            for (int room = 0; room < shipped.Rooms.Length; room++)
-                if (room != elite)
-                    Assert.That(three.Rooms[room], Is.EqualTo(shipped.Rooms[room]), $"room {room + 1}");
-            Assert.That(three.Rooms[elite][0][0], Is.SameAs(DescentSimulation.CinderBloom));
-            Assert.That(three.Rooms[elite][0].Skip(1), Is.EqualTo(shipped.Rooms[elite][0].Skip(1)), "the Grunt and two Cinder Mites stay");
-            Assert.That(three.Next.Id, Is.EqualTo("floor_final_swarm"));
-            Assert.That(shipped.Rooms[elite][0][0], Is.SameAs(DescentSimulation.Captain), "the shipped chain is untouched");
+            Assert.That(shipped.Rooms[elite][0][0], Is.SameAs(DescentSimulation.CinderBloom));
+            Assert.That(off.Gloam, Is.False, "the shipped levers leave Thorn Post as it is");
+            Assert.That(DescentSimulation.GloamChain(off).Next.Next.Rooms[elite][0][0], Is.SameAs(DescentSimulation.CinderBloom));
 
             DescentSimulation.Enemy bloom = DescentSimulation.CinderBloom;
             Assert.That((bloom.Health, bloom.Damage, bloom.Interval, bloom.InitialDelay, bloom.Reach, bloom.Speed, bloom.Gold, bloom.Experience),
-                Is.EqualTo((280f, 10.8f, 1.8f, .6f, 1.5f, 1.2f, 20, 10)));
-            Assert.That(bloom.Health * ClimbScaling.Health(3), Is.EqualTo(549f).Within(.5f));
-            Assert.That(bloom.Damage * ClimbScaling.Damage(3), Is.EqualTo(19.5f).Within(.05f));
+                Is.EqualTo((196f, 2.16f, 1.8f, .6f, 1.2f, 1.2f, 20, 10)));
+            Assert.That(bloom.Damage, Is.EqualTo(DescentSimulation.Docs52MaulDamage * .2f), "20 % of docs/52's maul");
+            Assert.That(bloom.Health, Is.EqualTo(DescentSimulation.Docs52Health * .7f), "70 % of docs/52's health");
+            Assert.That(bloom.Health * ClimbScaling.Health(3), Is.EqualTo(384f).Within(.5f));
+            Assert.That(bloom.Damage * ClimbScaling.Damage(3), Is.EqualTo(3.9f).Within(.05f));
 
-            on.BloomHealthScale = .8f;
-            on.BloomMaulScale = 1.25f;
-            DescentSimulation.Enemy tuned = DescentSimulation.GloamChain(on).Next.Next.Rooms[elite][0][0];
-            Assert.That(tuned.Name, Is.EqualTo(bloom.Name), "the Bloom's rules read its name");
-            Assert.That(tuned.Health, Is.EqualTo(224f).Within(1e-3f));
-            Assert.That(tuned.Damage, Is.EqualTo(13.5f).Within(1e-4f));
+            DescentSimulation.FoundryLevers captain = off.Copy("captain");
+            captain.GloamCaptain = true;
+            DescentSimulation.FoundryFloor before = DescentSimulation.GloamChain(captain).Next.Next;
+            Assert.That(before.Id, Is.EqualTo(shipped.Id));
+            Assert.That(before.Kinds, Is.EqualTo(shipped.Kinds));
+            for (int room = 0; room < shipped.Rooms.Length; room++)
+                if (room != elite)
+                    Assert.That(before.Rooms[room], Is.EqualTo(shipped.Rooms[room]), $"room {room + 1}");
+            Assert.That(before.Rooms[elite][0][0], Is.SameAs(DescentSimulation.Captain));
+            Assert.That(before.Rooms[elite][0].Skip(1), Is.EqualTo(shipped.Rooms[elite][0].Skip(1)), "the Grunt and two Cinder Mites stay");
+            Assert.That(before.Next.Id, Is.EqualTo("floor_final_swarm"));
+            Assert.That(shipped.Rooms[elite][0][0], Is.SameAs(DescentSimulation.CinderBloom), "the shipped chain is untouched");
+
+            DescentSimulation.FoundryLevers tuned = off.Copy("tuned");
+            tuned.BloomHealthScale = .8f;
+            tuned.BloomMaulDamage = DescentSimulation.Docs52MaulDamage;
+            tuned.BloomMaulReach = DescentSimulation.Docs52MaulReach;
+            DescentSimulation.Enemy other = DescentSimulation.GloamChain(tuned).Next.Next.Rooms[elite][0][0];
+            Assert.That(other.Name, Is.EqualTo(bloom.Name), "the Bloom's rules read its name");
+            Assert.That(other.Health, Is.EqualTo(224f).Within(1e-3f));
+            Assert.That((other.Damage, other.Reach), Is.EqualTo((10.8f, 1.5f)));
 
             DescentSimulation.FoundryHero hero = DescentSimulation.Vanguard();
             foreach (int seed in Seeds.Take(2))
@@ -227,7 +232,7 @@ namespace Cryptforge.Tests
                 DescentSimulation.FoundryResult a = DescentSimulation.RunFoundry(hero, seed, off);
                 DescentSimulation.FoundryResult b = DescentSimulation.RunFoundry(hero, seed, off, DescentSimulation.GloamChain(off));
                 for (int floor = 1; a != null; floor++, a = a.NextFloor, b = b.NextFloor)
-                    AssertSame(b, a, $"seed {seed} floor {floor}: no Gloam lever, the shipped run");
+                    AssertSame(b, a, $"seed {seed} floor {floor}: the shipped levers, the shipped run");
             }
         }
 
@@ -237,14 +242,12 @@ namespace Cryptforge.Tests
         public void TheBloomsCycleShapesThornPostsFight()
         {
             DescentSimulation.FoundryLevers levers = Floors(3);
-            levers.GloamBloom = true;
             int met = 0, closed = 0, open = 0;
             float barked = 0f;
             foreach (DescentSimulation.FoundryHero hero in new[] { DescentSimulation.Vanguard(), DescentSimulation.CinderArcanist() })
             foreach (int seed in Seeds)
             {
-                DescentSimulation.FoundryResult three = DescentSimulation.RunFoundry(hero, seed, levers, DescentSimulation.GloamChain(levers))
-                    .NextFloor?.NextFloor;
+                DescentSimulation.FoundryResult three = DescentSimulation.RunFoundry(hero, seed, levers).NextFloor?.NextFloor;
                 if (three?.EliteFights == null)
                     continue;
                 foreach (DescentSimulation.EliteFight fight in three.EliteFights)

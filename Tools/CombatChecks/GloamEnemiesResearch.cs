@@ -10,12 +10,13 @@ using NUnit.Framework;
 
 namespace Cryptforge.Tests
 {
-    // The Gloam Gardens' own enemies (docs/52 section 8, step 1; the lead's decisions 2026-11-12: the Cinder Bloom's research
-    // first). Plays every cohort and both heroes down the whole Descent (floors 1-3 and the finale) on the same seeds with
-    // human hands, once as shipped - floor 3's Thorn Post led by the Grunt Captain, floor 2's Sentry Hall by the shipped
-    // Mirror Sentry - and once for each option: the Cinder Bloom in the Captain's place (DescentSimulation.GloamChain) at
-    // its starting values or a swept variant, or either with floor 2's Grunt Captain back (`-f2c`, VaultsCaptain: floor 2
-    // before the Sentry, so the Bloom's own cost reads apart from the Sentry's). Where an option reads the roles, the
+    // The Gloam Gardens' own enemies (docs/52 section 8, step 1; the lead's decisions 2026-11-12 and 2026-11-15). Plays every
+    // cohort and both heroes down the whole Descent (floors 1-3 and the finale) on the same seeds with human hands, once as
+    // shipped - floor 3's Thorn Post led by the Cinder Bloom (`bloom-m20-h70-r1.2`) since 2026-11-15, floor 2's Sentry Hall
+    // by the shipped Mirror Sentry - and once for each option: the Grunt Captain back (`captain`, floor 3 before), the
+    // Bloom at docs/52's starting values (`bloom`) or a swept variant (DescentSimulation.GloamChain; every `bloom-*` option
+    // starts from the starting values: 280 health, maul 10.8 at reach 1.5), or with floor 2's Grunt Captain back (`-f2c`,
+    // VaultsCaptain). Where an option reads the roles, the
     // careful Vanguard is also started with the Staff and with the Daggers beside its Sword. No pilot habit: the Bloom
     // asks for none.
     //
@@ -43,23 +44,30 @@ namespace Cryptforge.Tests
             public Action<DescentSimulation.FoundryLevers> Set = _ => { };
         }
 
+        // docs/52's starting values (round 1), then the option's own levers.
         private static Action<DescentSimulation.FoundryLevers> Bloom(Action<DescentSimulation.FoundryLevers> more = null) => l =>
         {
-            l.GloamBloom = true;
+            l.BloomHealthScale = 1f;
+            l.BloomMaulDamage = DescentSimulation.Docs52MaulDamage;
+            l.BloomMaulReach = DescentSimulation.Docs52MaulReach;
             more?.Invoke(l);
         };
 
+        // The maul at a share of docs/52's 10.8.
+        private static float Maul(float share) => DescentSimulation.Docs52MaulDamage * share;
+
         private static IEnumerable<Option> Options()
         {
-            yield return new Option { Key = "shipped", What = "floor 3 as shipped: the Grunt Captain leads Thorn Post; floor 2's Sentry Hall the shipped Mirror Sentry (sentry-t45-h125-c2-f50)", Roles = true };
+            yield return new Option { Key = "shipped", What = "floor 3 as shipped since 2026-11-15: the Cinder Bloom (bloom-m20-h70-r1.2: 196 health, maul 2.16 every 1.8 s at reach 1.2) leads Thorn Post; floor 2's Sentry Hall the shipped Mirror Sentry", Roles = true };
+            yield return new Option { Key = "captain", What = "floor 3 before 2026-11-15: the Grunt Captain leads Thorn Post (FoundryLevers.GloamCaptain)", Roles = true, Set = l => l.GloamCaptain = true };
             yield return new Option { Key = "bloom", What = "the Cinder Bloom leads Thorn Post at docs/52's starting values: 280 health (549 on floor 3), Bark Maul 10.8 / 1.8 s at reach 1.5 (0.6 s), speed 1.2; closed 3.5 s taking 25 %, open 2.5 s rooted and taking 100 %", Roles = true, Set = Bloom() };
-            yield return new Option { Key = "shipped-f2c", What = "`shipped` with floor 2's Grunt Captain back in Sentry Hall (VaultsCaptain: floor 2 before 2026-11-12)", Set = l => l.VaultsCaptain = true };
+            yield return new Option { Key = "shipped-f2c", What = "`captain` with floor 2's Grunt Captain back in Sentry Hall (VaultsCaptain: floor 2 before 2026-11-12)", Set = l => { l.VaultsCaptain = true; l.GloamCaptain = true; } };
             yield return new Option { Key = "bloom-f2c", What = "`bloom` with floor 2's Grunt Captain back in Sentry Hall", Set = Bloom(l => l.VaultsCaptain = true) };
             // docs/52 section 5's sweep and section 8's fallbacks, one lever at a time off the starting values.
             foreach (int health in new[] { 60, 80, 125 })
                 yield return new Option { Key = $"bloom-h{health}", What = $"the Bloom at {health} % of its 280 health", Roles = true, Set = Bloom(l => l.BloomHealthScale = health / 100f) };
             foreach (int maul in new[] { 75, 125 })
-                yield return new Option { Key = $"bloom-m{maul}", What = $"the Bloom's maul at {maul} % of 10.8", Roles = true, Set = Bloom(l => l.BloomMaulScale = maul / 100f) };
+                yield return new Option { Key = $"bloom-m{maul}", What = $"the Bloom's maul at {maul} % of 10.8", Roles = true, Set = Bloom(l => l.BloomMaulDamage = Maul(maul / 100f)) };
             foreach (float open in new[] { 2.0f, 3.0f })
                 yield return new Option { Key = "bloom-o" + open.ToString("0.0", CultureInfo.InvariantCulture), What = $"the Bloom open {open.ToString("0.0", CultureInfo.InvariantCulture)} s", Roles = true, Set = Bloom(l => l.BloomOpen = open) };
             foreach (float closed in new[] { 3.0f, 4.0f })
@@ -69,7 +77,7 @@ namespace Cryptforge.Tests
             yield return new Option { Key = "bloom-r1.4", What = "the Bloom's maul reaching 1.4", Roles = true, Set = Bloom(l => l.BloomMaulReach = 1.4f) };
             // Round 2 (past docs/52's list): what keeps a kiting hero out of the maul - a shorter reach than the kite's 1.6
             // less what a 0.25 s reaction lets the Bloom close, a slower walk - and a lighter maul for the flat cost.
-            yield return new Option { Key = "bloom-m50", What = "the Bloom's maul at 50 % of 10.8", Roles = true, Set = Bloom(l => l.BloomMaulScale = .5f) };
+            yield return new Option { Key = "bloom-m50", What = "the Bloom's maul at 50 % of 10.8", Roles = true, Set = Bloom(l => l.BloomMaulDamage = Maul(.5f)) };
             yield return new Option { Key = "bloom-r1.2", What = "the Bloom's maul reaching 1.2", Roles = true, Set = Bloom(l => l.BloomMaulReach = 1.2f) };
             yield return new Option { Key = "bloom-s0.9", What = "the Bloom walking 0.9 a second while closed (the Tank's)", Roles = true, Set = Bloom(l => l.BloomSpeed = .9f) };
             yield return new Option { Key = "bloom-r1.2-s0.9", What = "the Bloom's maul reaching 1.2, walking 0.9", Roles = true, Set = Bloom(l => { l.BloomMaulReach = 1.2f; l.BloomSpeed = .9f; }) };
@@ -87,11 +95,11 @@ namespace Cryptforge.Tests
                 {
                     Key = $"bloom-w{windup.ToString("0.0", CultureInfo.InvariantCulture)}-m{maul}",
                     What = $"the Bloom's maul at {maul} % of 10.8, landing {windup.ToString("0.0", CultureInfo.InvariantCulture)} s after its swing begins on a hero still in reach", Roles = true,
-                    Set = Bloom(l => { l.BloomWindup = windup; l.BloomMaulScale = maul / 100f; })
+                    Set = Bloom(l => { l.BloomWindup = windup; l.BloomMaulDamage = Maul(maul / 100f); })
                 };
             // Round 2's cheaper combinations: the maul at a half or a third, with a shorter reach or less health.
-            foreach (int maul in new[] { 35, 50, 75, 100 })
-            foreach (int health in new[] { 60, 80, 100 })
+            foreach (int maul in new[] { 20, 25, 30, 35, 50, 75, 100 })
+            foreach (int health in new[] { 60, 70, 80, 100 })
             foreach (float reach in new[] { 1.0f, 1.2f, 1.5f })
             {
                 if (health == 100 && reach == 1.5f && (maul == 50 || maul == 75 || maul == 100))
@@ -101,14 +109,14 @@ namespace Cryptforge.Tests
                 yield return new Option
                 {
                     Key = key, What = $"the Bloom's maul at {maul} % of 10.8, {health} % of its health, reaching {reach.ToString("0.0", CultureInfo.InvariantCulture)}", Roles = true,
-                    Set = Bloom(l => { l.BloomMaulScale = maul / 100f; l.BloomHealthScale = health / 100f; l.BloomMaulReach = reach; })
+                    Set = Bloom(l => { l.BloomMaulDamage = Maul(maul / 100f); l.BloomHealthScale = health / 100f; l.BloomMaulReach = reach; })
                 };
             }
             // Combinations, for a variant that meets several rows at once (read after the single levers).
-            yield return new Option { Key = "bloom-h80-m125", What = "the Bloom at 80 % health with its maul at 125 %", Roles = true, Set = Bloom(l => { l.BloomHealthScale = .8f; l.BloomMaulScale = 1.25f; }) };
-            yield return new Option { Key = "bloom-h60-m125", What = "the Bloom at 60 % health with its maul at 125 %", Roles = true, Set = Bloom(l => { l.BloomHealthScale = .6f; l.BloomMaulScale = 1.25f; }) };
-            yield return new Option { Key = "bloom-h80-m75", What = "the Bloom at 80 % health with its maul at 75 %", Roles = true, Set = Bloom(l => { l.BloomHealthScale = .8f; l.BloomMaulScale = .75f; }) };
-            yield return new Option { Key = "bloom-h60-m75", What = "the Bloom at 60 % health with its maul at 75 %", Roles = true, Set = Bloom(l => { l.BloomHealthScale = .6f; l.BloomMaulScale = .75f; }) };
+            yield return new Option { Key = "bloom-h80-m125", What = "the Bloom at 80 % health with its maul at 125 %", Roles = true, Set = Bloom(l => { l.BloomHealthScale = .8f; l.BloomMaulDamage = Maul(1.25f); }) };
+            yield return new Option { Key = "bloom-h60-m125", What = "the Bloom at 60 % health with its maul at 125 %", Roles = true, Set = Bloom(l => { l.BloomHealthScale = .6f; l.BloomMaulDamage = Maul(1.25f); }) };
+            yield return new Option { Key = "bloom-h80-m75", What = "the Bloom at 80 % health with its maul at 75 %", Roles = true, Set = Bloom(l => { l.BloomHealthScale = .8f; l.BloomMaulDamage = Maul(.75f); }) };
+            yield return new Option { Key = "bloom-h60-m75", What = "the Bloom at 60 % health with its maul at 75 %", Roles = true, Set = Bloom(l => { l.BloomHealthScale = .6f; l.BloomMaulDamage = Maul(.75f); }) };
             yield return new Option { Key = "bloom-h60", What = "the Bloom at 60 % health", Roles = true, Set = Bloom(l => l.BloomHealthScale = .6f) };
         }
 
@@ -327,7 +335,7 @@ namespace Cryptforge.Tests
             DescentSimulation.FoundryResult[] met = MetThornPost(down);
             string taken = met.Length == 0 ? "-"
                 : $"{F1(met.Average(r => r.EliteTaken))} ({F1(met.Average(r => r.EliteTakenFromLeader))} / {F1(met.Average(r => r.EliteTakenFromEscort))} / {F1(met.Average(r => r.EliteTakenFromHorde))})";
-            string windows = !c.Levers.GloamBloom || fights.Length == 0 ? "-"
+            string windows = c.Levers.GloamCaptain || fights.Length == 0 ? "-"
                 : $"{fights.Count(f => f.Windows <= 1)} / {fights.Count(f => f.Windows == 2)} / {fights.Count(f => f.Windows >= 3)} ({Pct(fights.Count(f => f.FellOpen), fights.Length)})" +
                   (c.Levers.BloomWindup > 0f ? $"; whiffs {F1(met.Length == 0 ? double.NaN : met.Average(r => r.BloomWhiffs))}" : string.Empty);
             float[] gate = down.Where(r => r.WardenSeconds >= 0f).Select(r => r.WardenSeconds).ToArray();

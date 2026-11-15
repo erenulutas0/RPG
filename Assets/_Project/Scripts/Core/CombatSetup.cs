@@ -81,6 +81,8 @@ namespace Cryptforge.Core
         public WardenSlamService Warden { get; private set; }
         // The Mirror Sentries' guards (MirrorGuardRule): their turn, their budget and the reflection they pay the hero.
         public MirrorGuardService Mirrors { get; private set; }
+        // The Gloam Gardens' own enemies (docs/52): the Cinder Bloom's cycle, its rooting and its held maul.
+        public GloamService Gloam { get; private set; }
         public ForgeService Forge { get; private set; }
         public CheckpointService Checkpoint { get; private set; }
         public RunChoices Choices { get; private set; }
@@ -256,6 +258,8 @@ namespace Cryptforge.Core
             Warden.Initialize(this, _hero, _attack);
             Mirrors = gameObject.AddComponent<MirrorGuardService>();
             Mirrors.Initialize(this, _hero);
+            Gloam = gameObject.AddComponent<GloamService>();
+            Gloam.Initialize(this, _hero);
             // The foundry's elites as they stand, for every strike of the hero's (EliteRule: the Daggers' share on them).
             _attack.Elites = _encounters.Elites;
             // The hero strikes nothing while the boss's reveal holds the fight, as no enemy strikes it.

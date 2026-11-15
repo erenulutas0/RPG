@@ -80,9 +80,13 @@ namespace Cryptforge.Tests
             // The Mirror Sentries' guards step right after the Warden's slam clock, as DescentSimulation.Foundry's frame
             // steps StepVaults after StepWarden, and before every strike lands on them.
             int mirrors = ScriptOrder<MirrorGuardService>("Core/MirrorGuardService.cs");
+            // The Cinder Blooms' clocks step right after the mirrors, as the simulation's frame steps StepGloam after
+            // StepVaults, and before every strike: an open Bloom's maul is held and a landing meets the bark as the clock stands.
+            int gloam = ScriptOrder<GloamService>("Core/GloamService.cs");
             Assert.That(walk, Is.LessThan(encounter), "the hero walks before the packs move");
             Assert.That(encounter, Is.LessThan(slams), "the gate boss is out before its clock reads it");
             Assert.That(slams, Is.LessThan(mirrors), "the mirrors turn after the Warden's clock, as the simulation steps them");
+            Assert.That(mirrors, Is.LessThan(gloam), "the Blooms' clocks after the mirrors, as the simulation steps them");
             var after = new (string Name, int Order)[]
             {
                 (nameof(AttackController), ScriptOrder<AttackController>("Combat/AttackController.cs")),
@@ -97,6 +101,7 @@ namespace Cryptforge.Tests
             {
                 Assert.That(order, Is.GreaterThan(slams), name + " runs after the Warden's slam clock");
                 Assert.That(order, Is.GreaterThan(mirrors), name + " runs after the mirrors' guards");
+                Assert.That(order, Is.GreaterThan(gloam), name + " runs after the Blooms' clocks");
             }
         }
 
@@ -147,6 +152,66 @@ namespace Cryptforge.Tests
             Assert.That(proof.RoomAt(0).Kind, Is.EqualTo(RoomKind.Elite));
             Assert.That(proof.RoomAt(0).WaveAt(0).EnemyCount, Is.EqualTo(1));
             Assert.That(proof.RoomAt(0).WaveAt(0).EnemyAt(0), Is.SameAs(sentry));
+        }
+
+        // The Cinder Bloom (BloomRule; docs/52, the lead's decisions 2026-11-15, `bloom-m20-h70-r1.2`): the scene's Bloom carries
+        // its bark on its prefab, ahead of its Health, and its open-state look beside its painted set, which has no gloam copy
+        // (born on floor 3: the set is its own look); the asset and its Bark Maul are the simulation's (AssertEnemy) - 20 % of
+        // docs/52's maul at reach 1.2 - the simulation's shipped levers cycle it with BloomRule's tuning, and its proof floor
+        // fields it alone in an elite room.
+        [Test]
+        public void TheCinderBloomIsTheSimulations()
+        {
+            var bloom = AssetDatabase.LoadAssetAtPath<EnemyDefinition>("Assets/_Project/Data/Enemies/Enemy_CinderBloom.asset");
+            Assert.That(bloom, Is.Not.Null);
+            AssertEnemy(bloom, DescentSimulation.CinderBloom, bloom.Id);
+            Assert.That(bloom.Id, Is.EqualTo("enemy_cinder_bloom"));
+            Assert.That(bloom.Weapon.Id, Is.EqualTo("weapon_bark_maul"));
+            Assert.That(bloom.Weapon.DisplayName, Is.EqualTo("Bark Maul"));
+            Assert.That(bloom.Weapon.Damage, Is.EqualTo(DescentSimulation.Docs52MaulDamage * .2f), "20 % of docs/52's 10.8");
+            Assert.That(bloom.Weapon.Range, Is.EqualTo(1.2f), "reach 1.2, reach 1.0's fallback for its look");
+            Assert.That(bloom.MaximumHealth, Is.EqualTo(196f), "70 % of docs/52's 280");
+            Assert.That(bloom.Prefab.GetComponent<CinderBloom>(), Is.Not.Null, "the Bloom's prefab carries its bark");
+            Assert.That(bloom.Prefab.GetComponent<CinderBloomView>(), Is.Not.Null, "and its open-state look");
+            var captain = AssetDatabase.LoadAssetAtPath<EnemyDefinition>("Assets/_Project/Data/Enemies/Enemy_GruntCaptain.asset");
+            Assert.That(captain.Prefab.GetComponent<CinderBloom>(), Is.Null, "the Captain has none");
+            var look = bloom.Prefab.GetComponent<EnemyLookView>();
+            Assert.That(look, Is.Not.Null);
+            var art = new SerializedObject(look).FindProperty("_paintedArt").objectReferenceValue as Cryptforge.Art.EnemyArtSet;
+            Assert.That(art, Is.Not.Null, "painted");
+            Assert.That(art.name, Is.EqualTo("CinderBloomArtSet"));
+            Assert.That(art.IsValid, Is.True);
+            Assert.That(art.ForTheme(FloorTheme.Gloam), Is.Null, "no gloam copy: the set is its own look");
+            var view = new SerializedObject(bloom.Prefab.GetComponent<CinderBloomView>());
+            foreach (string side in new[] { "_front", "_rear" })
+            {
+                SerializedProperty frames = view.FindProperty(side);
+                Assert.That(frames.arraySize, Is.EqualTo(3), side + ": unfold-0, unfold-1, open");
+                for (int i = 0; i < 3; i++)
+                {
+                    Assert.That(frames.GetArrayElementAtIndex(i).FindPropertyRelative("Body").objectReferenceValue, Is.Not.Null, $"{side} {i}");
+                    Assert.That(frames.GetArrayElementAtIndex(i).FindPropertyRelative("Flash").objectReferenceValue, Is.Not.Null, $"{side} {i} flash");
+                }
+            }
+            Assert.That(view.FindProperty("_barkChip").arraySize, Is.EqualTo(3));
+
+            var shipped = new DescentSimulation.FoundryLevers();
+            Assert.That(shipped.BloomClosed, Is.EqualTo(BloomRule.ClosedSeconds));
+            Assert.That(shipped.BloomOpen, Is.EqualTo(BloomRule.OpenSeconds));
+            Assert.That(shipped.BloomBark, Is.EqualTo(BloomRule.BarkShare));
+            Assert.That(shipped.BloomWindup, Is.EqualTo(0f), "the shipped maul has no windup lever");
+            Assert.That(shipped.GloamCaptain, Is.False);
+            Assert.That(shipped.Gloam, Is.False, "the shipped levers leave Thorn Post as the asset has it");
+
+            FloorDefinition proof = null;
+            foreach (FloorDefinition floor in UnityEngine.Resources.LoadAll<FloorDefinition>(DevelopmentStart.ResourcesFolder))
+                if (floor.Id == "floor_bloom_proof")
+                    proof = floor;
+            Assert.That(proof, Is.Not.Null, "Resources/Development/Floor_BloomProof");
+            Assert.That(proof.RoomCount, Is.EqualTo(1));
+            Assert.That(proof.RoomAt(0).Kind, Is.EqualTo(RoomKind.Elite));
+            Assert.That(proof.RoomAt(0).WaveAt(0).EnemyCount, Is.EqualTo(1));
+            Assert.That(proof.RoomAt(0).WaveAt(0).EnemyAt(0), Is.SameAs(bloom));
         }
 
         // The Glass Regent (RegentRule; the lead's decisions 2026-11-12): the scene's Regent is the Forge Warden's prefab with
@@ -326,6 +391,12 @@ namespace Cryptforge.Tests
             Assert.That(DescentSimulation.LaterFloorLevers(FoundryBatch.Shipped(), floor).WardenHealthShare,
                 Is.EqualTo(WardenRule.GateHealthShareOn(asset.FoundryGateHealthShare)));
             Assert.That(ClimbScaling.Boss(floor.FloorNumber), Is.EqualTo(ClimbScaling.BossGrowth), "floor 3's gate is the first the boss growth reaches");
+
+            // Its elite: the Cinder Bloom leads Thorn Post since 2026-11-15 (docs/52), with the Captain's escort.
+            int elite = System.Array.IndexOf(floor.Kinds, RoomKind.Elite);
+            Assert.That(asset.RoomAt(elite).DisplayName, Is.EqualTo("Thorn Post"), "Thorn Post keeps its name (docs/52)");
+            Assert.That(asset.RoomAt(elite).WaveAt(0).EnemyAt(0).Id, Is.EqualTo("enemy_cinder_bloom"));
+            Assert.That(floor.Rooms[elite][0][0], Is.SameAs(DescentSimulation.CinderBloom));
 
             // The districts go on from floors 1 and 2's authored halls.
             Assert.That(DescentSimulation.LaterHalls(floor), Is.EqualTo(EncounterController.LaterHalls(asset)));

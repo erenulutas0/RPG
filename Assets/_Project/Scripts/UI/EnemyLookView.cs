@@ -254,8 +254,26 @@ namespace Cryptforge.UI
         internal FloorTheme ShownTheme => ShowsThemed ? _theme : FloorTheme.Foundry;
         internal bool ShowsFrost => ShownTheme == FloorTheme.Ice;
 
-        // A pre-built white silhouette for any frame this view assigned to the body; null for anything else.
-        public Sprite SilhouetteOf(Sprite bodySprite) => _painted ? Art.FlashOf(bodySprite) : _sprites?.SilhouetteOf(bodySprite);
+        // A pre-built white silhouette for any frame this view assigned to the body - or a sibling view did (AddFlash: the
+        // Cinder Bloom's open state, CinderBloomView); null for anything else.
+        public Sprite SilhouetteOf(Sprite bodySprite)
+        {
+            Sprite flash = _painted ? Art.FlashOf(bodySprite) : _sprites?.SilhouetteOf(bodySprite);
+            if (flash == null && _extraFlashes != null && bodySprite != null)
+                _extraFlashes.TryGetValue(bodySprite, out flash);
+            return flash;
+        }
+
+        // Frames a sibling view shows on this body that the painted set does not hold, with their flashes.
+        private System.Collections.Generic.Dictionary<Sprite, Sprite> _extraFlashes;
+
+        public void AddFlash(Sprite body, Sprite flash)
+        {
+            if (body == null || flash == null)
+                return;
+            _extraFlashes ??= new System.Collections.Generic.Dictionary<Sprite, Sprite>(8);
+            _extraFlashes[body] = flash;
+        }
 
         // The bar hangs off the enemy root, not the body, so attack nudges and the death hide do not move it; it is
         // hidden on death separately.

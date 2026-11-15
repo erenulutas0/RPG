@@ -49,6 +49,20 @@ namespace Cryptforge.Tests
         }
 
         [Test]
+        public void TheOpenWindowIsTimedFromItsStart()
+        {
+            Assert.That(BloomRule.OpenFor(3f, 3.5f, 2.5f), Is.LessThan(0f));
+            Assert.That(BloomRule.OpenFor(3.5f, 3.5f, 2.5f), Is.EqualTo(0f));
+            Assert.That(BloomRule.OpenFor(4.5f, 3.5f, 2.5f), Is.EqualTo(1f).Within(1e-5f));
+            Assert.That(BloomRule.OpenFor(7f, 3.5f, 2.5f), Is.LessThan(0f), "closed again in the second cycle");
+            Assert.That(BloomRule.OpenFor(10f, 3.5f, 2.5f), Is.EqualTo(.5f).Within(1e-4f));
+            var clock = new BloomClock();
+            clock.Step(4f);
+            Assert.That(clock.OpenFor, Is.EqualTo(.5f).Within(1e-5f));
+            Assert.That((clock.ClosedSeconds, clock.OpenSeconds), Is.EqualTo((3.5f, 2.5f)));
+        }
+
+        [Test]
         public void ASwingIsDoneWhenItsWindupIs()
         {
             Assert.That(BloomRule.SwingDone(.49f, .5f), Is.False);

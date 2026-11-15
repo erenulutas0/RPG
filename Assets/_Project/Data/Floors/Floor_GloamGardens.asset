@@ -64,7 +64,7 @@ MonoBehaviour:
     _kind: 2
     _waves:
     - _enemies:
-      - {fileID: 11400000, guid: 10000000000000000000000000000011, type: 2}
+      - {fileID: 11400000, guid: 40c4343b297e4ba3acf4d0dfb968d700, type: 2}
       - {fileID: 11400000, guid: 10000000000000000000000000000003, type: 2}
       - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
       - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}

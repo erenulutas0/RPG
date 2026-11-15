@@ -34,7 +34,7 @@ namespace Cryptforge.Combat
         public int WeaponCount => _weapon == null ? 0 : 1 + (_moreWeapons?.Count ?? 0);
         // While set, this attacker neither readies nor strikes: its cooldowns stand still and no strike is due. The foundry's
         // gate boss is held so while it winds up a slam and while its hammer is in the floor (WardenSlamService,
-        // WardenRule.RecoverySeconds); nothing else holds an attacker.
+        // WardenRule.RecoverySeconds), and floor 3's Cinder Bloom while its bloom is open (GloamService, BloomRule).
         public bool IsHeld { get; set; }
         // A hold on every fight at once, asked each frame: while it answers true this attacker neither readies nor strikes,
         // as while IsHeld. The foundry's boss reveal holds the fight while the camera is at the gate, so that nothing is

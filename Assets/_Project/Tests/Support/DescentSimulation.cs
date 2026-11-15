@@ -229,6 +229,13 @@ namespace Cryptforge.Tests
         // of docs/50's 160. Its guard is MirrorGuardRule's; the foundry simulation steps it (DescentSimulation.Vaults.cs), the
         // old hall-arena simulation fights it as authored, as the scene's hall arena does.
         public static readonly Enemy MirrorSentry = new Enemy { Name = "Mirror Sentry", Health = 200f, Damage = 5.4f, Interval = 1.4f, InitialDelay = 0.6f, Gold = 20, Experience = 10, Speed = 1.1f, Reach = 1.6f };
+        // Enemy_CinderBloom and Weapon_BarkMaul (docs/52 section 5; the lead's decisions 2026-11-15, `bloom-m20-h70-r1.2`:
+        // reach 1.2 for its look, 70 % of docs/52's 280 health and 20 % of its 10.8 maul to pass the relative rule): floor 3's
+        // elite, 196 health, its Bark Maul 2.16 every 1.8 s at reach 1.2, 0.6 s before the first; 384 health and 3.9 a blow
+        // at floor 3's tier.
+        // Its cycle is BloomRule's; the foundry simulation steps it
+        // (DescentSimulation.Gloam.cs), the hall-arena simulation fights it as authored, as the scene's hall arena does.
+        public static readonly Enemy CinderBloom = new Enemy { Name = "Cinder Bloom", Health = 196f, Damage = 2.16f, Interval = 1.8f, InitialDelay = .6f, Gold = 20, Experience = 10, Speed = 1.2f, Reach = 1.2f };
         public static readonly Enemy Warden = new Enemy { Name = "Forge Warden", Health = 300f, Damage = 6f, Interval = 1.8f, InitialDelay = 1f, EnrageAt = 0.5f, Gold = 50, Experience = 10, Speed = 1f, Reach = 1.7f };
         // Enemy_GlassRegent and Weapon_GlassRod (docs/50 section 6; the lead's decisions 2026-11-12): floor 2's gate boss, the
         // Warden's body and clock with a lane for its mark (RegentRule). The foundry simulation marks its lanes where the
@@ -319,9 +326,10 @@ namespace Cryptforge.Tests
         };
 
         // Data/Floors/Floor_GloamGardens, the climb's floor 3 (docs/48, phase 1): floor 2's six rooms wave for wave under
-        // the garden's names - Ash Orchard, Rootbound Walk and Bloom Gate, the Grafting Forge, Thorn Post, the Warden's
-        // Grove with its Forge Warden and two Cinder Mites - at ClimbScaling's floor-3 tier (x1.96 health, x1.8032 damage)
-        // and no modifier. The foundry plays it as DescentSimulation.FoundryFloorThree.
+        // the garden's names - Ash Orchard, Rootbound Walk and Bloom Gate, the Grafting Forge, Thorn Post (led since
+        // 2026-11-15 by the Cinder Bloom, docs/52), the Warden's Grove with its Forge Warden and two Cinder Mites - at
+        // ClimbScaling's floor-3 tier (x1.96 health, x1.8032 damage) and no modifier. The foundry plays it as
+        // DescentSimulation.FoundryFloorThree.
         public static readonly Floor GloamGardens = new Floor
         {
             Rooms = new[]
@@ -330,7 +338,7 @@ namespace Cryptforge.Tests
                 new[] { new[] { Tank, Mite, Mite, Mite }, new[] { Mite, Mite, Mite, Mite, Mite } },
                 new[] { new[] { Grunt, Grunt, Mite, Mite, Mite } },
                 null,
-                new[] { new[] { Captain, Grunt, Mite, Mite } },
+                new[] { new[] { CinderBloom, Grunt, Mite, Mite } },
                 new[] { new[] { Warden, Mite, Mite } }
             },
             HealthMultiplier = 1.96f,

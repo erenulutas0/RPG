@@ -12,10 +12,13 @@ namespace Cryptforge.Combat
     // the simulation's FoeDamaged), after the attacker's own shares (EliteRule's Daggers x2), so the Daggers' x2
     // multiplies what the bark lets through.
     //
-    // Simulation research only (docs/52 section 8, step 1; DescentSimulation.Gloam.cs, GloamEnemiesResearch): no scene,
-    // asset or prefab reads it yet. Pure, and every product below is one body that is never inlined, so a later scene and
-    // the simulation round alike (the stamina divergence's lesson, docs/21: never copy clock or damage arithmetic across
-    // assemblies).
+    // Shipped as `bloom-m20-h70-r1.2` (docs/52, the lead's decisions 2026-11-15: reach 1.2 for its look in the Thorn Post
+    // capture; 70 % of docs/52's health and 20 % of its maul, the variant that passes the relative rule on the shipped
+    // floor 2): floor 3's Thorn Post is led by the Bloom, 196 health, its maul 2.16 every 1.8 s at reach 1.2
+    // (Enemy_CinderBloom, Weapon_BarkMaul). The scene's CinderBloom (the bark ahead of Health) and
+    // GloamService (the clock, the rooting, the held maul) and the foundry simulation (DescentSimulation.Gloam.cs) step the
+    // same BloomClock. Pure, and every product below is one body that is never inlined, so the scene and the simulation
+    // round alike (the stamina divergence's lesson, docs/21: never copy clock or damage arithmetic across assemblies).
     public static class BloomRule
     {
         public const float ClosedSeconds = 3.5f;
@@ -31,6 +34,18 @@ namespace Cryptforge.Combat
             if (!(cycle > 0f) || age < closed)
                 return false;
             return age % cycle >= closed;
+        }
+
+        // Seconds since the open window standing at age began; below zero while the Bloom is closed. The open-state look
+        // (CinderBloomView) reads it for its unfold and its close.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static float OpenFor(float age, float closed, float open)
+        {
+            float cycle = closed + open;
+            if (!(cycle > 0f) || age < closed)
+                return -1f;
+            float into = age % cycle - closed;
+            return into >= 0f ? into : -1f;
         }
 
         // How many open windows have begun by age: 0 while the first closed phase stands.
@@ -88,6 +103,10 @@ namespace Cryptforge.Combat
         public float Age { get; private set; }
         public bool IsOpen => BloomRule.Open(Age, _closed, _open);
         public int WindowsBegun => BloomRule.WindowsBegun(Age, _closed, _open);
+        // Seconds into the open window standing now, below zero while closed.
+        public float OpenFor => BloomRule.OpenFor(Age, _closed, _open);
+        public float ClosedSeconds => _closed;
+        public float OpenSeconds => _open;
 
         // A body back on the floor: closed, its clock at the start again.
         public void Reset() => Age = 0f;

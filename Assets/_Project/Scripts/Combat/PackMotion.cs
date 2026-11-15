@@ -156,7 +156,7 @@ namespace Cryptforge.Combat
         }
 
         // Enemy index walks at speed from its next step: 0 roots it where it stands (docs/52's open Cinder Bloom,
-        // BloomRule.SpeedOf; simulation research only today), its own speed walks it again.
+        // BloomRule.SpeedOf, stepped by GloamService and the simulation), its own speed walks it again.
         public void SetSpeed(int index, float speed)
         {
             if (index < 0 || index >= Count)

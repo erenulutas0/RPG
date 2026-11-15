@@ -422,6 +422,24 @@ namespace Cryptforge.Combat
             return false;
         }
 
+        // A node wave's enemy walks at its definition's speed times walkShare from its pack's next step: 0 roots it where it
+        // stands, 1 walks it as authored (GloamService: the open Cinder Bloom, BloomRule.SpeedOf). False for an enemy that is
+        // not of the standing wave.
+        public bool SetWalkShare(Health enemy, float walkShare)
+        {
+            if (enemy == null || _motion == null)
+                return false;
+            for (int i = 0; i < _wave.Count; i++)
+            {
+                SpawnedEnemy spawned = _wave[i];
+                if (spawned == null || !ReferenceEquals(spawned.Health, enemy) || spawned.Slot >= _motion.Count)
+                    continue;
+                _motion.SetSpeed(spawned.Slot, spawned.Definition.MoveSpeed * walkShare);
+                return true;
+            }
+            return false;
+        }
+
         public float HeroFloorX => _hero.transform.position.x;
         public float HeroFloorY => ArenaFloor.FloorY(_hero.transform.position.y);
 

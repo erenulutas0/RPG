@@ -3,37 +3,44 @@ using Cryptforge.Combat;
 
 namespace Cryptforge.Tests
 {
-    // The Gloam Gardens' own enemies (docs/52), simulation research only (section 8, step 1; the lead's decisions
-    // 2026-11-12: the Cinder Bloom's research first). The Cinder Bloom replaces the Grunt Captain at the head of floor 3's
-    // Thorn Post (GloamChain) when FoundryLevers.GloamBloom asks for it; its bark-and-bloom cycle is BloomRule's, a
-    // BloomClock on the foe stepped where the scene's GloamService would step it (after the Warden's slam and the Sentry's
+    // The Gloam Gardens' own enemies (docs/52). The Cinder Bloom ships (`bloom-m20-h70-r1.2`, the lead's decisions 2026-11-15):
+    // it leads floor 3's Thorn Post (DescentSimulation.GloamGardens, CinderBloom) and its bark-and-bloom cycle is BloomRule's,
+    // a BloomClock on the foe stepped where the scene's GloamService steps it (after the Warden's slam and the Sentry's
     // guard, before every attacker), held while a choice is open or the reveal holds. Every behaviour below keys on a foe
-    // that carries a clock, so a run that never meets a Bloom is the run it was: the default batch stays byte-identical.
-    // The elite rooms' accounting (FoundryResult.EliteFights, EliteTaken*) is read for every elite leader - the Captains
-    // too, for docs/52's baselines - and changes nothing a run does.
+    // that carries a clock, so floors 1 and 2, which hold no Bloom, are the runs they were. The research levers stay
+    // (GloamEnemiesResearch): GloamCaptain puts the Grunt Captain back at Thorn Post (floor 3 before 2026-11-15), and the
+    // Bloom's numbers move its tuning. The elite rooms' accounting (FoundryResult.EliteFights, EliteTaken*) is read for
+    // every elite leader and changes nothing a run does.
     internal static partial class DescentSimulation
     {
-        // docs/52 section 5's starting values, authored (before the climb's floor-3 x1.96 health and x1.8032 damage: 549
-        // health, 19.5 a maul): Bark Maul 10.8 every 1.8 s at reach 1.5 (the Grunt's), 0.6 s before the first; speed 1.2,
-        // rooted while open; the Captain's 20 gold and 10 experience.
-        public static readonly Enemy CinderBloom = new Enemy { Name = "Cinder Bloom", Health = 280f, Damage = 10.8f, Interval = 1.8f, InitialDelay = .6f, Gold = 20, Experience = 10, Speed = 1.2f, Reach = 1.5f };
+        // docs/52 section 5's starting values (research round 1): 280 health, Bark Maul 10.8 at reach 1.5 (the Grunt's), the
+        // rest the shipped Bloom's (CinderBloom). The shipped Bloom is 70 % of that health (ShippedHealthScale).
+        public const float ShippedHealthScale = .7f;
+        public const float Docs52Health = 280f;
+        public const float Docs52MaulDamage = 10.8f;
+        public const float Docs52MaulReach = 1.5f;
 
-        // The Bloom at the levers' health, maul, reach and speed: itself at the starting values, else a copy under its name.
+        // Whether the levers leave the shipped Bloom as it is.
+        private static bool ShippedBloom(FoundryLevers levers) =>
+            levers.BloomHealthScale == ShippedHealthScale && levers.BloomMaulDamage == CinderBloom.Damage &&
+            levers.BloomMaulReach == CinderBloom.Reach && levers.BloomSpeed == CinderBloom.Speed;
+
+        // The Bloom at the levers' health, maul, reach and speed: itself as shipped, else a copy under its name (its rules
+        // read the name).
         private static Enemy Bloom(FoundryLevers levers) =>
-            levers.BloomHealthScale == 1f && levers.BloomMaulScale == 1f && levers.BloomMaulReach == CinderBloom.Reach &&
-            levers.BloomSpeed == CinderBloom.Speed
+            ShippedBloom(levers)
                 ? CinderBloom
                 : new Enemy
                 {
-                    Name = CinderBloom.Name, Health = CinderBloom.Health * levers.BloomHealthScale,
-                    Damage = CinderBloom.Damage * levers.BloomMaulScale, Interval = CinderBloom.Interval,
+                    Name = CinderBloom.Name, Health = Docs52Health * levers.BloomHealthScale,
+                    Damage = levers.BloomMaulDamage, Interval = CinderBloom.Interval,
                     InitialDelay = CinderBloom.InitialDelay, Gold = CinderBloom.Gold, Experience = CinderBloom.Experience,
                     Speed = levers.BloomSpeed, Reach = levers.BloomMaulReach
                 };
 
-        // Floors 1 and 2 as VaultsChain makes them (the shipped Mirror Sentry on floor 2, or the levers' floor 2) above a
-        // floor 3 with the levers' creatures in place of the foundry's: the Cinder Bloom for Thorn Post's Grunt Captain. Its
-        // Grunt and two Cinder Mites, the halls and the Warden's Grove stay. With no Gloam lever it is VaultsChain's.
+        // Floors 1 and 2 as VaultsChain makes them (the shipped Mirror Sentry on floor 2, or the levers' floor 2) above floor
+        // 3 with the levers' Thorn Post: the Grunt Captain back (GloamCaptain), or the Bloom tuned otherwise. Its Grunt and two
+        // Cinder Mites, the halls and the Warden's Grove stay. With the levers at the shipped Bloom it is VaultsChain's.
         public static FoundryFloor GloamChain(FoundryLevers levers)
         {
             FoundryFloor one = VaultsChain(levers);
@@ -50,8 +57,8 @@ namespace Cryptforge.Tests
                 for (int w = 0; w < rooms[r].Length; w++)
                 {
                     Enemy[] wave = (Enemy[])three.Rooms[r][w].Clone();
-                    if (levers.GloamBloom && three.Kinds[r] == RoomKind.Elite && wave.Length > 0 && wave[0] == Captain)
-                        wave[0] = Bloom(levers);
+                    if (three.Kinds[r] == RoomKind.Elite && wave.Length > 0 && wave[0] == CinderBloom)
+                        wave[0] = levers.GloamCaptain ? Captain : Bloom(levers);
                     rooms[r][w] = wave;
                 }
             }
@@ -62,16 +69,16 @@ namespace Cryptforge.Tests
 
         internal sealed partial class FoundryLevers
         {
-            // docs/52's research creatures on floor 3, each off by default (GloamChain reads them).
-            public bool GloamBloom;
-            // The Cinder Bloom (section 5): its health and maul against the starting values', its maul's reach, and its
-            // cycle (BloomRule's: closed, open, the share the closed bark lets through).
-            public float BloomHealthScale = 1f;
-            public float BloomMaulScale = 1f;
-            public float BloomMaulReach = 1.5f;
-            // Its walking speed while closed (research past docs/52's list: how fast it closes on a kiting hero).
-            public float BloomSpeed = 1.2f;
-            // A windup on its maul (research past docs/52's list; 0, none, is section 5's maul): a swing begins as the ready
+            // Floor 3's Thorn Post before the Bloom shipped (2026-11-15): the Grunt Captain at its head (GloamChain).
+            public bool GloamCaptain;
+            // The Cinder Bloom (docs/52 section 5; shipped `bloom-m20-h70-r1.2`): its health against docs/52's 280, its maul's
+            // damage and reach, its walk while closed, and its cycle (BloomRule's: closed, open, the share the closed bark
+            // lets through). GloamChain reads the first four; the cycle's are read wherever a Bloom stands.
+            public float BloomHealthScale = ShippedHealthScale;
+            public float BloomMaulDamage = CinderBloom.Damage;
+            public float BloomMaulReach = CinderBloom.Reach;
+            public float BloomSpeed = CinderBloom.Speed;
+            // A windup on its maul (research past docs/52's list; 0, none, is the shipped maul): a swing begins as the ready
             // maul finds the hero in reach and lands BloomWindup seconds later only if the hero still stands in reach; a
             // swing that finds nobody whiffs and the maul waits, ready, for the next. The open bloom drops a swing.
             public float BloomWindup;
@@ -79,7 +86,8 @@ namespace Cryptforge.Tests
             public float BloomOpen = BloomRule.OpenSeconds;
             public float BloomBark = BloomRule.BarkShare;
 
-            public bool Gloam => GloamBloom;
+            // Whether GloamChain reshapes Thorn Post.
+            public bool Gloam => GloamCaptain || !ShippedBloom(this);
         }
 
         // One elite room's leader felled: its kind, from walking in to falling, the seconds it stood within reach of the
@@ -143,7 +151,7 @@ namespace Cryptforge.Tests
             // (not on the frame it walks in) and roots it while open; while the fight holds (a choice, the reveal), neither.
             private void StepGloam()
             {
-                if (!_levers.Gloam || !_eliteWave || _run.HasEnded || _choices.IsOpen || _revealHold)
+                if (!_eliteWave || _run.HasEnded || _choices.IsOpen || _revealHold)
                     return;
                 for (int i = 0; i < _wave.Count; i++)
                 {

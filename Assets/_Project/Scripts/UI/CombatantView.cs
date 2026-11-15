@@ -85,9 +85,15 @@ namespace Cryptforge.UI
             _body.enabled = true;
         }
 
+        // A sibling view's say over a hit's flash colour (the closed Cinder Bloom's bark tint, CinderBloomView): given the
+        // colour the hit would flash, the colour it flashes. Null for every other combatant.
+        public System.Func<Color, Color> FlashTint { get; set; }
+
         private void OnDamaged(DamageContext context)
         {
             Color color = context.IsCritical ? _criticalColor : Color.white;
+            if (FlashTint != null)
+                color = FlashTint(color);
             Sprite silhouette = _look != null ? _look.SilhouetteOf(_body.sprite) : null;
             if (silhouette != null)
                 ShowFlash(silhouette, color);

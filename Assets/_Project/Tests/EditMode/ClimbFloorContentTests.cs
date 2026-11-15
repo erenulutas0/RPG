@@ -56,7 +56,8 @@ namespace Cryptforge.Tests
 
         // The Daggers' elites (EliteRule; docs/41, status 2026-11-10 night): EncounterController.Elites holds the first enemy
         // of an elite room's wave, so every elite room of the climb's foundry floors opens each of its waves with its elite -
-        // the Grunt Captain on floors 1 and 3, the Mirror Sentry on floor 2 since 2026-11-12 (docs/50, the lead's decisions) -
+        // the Grunt Captain on floor 1, the Mirror Sentry on floor 2 since 2026-11-12 (docs/50, the lead's decisions), the
+        // Cinder Bloom on floor 3 since 2026-11-15 (docs/52) -
         // as the simulation's copies of the floors do (DescentSimulation.EmberHalls, QuicksilverVaults, GloamGardens).
         [Test]
         public void EveryEliteRoomOpensItsWavesWithItsElite()
@@ -65,7 +66,7 @@ namespace Cryptforge.Tests
             {
                 (FirstFloor, DescentSimulation.Captain.Name),
                 ("Assets/_Project/Data/Floors/Floor_QuicksilverVaults.asset", DescentSimulation.MirrorSentry.Name),
-                (ThirdFloor, DescentSimulation.Captain.Name)
+                (ThirdFloor, DescentSimulation.CinderBloom.Name)
             };
             foreach ((string path, string leader) in leaders)
             {
