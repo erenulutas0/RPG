@@ -110,6 +110,8 @@ namespace Cryptforge.UI
         public bool PaintsCards => _painter != null;
         // The panel's title and first card's labels, whose fonts and colours the map choice (MapChoiceView) borrows.
         internal Text TitleLabel => _titleLabel;
+        // The painted card icons by content id, for the Anvil's pieces (docs/54 phase 4); null when unset.
+        internal UpgradeIconSet IconSet => _iconSet;
         // The panel itself, which the catch-up's Auto-pick button (CatchUpAutoPickView) stands on.
         internal GameObject Panel => _panel;
         internal Text FirstNameLabel => _nameLabels != null && _nameLabels.Length > 0 ? _nameLabels[0] : null;

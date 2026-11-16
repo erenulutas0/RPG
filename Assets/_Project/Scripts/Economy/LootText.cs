@@ -54,6 +54,47 @@ namespace Cryptforge.Economy
             lost = gone.ToString();
         }
 
+        // The result screen's short form, one line: "Ember 4, Bead 2, Seal 1, 2 items" banked and "Bead 1" lost; an item a
+        // full bag melted counts as "1 melted". The Bag tab names each item; this only says how much the run brought.
+        public static void Compact(RunLoot loot, LootDeposit itemDeposits, out string banked, out string lost)
+        {
+            banked = string.Empty;
+            lost = string.Empty;
+            if (loot == null)
+                return;
+            LootSettlement settlement = loot.Settlement;
+            var kept = new StringBuilder();
+            var gone = new StringBuilder();
+            for (int i = 0; i < GearCurrency.MaterialCount; i++)
+            {
+                int count = loot.SecuredMaterial((MaterialKind)i) + (settlement != null ? settlement.MaterialsKept[i] : loot.UnsecuredMaterial((MaterialKind)i));
+                Short(kept, GearText.MaterialShortName((MaterialKind)i), count);
+                if (settlement != null)
+                    Short(gone, GearText.MaterialShortName((MaterialKind)i), settlement.MaterialsLost[i]);
+            }
+            for (int i = 0; i < GearCurrency.BoosterCount; i++)
+            {
+                int count = loot.SecuredBooster((BoosterKind)i) + (settlement != null ? settlement.BoostersKept[i] : loot.UnsecuredBooster((BoosterKind)i));
+                Short(kept, GearText.BoosterShortName((BoosterKind)i), count);
+                if (settlement != null)
+                    Short(gone, GearText.BoosterShortName((BoosterKind)i), settlement.BoostersLost[i]);
+            }
+            int melted = itemDeposits != null ? itemDeposits.Melted.Count : 0;
+            int stored = loot.Items.Count - melted;
+            if (stored > 0)
+                Separate(kept).Append(stored == 1 ? "1 item" : stored.ToString(CultureInfo.InvariantCulture) + " items");
+            if (melted > 0)
+                Separate(kept).Append(melted.ToString(CultureInfo.InvariantCulture)).Append(" melted");
+            banked = kept.ToString();
+            lost = gone.ToString();
+        }
+
+        private static void Short(StringBuilder text, string name, int count)
+        {
+            if (count > 0)
+                Separate(text).Append(name).Append(' ').Append(count.ToString(CultureInfo.InvariantCulture));
+        }
+
         private static void Count(StringBuilder text, string name, int count)
         {
             if (count > 0)

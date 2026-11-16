@@ -544,6 +544,24 @@ namespace Cryptforge.Core
             return items.ToArray();
         }
 
+        // A piece's name for the Anvil's screens (docs/54 phase 4): a weapon's from the forge's rack, an item's from the
+        // economy's list; the id itself for anything this build no longer has.
+        public string ItemDisplayName(string itemId)
+        {
+            if (string.IsNullOrEmpty(itemId))
+                return string.Empty;
+            for (int i = 0; _weapons != null && i < _weapons.Length; i++)
+                if (_weapons[i] != null && _weapons[i].Id == itemId)
+                    return _weapons[i].DisplayName;
+            for (int i = 0; _economy != null && i < _economy.ItemCount; i++)
+            {
+                ItemDefinition item = _economy.ItemAt(i);
+                if (item != null && item.Id == itemId)
+                    return item.DisplayName;
+            }
+            return itemId;
+        }
+
         // The game's text, for views built in code.
         internal PrototypeTextDefinition Text => _text;
 

@@ -231,6 +231,7 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/ProfileGearTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/AnvilTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/RunLootTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/GearTextTests.cs" />
     <!-- A run started on a deeper map (Scripts/Progression/DescentStart.cs, compiled above with Progression). -->
     <Compile Include="../../Assets/_Project/Tests/EditMode/DescentCatchUpTests.cs" />
   </ItemGroup>

@@ -110,10 +110,10 @@ namespace Cryptforge.UI
                 ? string.Format(CultureInfo.InvariantCulture, _text.ResultGoldLostFormat, run.GoldBanked, run.GoldLost)
                 : string.Format(CultureInfo.InvariantCulture, _text.ResultGoldFormat, run.GoldBanked);
             _buildLabel.text = string.Format(CultureInfo.InvariantCulture, _text.ResultBuildFormat, _setup.HeroWeapon.DisplayName, DescribeBuild());
-            // The run's loot (docs/54 phase 3) as the build label's last line, plain text until the Anvil's own screen.
-            string loot = DescribeLoot();
-            if (loot.Length > 0)
-                _buildLabel.text += "\n" + loot;
+            // The run's loot (docs/54) as the build label's last line, one short line ("Loot: Ember 4, Seal 1, 1 item"); the
+            // Bag tab names each item. Never past the label's foot: a line that would overflow gives way to the bare count,
+            // and that to nothing.
+            AppendLoot();
             _forgeHintLabel.text = DescribeForge();
 
             _panel.SetActive(true);
@@ -122,15 +122,53 @@ namespace Cryptforge.UI
             _awaitingInputDelay = true;
         }
 
-        // The run's loot (docs/54 phase 3) as plain text under the gold; empty when the run dropped nothing.
-        private string DescribeLoot()
+        // The loot line as shown, for tests and captures; empty when the run dropped nothing or the label had no room.
+        public string LootLine { get; private set; } = string.Empty;
+
+        private void AppendLoot()
         {
+            LootLine = string.Empty;
             if (_setup.Loot == null || _setup.Bank == null)
-                return string.Empty;
-            LootText.Describe(_setup.Loot, _setup.Bank.ItemDeposits, out string banked, out string lost);
-            if (lost.Length > 0)
-                return string.Format(CultureInfo.InvariantCulture, _text.ResultLootLostFormat, banked.Length > 0 ? banked : "nothing", lost);
-            return banked.Length > 0 ? string.Format(CultureInfo.InvariantCulture, _text.ResultLootFormat, banked) : string.Empty;
+                return;
+            LootText.Compact(_setup.Loot, _setup.Bank.ItemDeposits, out string banked, out string lost);
+            if (banked.Length == 0 && lost.Length == 0)
+                return;
+            string build = _buildLabel.text;
+            string line = lost.Length > 0
+                ? string.Format(CultureInfo.InvariantCulture, _text.ResultLootLostFormat, banked.Length > 0 ? banked : "nothing", lost)
+                : string.Format(CultureInfo.InvariantCulture, _text.ResultLootFormat, banked);
+            if (Fits(build + "\n" + line))
+            {
+                LootLine = line;
+                _buildLabel.text = build + "\n" + line;
+                return;
+            }
+            int pieces = _setup.Loot.Items.Count;
+            for (int i = 0; i < GearCurrency.MaterialCount; i++)
+                pieces += _setup.Loot.SecuredMaterial((MaterialKind)i) +
+                          (_setup.Loot.Settlement != null ? _setup.Loot.Settlement.MaterialsKept[i] : 0);
+            string bare = string.Format(CultureInfo.InvariantCulture, _text.ResultLootFormat,
+                pieces.ToString(CultureInfo.InvariantCulture) + " pieces (see the Bag)");
+            if (Fits(build + "\n" + bare))
+            {
+                LootLine = bare;
+                _buildLabel.text = build + "\n" + bare;
+            }
+        }
+
+        // Whether the build label holds this text inside its rect at its font, as the label would lay it out (best fit
+        // included: the generator is asked at the label's own settings).
+        private bool Fits(string text)
+        {
+            RectTransform rect = _buildLabel.rectTransform;
+            Vector2 size = rect.rect.size;
+            if (size.x <= 0f || size.y <= 0f || _buildLabel.font == null)
+                return true;
+            TextGenerationSettings settings = _buildLabel.GetGenerationSettings(size);
+            settings.resizeTextForBestFit = false;
+            float scale = _buildLabel.pixelsPerUnit > 0f ? _buildLabel.pixelsPerUnit : 1f;
+            float height = _buildLabel.cachedTextGeneratorForLayout.GetPreferredHeight(text, settings) / scale;
+            return height <= size.y + .5f;
         }
 
         private string DescribeBuild()

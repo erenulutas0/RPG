@@ -48,6 +48,9 @@ namespace Cryptforge.UI
         public bool IsOpen => _panel != null && _panel.activeSelf;
         // The hero chooser beside the start button; null while the roster has one hero. For tests.
         public HeroChoiceView HeroChoice => _heroChoice;
+        // The Anvil, Efsun and Bag tabs (docs/54 phase 4), opened from the buttons beside the nameplate.
+        public AnvilView Anvil => _anvil;
+        private AnvilView _anvil;
         // Each card shown, with the state it shows, as the panel refreshes: the painted screens dress the card by it.
         public event Action<Button, UnlockStatus> CardShown;
 
@@ -84,6 +87,9 @@ namespace Cryptforge.UI
                 _heroChoice = gameObject.AddComponent<HeroChoiceView>();
                 _heroChoice.Initialize(_setup, _text, _startButton, _startLabel);
             }
+            // docs/54 phase 4: the Anvil's and the Bag's buttons beside the nameplate, and the panel they open.
+            _anvil = gameObject.AddComponent<AnvilView>();
+            _anvil.Initialize(_setup, _titleLabel, _startLabel);
             _setup.Profile.Changed += OnProfileChanged;
             _subscribed = true;
         }

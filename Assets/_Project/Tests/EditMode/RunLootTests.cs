@@ -178,6 +178,12 @@ namespace Cryptforge.Tests
                 Assert.That(lost, Does.StartWith("Quicksilver Bead x1"));
                 LootText.Describe(null, null, out string none, out string noneLost);
                 Assert.That(none + noneLost, Is.Empty);
+                // The result screen's one short line (docs/54 phase 4).
+                LootText.Compact(loot, bank.ItemDeposits, out string shortBanked, out string shortLost);
+                Assert.That(shortBanked, Does.StartWith("Ember 2, Bead 2"));
+                Assert.That(shortBanked, Does.EndWith(loot.Items.Count == 1 ? "1 item" : loot.Items.Count + " items"));
+                Assert.That(shortLost, Does.StartWith("Bead 1"));
+                Assert.That(shortBanked.Length, Is.LessThan(60), "One line on the result screen.");
             }
             finally
             {
