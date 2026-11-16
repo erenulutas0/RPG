@@ -25,7 +25,7 @@ Active skills and an async arena are outlined only.
 | Basma | +1..+3 100 %, +4 90, +5 75, +6 60, +7 45, +8 30, +9 20; a failure keeps the level and the item, spends the gold and materials, and adds **pity** (+5/+5/+5/+4/+3/+2 points) until a hard **ceiling** (the next strike holds after 2/3/4/6/8/10 failures in a row) | mean attempts +9: **3.96**, worst case 11 |
 | Cost | Gold 50 / 80 / 120 / 180 / 250 / 400 / 700 / 1,300 / 2,400 an attempt; materials from +4: Ember Shard (Foundry) to +6, Quicksilver Bead (Vaults) for +7, Gloam Spore (Gardens) for +8 and +9 | one item to +9: **16,100 gold**, 12.5 Ember, 6.1 Quicksilver, 35 Spores (mean) |
 | Boosters | **Forge Seal** (+10 points on one strike), **Master's Hammer** (one strike up to +6 cannot fail), **Efsun Scroll** (one reroll without gold), **Binding Rune** (adds a line) | careful a run: 0.43 Seals, 0.12 Hammers, 0.97 Scrolls, 0.09 Runes |
-| Efsun | Lines by rarity 1/2/3/4, a fifth by Binding Rune; 14-line pool fitted to this game; tiers 1-5; reroll all, then **keep old or new** | reroll 60/100/160/250 gold by rarity; a "good" 4-line roll 1 in 30 |
+| Efsun | Lines by rarity 1/2/3/4, a fifth by Binding Rune; 13-line pool fitted to this game; tiers 1-5; reroll all, then **keep old or new** | reroll 60/100/160/250 gold by rarity; a "good" 4-line roll 1 in 26 |
 | Power cap | Main stats by basma plus lines, clamped per stat in code; **gear power = DPS x EHP - 1** | +5 set **+15 %**, +9 set **+31 %**, +9 with good efsun **+42 %**, absolute ceiling **+51 %** |
 | Curve | careful cohort, boosters, a quarter of gold to efsun | first +5 in **2 runs**, one +7 in 7, one +9 in **32**, full set +9 in **135 runs (P50; ~5 weeks at 4 runs a day)** |
 | Tiers | Forged (today) - Tempered - Inferno - Abyssal, each matched to a gear power, each paying more | rewards x1 / 1.25 / 1.5 / 2 |
@@ -116,7 +116,7 @@ rules, not stat sticks.
 | The finale's walk-out | 60 % | 0.96 a run | 0.58 |
 | **The first floor-1 boss a profile fells** | **100 %, an Armour** | once | the tutorial drop |
 
-Modelled: careful 1.49, clumsy 0.58, auto-farmer 0.13 items a run. The slot is drawn evenly from the three; the rarity
+Modelled: careful 1.50, clumsy 0.60, auto-farmer 0.16 items a run (items are always kept on a death, section 17). The slot is drawn evenly from the three; the rarity
 from `RarityTable` (60 / 25 / 12 / 3 % at no luck; a difficulty tier adds luck, section 8). A Gold item is about 1 drop
 in 33, one in 22 careful runs; each slot sees its first Gold item in about 65 careful runs, which is why basma can move
 between items (3.4).
@@ -196,7 +196,8 @@ chance shown on the button is the chance used, with the base, the pity and a Sea
 ## 5. Boosters
 
 All four are run loot: earned in the run, carried in the run's satchel, banked like gold (secured at each Descend; on a
-death, each booster dropped on the dying floor is kept or lost on a seeded coin, the gold's half in expectation).
+death, each booster dropped on the dying floor is kept or lost on a seeded coin, the gold's half in expectation). Items
+are always kept (the lead, section 17).
 
 | Booster | Effect | Drops (Forged tier) | Careful a run | Clumsy a run | How the model spends it |
 |---|---|---|---|---|---|
@@ -243,7 +244,6 @@ stat (Metin2's rule).
 | Ability cooldown | -2 -> -6 % | new: `AbilityCooldown` (`AbilityRuntime`) | 10 % | utility |
 | Healing received | +3 -> +9 % | new: `Healing` (chest mend, forge heals) | 15 % | utility |
 | Luck | +1 -> +5 | `Luck` (`RarityTable`, card rarity only) | 10 | utility |
-| Gold find | +2 -> +6 % | new: `GoldFind` (the run's gold, never materials) | 10 % | economy |
 
 New stats are appended to `UpgradeStat` (append, never reorder, as `UpgradeRarity` does). **Excluded on purpose:**
 experience gain (it moves the level pacing the Descent is tuned on, docs/41), difficulty, and any proc stat (pulse,
@@ -264,12 +264,12 @@ tier 3 or better:
 
 | Lines | Rarity (gold a reroll) | Good a reroll | Rerolls to good | Gold to good, no scrolls |
 |---|---|---|---|---|
-| 2 | Rare (100) | 0.6 % | 162 | 16,234 |
-| 3 | Epic (160) | 1.8 % | 57 | 9,156 |
-| 4 | Gold (250) | 3.3 % | 30 | 7,484 |
-| 5 | Gold + Rune (250) | 5.4 % | 19 | 4,654 |
+| 2 | Rare (100) | 0.7 % | 141 | 14,085 |
+| 3 | Epic (160) | 2.0 % | 50 | 8,002 |
+| 4 | Gold (250) | 3.9 % | 26 | 6,488 |
+| 5 | Gold + Rune (250) | 6.3 % | 16 | 3,983 |
 
-The perfect roll (five power lines at tier 5) is out of reach by design (the five power stats among 14, each at tier 5: about 1 in 10^11); "good" is a few weeks' side
+The perfect roll (five power lines at tier 5) is out of reach by design (the five power stats among 13, each at tier 5: about 1 in 10^11); "good" is a few weeks' side
 goal per item, paid with scrolls (about one a careful run) and gold. A line lock is not proposed (question 5).
 
 ## 7. The power cap
@@ -519,6 +519,28 @@ Phases 1-3 touch no balance number; 5 must pass before 6 ships.
     (docs/40's 1.8 / 1.5) on top later?
 11. **The 30 s Warden floor for +9g on Forged** (13): the line under which the boss stops being a fight.
 12. **Async arena**: keep as an outline until the owner confirms (14)?
+
+## 17. Lead decisions 2026-11-16
+
+The lead's answers to section 16; the text above and the model follow them.
+
+1. **The weapon slot is the forged weapon** (3.1).
+2. **Basma belongs to the item**, with inheritance at 10 % of the level's expected cost (3.4).
+3. **Weapon upgrades per weapon id** (3.1).
+4. **The uneven pity and the hard ceiling** of 4.1: the owner wants high basma hard, but not punishing.
+5. **Efsun keeps old or new**; no line lock for now (6.2).
+6. **Forge Seals from elites and bosses only**; chests keep mend, gold and books (5).
+7. **The owner's 39,491 gold stays**; no reset at the version bump (10).
+8. **Gold find is dropped** from the line pool: the economy stays measurable. The pool is 13 lines (6.1); the efsun
+   table above is re-run without it (a good 4-line roll 1 in 26, was 1 in 30).
+9. **Items are always kept on a death** (they are rare, about 1.5 a run, and the owner asked for not-too-punishing);
+   materials and boosters follow the gold's rule (half of the dying floor's in expectation). The model keeps items whole
+   (careful 1.50 a run, clumsy 0.60, auto-farmer 0.16); the milestone tables do not read items and do not move.
+10. **Gear-matched tiers** with docs/40's names and rewards x1.25 / 1.5 / 2 (8).
+11. **The 30 s Warden floor** for +9 with good efsun on Forged (13).
+12. **The async arena stays an outline** until the owner confirms it (14).
+
+Next: phases 1-3 of section 15 are built in this worktree (section 18).
 
 ## Measured and modelled: how to re-run
 

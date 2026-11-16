@@ -79,12 +79,11 @@ LINES = {
     "ability_cooldown": [2, 3, 4, 5, 6],
     "healing": [3, 4.5, 6, 7.5, 9],
     "luck": [1, 2, 3, 4, 5],
-    "gold_find": [2, 3, 4, 5, 6],
     "area": [1, 1.5, 2, 2.5, 3],
 }
 # The gear's total, main stat and lines together, never counts past these (percent; crit and armour in points).
 CAPS = {"damage": 14, "attack_speed": 7, "crit": 4, "health": 14, "armour": 4, "elite_damage": 12, "burn_damage": 15,
-        "move_speed": 6, "pickup_radius": 25, "ability_cooldown": 10, "healing": 15, "luck": 10, "gold_find": 10, "area": 5}
+        "move_speed": 6, "pickup_radius": 25, "ability_cooldown": 10, "healing": 15, "luck": 10, "area": 5}
 CRIT_MULTIPLIER = 2.0
 
 
@@ -139,7 +138,8 @@ def run_loot(row, rng):
         for _ in range(elites):
             if rng.random() < SEAL_PER_ELITE * keep:
                 loot["seal"] += 1
-            if rng.random() < ITEM_PER_ELITE * keep:
+            # Items are always kept on a death (the lead, 2026-11-16); materials and boosters follow the gold's rule.
+            if rng.random() < ITEM_PER_ELITE:
                 loot["items"] += 1
         for _ in range(bosses):
             if rng.random() < SEAL_PER_BOSS * keep:
@@ -148,7 +148,7 @@ def run_loot(row, rng):
                 loot["hammer"] += 1
             if rng.random() < RUNE_PER_BOSS * keep:
                 loot["rune"] += 1
-            if rng.random() < ITEM_PER_BOSS * keep:
+            if rng.random() < ITEM_PER_BOSS:
                 loot["items"] += 1
     if completed:
         if rng.random() < SCROLL_PER_CLEAR:
