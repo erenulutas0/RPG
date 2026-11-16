@@ -170,6 +170,9 @@
     <Compile Include="VaultsEnemiesResearch.cs" />
     <!-- The Gloam Gardens' own enemies (docs/52 section 8, step 1) on demand: the Cinder Bloom at Thorn Post. -->
     <Compile Include="GloamEnemiesResearch.cs" />
+    <!-- docs/55's PvP prototype (2026-11-17): a deterministic integer 1v1 duel, its replay test, and the research on demand. -->
+    <Compile Include="ArenaDuel.cs" />
+    <Compile Include="ArenaDuelResearch.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackMotionTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackSpacingTests.cs" />
