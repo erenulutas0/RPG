@@ -542,6 +542,82 @@ The lead's answers to section 16; the text above and the model follow them.
 
 Next: phases 1-3 of section 15 are built in this worktree (section 18).
 
+## 18. Built: phases 1-3 (2026-11-17)
+
+No balance number moves: gear is not applied to any run (every run, every shipped test included, plays ungeared), loot is
+never on the ground (nothing the fight or the autopilot walks to changes), and loot draws from its own stream
+(`RunRandom.Loot`), so no offer, chest or crit draw moves. The Anvil has no screen yet (phase 4): its rules, save and
+telemetry are built and tested, and a player can reach none of it but the loot line on the result screen.
+
+**Phase 1, the pure core** (`Scripts/Progression`):
+- `AnvilTable`: the lead's odds, the pity steps (+5/+5/+5/+4/+3/+2), the ceilings (2/3/4/6/8/10), gold and material per
+  strike, the Seal's +10 (one a strike), the Hammer's +6 limit, inheritance at 10 %, the melt's gold and Ember Shards.
+- `AnvilRule`: a strike's chance and outcome (a failure keeps the level, adds pity; the ceiling makes the next certain),
+  the roll from the profile's anvil stream, and the expected strikes and gold in fixed point (`ExpectedStrikesMillionths`,
+  `ExpectedGoldTo`, `InheritGold`), which `AnvilRuleTests` pins to the model's table (+9: 3.96 strikes, 16,073 gold).
+- `EfsunRule` and `EfsunLine`: lines by rarity (1-4, a weapon 2, five at most), the 13-stat pool without gold find
+  (`GearStat`, `GearStatIds`), tiers 40/30/18/9/3, values per tier, rerolls 60/100/160/250 by rarity, a rune's line.
+- `GearStats`: the main stats by level, the per-stat caps and the power index in fixed point; `GearStatsTests` reads the
+  model's sets (+15 / +21 / +31 / +42 / +51 %).
+- `ItemInstance`, `ItemTemplate`, `GearSlot`, `MaterialKind`, `BoosterKind`; `Content/ItemDefinition` and nine assets
+  (`Data/Items`: an armour, an amulet and a ring for each floor) listed by `PrototypeEconomy._items`.
+- A change from section 6.1: the gear's stats are their own enum (`GearStat`) rather than new `UpgradeStat` values; they
+  are mapped onto the run's stats in phase 5, when gear is applied, so nothing that switches on `UpgradeStat` moves now.
+
+**Phase 2, the profile and the save**:
+- `Core/ProfileGear`: the bag (30), each weapon's gear, the equipped armour/amulet/ring, materials, boosters, the anvil's
+  seed and draws, the first armour's gift, the tiers (stored ahead of their build), a shown reroll; `Restore` repairs a
+  damaged save (unknown or repeated stats and the main stat dropped from lines, tiers, levels and pity clamped, items
+  without an id or in the weapon slot dropped, repeated uids renumbered, equipped uids that do not resolve unequipped,
+  negative counts zeroed, an unresolvable reroll cleared) and never throws.
+- `PlayerProfile.Gear`, `AddItem`, `AddMaterial`, `AddBooster`, `DepositLoot` (one change each).
+- `Progression/Anvil`: strike (with a Seal or a Hammer, spent only where the strike is not already certain), reroll shown
+  then kept old or new (a shown reroll blocks every other operation until resolved), Binding Rune, melt, inheritance,
+  equip, and a weapon's gear made on first use (two lines); one `Changed` per operation; events for telemetry.
+- `ProfileSaveData` version 4, `ProfileMigration` 3 -> 4 (gold untouched), `Save/ProfileGearSave` (fields <-> snapshot).
+
+**Phase 3, the run's loot**:
+- `Progression/LootRule`: section 3.2's and 5's drops per moment (floor clear, elite leader, gate boss, walk-out; the first
+  floor-1 boss's armour), in parts of 10,000, items with rarity from `RarityTable` at no luck and lines from the same stream.
+- `Economy/RunLoot`: the satchel; `Secure` at a Descend; `Settle` at the end (a defeat loses the floor of half the
+  unsecured materials and a seeded coin per unsecured booster; items always kept).
+- `Economy/RunBank`: items into the profile the moment they drop (a full bag melts the drop at once), secured materials
+  and boosters at the Descend, the settled rest at the end.
+- `CombatSetup`: `Loot`, `Anvil`; a gate boss or elite leader falling (`EncounterController.IsGateBossOfWave`,
+  `IsEliteLeaderOfWave`, read-only), a floor clear and the walk-out feed the loot; the Descend secures it.
+- Result screen: the loot as the build label's last line ("Loot: Ember Shard x4, Forge Seal x1, Cinder Ring (Rare)",
+  "| lost: ..." after a death), invariant culture (`Economy/LootText`, `PrototypeTextDefinition.ResultLootFormat`).
+- Telemetry: `loot_dropped` (kind, id, amount, rarity, source, floor); `currency_earned` per material and booster banked
+  (source `run_bank`, after the gold's, before `run_end`); `loot_lost`; between runs `anvil_attempt`, `efsun_reroll`,
+  `efsun_kept`, `efsun_line_added`, `item_melted`, `item_inherited`, `item_equipped`, and `currency_spent` with sinks
+  `anvil`, `efsun`, `inherit`. A run without loot writes none of them.
+
+**Tests.** New EditMode: `AnvilRuleTests`, `EfsunRuleTests`, `GearStatsTests`, `ItemContentTests` (assets),
+`ProfileGearTests`, `AnvilTests`, `RunLootTests`; extended: `ProfileStoreTests` (v4 round trip, a v3 file, a damaged v4
+file), `RunTelemetryTests` (loot and Anvil lines; the log-shape rule lets the bank's lines chain before `run_end`),
+`WeaponForgeTests` (version 4). All but `ItemContentTests` and `ProfileStoreTests` also run in CombatChecks.
+
+    Unity, EditMode:  pwsh -File Tools/Run-UnityTests.ps1 -Platform EditMode -SkipApk -Filter "AnvilRuleTests;EfsunRuleTests;GearStatsTests;ItemContentTests;ProfileGearTests;AnvilTests;RunLootTests;ProfileStoreTests;WeaponForgeTests;RunTelemetryTests"
+    Unity, PlayMode:  pwsh -File Tools/Run-UnityTests.ps1 -Platform PlayMode -SkipApk -Filter "RunResultTests;DescentFlowTests;FloorFlowTests;FoundryDescentFlowTests;FoundryRunEndFlowTests;RelicForgeFlowTests;TelemetryFlowTests;MultiRunSoak"
+
+The whole EditMode suite is the safer read (CombatSetup changed); PlayMode's flows above are the ones that end a run,
+read the result screen or the telemetry log, or play several runs on one profile.
+
+**The default batch.** Run before (main 0243c55d) and after (phase 3's code, a6b4e955) with `FOUNDRY_SEEDS=200
+FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_REALISM=typical FOUNDRY_FLOORS=4`: every CSV, `foundry-gate.md`,
+`foundry-cohorts.md` and `foundry-finale.md` match byte for byte; in `foundry-batch.md` only the clock in its header and the
+wall-seconds column differ. CombatChecks: 877 green (`Başarılı`); the Unity compile check green; `Verify-Project.ps1` passes.
+
+**Risks the build leaves open.**
+- **Not run in Unity.** Compile check and CombatChecks only; the Unity suites above are the lead's to run.
+- **A full bag melts drops.** Until the Bag tab (phase 4) the player cannot melt or equip, so after about 20 careful runs
+  the bag is full and every drop melts at once for gold and Ember Shards (said on the result line as "(Rare, melted)").
+- **Profile saves mid-run.** An item is banked the moment it drops (always kept), so a boss or elite drop writes the
+  profile mid-floor, as a checkpoint's secured gold already does; a few more writes a run.
+- **The result line can overflow the build label** on a long run (many boosters and items); the label is 174 units tall.
+- **`EncounterController` gained two read-only queries** and nothing else; the simulation does not model loot, so loot
+  cannot move any number it measures.
+
 ## Measured and modelled: how to re-run
 
     dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~GearEconomyResearch"
