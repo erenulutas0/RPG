@@ -2404,6 +2404,8 @@ report (steps 7-8) only read, so they need no focus check.
    ```
    The folder holds no `pull.txt`, so the batch report never reads it.
 4. **Install the APK and check its hash.** The APK is `Builds/Android/Cryptforge-Prototype.apk`, the clean build of
+   main 15ddc8f5 with floor 3's elite, the Cinder Bloom, at Thorn Post (its bark takes a quarter while closed; it roots
+   and opens its orchid, taking everything, for 2.5 s) on top of
    main 1feafd45 with floor 2's new gate boss, the Glass Regent (its lanes run through the hero's spot; 10 % a hit, a
    1.7 s telegraph), and map starts that open once the floor above is cleared, on top of
    main 78f70a4d with the hero choice beside the map choice ("Choose your hero and map": the Vanguard or Ilya, then the map) on top of
@@ -2418,8 +2420,8 @@ report (steps 7-8) only read, so they need no focus check.
    with a point on every locale; Gradle's 10 MB of holes gone; 36,819,361 bytes). Check the file
    itself, never a hash written down earlier:
    ```
-   (Get-FileHash Builds/Android/Cryptforge-Prototype.apk -Algorithm SHA256).Hash   # 5E2FA8B59C188245... on 2026-11-15 23:41
-   (Get-Item Builds/Android/Cryptforge-Prototype.apk).Length                        # 60073205
+   (Get-FileHash Builds/Android/Cryptforge-Prototype.apk -Algorithm SHA256).Hash   # C20AADC5BAFFC0BC... on 2026-11-16 23:09
+   (Get-Item Builds/Android/Cryptforge-Prototype.apk).Length                        # 60639697
    adb install -r Builds/Android/Cryptforge-Prototype.apk
    ```
    `install -r` keeps the profile and the telemetry. `Cryptforge-Prototype-679df68d.apk` (47 MB, DA3D13FD...) and the
