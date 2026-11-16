@@ -505,6 +505,12 @@ namespace Cryptforge.Combat
         private readonly List<Health> _elites = new List<Health>(1);
         public bool IsBossEnraged => _bossEnraged;
 
+        // Whether this enemy is the gate's boss or an elite room's leader - its wave's first - fallen or standing, while its
+        // wave stands: what EnemyDefeated's listeners ask as it falls (GateBoss and EliteLeader are null once it has).
+        // The run's loot reads them (docs/54 phase 3); nothing in the fight does.
+        public bool IsGateBossOfWave(IDamageable enemy) => _gateBossWave && _wave.Count > 0 && enemy != null && ReferenceEquals(_wave[0].Health, enemy);
+        public bool IsEliteLeaderOfWave(IDamageable enemy) => _eliteWave && _wave.Count > 0 && enemy != null && ReferenceEquals(_wave[0].Health, enemy);
+
         // Null for an enemy that is not part of the current wave, for example the hero or a test's own damage.
         public EnemyDefinition DefinitionOf(IDamageable enemy) => Find(enemy)?.Definition;
 

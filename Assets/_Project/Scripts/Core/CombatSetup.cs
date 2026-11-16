@@ -93,6 +93,11 @@ namespace Cryptforge.Core
         // The weapon the hero carries this run: the profile's equipped weapon, or the starting weapon.
         public WeaponDefinition HeroWeapon { get; private set; }
         public RunBank Bank { get; private set; }
+        // The run's floor materials, boosters and items (docs/54 phase 3): dropped by bosses, elites, floor clears and the
+        // walk-out, banked by Bank like gold except items, which are always kept.
+        public RunLoot Loot { get; private set; }
+        // The Anvil over the profile (docs/54): basma, efsun, melt, inheritance and equipping, between runs.
+        public Anvil Anvil { get; private set; }
         // Null when no relic is equipped.
         public RelicRuntime Relic { get; private set; }
         // The enemy whose hit last damaged the hero; after a defeat, the killer named on the result screen.
@@ -161,8 +166,10 @@ namespace Cryptforge.Core
             int seed = DevelopmentStart.TryRunSeed(out int chosen) ? chosen : RunSeeds.Fresh();
             Run = new RunState(_economy.ExperiencePerLevel, _economy.AtRiskGoldLoss, _economy.ExperienceGrowth, seed);
             _rewards = new RewardService(Run);
-            // Created before any view subscribes to Run.Ended, so banked gold reaches the profile before results show.
-            Bank = new RunBank(Run, Profile);
+            Loot = new RunLoot(Run, ItemTemplates(), !Profile.Gear.FirstArmourGiven, _economy.AtRiskGoldLoss);
+            // Created before any view subscribes to Run.Ended, so banked gold and loot reach the profile before results show.
+            Bank = new RunBank(Run, Profile, Loot);
+            Anvil = new Anvil(Profile);
             Profile.Changed += SaveProfile;
             // Nothing burns on behind the result screen (review, 2026-10-27).
             Run.Ended += BurnStatus.ExtinguishAll;
@@ -357,6 +364,8 @@ namespace Cryptforge.Core
                 Checkpoint = Checkpoint,
                 Relics = Relics,
                 Weapons = Weapons,
+                Loot = Loot,
+                Anvil = Anvil,
                 HeroId = Hero.Id,
                 WeaponId = HeroWeapon.Id,
                 RelicId = equippedRelic != null ? equippedRelic.Id : null,
@@ -432,6 +441,12 @@ namespace Cryptforge.Core
         // as the owner chose to keep it (docs/27, S6d).
         private void OnEnemyDefeated(Health enemy)
         {
+            // The run's loot (docs/54): a gate boss's or an elite leader's drop, straight into the satchel - never on the
+            // ground, so nothing the fight or the autopilot walks to changes.
+            if (_encounters.IsGateBossOfWave(enemy))
+                Loot.BossFelled(_encounters.FloorNumber);
+            else if (_encounters.IsEliteLeaderOfWave(enemy))
+                Loot.EliteFelled(_encounters.FloorNumber);
             // The enemy's own reward as the encounter spawned it: a horde enemy pays a share of its experience and no gold.
             int experience = _encounters.ExperienceRewardOf(enemy);
             int gold = _encounters.GoldRewardOf(enemy);
@@ -516,6 +531,19 @@ namespace Cryptforge.Core
             return hero.StartingWeapon;
         }
 
+        // The Descent's items (EconomyConfig, docs/54 section 3.2) as the run's loot reads them.
+        private ItemTemplate[] ItemTemplates()
+        {
+            var items = new List<ItemTemplate>(_economy.ItemCount);
+            for (int i = 0; i < _economy.ItemCount; i++)
+            {
+                ItemDefinition item = _economy.ItemAt(i);
+                if (item != null)
+                    items.Add(item.CreateTemplate());
+            }
+            return items.ToArray();
+        }
+
         // The game's text, for views built in code.
         internal PrototypeTextDefinition Text => _text;
 
@@ -569,10 +597,12 @@ namespace Cryptforge.Core
             // whole when the checkpoint shows it and its level-ups are offered before the checkpoint opens.
             Drops.CollectAll();
             Profile.RecordFloorCleared(_encounters.FloorNumber);
+            Loot.FloorCleared(_encounters.FloorNumber);
             if (_encounters.FloorNumber == 1)
                 UnlockHeroesForTheFoundry();
             if (!_encounters.HasNextFloor)
             {
+                Loot.WalkedOut(_encounters.FloorNumber);
                 Run.End(RunOutcome.Victory);
                 return;
             }
@@ -604,6 +634,7 @@ namespace Cryptforge.Core
             }
 
             Run.SecureGold();
+            Loot.Secure();
             _encounters.DescendToNextFloor();
         }
 

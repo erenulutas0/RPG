@@ -67,6 +67,10 @@ namespace Cryptforge.Analytics
         private readonly CheckpointService _checkpoint;
         private readonly RelicShop _relics;
         private readonly WeaponShop _weapons;
+        // docs/54: the run's loot and the Anvil; null for a run or test without them.
+        private readonly Economy.RunLoot _loot;
+        private readonly Anvil _anvil;
+        private readonly StringBuilder _lineList = new StringBuilder();
         private readonly string _heroId;
         private readonly string _weaponId;
         private readonly string _relicId;
@@ -169,6 +173,8 @@ namespace Cryptforge.Analytics
             _pulses = context.Pulses;
             _relics = context.Relics;
             _weapons = context.Weapons;
+            _loot = context.Loot;
+            _anvil = context.Anvil;
             _heroId = RequireId(context.HeroId, nameof(context.HeroId));
             _weaponId = RequireId(context.WeaponId, nameof(context.WeaponId));
             _abilityId = RequireId(context.AbilityId, nameof(context.AbilityId));
@@ -622,6 +628,18 @@ namespace Cryptforge.Analytics
                 _relics.Forged += OnRelicForged;
             if (_weapons != null)
                 _weapons.Forged += OnWeaponForged;
+            if (_loot != null)
+                _loot.Dropped += OnLootDropped;
+            if (_anvil != null)
+            {
+                _anvil.Struck += OnAnvilStruck;
+                _anvil.Rerolled += OnEfsunRerolled;
+                _anvil.RerollResolved += OnEfsunResolved;
+                _anvil.LineAdded += OnEfsunLineAdded;
+                _anvil.Melted += OnItemMelted;
+                _anvil.Inherited += OnItemInherited;
+                _anvil.Equipped += OnItemEquipped;
+            }
             _subscribed = true;
         }
 
@@ -642,6 +660,18 @@ namespace Cryptforge.Analytics
                 _relics.Forged -= OnRelicForged;
             if (_weapons != null)
                 _weapons.Forged -= OnWeaponForged;
+            if (_loot != null)
+                _loot.Dropped -= OnLootDropped;
+            if (_anvil != null)
+            {
+                _anvil.Struck -= OnAnvilStruck;
+                _anvil.Rerolled -= OnEfsunRerolled;
+                _anvil.RerollResolved -= OnEfsunResolved;
+                _anvil.LineAdded -= OnEfsunLineAdded;
+                _anvil.Melted -= OnItemMelted;
+                _anvil.Inherited -= OnItemInherited;
+                _anvil.Equipped -= OnItemEquipped;
+            }
             _subscribed = false;
         }
 
@@ -771,6 +801,7 @@ namespace Cryptforge.Analytics
                     .Add("source", "run_bank")
                     .Add("amount", _run.GoldBanked));
             }
+            ReportLootBanked();
 
             var end = new TelemetryFields()
                 .Add("result", ResultName(outcome))
@@ -1036,6 +1067,207 @@ namespace Cryptforge.Analytics
         {
             if (!_disposed && weapon != null)
                 ReportSpent("weapon", weapon.Id, weapon.Price);
+        }
+
+        // docs/54 section 12: one loot_dropped line for each thing a drop moment gave - a material, a booster, an item.
+        private void OnLootDropped(LootDrop drop)
+        {
+            if (!IsRecording)
+                return;
+            string source = LootSourceName(drop.Source);
+            if (drop.HasMaterial && drop.MaterialAmount > 0)
+                EmitLoot("material", GearCurrency.Id(drop.Material), drop.MaterialAmount, null, source, drop.Floor);
+            for (int i = 0; i < GearCurrency.BoosterCount; i++)
+            {
+                int count = drop.Booster((BoosterKind)i);
+                if (count > 0)
+                    EmitLoot("booster", GearCurrency.Id((BoosterKind)i), count, null, source, drop.Floor);
+            }
+            if (drop.Item != null)
+                EmitLoot("item", drop.Item.ItemId, 1, drop.Item.Rarity.ToString(), source, drop.Floor);
+        }
+
+        private void EmitLoot(string kind, string id, int amount, string rarity, string source, int floor)
+        {
+            var fields = new TelemetryFields()
+                .Add("kind", kind)
+                .Add("id", id)
+                .Add("amount", amount);
+            if (rarity != null)
+                fields.Add("rarity", rarity);
+            _session.Emit("loot_dropped", fields
+                .Add("source", source)
+                .Add("floor_index", floor));
+        }
+
+        private static string LootSourceName(LootSource source)
+        {
+            switch (source)
+            {
+                case LootSource.Boss:
+                    return "boss";
+                case LootSource.Elite:
+                    return "elite";
+                case LootSource.FloorClear:
+                    return "floor_clear";
+                case LootSource.WalkOut:
+                    return "walk_out";
+                case LootSource.FirstBoss:
+                    return "first_boss";
+                default:
+                    return "unknown";
+            }
+        }
+
+        // As the run ends, after the bank settled the loot: each material and booster the profile banked from this run as a
+        // currency_earned line (source run_bank), and what a death took as one loot_lost line. A run without loot writes
+        // neither, so every run before docs/54 keeps its lines.
+        private void ReportLootBanked()
+        {
+            Economy.LootSettlement settlement = _loot?.Settlement;
+            if (settlement == null)
+                return;
+            for (int i = 0; i < GearCurrency.MaterialCount; i++)
+            {
+                int banked = _loot.SecuredMaterial((MaterialKind)i) + settlement.MaterialsKept[i];
+                if (banked > 0)
+                    _session.Emit("currency_earned", new TelemetryFields()
+                        .Add("currency", GearCurrency.Id((MaterialKind)i))
+                        .Add("source", "run_bank")
+                        .Add("amount", banked));
+            }
+            for (int i = 0; i < GearCurrency.BoosterCount; i++)
+            {
+                int banked = _loot.SecuredBooster((BoosterKind)i) + settlement.BoostersKept[i];
+                if (banked > 0)
+                    _session.Emit("currency_earned", new TelemetryFields()
+                        .Add("currency", GearCurrency.Id((BoosterKind)i))
+                        .Add("source", "run_bank")
+                        .Add("amount", banked));
+            }
+            if (!settlement.LostAnything)
+                return;
+            var lost = new TelemetryFields();
+            for (int i = 0; i < GearCurrency.MaterialCount; i++)
+                if (settlement.MaterialsLost[i] > 0)
+                    lost.Add(GearCurrency.Id((MaterialKind)i), settlement.MaterialsLost[i]);
+            for (int i = 0; i < GearCurrency.BoosterCount; i++)
+                if (settlement.BoostersLost[i] > 0)
+                    lost.Add(GearCurrency.Id((BoosterKind)i), settlement.BoostersLost[i]);
+            _session.Emit("loot_lost", lost.Add("floor_index", _roomFloor));
+        }
+
+        // The Anvil works between runs, in the forge, so its lines carry no run id (as currency_spent's do).
+        private void OnAnvilStruck(AnvilAttempt attempt)
+        {
+            if (_disposed || attempt == null)
+                return;
+            ReportSpent("anvil", attempt.Piece.ItemId, attempt.Gold);
+            _session.Emit("anvil_attempt", PieceFields(attempt.Piece)
+                .Add("from_level", attempt.FromLevel)
+                .Add("base", attempt.BaseChancePercent)
+                .Add("pity_before", attempt.PityBefore)
+                .Add("seal", attempt.Seal)
+                .Add("hammer", attempt.Hammer)
+                .Add("chance", attempt.Strike.ChancePercent)
+                .Add("success", attempt.Strike.Success)
+                .Add("gold", attempt.Gold)
+                .Add("material", attempt.SpentMaterial ? GearCurrency.Id(attempt.Material) : string.Empty)
+                .Add("material_count", attempt.SpentMaterial ? attempt.MaterialAmount : 0)
+                .Add("pity_after", attempt.Strike.PityAfter)
+                .Add("ceiling_hit", attempt.Strike.CeilingHeld));
+        }
+
+        private void OnEfsunRerolled(EfsunAttempt attempt)
+        {
+            if (_disposed || attempt == null)
+                return;
+            if (attempt.Gold > 0)
+                ReportSpent("efsun", attempt.Piece.ItemId, attempt.Gold);
+            _session.Emit("efsun_reroll", PieceFields(attempt.Piece)
+                .Add("paid", attempt.PaidWithScroll ? "scroll" : "gold")
+                .Add("cost", attempt.Gold)
+                .Add("lines_before", LineList(attempt.Before))
+                .Add("lines_after", LineList(attempt.After)));
+        }
+
+        private void OnEfsunResolved(ItemInstance piece, bool keptNew)
+        {
+            if (_disposed || piece == null)
+                return;
+            _session.Emit("efsun_kept", PieceFields(piece).Add("kept", keptNew ? "new" : "old"));
+        }
+
+        private void OnEfsunLineAdded(ItemInstance piece, EfsunLine line)
+        {
+            if (_disposed || piece == null)
+                return;
+            _session.Emit("efsun_line_added", PieceFields(piece)
+                .Add("stat", GearStatIds.Id(line.Stat))
+                .Add("tier", line.Tier));
+        }
+
+        private void OnItemMelted(ItemInstance item, int gold, int ember)
+        {
+            if (_disposed || item == null)
+                return;
+            _session.Emit("item_melted", PieceFields(item)
+                .Add("gold", gold)
+                .Add("ember_shards", ember));
+        }
+
+        private void OnItemInherited(ItemInstance source, ItemInstance target, int gold)
+        {
+            if (_disposed || source == null || target == null)
+                return;
+            ReportSpent("inherit", target.ItemId, gold);
+            _session.Emit("item_inherited", PieceFields(target)
+                .Add("source_uid", source.Uid)
+                .Add("source_id", source.ItemId)
+                .Add("gold", gold));
+        }
+
+        private void OnItemEquipped(ItemInstance item)
+        {
+            if (_disposed || item == null)
+                return;
+            _session.Emit("item_equipped", PieceFields(item));
+        }
+
+        // A piece's identity on an Anvil line: its uid (0 for a weapon's own gear), id, slot, rarity and level now.
+        private static TelemetryFields PieceFields(ItemInstance piece) => new TelemetryFields()
+            .Add("item_uid", piece.Uid)
+            .Add("item_id", piece.ItemId)
+            .Add("slot", SlotName(piece.Slot))
+            .Add("rarity", piece.Rarity.ToString())
+            .Add("level", piece.Level);
+
+        private static string SlotName(GearSlot slot)
+        {
+            switch (slot)
+            {
+                case GearSlot.Weapon:
+                    return "weapon";
+                case GearSlot.Armour:
+                    return "armour";
+                case GearSlot.Amulet:
+                    return "amulet";
+                default:
+                    return "ring";
+            }
+        }
+
+        // "damage:3|luck:1": the stats' ids and tiers, in the item's order.
+        private string LineList(EfsunLine[] lines)
+        {
+            _lineList.Clear();
+            for (int i = 0; lines != null && i < lines.Length; i++)
+            {
+                if (i > 0)
+                    _lineList.Append('|');
+                _lineList.Append(GearStatIds.Id(lines[i].Stat)).Append(':').Append(lines[i].Tier.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            }
+            return _lineList.ToString();
         }
 
         private void ReportSpent(string sink, string itemId, int amount)

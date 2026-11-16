@@ -75,6 +75,10 @@
     <Compile Include="../../Assets/_Project/Scripts/Economy/RewardService.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Economy/GroundDrops.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Economy/RunBank.cs" />
+    <!-- docs/54 phase 3: the run's loot, its result-screen text and what the profile did with its items. -->
+    <Compile Include="../../Assets/_Project/Scripts/Economy/RunLoot.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Economy/LootText.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Core/LootDeposit.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Progression/*.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Save/ProfileSaveData.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Save/ProfileMigration.cs" />
@@ -226,6 +230,7 @@
     <!-- docs/54 phase 2: the profile's gear and the Anvil over it. -->
     <Compile Include="../../Assets/_Project/Tests/EditMode/ProfileGearTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/AnvilTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/RunLootTests.cs" />
     <!-- A run started on a deeper map (Scripts/Progression/DescentStart.cs, compiled above with Progression). -->
     <Compile Include="../../Assets/_Project/Tests/EditMode/DescentCatchUpTests.cs" />
   </ItemGroup>

@@ -84,6 +84,9 @@ namespace Cryptforge.Content
         [SerializeField] private string _resultProgressFormat;
         [SerializeField] private string _resultGoldFormat;
         [SerializeField] private string _resultGoldLostFormat;
+        // docs/54 phase 3: the run's loot as the build label's last line, plain text until the Anvil's screen (phase 4).
+        [SerializeField] private string _resultLootFormat = "Loot: {0}";
+        [SerializeField] private string _resultLootLostFormat = "Loot: {0}  |  lost: {1}";
         [SerializeField] private string _resultBuildFormat;
         [SerializeField] private string _resultUpgradeFormat;
         [SerializeField] private string _resultNoUpgrades;
@@ -160,6 +163,9 @@ namespace Cryptforge.Content
         public string ResultGoldFormat => _resultGoldFormat;
         // {0} gold banked, {1} gold lost.
         public string ResultGoldLostFormat => _resultGoldLostFormat;
+        // {0} the loot banked (LootText), {1} the loot a death took; "nothing" stands for an empty list beside a loss.
+        public string ResultLootFormat => _resultLootFormat;
+        public string ResultLootLostFormat => _resultLootLostFormat;
         // {0} weapon name, {1} the relic and upgrade entries joined, or the no-upgrades text.
         public string ResultBuildFormat => _resultBuildFormat;
         // {0} upgrade name, {1} stacks.

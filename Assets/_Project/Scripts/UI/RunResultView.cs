@@ -3,6 +3,7 @@ using System.Globalization;
 using Cryptforge.Combat;
 using Cryptforge.Content;
 using Cryptforge.Core;
+using Cryptforge.Economy;
 using Cryptforge.Progression;
 using UnityEngine;
 using UnityEngine.UI;
@@ -109,12 +110,27 @@ namespace Cryptforge.UI
                 ? string.Format(CultureInfo.InvariantCulture, _text.ResultGoldLostFormat, run.GoldBanked, run.GoldLost)
                 : string.Format(CultureInfo.InvariantCulture, _text.ResultGoldFormat, run.GoldBanked);
             _buildLabel.text = string.Format(CultureInfo.InvariantCulture, _text.ResultBuildFormat, _setup.HeroWeapon.DisplayName, DescribeBuild());
+            // The run's loot (docs/54 phase 3) as the build label's last line, plain text until the Anvil's own screen.
+            string loot = DescribeLoot();
+            if (loot.Length > 0)
+                _buildLabel.text += "\n" + loot;
             _forgeHintLabel.text = DescribeForge();
 
             _panel.SetActive(true);
             SetButtonsInteractable(false);
             _inputEnabledAt = Time.unscaledTime + _inputDelay;
             _awaitingInputDelay = true;
+        }
+
+        // The run's loot (docs/54 phase 3) as plain text under the gold; empty when the run dropped nothing.
+        private string DescribeLoot()
+        {
+            if (_setup.Loot == null || _setup.Bank == null)
+                return string.Empty;
+            LootText.Describe(_setup.Loot, _setup.Bank.ItemDeposits, out string banked, out string lost);
+            if (lost.Length > 0)
+                return string.Format(CultureInfo.InvariantCulture, _text.ResultLootLostFormat, banked.Length > 0 ? banked : "nothing", lost);
+            return banked.Length > 0 ? string.Format(CultureInfo.InvariantCulture, _text.ResultLootFormat, banked) : string.Empty;
         }
 
         private string DescribeBuild()

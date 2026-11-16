@@ -131,6 +131,60 @@ namespace Cryptforge.Core
             Changed?.Invoke();
         }
 
+        // A run's banked loot as one change (docs/54 phase 3): materials and boosters by kind (null for none), and items into
+        // the bag. An item that finds the bag full is melted at once for its gold and Ember Shards (docs/54 section 3.3);
+        // the result says which. The first-boss armour marks its gift as given.
+        public LootDeposit DepositLoot(int[] materials, int[] boosters, IReadOnlyList<ItemDrop> items)
+        {
+            var deposit = new LootDeposit();
+            bool changed = false;
+            for (int i = 0; materials != null && i < materials.Length && i < GearCurrency.MaterialCount; i++)
+            {
+                if (materials[i] < 0)
+                    throw new ArgumentOutOfRangeException(nameof(materials));
+                if (materials[i] == 0)
+                    continue;
+                Gear.AddMaterial((MaterialKind)i, materials[i]);
+                changed = true;
+            }
+            for (int i = 0; boosters != null && i < boosters.Length && i < GearCurrency.BoosterCount; i++)
+            {
+                if (boosters[i] < 0)
+                    throw new ArgumentOutOfRangeException(nameof(boosters));
+                if (boosters[i] == 0)
+                    continue;
+                Gear.AddBooster((BoosterKind)i, boosters[i]);
+                changed = true;
+            }
+            for (int i = 0; items != null && i < items.Count; i++)
+            {
+                ItemDrop drop = items[i];
+                if (drop == null)
+                    continue;
+                if (drop.Source == LootSource.FirstBoss)
+                    Gear.MarkFirstArmourGiven();
+                ItemInstance stored = AddItemQuietly(drop);
+                if (stored != null)
+                {
+                    deposit.Stored.Add(stored);
+                }
+                else
+                {
+                    int gold = AnvilTable.MeltGold(drop.Rarity);
+                    int ember = AnvilTable.MeltEmber(drop.Rarity);
+                    AddGoldQuietly(gold);
+                    Gear.AddMaterial(MaterialKind.EmberShard, ember);
+                    deposit.Melted.Add(drop);
+                    deposit.MeltGold += gold;
+                    deposit.MeltEmber += ember;
+                }
+                changed = true;
+            }
+            if (changed)
+                Changed?.Invoke();
+            return deposit;
+        }
+
         internal ItemInstance AddItemQuietly(ItemDrop drop)
         {
             if (drop == null)

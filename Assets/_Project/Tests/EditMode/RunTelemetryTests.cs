@@ -1029,6 +1029,72 @@ namespace Cryptforge.Tests
             Assert.That(scene.Profile.Gold, Is.EqualTo(20));
         }
 
+        // docs/54 section 12: each drop as loot_dropped; the materials the run banked as currency_earned lines just before
+        // run_end, after the gold's; what a death took as one loot_lost line.
+        [Test]
+        public void LootIsLoggedAsItDropsAndBankedBeforeTheRunEnds()
+        {
+            var telemetry = new Telemetry();
+            var scene = new Scene(telemetry.Session);
+            scene.Recorder.Begin();
+            scene.Room(1, Floor1, 1, RoomKind.Elite, "enemy_grunt_captain");
+            scene.Loot.EliteFelled(1);
+            scene.ClearFloor(1, Floor1, false);
+            scene.Loot.FloorCleared(1);
+            Assert.That(scene.Choose(CheckpointKind.Descend), Is.True);
+            Assert.That(scene.Profile.Gear.Material(MaterialKind.EmberShard), Is.EqualTo(3), "Secured at the Descend, banked at once.");
+            scene.Room(2, Floor2, 1, RoomKind.Elite, "enemy_mirror_sentry");
+            scene.Loot.EliteFelled(2);
+            scene.Loot.EliteFelled(2);
+            scene.Die("enemy_mirror_sentry");
+
+            List<Line> lines = telemetry.Lines();
+            AssertLogShape(lines);
+            List<Line> materials = All(lines, "loot_dropped").FindAll(l => l.Text("kind") == "material");
+            Assert.That(materials.ConvertAll(l => (l.Text("id"), l.Integer("amount"), l.Text("source"), l.Integer("floor_index"))), Is.EqualTo(new[]
+            {
+                ("ember_shard", 1L, "elite", 1L), ("ember_shard", 2L, "floor_clear", 1L),
+                ("quicksilver_bead", 1L, "elite", 2L), ("quicksilver_bead", 1L, "elite", 2L)
+            }));
+            List<Line> banked = All(lines, "currency_earned").FindAll(l => !l.Has("room_index") && l.Text("currency") != "forge_gold");
+            Assert.That(banked.Exists(l => l.Text("currency") == "ember_shard" && l.Integer("amount") == 3), Is.True);
+            Assert.That(banked.Exists(l => l.Text("currency") == "quicksilver_bead" && l.Integer("amount") == 1), Is.True,
+                "Two unsecured beads, a death takes one.");
+            Line lost = Single(lines, "loot_lost");
+            Assert.That(lost.Integer("quicksilver_bead"), Is.EqualTo(1L));
+            Assert.That(lines.IndexOf(lost), Is.EqualTo(lines.IndexOf(Single(lines, "run_end")) - 1));
+            Assert.That(scene.Profile.Gear.Material(MaterialKind.QuicksilverBead), Is.EqualTo(1));
+        }
+
+        // The Anvil between runs (docs/54 section 12): a strike as anvil_attempt with its gold as currency_spent (sink
+        // anvil); a reroll as efsun_reroll, kept as efsun_kept; none of them carries a run id.
+        [Test]
+        public void AnvilWorkAfterTheRunIsLoggedWithoutARunId()
+        {
+            var telemetry = new Telemetry();
+            var scene = new Scene(telemetry.Session);
+            scene.Recorder.Begin();
+            scene.Die("enemy_grunt");
+            scene.Profile.Deposit(500);
+            ItemInstance ring = scene.Profile.AddItem(new ItemDrop("item_cinder_ring", "Cinder Ring", GearSlot.Ring, UpgradeRarity.Rare,
+                new[] { new EfsunLine(GearStat.Damage, 2), new EfsunLine(GearStat.Luck, 1) }, 1, LootSource.Boss));
+            Assert.That(scene.Anvil.TryStrike(ring, false, false, out _), Is.True);
+            Assert.That(scene.Anvil.TryReroll(ring, false), Is.True);
+            Assert.That(scene.Anvil.ResolveReroll(true), Is.True);
+
+            List<Line> lines = telemetry.Lines();
+            AssertLogShape(lines);
+            Line attempt = Single(lines, "anvil_attempt");
+            Assert.That(attempt.Has("run"), Is.False);
+            Assert.That((attempt.Text("item_id"), attempt.Text("slot"), attempt.Text("rarity"), attempt.Integer("from_level"),
+                attempt.Integer("chance"), attempt.Bool("success"), attempt.Integer("gold")), Is.EqualTo(("item_cinder_ring", "ring", "Rare", 0L, 100L, true, 50L)));
+            List<Line> spent = All(lines, "currency_spent");
+            Assert.That(spent.ConvertAll(l => (l.Text("sink"), l.Integer("amount"))), Is.EqualTo(new[] { ("anvil", 50L), ("efsun", 100L) }));
+            Line reroll = Single(lines, "efsun_reroll");
+            Assert.That((reroll.Text("paid"), reroll.Integer("cost"), reroll.Text("lines_before")), Is.EqualTo(("gold", 100L, "damage:2|luck:1")));
+            Assert.That(Single(lines, "efsun_kept").Text("kept"), Is.EqualTo("new"));
+        }
+
         [Test]
         public void ChoicesBackgroundAndRunEndWriteTheBufferAndOtherEventsWait()
         {
@@ -1306,6 +1372,9 @@ namespace Cryptforge.Tests
                         Assert.That(roomOpen, Is.True, "A wave or a horde sample belongs to the open room: " + where);
                         Assert.That((line.Integer("floor_index"), line.Integer("room_index")), Is.EqualTo((roomFloor, roomIndex)), where);
                         break;
+                    case "loot_lost":
+                        Assert.That(i + 1 < lines.Count && lines[i + 1].Event == "run_end", Is.True, "loot_lost directly precedes run_end: " + where);
+                        break;
                     case "boss_end":
                         Assert.That(lines[i - 1].Event, Is.EqualTo("room_complete"), "boss_end follows its room_complete: " + where);
                         Assert.That((line.Integer("floor_index"), line.Integer("room_index")),
@@ -1315,7 +1384,11 @@ namespace Cryptforge.Tests
                         Assert.That(i + 1, Is.LessThan(lines.Count), "currency_earned is never a run's last line: " + where);
                         if (!line.Has("room_index"))
                         {
-                            Assert.That(lines[i + 1].Event, Is.EqualTo("run_end"), "Banked gold is reported just before run_end: " + where);
+                            // The run's bank (gold, then docs/54's materials and boosters, then what a death took) closes on run_end.
+                            Line after = lines[i + 1];
+                            Assert.That(after.Event == "run_end" || after.Event == "loot_lost" ||
+                                        (after.Event == "currency_earned" && !after.Has("room_index")), Is.True,
+                                "Banked gold and loot are reported just before run_end: " + where);
                             break;
                         }
                         Line next = lines[i + 1];
@@ -1416,6 +1489,9 @@ namespace Cryptforge.Tests
             public readonly WeaponShop Weapons;
             public readonly RewardService Rewards;
             public readonly RunBank Bank;
+            // docs/54: the run's loot (no items in this scene) and the Anvil, wired as CombatSetup wires them.
+            public readonly RunLoot Loot;
+            public readonly Anvil Anvil;
             public readonly UpgradeService Upgrades;
             public readonly ForgeService Forge;
             public readonly CheckpointService Checkpoint;
@@ -1440,7 +1516,9 @@ namespace Cryptforge.Tests
                 var sword = new WeaponOption("weapon_sword", "Sword", string.Empty, 0);
                 Weapons = new WeaponShop(Profile, new[] { sword, new WeaponOption("weapon_axe", "Axe", string.Empty, 40) }, sword);
                 Rewards = new RewardService(Run);
-                Bank = new RunBank(Run, Profile);
+                Loot = new RunLoot(Run, new ItemTemplate[0], false);
+                Bank = new RunBank(Run, Profile, Loot);
+                Anvil = new Anvil(Profile, () => 5);
                 if (categories)
                 {
                     WeaponCard swordCard = DescentSimulation.Sword().CreateCard();
@@ -1479,6 +1557,8 @@ namespace Cryptforge.Tests
                     Checkpoint = Checkpoint,
                     Relics = Relics,
                     Weapons = Weapons,
+                    Loot = Loot,
+                    Anvil = Anvil,
                     HeroId = "hero_vanguard",
                     WeaponId = Weapons.Equipped.Id,
                     RelicId = Relics.Equipped?.Id,
@@ -1578,6 +1658,7 @@ namespace Cryptforge.Tests
                     return;
                 }
                 Run.SecureGold();
+                Loot.Secure();
             }
         }
 
