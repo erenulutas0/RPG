@@ -618,6 +618,65 @@ wall-seconds column differ. CombatChecks: 877 green (`Başarılı`); the Unity c
 - **`EncounterController` gained two read-only queries** and nothing else; the simulation does not model loot, so loot
   cannot move any number it measures.
 
+## 19. Built: phase 4, the Anvil, Efsun and Bag tabs (2026-11-17)
+
+Section 11 on the phone, built in code like the map choice (`UI/AnvilView`, its own overlay canvas, sorting order 90) and
+drawn in the choice cards' look (`ChoiceCardPainter` with `RunChoiceView`'s `ChoiceCardArtSet`: the dim, the surface, the
+title plate; each piece on its rarity's card and item ground - Common grey, Rare blue, Epic red, Gold gold) with the
+forge's painted plates on every button (`ScreenArtSet` primary and secondary, the pressed and disabled plates by sprite
+swap); plain colours where either set is missing. Legacy uGUI, no scene or asset change.
+
+- **Entry.** The Relic Forge's title row gains two buttons, **Bag** left and **Anvil** right of the 600-wide nameplate
+  (190 x the row's height, about 100 px on the S23). Each opens the panel on its tab; the panel's tab row is Forge (back),
+  Anvil, Efsun, Bag (221 x 104 each).
+- **Header.** The wallet (gold, Ember, Bead, Spore, in their colours) and the boosters, then the equipped pieces: the
+  weapon the next run carries, the armour, the amulet, the ring - each a 220 x 236 card on its rarity with its level badge.
+  A tap picks the piece the Anvil and Efsun tabs work on; the equipped weapon is picked first. An empty slot sends the
+  player to the Bag.
+- **Anvil.** The piece's card, its main stat now and next ("Damage +7% > +8.5%"), the chance in large type coloured by how
+  likely it is, the breakdown ("Base 20% + memory 6% + Seal 10% (a miss keeps the level)", or why the strike is certain),
+  the anvil's memory bar towards the ceiling ("2 / 10: holds for certain in 8"), the cost (gold and material, red where
+  short, the material in its colour with what is held), the Seal and Hammer toggles shown only where they change the
+  strike, and **Hold to strike +N** (`UI/HoldToStrike`: a 0.4 s fill; lifting or sliding off cancels; a tap is not a
+  strike). The moment after, for 1.4 s over the chance: "+9: the strike held!" in gold on the nameplate plate, which
+  settles from a slight swell, or "The metal held: +8 kept / The anvil remembers: +1 memory" in grey. The button says why
+  it cannot strike ("Need 120 more gold", "Need 2 more Gloam Spore", "Keep or discard the reroll first", "+9: nothing
+  more to strike"). A weapon without gear yet strikes at +0 and its gear (two lines) is made by that strike; opening the
+  tab makes nothing.
+- **Efsun.** The piece's lines on recessed plates with their tiers as five diamonds (grey, blue, red, gold); a reroll
+  (its rarity's gold, or an Efsun Scroll) splits the list into Current and New side by side with **Keep old** and **Take
+  new**; a Binding Rune adds a line up to five.
+- **Bag.** "Bag 12 / 30" and thirty 146-unit places on their rarity's frame and ground, each with its icon and level; a
+  mark on the equipped and the picked. A tap picks an item (its name, rarity, slot, level, main stat and lines below);
+  **Equip**, **Melt** (the first tap says what it pays, the second melts), **Inherit** (the picked item is the source;
+  only lower items of its slot stay tappable; the button then reads "Move +5 / 78 gold"; with no target it cancels) and
+  **Upgrade** (the Anvil tab on that item). A full bag says a new drop melts at once.
+- **Icons.** No item art exists yet: a piece shows the painted card icon of its weapon or of the stat it carries
+  (`UpgradeIconSet`: armour, attack speed, crit). Dedicated armour, amulet, ring, material and booster icons are an art
+  pass of their own.
+- **Words and numbers.** `Progression/GearText`: stat names, values with units ("+2.5%", "+0.8 pts", "-4%"), lines,
+  levels, gold with its separator ("12,345"), all in the invariant culture; `GearTextTests` reads them on tr-TR. Every
+  label best-fits down to half its size.
+- **The result's loot line** is now one short line at the build label's foot ("Loot: Ember 3, Seal 1, 1 item | lost:
+  Bead 1", `LootText.Compact`); if it would overflow the 174-unit label at its full size it gives way to "Loot: N pieces
+  (see the Bag)", and that to nothing (`RunResultView.LootLine`).
+
+**Tests.** EditMode `GearTextTests` (also in CombatChecks), `RunLootTests` (the compact line). PlayMode `AnvilFlowTests`:
+the tabs open from the forge and close; a missed strike keeps the item, its level and saves the pity, and a tap is not a
+strike; a held strike with a Seal reaches +9; a weapon's gear is made on its first strike; a reroll kept old, a scroll's
+taken new, a rune's line; the bag equips, melts on the second tap and inherits for its 10 %; a full bag shows thirty.
+
+    Unity, EditMode:  pwsh -File Tools/Run-UnityTests.ps1 -Platform EditMode -SkipApk -Filter "GearTextTests;RunLootTests"
+    Unity, PlayMode:  pwsh -File Tools/Run-UnityTests.ps1 -Platform PlayMode -SkipApk -Filter "AnvilFlowTests;RelicForgeFlowTests;PauseFlowTests;ArtHudFlowTests;PaintedScreensFlowTests;RunResultTests;DescentFlowTests"
+    Capture:          pwsh -File Tools/ArtReview/Run-AnvilUiProof.ps1     (frames in ArtDirection/2026-11-17/anvil-ui-01, untracked)
+
+`PauseFlowTests` (every button on a raycast canvas, every label inside its button) and `ArtHudFlowTests` (every forge
+label fits at its minimum size on 1760- and 2232-unit safe areas) read the two new forge buttons.
+
+**Risks.** Not seen in Unity: the layout is laid out by the numbers above and compiled, not looked at; the capture is for
+that look. The gold tier's aura on a 220-wide piece card may reach its neighbour across the 16-unit gap. Item icons are
+stand-ins (the stat cards).
+
 ## Measured and modelled: how to re-run
 
     dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~GearEconomyResearch"
