@@ -61,6 +61,9 @@
     <Compile Include="../../Assets/_Project/Scripts/Core/RunState.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/RunSeeds.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/PlayerProfile.cs" />
+    <!-- docs/54 phase 2: the profile's gear, its plain snapshot and the save's mapping of it. -->
+    <Compile Include="../../Assets/_Project/Scripts/Core/ProfileGear.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Core/GearSnapshot.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/RunPause.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/FrameStats.cs" />
     <!-- The development autopilot's drop detour, one body for the scene's autopilot and the foundry simulation's copy. -->
@@ -75,6 +78,7 @@
     <Compile Include="../../Assets/_Project/Scripts/Progression/*.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Save/ProfileSaveData.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Save/ProfileMigration.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Save/ProfileGearSave.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/CombatStateTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/RewardTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/UpgradeTests.cs" />
@@ -219,6 +223,9 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/AnvilRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/EfsunRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/GearStatsTests.cs" />
+    <!-- docs/54 phase 2: the profile's gear and the Anvil over it. -->
+    <Compile Include="../../Assets/_Project/Tests/EditMode/ProfileGearTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/AnvilTests.cs" />
     <!-- A run started on a deeper map (Scripts/Progression/DescentStart.cs, compiled above with Progression). -->
     <Compile Include="../../Assets/_Project/Tests/EditMode/DescentCatchUpTests.cs" />
   </ItemGroup>

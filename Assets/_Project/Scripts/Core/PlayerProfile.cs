@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Cryptforge.Progression;
 
 namespace Cryptforge.Core
 {
@@ -11,7 +12,7 @@ namespace Cryptforge.Core
     }
 
     // Permanent progress between runs: banked gold, forged relics and weapons, what is equipped, the heroes unlocked and
-    // chosen, and the depth record.
+    // chosen, the depth record, and the gear (docs/54: items, basma, efsun, floor materials and boosters).
     // Every successful change raises Changed exactly once, which is the save trigger.
     public sealed class PlayerProfile
     {
@@ -24,6 +25,9 @@ namespace Cryptforge.Core
         // Null while the hero carries the starting weapon, which is never stored as owned.
         public string EquippedWeaponId { get; private set; }
         public int DeepestFloorCleared { get; private set; }
+        // The bag, each weapon's upgrades, the materials and boosters (docs/54). The Anvil and the run's bank change it;
+        // each of their operations raises Changed once, through NotifyChanged.
+        public ProfileGear Gear { get; }
         public IReadOnlyList<string> OwnedRelicIds => _ownedRelicIds;
         public IReadOnlyList<string> OwnedWeaponIds => _ownedWeaponIds;
         // Heroes unlocked by play; the heroes open from the start are never stored.
@@ -34,14 +38,16 @@ namespace Cryptforge.Core
 
         public PlayerProfile()
         {
+            Gear = new ProfileGear();
         }
 
         // Restores saved progress. Damaged values are repaired instead of rejected so a hand-edited or partially
         // valid save still loads: negative numbers become zero, duplicates are dropped and unowned items are unequipped.
         public PlayerProfile(int gold, IEnumerable<string> ownedRelicIds, string equippedRelicId, int deepestFloorCleared,
             IEnumerable<string> ownedWeaponIds = null, string equippedWeaponId = null,
-            IEnumerable<string> unlockedHeroIds = null, string selectedHeroId = null)
+            IEnumerable<string> unlockedHeroIds = null, string selectedHeroId = null, ProfileGear gear = null)
         {
+            Gear = gear ?? new ProfileGear();
             Gold = Math.Max(0, gold);
             DeepestFloorCleared = Math.Max(0, deepestFloorCleared);
             AddUnique(_ownedRelicIds, ownedRelicIds);
@@ -95,6 +101,65 @@ namespace Cryptforge.Core
             Gold += amount;
             Changed?.Invoke();
         }
+
+        // A dropped item into the bag with the next uid (docs/54 section 3); null, and nothing changed, when the bag is full.
+        public ItemInstance AddItem(ItemDrop drop)
+        {
+            ItemInstance item = AddItemQuietly(drop);
+            if (item != null)
+                Changed?.Invoke();
+            return item;
+        }
+
+        public void AddMaterial(MaterialKind kind, int amount)
+        {
+            if (amount < 0)
+                throw new ArgumentOutOfRangeException(nameof(amount));
+            if (amount == 0)
+                return;
+            Gear.AddMaterial(kind, amount);
+            Changed?.Invoke();
+        }
+
+        public void AddBooster(BoosterKind kind, int amount)
+        {
+            if (amount < 0)
+                throw new ArgumentOutOfRangeException(nameof(amount));
+            if (amount == 0)
+                return;
+            Gear.AddBooster(kind, amount);
+            Changed?.Invoke();
+        }
+
+        internal ItemInstance AddItemQuietly(ItemDrop drop)
+        {
+            if (drop == null)
+                throw new ArgumentNullException(nameof(drop));
+            return Gear.IsBagFull ? null : Gear.AddItem(drop.ItemId, drop.Slot, drop.Rarity, drop.Lines);
+        }
+
+        // Spends gold for a gear operation without raising Changed: the operation raises it once with NotifyChanged when
+        // everything it changes has changed (Anvil). False, and nothing spent, when the gold is short.
+        internal bool TrySpendGold(int amount)
+        {
+            if (amount < 0)
+                throw new ArgumentOutOfRangeException(nameof(amount));
+            if (Gold < amount)
+                return false;
+            Gold -= amount;
+            return true;
+        }
+
+        // Adds gold for a gear operation (a melt) without raising Changed; see TrySpendGold.
+        internal void AddGoldQuietly(int amount)
+        {
+            if (amount < 0)
+                throw new ArgumentOutOfRangeException(nameof(amount));
+            Gold = (int)Math.Min(int.MaxValue, (long)Gold + amount);
+        }
+
+        // One gear operation has finished changing the profile: the save trigger, once.
+        internal void NotifyChanged() => Changed?.Invoke();
 
         // Spending, owning and equipping happen together so a purchase is saved as one change.
         public bool TryForgeRelic(string relicId, int price)

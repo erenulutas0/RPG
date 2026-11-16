@@ -31,6 +31,21 @@ namespace Cryptforge.Progression
             MaterialKind.GloamSpore
         };
 
+        // Melting an item at the Anvil (docs/54 section 3.3), by rarity: gold and Ember Shards back.
+        private static readonly int[] MeltGoldByRarity = { 20, 40, 80, 150 };
+        private static readonly int[] MeltEmberByRarity = { 1, 2, 3, 4 };
+
+        public static int MeltGold(UpgradeRarity rarity) => MeltGoldByRarity[RarityIndex(rarity)];
+        public static int MeltEmber(UpgradeRarity rarity) => MeltEmberByRarity[RarityIndex(rarity)];
+
+        private static int RarityIndex(UpgradeRarity rarity)
+        {
+            int index = (int)rarity;
+            if (index < 0 || index >= MeltGoldByRarity.Length)
+                throw new ArgumentOutOfRangeException(nameof(rarity));
+            return index;
+        }
+
         public static int BaseChancePercent(int targetLevel) => BaseChance[Index(targetLevel)];
         public static int PityStepPercent(int targetLevel) => PityStep[Index(targetLevel)];
         // Failures in a row after which the next strike holds; 0 where every strike already holds.

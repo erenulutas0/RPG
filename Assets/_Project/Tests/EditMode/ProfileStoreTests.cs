@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using Cryptforge.Core;
+using Cryptforge.Progression;
 using Cryptforge.Save;
 using NUnit.Framework;
 using UnityEngine;
@@ -58,7 +59,7 @@ namespace Cryptforge.Tests
             Assert.That(loaded.OwnedWeaponIds, Is.EqualTo(new[] { "weapon_staff" }));
             Assert.That(loaded.EquippedWeaponId, Is.EqualTo("weapon_staff"));
             string json = File.ReadAllText(Path.Combine(_directory, ProfileStore.FileName));
-            Assert.That(json, Does.Contain("\"saveVersion\": 3").And.Contain("\"gold\": 120").And.Contain("\"equippedWeaponId\": \"weapon_staff\""));
+            Assert.That(json, Does.Contain("\"saveVersion\": 4").And.Contain("\"gold\": 120").And.Contain("\"equippedWeaponId\": \"weapon_staff\""));
             Assert.That(File.Exists(Path.Combine(_directory, ProfileStore.TempFileName)), Is.False);
         }
 
@@ -88,7 +89,7 @@ namespace Cryptforge.Tests
             Assert.That((old.Gold, old.DeepestFloorCleared, old.EquippedWeaponId), Is.EqualTo((75, 3, "weapon_staff")));
             Assert.That(old.UnlockedHeroIds, Is.Empty, "Version 2 predates heroes.");
             Assert.That(old.SelectedHeroId, Is.Null, "The default hero.");
-            Assert.That(ProfileMigration.Upgrade(new ProfileSaveData { saveVersion = 2 }).saveVersion, Is.EqualTo(3));
+            Assert.That(ProfileMigration.Upgrade(new ProfileSaveData { saveVersion = 2 }).saveVersion, Is.EqualTo(ProfileSaveData.CurrentVersion));
         }
 
         [Test]
@@ -114,7 +115,7 @@ namespace Cryptforge.Tests
             store.Save(profile);
 
             string json = File.ReadAllText(path);
-            Assert.That(json, Does.Contain("\"saveVersion\": 3").And.Contain("\"revision\": 6").And.Contain("\"gold\": 30"));
+            Assert.That(json, Does.Contain("\"saveVersion\": 4").And.Contain("\"revision\": 6").And.Contain("\"gold\": 30"));
             Assert.That(File.ReadAllText(Path.Combine(_directory, ProfileStore.BackupFileName)), Does.Contain("\"saveVersion\": 1"),
                 "The version 1 file stays behind as the backup.");
             PlayerProfile reloaded = new ProfileStore(_directory).Load();
@@ -254,6 +255,78 @@ namespace Cryptforge.Tests
             Assert.That(profile.OwnedRelicIds, Is.EqualTo(new[] { "relic_a" }));
             Assert.That(profile.EquippedRelicId, Is.Null);
             Assert.That(profile.DeepestFloorCleared, Is.Zero, "A missing field reads as its default.");
+        }
+
+        // Version 4 (docs/54 section 10): the bag, a weapon's upgrades, what is equipped, the materials, boosters and the
+        // anvil's stream survive the JSON round trip; a shown reroll survives too.
+        [Test]
+        public void GearRoundTripsThroughVersionFour()
+        {
+            var store = new ProfileStore(_directory);
+            PlayerProfile profile = store.Load();
+            profile.Deposit(5000);
+            var anvil = new Anvil(profile, () => 77);
+            ItemInstance ring = ProfileGearTests.Give(profile, "item_cinder_ring", GearSlot.Ring, UpgradeRarity.Epic);
+            Assert.That(anvil.TryEquip(ring), Is.True);
+            Assert.That(anvil.TryStrike(ring, false, false, out _), Is.True);
+            ItemInstance sword = anvil.GearForWeapon("weapon_sword");
+            Assert.That(anvil.TryReroll(sword, false), Is.True);
+            store.Save(profile);
+
+            string json = File.ReadAllText(Path.Combine(_directory, ProfileStore.FileName));
+            Assert.That(json, Does.Contain("\"saveVersion\": 4").And.Contain("\"itemId\": \"item_cinder_ring\"")
+                .And.Contain("\"weaponId\": \"weapon_sword\"").And.Contain("\"anvilSeed\": 77"));
+            PlayerProfile loaded = new ProfileStore(_directory).Load();
+            Assert.That(loaded.Gold, Is.EqualTo(profile.Gold));
+            Assert.That(ProfileGearTests.Describe(loaded.Gear), Is.EqualTo(ProfileGearTests.Describe(profile.Gear)));
+            Assert.That(loaded.Gear.Equipped(GearSlot.Ring).ItemId, Is.EqualTo("item_cinder_ring"));
+            Assert.That(loaded.Gear.PendingRerollPiece, Is.SameAs(loaded.Gear.WeaponGear("weapon_sword")));
+        }
+
+        // A version 3 save (before gear) loads with its gold and an empty bag, and is written back as version 4.
+        [Test]
+        public void AVersionThreeProfileKeepsItsGoldAndGainsAnEmptyBag()
+        {
+            string path = Path.Combine(_directory, ProfileStore.FileName);
+            File.WriteAllText(path, "{\"saveVersion\":3,\"revision\":12,\"gold\":39491,\"ownedRelicIds\":[],\"equippedRelicId\":\"\"," +
+                "\"deepestFloorCleared\":3,\"ownedWeaponIds\":[],\"equippedWeaponId\":\"\",\"unlockedHeroIds\":[],\"selectedHeroId\":\"\"}");
+            var store = new ProfileStore(_directory);
+            PlayerProfile profile = store.Load();
+            Assert.That(store.LastLoadStatus, Is.EqualTo(ProfileLoadStatus.Loaded));
+            Assert.That(profile.Gold, Is.EqualTo(39491), "The owner's gold stays (the lead, 2026-11-16).");
+            Assert.That(profile.Gear.Bag, Is.Empty);
+            Assert.That(profile.Gear.Weapons, Is.Empty);
+            Assert.That(profile.Gear.Material(MaterialKind.EmberShard), Is.Zero);
+            Assert.That(profile.Gear.AnvilSeed, Is.Zero, "Seeded on the first draw.");
+            profile.Deposit(1);
+            store.Save(profile);
+            Assert.That(File.ReadAllText(path), Does.Contain("\"saveVersion\": 4").And.Contain("\"items\": []"));
+        }
+
+        // Damaged gear in a readable version 4 save is repaired, never rejected (ProfileGear.Restore).
+        [Test]
+        public void DamagedGearInAReadableSaveIsRepaired()
+        {
+            File.WriteAllText(Path.Combine(_directory, ProfileStore.FileName),
+                "{\"saveVersion\":4,\"revision\":2,\"gold\":10,\"items\":[" +
+                "{\"uid\":5,\"itemId\":\"item_cinder_ring\",\"slot\":3,\"rarity\":9,\"level\":14,\"pity\":-3,\"lines\":[" +
+                "{\"stat\":\"gold_find\",\"tier\":3},{\"stat\":\"damage\",\"tier\":8},{\"stat\":\"damage\",\"tier\":1},{\"stat\":\"crit\",\"tier\":2}]}," +
+                "{\"uid\":5,\"itemId\":\"item_ember_locket\",\"slot\":2,\"rarity\":1,\"level\":2,\"pity\":0,\"lines\":[]}," +
+                "{\"uid\":7,\"itemId\":\"\",\"slot\":1,\"rarity\":0,\"level\":0,\"pity\":0,\"lines\":[]}]," +
+                "\"equippedItemUids\":[5,5,99],\"nextItemUid\":1,\"emberShards\":-4,\"forgeSeals\":2}");
+            PlayerProfile profile = new ProfileStore(_directory).Load();
+            ItemInstance ring = profile.Gear.FindItem(5);
+            Assert.That(ring.ItemId, Is.EqualTo("item_cinder_ring"));
+            Assert.That((ring.Rarity, ring.Level, ring.Pity), Is.EqualTo((UpgradeRarity.Gold, 9, 0)));
+            Assert.That(ring.Lines.Count, Is.EqualTo(1), "Gold find retired, the repeated damage line and the ring's own crit dropped.");
+            Assert.That((ring.Lines[0].Stat, ring.Lines[0].Tier), Is.EqualTo((GearStat.Damage, 5)));
+            Assert.That(profile.Gear.Bag.Count, Is.EqualTo(2), "The item with no id is dropped.");
+            Assert.That(profile.Gear.Bag[1].Uid, Is.EqualTo(6), "The repeated uid is renumbered.");
+            Assert.That(profile.Gear.Equipped(GearSlot.Armour), Is.Null, "Uid 5 is a ring, not an armour.");
+            Assert.That(profile.Gear.Equipped(GearSlot.Ring), Is.Null, "Uid 99 is not in the bag.");
+            Assert.That(profile.Gear.Material(MaterialKind.EmberShard), Is.Zero);
+            Assert.That(profile.Gear.Booster(BoosterKind.ForgeSeal), Is.EqualTo(2));
+            Assert.That(profile.Gear.NextItemUid, Is.EqualTo(7));
         }
     }
 }
