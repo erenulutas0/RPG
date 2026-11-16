@@ -25,6 +25,14 @@ namespace Cryptforge.Progression
         public const int Categories = 5;
         // The crit seed of a weapon held in a slot after the first (WeaponLoadout.SeedFor), one index per slot.
         public const int WeaponSeeds = 6;
+        // The Anvil's draws (docs/54 section 4.3): seeded by the profile's anvil seed, not a run's, one index per operation
+        // (a strike, a reroll, a line added, a weapon's first lines), so an operation draws the same however often the app
+        // is closed before it is saved.
+        public const int Anvil = 7;
+        // A run's loot (docs/54 sections 3.2 and 5): what a boss, an elite, a floor clear or the walk-out drops, one index
+        // per drop moment, and the coins a death's settlement throws. Its own purpose, so loot never reads a word of the
+        // offers', the chests' or the crits' streams and no measured run can move.
+        public const int Loot = 8;
 
         private uint _state;
 

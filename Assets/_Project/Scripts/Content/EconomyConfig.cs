@@ -19,6 +19,9 @@ namespace Cryptforge.Content
         // panel in the scene has two card buttons and a third card was drawn but never shown; RunChoiceView now clones a
         // third card and restacks the three inside the panel (docs/42 PR 9). The view shows at most three.
         [SerializeField, Min(1)] private int _categoryChoiceCount = 3;
+        // The armours, amulets and rings the Descent drops (docs/54 section 3.2), one of each slot a floor. Empty, and a
+        // run drops no items (its materials and boosters still drop).
+        [SerializeField] private ItemDefinition[] _items;
 
         public int ExperiencePerLevel => _experiencePerLevel;
         public int ExperienceGrowth => _experienceGrowth;
@@ -27,5 +30,7 @@ namespace Cryptforge.Content
         public int TomeCount => _tomes?.Length ?? 0;
         public UpgradeDefinition TomeAt(int index) => _tomes[index];
         public int CategoryChoiceCount => _categoryChoiceCount;
+        public int ItemCount => _items?.Length ?? 0;
+        public ItemDefinition ItemAt(int index) => _items[index];
     }
 }

@@ -215,6 +215,10 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/TelemetryLogTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/TelemetrySessionTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/RunTelemetryTests.cs" />
+    <!-- docs/54's pure core (phase 1): basma's odds, pity and ceiling, efsun's lines, the gear's caps and power index. -->
+    <Compile Include="../../Assets/_Project/Tests/EditMode/AnvilRuleTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/EfsunRuleTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/GearStatsTests.cs" />
     <!-- A run started on a deeper map (Scripts/Progression/DescentStart.cs, compiled above with Progression). -->
     <Compile Include="../../Assets/_Project/Tests/EditMode/DescentCatchUpTests.cs" />
   </ItemGroup>

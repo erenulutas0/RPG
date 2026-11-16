@@ -23,3 +23,13 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 48e2f6f8e01046939d9935c39581e376, type: 2}
   - {fileID: 11400000, guid: 23a7a2cd1b2d48aa888d16edb0eaf1b2, type: 2}
   _categoryChoiceCount: 3
+  _items:
+  - {fileID: 11400000, guid: 372aca9d3bea4eaaad98bf3567550cd1, type: 2}
+  - {fileID: 11400000, guid: f33864fc8fc04de89f629d4cd510ff52, type: 2}
+  - {fileID: 11400000, guid: ea30c0c7f6574cf49de610c85e462844, type: 2}
+  - {fileID: 11400000, guid: 2c77ef9edc4f4caaac7fdf449acfe580, type: 2}
+  - {fileID: 11400000, guid: f4f86465ffc24ea8aa1919c05c44f3df, type: 2}
+  - {fileID: 11400000, guid: ca5e299133a5452ba0c15d4f34c98d0f, type: 2}
+  - {fileID: 11400000, guid: 04d114ed52de44319a3c0d96e6c048e6, type: 2}
+  - {fileID: 11400000, guid: 19620436986a47b7bb40e16135b86241, type: 2}
+  - {fileID: 11400000, guid: bdf13da3a3474eaabaf651612bca19c2, type: 2}
