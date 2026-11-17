@@ -98,6 +98,9 @@ namespace Cryptforge.Core
         public RunLoot Loot { get; private set; }
         // The Anvil over the profile (docs/54): basma, efsun, melt, inheritance and equipping, between runs.
         public Anvil Anvil { get; private set; }
+        // What this run wears (docs/54 phase 5), read from the profile as the run began; empty (IsEmpty) for a profile
+        // without gear.
+        public GearLoadout Gear { get; private set; } = GearLoadout.None;
         // Null when no relic is equipped.
         public RelicRuntime Relic { get; private set; }
         // The enemy whose hit last damaged the hero; after a defeat, the killer named on the result screen.
@@ -210,6 +213,12 @@ namespace Cryptforge.Core
                 for (int i = 0; i < tomes.Length; i++)
                     tomes[i] = _economy.TomeAt(i).CreateOption();
             }
+            // The gear the profile wears for this run's weapon (docs/54 phase 5): that weapon's own basma and lines (per
+            // weapon id) and the equipped armour, amulet and ring, through the one body the Descent simulation calls at the
+            // same moment - the weapon's stats onto every weapon the hero holds or will hold, the hero's onto its sheet.
+            // A profile without gear adds nothing, and the run is today's.
+            Gear = new GearLoadout(Profile.Gear.EquippedPieces(HeroWeapon.Id));
+            GearStats.Apply(Gear, HeroStats, loadout, Weapon);
             Upgrades = new UpgradeService(Run, Weapon, options,
                 categories ? _economy.CategoryChoiceCount : _economy.UpgradeChoiceCount, HeroStats,
                 movement != null ? movement.Stamina.Enabled : HeroStamina.CurrentRulesEnabled, loadout, weaponCards, tomes);

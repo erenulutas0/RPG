@@ -86,6 +86,10 @@ namespace Cryptforge.Tests
             // The Riftblade's kit (docs/46, research 2026-11-11): Quicksilver Stride and its active, which stands in the
             // ability's place (Ability null). Null for every hero the game has, whose runs it leaves as they were.
             public RiftbladeKit Rift;
+            // What the hero wears (docs/54 phase 5): the profile's gear as CombatSetup reads it, applied at the run's start
+            // through the scene's own body (GearStats.Apply). None for every shipped test, the batch and the gate, whose
+            // runs it leaves as they were; FoundryGear's geared cohorts set it (research, section 13).
+            public GearLoadout Gear = GearLoadout.None;
         }
 
         // Data/Heroes/Hero_Vanguard.asset: 100 health, the Sword, the Forge Burst.
@@ -1482,6 +1486,8 @@ namespace Cryptforge.Tests
                 weapon.Seed = seed;
                 _loadout = new WeaponLoadout(seed);
                 _loadout.TryAdd(first.Id, weapon);
+                // CombatSetup's gear, at the same moment and through the same body (docs/54 phase 5): nothing for None.
+                GearStats.Apply(hero.Gear, _heroStats, _loadout, weapon);
                 HeroWeapon[] catalogue = WeaponCatalogue();
                 var cards = new WeaponCard[catalogue.Length];
                 for (int i = 0; i < cards.Length; i++)
