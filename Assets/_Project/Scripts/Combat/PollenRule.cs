@@ -46,9 +46,11 @@ namespace Cryptforge.Combat
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static bool Still(float smoothedSpeed, float stillSpeed) => smoothedSpeed < stillSpeed;
 
-        // Whether a Wraith at the squared floor distance from the hero counts toward the rise.
+        // Whether a Wraith at the squared floor distance from the hero counts toward the rise. The square is cast to float:
+        // Unity's Mono keeps radius * radius at a wider precision than .NET does, so without it the boundary differs
+        // between the scene and the simulation (PollenRuleTests' radius-inclusive case failed in Unity, passed in dotnet).
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public static bool Near(float distanceSquared, float radius) => distanceSquared <= radius * radius;
+        public static bool Near(float distanceSquared, float radius) => distanceSquared <= (float)(radius * radius);
 
         // The pollen after a frame: while still, rise a second for each Wraith near (at most most); while moving, fall a
         // second; never under 0. A bloom is read from the result (Blooms).

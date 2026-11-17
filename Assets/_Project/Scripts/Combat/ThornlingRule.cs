@@ -55,10 +55,11 @@ namespace Cryptforge.Combat
             return p < 0f ? 0f : p > 1f ? 1f : p;
         }
 
-        // Whether the hero at (x, y) stands inside the ring of radius at (ringX, ringY).
+        // Whether the hero at (x, y) stands inside the ring of radius at (ringX, ringY); the square cast to float as
+        // PollenRule.Near's is, so Mono and .NET agree on the boundary.
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static bool InRing(float x, float y, float ringX, float ringY, float radius) =>
-            ArenaFloor.FloorDistanceSquared(x, y, ringX, ringY) <= radius * radius;
+            ArenaFloor.FloorDistanceSquared(x, y, ringX, ringY) <= (float)(radius * radius);
 
         // The eruption's damage: share of the hero's maximum health.
         [MethodImpl(MethodImplOptions.NoInlining)]
