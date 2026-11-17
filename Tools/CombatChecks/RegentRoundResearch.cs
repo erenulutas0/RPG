@@ -38,7 +38,8 @@ namespace Cryptforge.Tests
 
         private static IEnumerable<Option> Options()
         {
-            yield return new Option { Key = "shipped", What = "the shipped game: the Glass Regent at floor 2's gate (RegentRule)" };
+            yield return new Option { Key = "shipped", What = "the shipped game: the Glass Regent at floor 2's gate (RegentRule), its rod at its feet since 2026-11-17" };
+            yield return new Option { Key = "regent-before", What = "the Glass Regent before the round of 2026-11-17: its rod held through every cast (FoundryLevers.RegentFeetReach 0)", Set = l => l.RegentFeetReach = 0f };
             yield return new Option { Key = "f2-warden", What = "floor 2's Forge Warden back at its gate at its share then (VaultsWarden)", Set = l => l.VaultsWarden = true };
             yield return new Option { Key = "aa-f2", What = "A/A: the shipped game, one unread draw of the pilot's dice on entering floor 2", Set = l => l.NudgeFloor = 2 };
             // Diagnosis (exploration seeds only): the Regent with one of the Warden's parts back at a time.

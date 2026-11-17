@@ -10,7 +10,10 @@ namespace Cryptforge.Combat
     // always at least LanePast beyond the hero's spot - and LaneWidth wide; when it fills, shards run down it and a hero
     // still inside takes LaneShare of its maximum health. The
     // dodge is a sidestep across the lane (FootworkRule.Sidestep), not a run out of a circle: a step along the lane stays in
-    // it. Its phase two is the Warden's (the faster beat, the horde thickening round it).
+    // it. Its phase two is the Warden's (the faster beat, the horde thickening round it). Its rod is held from the mark
+    // until the recovery after the blow, as the Warden's hammer - but only for a hero beyond its feet as the mark goes down
+    // (FeetReach, HoldsRod; docs/50 "The Regent's bite for the standing hero", 2026-11-17): a hero at its feet is struck
+    // through the cast.
     //
     // The share of the gate is the Warden's lever (FloorDefinition.FoundryGateHealthShare, WardenRule.GateHealthShareOn):
     // floor 2 sets 7.0 for the Regent (docs/50, round 2 on the holdout seeds 201-400: careful P50 49 / 46 s, in band as the

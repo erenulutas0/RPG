@@ -387,6 +387,18 @@ namespace Cryptforge.Tests
             Assert.That(shipped.RegentHealthShare, Is.Zero, "the floor's own share");
             Assert.That(shipped.SidestepsTheRegent, Is.True, "the simulation's pilot sidesteps it as DevelopmentAutopilot does");
             Assert.That(shipped.VaultsWarden, Is.False);
+            // The rod at its feet (docs/50, 2026-11-17): read as each mark goes down, as WardenSlamService reads it, inside the
+            // Glass Rod's reach; none of the round's research holds.
+            Assert.That(shipped.RegentFeetReach, Is.EqualTo(RegentRule.FeetReach));
+            Assert.That(shipped.RegentFeetEveryFrame, Is.False);
+            Assert.That(regent.Weapon.Range, Is.GreaterThan(RegentRule.FeetReach), "its feet lie inside the rod's reach");
+            Assert.That(shipped.RegentRodInTelegraph, Is.False);
+            Assert.That(shipped.RegentRodNearReach, Is.Zero);
+            Assert.That(shipped.RegentRodBlowReach, Is.Zero);
+            Assert.That(shipped.RegentRodRecovery, Is.LessThan(0f), "the Warden's recovery");
+            Assert.That(shipped.RegentStoodWalk, Is.Zero);
+            Assert.That(shipped.RegentNearReach, Is.Zero);
+            Assert.That(shipped.RegentRodStreakShare, Is.Zero);
 
             FloorDefinition proof = null;
             foreach (FloorDefinition floor in UnityEngine.Resources.LoadAll<FloorDefinition>(DevelopmentStart.ResourcesFolder))

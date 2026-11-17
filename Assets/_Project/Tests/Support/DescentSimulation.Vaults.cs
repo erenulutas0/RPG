@@ -190,11 +190,12 @@ namespace Cryptforge.Tests
             public float RegentRodBlowReach;
             // ...only where the hero was within it as the mark went down too: it stayed at the Regent's side through the cast.
             public bool RegentRodBlowStayed;
-            // The round's candidates (RegentRule.AtItsFeet, RegentRule.HoldsRod): the Regent holds its rod through its cast
-            // and the shards' run only for a hero beyond RegentFeetReach of it (0: off, the Regent before the round) - read as
-            // each mark goes down, for the whole beat (candidate A, "the rod at its feet"), or every frame of the hold with
-            // RegentFeetEveryFrame (candidate B, "never at its feet").
-            public float RegentFeetReach;
+            // The rod at its feet (RegentRule.FeetReach, AtItsFeet, HoldsRod; shipped since the round of 2026-11-17, docs/50
+            // "The Regent's bite for the standing hero"): the Regent holds its rod through its cast and the shards' run only
+            // for a hero beyond RegentFeetReach of it as each mark goes down, as WardenSlamService holds it; 0 is the Regent
+            // before the round (research, for a comparison on the same seeds). RegentFeetEveryFrame (research, the round's
+            // exploration) reads the hero's feet every frame of the hold instead of at the mark.
+            public float RegentFeetReach = RegentRule.FeetReach;
             public bool RegentFeetEveryFrame;
             // The rod's streak (research): a strike on a hero that has stayed within the rod's reach since the Regent's last
             // strike adds RegentRodStreakShare of the rod's damage for each strike of the streak before it, at most
