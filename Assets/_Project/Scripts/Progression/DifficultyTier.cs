@@ -25,13 +25,19 @@ namespace Cryptforge.Progression
         public const int Count = 4;
         public const DifficultyTier Highest = DifficultyTier.Abyssal;
 
-        // Enemy health and damage (docs/54 section 8 started at 1.08 / 1.06, 1.15 / 1.13 and 1.20 / 1.18).
+        // Enemy health and damage. docs/54 section 8 started at 1.08 / 1.06, 1.15 / 1.13 and 1.20 / 1.18; on seeds 1-400 the
+        // matched cohorts met those within about a point of Forged, with Abyssal's first-card cohort two points short, and a
+        // Tempered at 1.12 / 1.09 cost the clumsy and first-card cohorts five points (about 0.8 a percent of health times
+        // damage). The health stays, which holds the bosses' fights at Forged's length (the gear's DPS meets it), and the
+        // damage sits under the gear's own health (+5 %, +10 %, +14 % at the caps) so the matched cohorts come out a point or
+        // so ahead of Forged rather than on the rule's edge (docs/54 section 21): on seeds 1-2000 Tempered at 1.04 left the
+        // clumsy cohort +0.3 points, at 1.02 +1.3.
         public const float TemperedHealth = 1.08f;
-        public const float TemperedDamage = 1.06f;
+        public const float TemperedDamage = 1.02f;
         public const float InfernoHealth = 1.15f;
-        public const float InfernoDamage = 1.13f;
+        public const float InfernoDamage = 1.10f;
         public const float AbyssalHealth = 1.20f;
-        public const float AbyssalDamage = 1.18f;
+        public const float AbyssalDamage = 1.14f;
 
         public static bool IsDefined(int value) => value >= (int)DifficultyTier.Forged && value <= (int)Highest;
 

@@ -674,8 +674,10 @@ namespace Cryptforge.Core
             if (!_encounters.HasNextFloor)
             {
                 Loot.WalkedOut(_encounters.FloorNumber);
-                // The Descent walked out of on this tier: the tier above it opens (ProfileTiers).
-                Profile.RecordDescentCompleted(Tier);
+                // The Descent walked out of on this tier - its finale, not a development or proof floor that ends a run
+                // alone: the tier above it opens (ProfileTiers).
+                if (_encounters.FloorNumber >= DescentStart.FinaleFloor)
+                    Profile.RecordDescentCompleted(Tier);
                 Run.End(RunOutcome.Victory);
                 return;
             }
