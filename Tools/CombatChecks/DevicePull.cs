@@ -99,6 +99,13 @@ namespace Cryptforge.Tests
                     device.DeeperStartRuns++;
                     continue;
                 }
+                // Worn gear (run_start's gear_power, docs/54 section 12): the simulation the owner's floors are read against
+                // plays ungeared, so a geared run is left out of the floor rows and counted apart.
+                if (run.GearPower >= 0)
+                {
+                    device.GearedRuns++;
+                    continue;
+                }
                 if (!run.Started)
                 {
                     // Its start rotated away on the phone: no hero to read its floors under.
@@ -269,6 +276,10 @@ namespace Cryptforge.Tests
             // The floor the run began on: run_start's start_floor, 1 without one (every run before the map choice, and every
             // run begun on the Foundry).
             public int StartFloor = 1;
+            // What the run wore: run_start's gear_power (the index in hundredths of a percent) and gear_levels; -1 and null
+            // without them (an ungeared run, and every run before docs/54 phase 5).
+            public int GearPower = -1;
+            public string GearLevels;
             // run_end's result, "interrupted" for run_interrupted, null for neither; run_end's cause (cleared, extracted,
             // killed, killed_by:<id> - the pit's is killed_by:pit_eruption) and its active_sec, the whole run's.
             public string Result;
@@ -312,6 +323,8 @@ namespace Cryptforge.Tests
                             run.Start = e.Utc;
                             run.HeroId = Text(f, "hero_id");
                             run.StartFloor = Int(f, "start_floor", 1);
+                            run.GearPower = Int(f, "gear_power", -1);
+                            run.GearLevels = Text(f, "gear_levels");
                             break;
                         case "room_start":
                             floor = Int(f, "floor_index", floor);

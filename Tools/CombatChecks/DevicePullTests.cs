@@ -379,6 +379,37 @@ namespace Cryptforge.Tests
             });
         }
 
+        // A run that wore gear (run_start's gear_power and gear_levels, docs/54 section 12) is read with what it wore, left out
+        // of the owner's floors and runs and counted apart, since the simulation those floors are read against plays
+        // ungeared; the pull's other runs read exactly as without it.
+        [Test]
+        public void AGearedRunIsLeftOutOfTheOwnersFloors()
+        {
+            InTemp(root =>
+            {
+                string folder = TodaysPull(root);
+                File.WriteAllLines(Path.Combine(folder, "telemetry", "events.2.jsonl"), new[]
+                {
+                    Event("s0", 1, -900, null, "session_start", "\"schema\":1"),
+                    Event("s0", 2, -899, "s0-1", "run_start",
+                        "\"run_ordinal\":1,\"hero_id\":\"hero_vanguard\",\"seed\":5,\"gear_power\":4190,\"gear_levels\":\"9,9,9,9\""),
+                    Event("s0", 3, -899, "s0-1", "room_start", Room(1, "combat")),
+                    Event("s0", 4, -600, "s0-1", "floor_complete", "\"floor_index\":1,\"floor_id\":\"f1\",\"active_sec\":244.000,\"rooms\":6"),
+                    Event("s0", 5, -500, "s0-1", "run_end", "\"result\":\"defeat\",\"cause\":\"killed\",\"floors_completed\":1,\"active_sec\":390.000")
+                });
+                List<DevicePull.RunRecord> runs = DevicePull.Runs(DevicePull.ReadEvents(new[] { Path.Combine(folder, "telemetry") }));
+                DevicePull.RunRecord geared = runs.Single(r => r.Id == "s0-1");
+                Assert.That((geared.GearPower, geared.GearLevels), Is.EqualTo((4190, "9,9,9,9")));
+                Assert.That(runs.Where(r => r.Id != "s0-1").Select(r => r.GearPower), Is.All.EqualTo(-1), "No gear_power reads as ungeared.");
+
+                FoundryGate.DeviceEvidence device = DevicePull.Read(new[] { folder });
+                Assert.That(device.GearedRuns, Is.EqualTo(1));
+                Assert.That(device.Runs, Is.EqualTo(3), "The pull's own three runs, as without it.");
+                Assert.That(device.Floors.Count(f => f.Seconds == 244f), Is.EqualTo(0), "None of its floors.");
+                return 0;
+            });
+        }
+
         // Several runs and heroes in one pull, across a rotation: each floor under its run's hero, the finale (the swarm
         // room, floor 3) named, floor 2 - its gate at 210 s as floor 1's - read beside the row, the pit's death by its
         // cause, the whole Descent by run_end's active_sec, and the run still on as a floor never finished.

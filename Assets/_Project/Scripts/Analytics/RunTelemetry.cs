@@ -79,6 +79,10 @@ namespace Cryptforge.Analytics
         private readonly int _deepestFloorCleared;
         private readonly int _seed;
         private readonly int _startFloor;
+        // What the run wears (docs/54 section 12): the power index and the four levels, or -1 / null for an ungeared run,
+        // whose run_start keeps its keys exactly.
+        private readonly int _gearPower = -1;
+        private readonly string _gearLevels;
         private readonly Func<string> _killerId;
         private readonly Func<float> _heroHealth;
         private readonly Func<float> _heroMaximumHealth;
@@ -189,11 +193,26 @@ namespace Cryptforge.Analytics
             _deepestFloorCleared = context.DeepestFloorCleared;
             _seed = context.Seed;
             _startFloor = context.StartFloor > 1 ? context.StartFloor : 1;
+            if (context.Gear != null && !context.Gear.IsEmpty)
+            {
+                _gearPower = context.Gear.Power;
+                _gearLevels = GearLevels(context.Gear);
+            }
             // Emitting before session_start throws in the session; refusing here keeps that out of every handler.
             if (!_session.HasStarted)
                 throw new ArgumentException("Start the telemetry session before recording a run.", nameof(context));
 
             Subscribe();
+        }
+
+        // run_start's gear_levels: the carried weapon's basma (0 when the Anvil never touched it), then the equipped armour's,
+        // amulet's and ring's (-1 for an empty slot), comma separated in that order - "9,7,-1,9".
+        public static string GearLevels(GearLoadout gear)
+        {
+            var levels = new[] { 0, -1, -1, -1 };
+            for (int i = 0; i < gear.Pieces.Count; i++)
+                levels[(int)gear.Pieces[i].Slot] = gear.Pieces[i].Level;
+            return string.Join(",", Array.ConvertAll(levels, l => l.ToString(System.Globalization.CultureInfo.InvariantCulture)));
         }
 
         // Starts the run's log. Call before the first wave spawns so run_start precedes every event of the run.
@@ -218,6 +237,12 @@ namespace Cryptforge.Analytics
             // DevicePull) can set it apart; a floor-1 run's line stays as it was.
             if (_startFloor > 1)
                 start.Add("start_floor", _startFloor);
+            // A run that wears gear says so (docs/54 section 12), so a reader of the floors (DevicePull, the gate's device
+            // rows) can set it apart from the ungeared runs the simulation measures; an ungeared run's line stays as it was.
+            // gear_power is the index in hundredths of a percent (4190 is +41.9 %); gear_levels the weapon's, the armour's,
+            // the amulet's and the ring's basma, -1 for an empty slot.
+            if (_gearLevels != null)
+                start.Add("gear_power", _gearPower).Add("gear_levels", _gearLevels);
             _session.Emit("run_start", start);
 
             // A run that already ended missed its Ended event; close it now so the log never shows it as still running.
