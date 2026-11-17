@@ -2654,7 +2654,8 @@ namespace Cryptforge.Tests
             // Health.ApplyDamage on an enemy: whatever lands is attributed, the first hit remembered, enrage read.
             public void FoeDamaged(Foe foe, DamageContext context)
             {
-                if (!foe.Health.IsAlive)
+                // docs/52's Thornling under the ash cannot be struck (DescentSimulation.Gloam.cs).
+                if (!foe.Health.IsAlive || foe.Burrowed)
                     return;
                 float before = foe.Health.Current;
                 if (foe.FirstHitAt < 0f && context.Amount > 0f)
@@ -2716,6 +2717,9 @@ namespace Cryptforge.Tests
                 // docs/52's Cinder Bloom's bark (BloomRule, DescentSimulation.Gloam.cs), once its clock runs.
                 if (foe.Bloom != null)
                     context = BloomBark(foe, context);
+                // docs/52's stuck Thornling, read for the report (DescentSimulation.Gloam.cs).
+                if (foe.Thorn != null && source == DamageSource.Weapon && foe.Thorn.IsStuck)
+                    _result.ThornStuckLandings++;
                 bool proc = striking != null && StrikeHasProcced();
                 float struck = context.Amount;
                 foe.Health.ApplyDamage(context);
@@ -3024,6 +3028,9 @@ namespace Cryptforge.Tests
                     return;
                 if (foe.EliteLeader)
                     EliteLeaderFell(foe);
+                // docs/52's research pollen clouds (DescentSimulation.Gloam.cs), off by default.
+                if (_clouds != null)
+                    WraithFell(foe);
                 _result.Kills.Add(new FoundryKill(foe.Definition.Name, foe.Horde, _seconds - foe.SpawnedAt,
                     foe.FirstHitAt >= 0f ? _seconds - foe.FirstHitAt : 0f, KillingBlow(),
                     _source == DamageSource.Weapon && StrikeHasProcced(), FloorTime, foe.DaggersLanded));
@@ -3221,7 +3228,8 @@ namespace Cryptforge.Tests
 
             private Foe TargetAt(int index) => index < _wave.Count ? _wave[index] : _hordeFoes[index - _wave.Count];
 
-            private static bool IsValid(Foe foe) => foe != null && !foe.Released && foe.IsAlive;
+            // docs/52's Thornling under the ash (DescentSimulation.Gloam.cs) is no target either: it cannot be struck.
+            private static bool IsValid(Foe foe) => foe != null && !foe.Released && foe.IsAlive && !foe.Burrowed;
 
             // Targeting.Acquire for the hero: the nearest living target within range, the earlier on a tie.
             private Foe Acquire(float range)
@@ -3416,6 +3424,9 @@ namespace Cryptforge.Tests
                     return;
                 // docs/52's open Cinder Bloom holds its maul (DescentSimulation.Gloam.cs).
                 if (Rooted(foe))
+                    return;
+                // docs/52's Thornling under the ash or stuck neither ticks nor strikes (DescentSimulation.Gloam.cs).
+                if (foe.Thorn != null && !foe.Thorn.IsFree)
                     return;
                 foe.Weapon.Tick(Step);
                 if (!foe.Weapon.IsReady)

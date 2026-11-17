@@ -273,6 +273,106 @@ namespace Cryptforge.Tests
             Assert.That(barked, Is.GreaterThan(0f));
         }
 
+        // docs/52's Pollen Wraith and Thornling (research levers, off by default): the Wraith takes the Mite's place in floor
+        // 3's horde (role 0) and its three halls, the Thornling the Runner's in the horde (role 2) and Ash Orchard's second
+        // wave; Thorn Post's and the Grove's Cinder Mites stay, and floors 1 and 2 are untouched. Each keeps the body it
+        // replaces, so with its addition switched off (no pollen rises, no Thornling ever dives) the floor is the shipped one.
+        [Test]
+        public void TheWraithsAndTheThornlingsTakeTheMitesAndTheRunnersPlaces()
+        {
+            DescentSimulation.FoundryLevers off = Floors(DescentSimulation.FinaleFloor);
+            DescentSimulation.FoundryLevers on = off.Copy("on");
+            on.GloamWraiths = true;
+            on.GloamThornlings = true;
+            Assert.That((off.GloamWraiths, off.GloamThornlings), Is.EqualTo((false, false)), "off by default");
+            Assert.That(on.Gloam, Is.True);
+            DescentSimulation.FoundryFloor shipped = DescentSimulation.FoundryFloorOne();
+            DescentSimulation.FoundryFloor chain = DescentSimulation.GloamChain(on);
+            Assert.That(chain.Rooms, Is.EqualTo(shipped.Rooms), "floor 1");
+            Assert.That(chain.Next.Rooms, Is.EqualTo(shipped.Next.Rooms), "floor 2");
+            DescentSimulation.FoundryFloor three = chain.Next.Next, before = shipped.Next.Next;
+            Assert.That(three.HordeRoles, Is.EqualTo(new[] { DescentSimulation.PollinatingWraith, DescentSimulation.Grunt, DescentSimulation.Thornling }));
+            Assert.That(before.HordeRoles, Is.EqualTo(new[] { DescentSimulation.Mite, DescentSimulation.Grunt, DescentSimulation.Runner }), "the shipped chain is untouched");
+            int wraiths = 0, thornlings = 0;
+            for (int room = 0; room < three.Rooms.Length; room++)
+            for (int wave = 0; three.Rooms[room] != null && wave < three.Rooms[room].Length; wave++)
+            for (int i = 0; i < three.Rooms[room][wave].Length; i++)
+            {
+                DescentSimulation.Enemy was = before.Rooms[room][wave][i], now = three.Rooms[room][wave][i];
+                bool hall = three.Kinds[room] == RoomKind.Combat;
+                if (hall && was == DescentSimulation.Mite)
+                {
+                    Assert.That(now, Is.SameAs(DescentSimulation.PollinatingWraith), $"room {room + 1}");
+                    wraiths++;
+                }
+                else if (hall && was == DescentSimulation.Runner)
+                {
+                    Assert.That(now, Is.SameAs(DescentSimulation.Thornling), $"room {room + 1}");
+                    thornlings++;
+                }
+                else
+                    Assert.That(now, Is.SameAs(was), $"room {room + 1}: Thorn Post's and the Grove's stay");
+            }
+            Assert.That((wraiths, thornlings), Is.EqualTo((6 + 8 + 3, 1)), "Ash Orchard 6, Rootbound Walk 8, Bloom Gate 3; Ash Orchard's Runner");
+            foreach ((DescentSimulation.Enemy a, DescentSimulation.Enemy b) in new[]
+                     { (DescentSimulation.PollinatingWraith, DescentSimulation.Mite), (DescentSimulation.Thornling, DescentSimulation.Runner) })
+                Assert.That((a.Health, a.Damage, a.Interval, a.InitialDelay, a.Speed, a.Reach, a.Gold, a.Experience),
+                    Is.EqualTo((b.Health, b.Damage, b.Interval, b.InitialDelay, b.Speed, b.Reach, b.Gold, b.Experience)), a.Name);
+
+            DescentSimulation.FoundryLevers quiet = on.Copy("quiet");
+            quiet.WraithRate = 0f;
+            quiet.ThornlingWalk = float.PositiveInfinity;
+            DescentSimulation.FoundryHero hero = DescentSimulation.Vanguard();
+            foreach (int seed in Seeds.Take(2))
+            {
+                DescentSimulation.FoundryResult a = DescentSimulation.RunFoundry(hero, seed, off);
+                DescentSimulation.FoundryResult b = DescentSimulation.RunFoundry(hero, seed, quiet, DescentSimulation.GloamChain(quiet));
+                for (int floor = 1; a != null; floor++, a = a.NextFloor, b = b.NextFloor)
+                {
+                    AssertSame(b, a, $"seed {seed} floor {floor}: the bodies they replace");
+                    Assert.That((b.PollenBlooms, b.ThornRings), Is.EqualTo((0, 0)));
+                }
+            }
+        }
+
+        // With the levers on (the pollen at a radius and rise a floor-3 hero meets), the pollen blooms on a hero that stands
+        // (the standing cohort, which never kites) and the Thornlings' rings go down and land no sooner than their telegraph; the ring's mark is the pilot's to leave.
+        [Test]
+        public void ThePollenBloomsOnAStandingHeroAndTheRingsKeepTheirTelegraph()
+        {
+            DescentSimulation.FoundryLevers levers = FoundryCohorts.Levers(Cryptforge.Core.AutopilotCohort.Standing, 3, null).Copy("standing, both");
+            levers.GloamWraiths = true;
+            levers.GloamThornlings = true;
+            // A pollen the floor-3 hero meets (docs/52's measured section: at the starting 1.6 the horde's bodies fall before
+            // they come near enough, and nothing blooms).
+            levers.WraithRadius = 4f;
+            levers.WraithRate = .3f;
+            levers.WraithFall = .1f;
+            int blooms = 0, rings = 0, hits = 0, threes = 0;
+            float stillNear = 0f;
+            foreach (DescentSimulation.FoundryHero hero in new[] { DescentSimulation.Vanguard(), DescentSimulation.CinderArcanist() })
+            foreach (int seed in Seeds)
+            {
+                DescentSimulation.FoundryResult three = DescentSimulation.RunFoundry(hero, seed, levers, DescentSimulation.GloamChain(levers)).NextFloor?.NextFloor;
+                if (three == null)
+                    continue;
+                threes++;
+                blooms += three.PollenBlooms;
+                stillNear += three.StillNearSeconds;
+                rings += three.ThornRings;
+                hits += three.ThornHits;
+                if (three.ThornHits > 0)
+                    Assert.That(three.ThornShortestHit, Is.GreaterThanOrEqualTo(ThornlingRule.Telegraph - 1e-3f), $"{hero.Name} seed {seed}");
+                Assert.That(three.TakenFromPollen, Is.LessThanOrEqualTo(three.PollenBlooms * levers.WraithShare * three.HeroMaximum + 1e-3f),
+                    "a bloom takes its share of the hero's maximum, which only grows");
+            }
+            Assert.That(threes, Is.GreaterThan(0), "a run went down to floor 3");
+            Assert.That(stillNear, Is.GreaterThan(0f));
+            Assert.That(blooms, Is.GreaterThan(0), "the standing hero blooms");
+            Assert.That(rings, Is.GreaterThan(0));
+            Assert.That(hits, Is.LessThanOrEqualTo(rings));
+        }
+
         // The batch report's floors: FOUNDRY_FLOORS=2 stops after floor 2 as before, 3 after floor 3, and only 4 reaches the
         // finale, which FoundryBatch.FinaleOf finds however many floors stand before it.
         [Test]
