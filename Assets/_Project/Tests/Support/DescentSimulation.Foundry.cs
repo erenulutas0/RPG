@@ -214,15 +214,16 @@ namespace Cryptforge.Tests
         // Data/Floors/Floor_GloamGardens.asset, the climb's floor 3 (docs/48, phase 1), as the foundry plays it: floor 2's
         // six rooms again under the garden's names (GloamGardens), climb-scaled at floor 3 - ClimbScaling's x1.96 health and
         // x1.8032 damage, and its first boss growth (ClimbScaling.Boss(3), x1.15) on the Warden's Grove - floor 1's three
-        // horde roles, no modifier, none of V0.1's surges or extra elite, the gate held for the floor's clock to read 180 s
-        // (FloorThreeGateSeconds), and the finale below it. Its Warden's share is its own (FloorThreeGateShare), measured to
-        // put the fight in docs/40 section 9.6's 45-65 s (docs/48, status 2026-11-12).
+        // horde roles with the Pollen Wraith in the Mite's (since 2026-11-17: the Mite reskinned, PollenWraith), no modifier,
+        // none of V0.1's surges or extra elite, the gate held for the floor's clock to read 180 s (FloorThreeGateSeconds),
+        // and the finale below it. Its Warden's share is its own (FloorThreeGateShare), measured to put the fight in docs/40
+        // section 9.6's 45-65 s (docs/48, status 2026-11-12).
         public static FoundryFloor FoundryFloorThree() => new FoundryFloor
         {
             Id = "floor_gloam_gardens",
             Rooms = GloamGardens.Rooms,
             Kinds = new[] { RoomKind.Combat, RoomKind.Combat, RoomKind.Combat, RoomKind.Forge, RoomKind.Elite, RoomKind.Boss },
-            HordeRoles = new[] { Mite, Grunt, Runner },
+            HordeRoles = new[] { PollenWraith, Grunt, Runner },
             FloorNumber = 3,
             GateNotBeforeSeconds = FloorThreeGateSeconds,
             GateHealthShare = FloorThreeGateShare,

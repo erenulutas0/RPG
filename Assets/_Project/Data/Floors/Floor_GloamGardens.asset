@@ -20,29 +20,29 @@ MonoBehaviour:
     _waves:
     - _enemies:
       - {fileID: 11400000, guid: 10000000000000000000000000000003, type: 2}
-      - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
-      - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
-      - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
+      - {fileID: 11400000, guid: 26d12bb62cf8417cb26534f31d67c0ca, type: 2}
+      - {fileID: 11400000, guid: 26d12bb62cf8417cb26534f31d67c0ca, type: 2}
+      - {fileID: 11400000, guid: 26d12bb62cf8417cb26534f31d67c0ca, type: 2}
     - _enemies:
       - {fileID: 11400000, guid: 10000000000000000000000000000009, type: 2}
-      - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
-      - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
-      - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
+      - {fileID: 11400000, guid: 26d12bb62cf8417cb26534f31d67c0ca, type: 2}
+      - {fileID: 11400000, guid: 26d12bb62cf8417cb26534f31d67c0ca, type: 2}
+      - {fileID: 11400000, guid: 26d12bb62cf8417cb26534f31d67c0ca, type: 2}
     _forgeOptions: []
   - _displayName: Rootbound Walk
     _kind: 0
     _waves:
     - _enemies:
       - {fileID: 11400000, guid: 1000000000000000000000000000000a, type: 2}
-      - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
-      - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
-      - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
+      - {fileID: 11400000, guid: 26d12bb62cf8417cb26534f31d67c0ca, type: 2}
+      - {fileID: 11400000, guid: 26d12bb62cf8417cb26534f31d67c0ca, type: 2}
+      - {fileID: 11400000, guid: 26d12bb62cf8417cb26534f31d67c0ca, type: 2}
     - _enemies:
-      - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
-      - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
-      - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
-      - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
-      - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
+      - {fileID: 11400000, guid: 26d12bb62cf8417cb26534f31d67c0ca, type: 2}
+      - {fileID: 11400000, guid: 26d12bb62cf8417cb26534f31d67c0ca, type: 2}
+      - {fileID: 11400000, guid: 26d12bb62cf8417cb26534f31d67c0ca, type: 2}
+      - {fileID: 11400000, guid: 26d12bb62cf8417cb26534f31d67c0ca, type: 2}
+      - {fileID: 11400000, guid: 26d12bb62cf8417cb26534f31d67c0ca, type: 2}
     _forgeOptions: []
   - _displayName: Bloom Gate
     _kind: 0
@@ -50,9 +50,9 @@ MonoBehaviour:
     - _enemies:
       - {fileID: 11400000, guid: 10000000000000000000000000000003, type: 2}
       - {fileID: 11400000, guid: 10000000000000000000000000000003, type: 2}
-      - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
-      - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
-      - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
+      - {fileID: 11400000, guid: 26d12bb62cf8417cb26534f31d67c0ca, type: 2}
+      - {fileID: 11400000, guid: 26d12bb62cf8417cb26534f31d67c0ca, type: 2}
+      - {fileID: 11400000, guid: 26d12bb62cf8417cb26534f31d67c0ca, type: 2}
     _forgeOptions: []
   - _displayName: The Grafting Forge
     _kind: 1
@@ -85,7 +85,7 @@ MonoBehaviour:
   _foundryExtraElites: 0
   _foundryGateHealthShare: 5.102041
   _foundryHorde:
-  - {fileID: 11400000, guid: 10000000000000000000000000000019, type: 2}
+  - {fileID: 11400000, guid: 26d12bb62cf8417cb26534f31d67c0ca, type: 2}
   - {fileID: 11400000, guid: 10000000000000000000000000000003, type: 2}
   - {fileID: 11400000, guid: 10000000000000000000000000000009, type: 2}
   _modifier: {fileID: 0}
