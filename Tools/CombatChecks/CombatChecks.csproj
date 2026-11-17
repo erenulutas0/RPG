@@ -140,6 +140,8 @@
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryCohorts.cs" />
     <!-- A human's hands on the simulation's autopilot: reaction, aim and attention (research 2026-11-04). -->
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryRealism.cs" />
+    <!-- docs/54 phase 5's geared cohorts (section 13): an autopilot cohort wearing one of section 7.2's sets, research only. -->
+    <Compile Include="../../Assets/_Project/Tests/Support/FoundryGear.cs" />
     <!-- docs/46's Riftblade measured before it is built (research 2026-11-11): its bleed, stride, dash and Sever rules. -->
     <Compile Include="../../Assets/_Project/Tests/Support/RiftbladeRules.cs" />
     <!-- docs/41 step 5's V0.1 gate, the batch report's first section, and its test on a small batch. -->
@@ -235,6 +237,8 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/AnvilTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/RunLootTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/GearTextTests.cs" />
+    <!-- docs/54 phase 5: the gear on a run through GearStats.Apply, the scene's and the simulation's one body. -->
+    <Compile Include="../../Assets/_Project/Tests/EditMode/GearApplyTests.cs" />
     <!-- A run started on a deeper map (Scripts/Progression/DescentStart.cs, compiled above with Progression). -->
     <Compile Include="../../Assets/_Project/Tests/EditMode/DescentCatchUpTests.cs" />
   </ItemGroup>
