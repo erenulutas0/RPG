@@ -16,3 +16,4 @@ MonoBehaviour:
   _displayName: Quicksilver Hauberk
   _slot: 1
   _floor: 2
+  _icon: {fileID: -7472607724634346713, guid: 4d180d37e6f648b7bdf5fb83088a3c4f, type: 3}

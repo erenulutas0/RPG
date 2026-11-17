@@ -47,8 +47,17 @@ Android, as the painted HUD's sheet. And Cryptforge.Art.UpgradeIconSet, UpgradeI
 and socket icon. Deterministic: the same script paints the same files byte for byte, and existing GUIDs and sprite ids
 are kept, so a repaint never breaks a reference.
 
+The gear's items (2026-11-17), in the same family and at the card icons' size: an icon for each armour, amulet and ring
+the Descent drops (ITEMS), so the Anvil's bag shows the item and not an upgrade card's shield, gauntlet or crit sword. A
+mail shirt, a locket hanging from its chain and a ring each have their own silhouette; within a slot the three are their
+floors' materials (the Foundry's iron, copper and ember; the Vaults' silver and blue-white glass; the Gloam Gardens'
+bark, moss, lilac and orchid). They go on a sheet of their own, Assets/_Project/Art/UI/ItemIcons/UI_ItemIcons.png (the
+same import), and each ItemDefinition under Data/Items gets its icon (its _icon); the cards' sheet and set are untouched.
+Tools/ArtReview/review_item_icons.py lays them on the bag's four rarity grounds for review.
+
 Usage:
-    python Tools/ArtReview/build_upgrade_icons.py                     # paint the sheet, its meta and the set
+    python Tools/ArtReview/build_upgrade_icons.py                     # paint both sheets, their metas, the set and the
+                                                                      # items' icon references
     python Tools/ArtReview/build_upgrade_icons.py --frames DIR        # also save every sprite as a PNG
     python Tools/ArtReview/build_upgrade_icons.py --preview DIR [--only ID ...]  # a review sheet only, project untouched
 """
@@ -291,6 +300,11 @@ def skin_dome(shape, ramp, mid=3, spread=2.6, glint=True):
 def skin_pillow(mask, ramp, face=3, bevel=2.0, hi=None, lo=None, shade=0.0):
     """A flat face with a bevelled rim, lighter where the rim faces the light and darker where it faces away; `shade`
     darkens the face toward the bottom right by up to that many tones."""
+    return colours(ramp, np.round(pillow_idx(mask, face, bevel, hi, lo, shade)).astype(int))
+
+
+def pillow_idx(mask, face=3, bevel=2.0, hi=None, lo=None, shade=0.0):
+    """skin_pillow's tones as ramp indices (unrounded), for a skin that lays more on them (the items' mail)."""
     d = ndimage.distance_transform_edt(np.pad(mask, 1))[1:-1, 1:-1].astype(np.float32)
     sm = ndimage.gaussian_filter(np.clip(d, 0, bevel + 3), 1.2)
     gy, gx = np.gradient(sm)
@@ -304,7 +318,7 @@ def skin_pillow(mask, ramp, face=3, bevel=2.0, hi=None, lo=None, shade=0.0):
             idx = idx - np.clip(k, -0.5, 1.0) * shade
     idx = np.where(rim & (facing < -0.04), face + 1 if hi is None else hi, idx)
     idx = np.where(rim & (facing > 0.04), face - 1 if lo is None else lo, idx)
-    return colours(ramp, np.round(idx).astype(int))
+    return idx
 
 
 def edge_of(mask, width=1):
@@ -1310,6 +1324,445 @@ ICONS = [
 
 
 # ----------------------------------------------------------------------------------------------------------------------
+# The gear's items (2026-11-17): the armours, amulets and rings the Descent drops (Data/Items, docs/54 section 3.2), each
+# painted for itself - until now the Anvil's bag borrowed the upgrade cards' shield, gauntlet and crit sword for them.
+# Each slot has its own silhouette, so it reads at a glance at the bag's 100: an armour is a mail shirt front on (sleeves
+# angled out, a scalloped hem), an amulet a locket hanging from a V of chain, a ring a band seen from above its front
+# with its stone on top. Within a slot the three are told apart by what they are made of, in their floor's colours:
+#   - the Foundry (floor 1): dark iron, copper and ember - Foundry Mail, Ember Locket, Cinder Ring;
+#   - the Quicksilver Vaults (floor 2): bright silver and blue-white glass - Quicksilver Hauberk and Locket, Mirror Ring;
+#   - the Gloam Gardens (floor 3): bark, moss, lilac and orchid - Bark Mail, Spore Locket, Gloam Signet.
+# Each stands on the bag's four rarity grounds (grey, blue, red, gold), so none leans on one hue alone: a near-black line
+# round every part, a light top-left edge and a bright accent (an ember, a glass glint, an orchid) carry it on any of them.
+
+FOUNDRY_IRON = Ramp("#0A090E", "#1A171F", "#2E2A33", "#47424C", "#635D68", "#8A8390", "#BDB6C0")
+COPPER = Ramp("#2C0C04", "#5C1E0A", "#923812", "#C85C1E", "#EE8A34", "#FFBA62", "#FFE6B4")
+QUICK = Ramp("#18223A", "#30405C", "#52698A", "#7E96B6", "#AEC4DE", "#DCE8F6", "#FFFFFF")
+GLASS = Ramp("#062C4C", "#0C5082", "#1A7EBA", "#42AEE4", "#86D6F8", "#CAF0FF", "#F4FDFF")
+BARK = Ramp("#120A06", "#26170C", "#3E2816", "#5A3C22", "#7A5632", "#9E7646")
+MOSS = Ramp("#0C1A08", "#1A3210", "#2C5018", "#447224", "#649A32", "#92C24E", "#C8E688")
+ORCHID = Ramp("#2A0834", "#50165C", "#80288C", "#AE46B8", "#D276DA", "#EEB2F2", "#FDEBFF")
+LILAC = Ramp("#1C1636", "#362A62", "#584894", "#8272C0", "#AC9EE0", "#D6CCF6", "#F6F2FF")
+QUICK_HALO, GLOAM_HALO = hexc("#8CCBFF"), hexc("#C468E8")
+
+
+def facing_of(cx, cy):
+    """How much each cell's direction from (cx, cy) faces the light: 1 toward the top left, -1 away."""
+    dx, dy = CX - cx, CY - cy
+    r = np.maximum(np.hypot(dx, dy), 1e-3)
+    return -(dx / r * LXY[0] + dy / r * LXY[1])
+
+
+def round_skin(mask, ramp, cx, cy, mid=3.0, spread=1.6):
+    """A rounded rim (a ring, a bezel, a case's edge): lighter on its side toward the light."""
+    return colours(ramp, np.round(mid + spread * facing_of(cx, cy)).astype(int)) * mask[..., None]
+
+
+def mail_idx(mask, base, period=4):
+    """Chain mail laid over a part's banded tones: rows of rings `period` cells apart, each row set half a ring along,
+    the top of each ring a tone lighter and the gaps between rings and between rows a tone darker."""
+    row = np.floor(CY / period)
+    u = np.floor(np.mod(CX + (row % 2) * (period / 2), period)).astype(int)
+    v = np.floor(np.mod(CY, period)).astype(int)
+    idx = np.where((v == 0) & (u >= 1) & (u <= period - 2), base + 1, base)
+    idx = np.where(u == 0, idx - 1, idx)
+    idx = np.where(v == period - 1, idx - 1, idx)
+    return np.where(mask, idx, base)
+
+
+def scales(across=6.0, down=4.5, r=4.4):
+    """Overlapping scales hanging in rows `down` apart, each row set half a scale along and lying over the row below
+    it, as a scale shirt's do: for every cell the scale it shows (its row and column) and where in that scale it lies
+    (dx, dy from its centre, over its radius); only a scale's lower part shows under the row above."""
+    rows = int(N / down) + 2
+    row = np.zeros((N, N), np.float32)
+    col = np.zeros((N, N), np.float32)
+    dx = np.zeros((N, N), np.float32)
+    dy = np.zeros((N, N), np.float32)
+    for k in reversed(range(rows)):
+        off = (k % 2) * across / 2
+        c = np.round((CX - off) / across)
+        ux, uy = (CX - (c * across + off)) / r, (CY - k * down) / r
+        inside = ux * ux + uy * uy <= 1.0
+        row = np.where(inside, k, row)
+        col = np.where(inside, c, col)
+        dx = np.where(inside, ux, dx)
+        dy = np.where(inside, uy, dy)
+    return row, col, dx, dy
+
+
+# The shirt's outline: the right half from the neck round to the hem's middle (the left is its mirror), the sleeve's cuff
+# edge, and where the sleeve leaves the body.
+SHORT_SLEEVES = dict(half=[(57, 15), (68, 17), (85, 35), (78, 44), (67, 36), (66, 64), (70, 83)],
+                     cuff=((85, 35), (78, 44)), root=((68, 17), (67, 36)))
+LONG_SLEEVES = dict(half=[(57, 15), (68, 17), (79, 30), (85, 55), (77, 57), (70, 39), (67, 41), (66, 64), (71, 84)],
+                    cuff=((85, 55), (77, 57)), root=((76, 32), (70, 40)))
+NECK = [(39, 15), (57, 15), (48, 26)]
+
+
+def shirt(sleeves):
+    """The mail shirt's mask (its outline and its scalloped hem), and the cells of its collar, its two cuffs and its
+    hem's band."""
+    half = sleeves["half"]
+    hem = half[-1][1]
+    pts = half + [(96 - x, y) for x, y in reversed(half)] + [NECK[2]]
+    scallops = [ellipse(x, hem, 2.4) for x in np.arange(96 - half[-1][0] + 2.2, half[-1][0] - 1.0, 4.4)]
+    body = mask_of(union(polygon(pts), *scallops))
+    collar = ndimage.binary_dilation(mask_of(polygon(NECK)), iterations=3) & body
+    cuffs = np.zeros_like(body)
+    for side in (1, -1):
+        (ax, ay), (bx, by) = sleeves["cuff"]
+        (rx0, ry0), (rx1, ry1) = sleeves["root"]
+        if side < 0:
+            ax, bx, rx0, rx1 = 96 - ax, 96 - bx, 96 - rx0, 96 - rx1
+        mid = ((ax + bx) / 2, (ay + by) / 2)
+        d = unit((mid[0] - (rx0 + rx1) / 2, mid[1] - (ry0 + ry1) / 2))
+        half_len = math.hypot(ax - bx, ay - by) / 2 + 2.5
+        cuffs |= mask_of(blade(along(mid, d, -4.6), along(mid, d, 2.5), [half_len])) & body
+    band = body & (CY >= hem - 4.0) & (CY < hem + 0.5)
+    return body, collar, cuffs, band, hem
+
+
+def mail_shirt(g, mail, trim, sleeves=SHORT_SLEEVES, face=3, period=4, trim_face=4, hem_trim=True, lift=None):
+    """An armour: the mail shirt front on, its mail banded and ringed (mail_idx; none for a period of None), lifted by
+    `lift` tones where given, its collar, cuffs and hem bound in `trim`. Returns its parts' masks for the item's own
+    details."""
+    body, collar, cuffs, band, hem = shirt(sleeves)
+    idx = pillow_idx(body, face, 2.0, hi=face + 1, lo=face - 1, shade=1.2)
+    if period:
+        idx = mail_idx(body & ~edge_of(body), idx, period)
+    if lift is not None:
+        idx = np.where(body & ~edge_of(body, 2), idx + lift, idx)
+    part(g, body, colours(mail, np.round(idx).astype(int)), mail)
+    trims = collar | cuffs | (band if hem_trim else np.zeros_like(band))
+    lab, count = ndimage.label(trims)
+    for k in range(1, count + 1):
+        m = lab == k
+        part(g, m, skin_pillow(m, trim, trim_face, 1.0, hi=trim_face + 1, lo=trim_face - 2), trim)
+    return dict(body=body, collar=collar, cuffs=cuffs, band=band, hem=hem)
+
+
+def foundry_mail(g):
+    """Foundry Mail: a shirt of dark iron rings bound in copper at the collar and cuffs, a riveted belt round its waist
+    and the forge's ember glowing in its buckle."""
+    s = mail_shirt(g, FOUNDRY_IRON, COPPER, face=4, hem_trim=False)
+    belt = s["body"] & (CY >= 57) & (CY < 64)
+    part(g, belt, skin_pillow(belt, BARK, 3, 1.0, hi=4, lo=2), BARK, inline=0)
+    for x in (36.5, 59.5):
+        rv = ellipse(x, 60.5, 1.6)
+        part(g, rv, colours(COPPER, 5), COPPER, inline=None, separate=False)
+    buckle = mask_of(polygon([(41.5, 54.5), (54.5, 54.5), (54.5, 66.5), (41.5, 66.5)]))
+    part(g, buckle, skin_pillow(buckle, COPPER, 4, 1.0, hi=5, lo=2), COPPER, inline=1)
+    ember = mask_of(polygon([(44.5, 57.5), (51.5, 57.5), (51.5, 63.5), (44.5, 63.5)]))
+    cols = colours(EMBER, 4)
+    cols[ember & (CX < 47) & (CY < 60)] = EMBER[6]
+    cols[ember & ((CX > 50) | (CY > 62))] = EMBER[3]
+    part(g, ember, cols, EMBER, inline=2, emit=1.2)
+    # Copper rivets down the collar's V.
+    for x, y in ((42.5, 21.5), (53.5, 21.5)):
+        g.dot(x, y, COPPER[6])
+
+
+def quicksilver_hauberk(g):
+    """Quicksilver Hauberk: a long-sleeved hauberk of bright silver rings, bound in blue-white glass, a glass clasp at
+    its throat and quicksilver running in a bright sheen across its chest."""
+    # The sheen: a run of light from the left shoulder down to the right hip, lifting the rings it crosses (their
+    # pattern still showing through it) by up to two tones.
+    across = np.abs((CX - 30) * 0.78 + (CY - 30) * 0.62 - 22)
+    k = (CX - 30) * 0.62 - (CY - 30) * 0.78
+    lift = np.where((k > -26) & (k < 8), np.round(2.0 * np.clip(1.0 - across / 4.2, 0, 1) + 0.2), 0)
+    mail_shirt(g, QUICK, GLASS, sleeves=LONG_SLEEVES, face=4, trim_face=4, lift=lift)
+    clasp = ellipse(48, 25.5, 4.4)
+    cm = mask_of(clasp)
+    cols = skin_dome(clasp, GLASS, 3, 2.6, glint=True)
+    part(g, cm, cols, GLASS, inline=1, emit=0.5)
+
+
+def bark_mail(g):
+    """Bark Mail: a shirt of overlapping bark scales with moss on their upper edges, bound in lilac at the collar and
+    cuffs, an orchid bloom pinned at its throat."""
+    s = mail_shirt(g, BARK, LILAC, face=3, period=None, trim_face=3)
+    body = s["body"] & ~s["collar"] & ~s["cuffs"] & ~s["band"] & ~edge_of(s["body"], 1)
+    row, col, dx, dy = scales()
+    d = np.hypot(dx, dy)
+    base = pillow_idx(s["body"], 3, 2.0, hi=4, lo=2, shade=1.2)
+    idx = np.where(dy < -0.15, base - 1, base)  # the top of a scale, in the shadow of the one over it
+    idx = np.where((dy >= -0.15) & (dx < 0.1) & (d < 0.72), base + 1, idx)  # its lit left
+    edge = (d > 0.70) & (dy > 0.05)
+    idx = np.where(edge, 1, idx)  # its lower rim, a dark line
+    g.paint(body, colours(BARK, np.round(idx).astype(int)), separate=False)
+    # Moss grown over most of the scales' lower halves, lighter on the lit side.
+    mossy = np.mod(col * 5 + row * 3, 7) < 5
+    moss = body & mossy & (d > 0.22) & (d <= 0.70) & (dy > 0.10)
+    g.paint(moss & (dx < 0.2), MOSS[5], separate=False)
+    g.paint(moss & (dx >= 0.2), MOSS[4], separate=False)
+    # The bloom: five orchid petals round a pale heart.
+    c = (48.0, 26.5)
+    for k in range(5):
+        a = math.radians(-90 + 72 * k)
+        pc = (c[0] + math.cos(a) * 4.2, c[1] + math.sin(a) * 4.2)
+        pe = ellipse(pc[0], pc[1], 3.6, 2.6, math.degrees(a))
+        part(g, pe, skin_dome(pe, ORCHID, 4, 1.8, glint=False), ORCHID, inline=2, separate=False, emit=0.3)
+    part(g, ellipse(*c, 1.9), LILAC[6], LILAC, inline=None, separate=False, emit=0.6)
+
+
+def chain(g, p0, p1, p2, ramp, link=4.8):
+    """A chain along a curve (a quadratic from p0 through p1's pull to p2): links alternately face on (an open oval)
+    and edge on (a bar), each a step along."""
+    t = np.linspace(0, 1, 600)[:, None]
+    pts = (1 - t) ** 2 * np.asarray(p0) + 2 * (1 - t) * t * np.asarray(p1) + t ** 2 * np.asarray(p2)
+    seg = np.hypot(*np.diff(pts, axis=0).T)
+    s = np.concatenate([[0], np.cumsum(seg)])
+    step = link * 0.86
+    count = int(s[-1] // step)
+    links = []
+    for i in range(count):
+        at = (i + 0.5) * step
+        j = int(np.searchsorted(s, at))
+        j = min(max(j, 1), len(pts) - 1)
+        c = pts[j]
+        d = unit(pts[j] - pts[j - 1])
+        links.append((c, d, i % 2 == 0))
+    # A link is a few cells across, nearly all edge: its edge is a mid tone of its metal, not the ramp's dark one, so
+    # a silver chain stays silver.
+    for c, d, flat in links:
+        if not flat:
+            continue
+        bar = blade(along(c, d, -link * 0.62), along(c, d, link * 0.62), [1.15])
+        part(g, bar, skin_tube(bar, ramp, 3, 1.5, gloss=False), ramp, inline=2)
+    for c, d, flat in links:
+        if flat:
+            continue
+        ang = math.degrees(math.atan2(d[1], d[0]))
+        oval = ellipse(c[0], c[1], link * 0.66, 2.5, ang)
+        om = mask_of(oval)
+        cols = round_skin(om, ramp, c[0], c[1], 4.0, 1.5)
+        part(g, om, cols, ramp, inline=None)
+        hole = mask_of(ellipse(c[0], c[1], link * 0.66 - 1.7, 0.75, ang)) & om
+        g.paint(hole, ramp[0], separate=False)
+
+
+def hanging(g, ramp, bail=(48.0, 41.5)):
+    """The two strands of a locket's chain, from the top corners down to its bail, and the bail's ring."""
+    for side in (-1, 1):
+        chain(g, (48 + side * 26, 13), (48 + side * 21, 35), (bail[0] + side * 2.4, bail[1] - 1.5), ramp)
+    bl = ring(bail[0], bail[1], 1.3, 3.5)
+    _, e = bl(CX, CY)
+    facing = -(np.cos(e["ang"]) * LXY[0] + np.sin(e["ang"]) * LXY[1])
+    part(g, bl, colours(ramp, np.round(3.6 + 1.4 * facing).astype(int)), ramp)
+
+
+def ember_locket(g):
+    """Ember Locket: a round iron locket on an iron chain, a copper bezel holding a glowing ember stone with a flame
+    burning in its heart."""
+    hanging(g, FOUNDRY_IRON)
+    c = (48.0, 63.0)
+    cap = ellipse(48, 44.5, 3.8, 3.0)
+    part(g, cap, skin_dome(cap, COPPER, 4, 1.6, glint=False), COPPER)
+    case = ellipse(*c, 19.5)
+    part(g, case, skin_dome(case, FOUNDRY_IRON, 4, 2.2, glint=False), FOUNDRY_IRON)
+    bez = ring(c[0], c[1], 12.6, 15.8)
+    bm = mask_of(bez)
+    part(g, bm, round_skin(bm, COPPER, *c, 3.8, 1.6), COPPER, inline=1)
+    for k in range(4):
+        a = math.radians(45 + 90 * k)
+        rv = ellipse(c[0] + math.cos(a) * 17.7, c[1] + math.sin(a) * 17.7, 1.6)
+        part(g, rv, colours(COPPER, 5), COPPER, inline=None, separate=False)
+    gem = ellipse(c[0], c[1], 12.4)
+    gm = mask_of(gem)
+    part(g, gm, skin_dome(gem, EMBER, 3, 2.6, glint=False), EMBER, inline=1, emit=0.8)
+    k = 1.12
+
+    def at(pts):
+        return [(c[0] + x * k, c[1] + y * k) for x, y in pts]
+    flame = mask_of(polygon(at([(0, -9.5), (4.5, -3), (5.5, 2.5), (2.5, 6.5), (-2.5, 6.5), (-5.5, 2.5), (-4.5, -2.5),
+                                (-2, -0.5)])))
+    g.paint(flame, EMBER[5], separate=False, emit=1.2)
+    core = mask_of(polygon(at([(0.5, -3), (2.8, 1.5), (1.5, 5), (-1.5, 5), (-2.7, 2.5)])))
+    g.paint(core, EMBER[6], separate=False, emit=1.4)
+    g.paint(mask_of(ellipse(c[0] - 5.5, c[1] - 6.5, 1.7)), WHITE, separate=False, emit=1.0)
+
+
+def quicksilver_locket(g):
+    """Quicksilver Locket: a silver drop on a silver chain, its point at the bail, holding blue-white glass with a bead
+    of quicksilver rolling in it."""
+    hanging(g, QUICK)
+    c = (48.0, 64.0)
+    r = 18.5
+    tip = (48.0, 41.0)
+    ang = math.acos(r / (c[1] - tip[1]))
+    tx, ty = r * math.sin(ang), r * math.cos(ang)
+    drop = union(ellipse(*c, r), polygon([tip, (c[0] - tx, c[1] - ty), (c[0] + tx, c[1] - ty)]))
+    dm = mask_of(drop)
+    idx = pillow_idx(dm, 4, 2.2, hi=6, lo=2, shade=1.0)
+    part(g, dm, colours(QUICK, np.round(idx).astype(int)), QUICK)
+    inner = ndimage.binary_erosion(dm, iterations=3)
+    yy = np.clip((CY - 45) / 36.0, 0, 1)
+    gidx = np.round(5 - 3.2 * yy + 0.8 * (CX < 46)).astype(int)
+    gcols = colours(GLASS, gidx)
+    part(g, inner, gcols, GLASS, inline=1, emit=0.35)
+    bead = ellipse(c[0] + 5.0, c[1] + 6.0, 5.6)
+    part(g, bead, skin_dome(bead, QUICK, 4, 2.4, glint=True), QUICK, inline=2, separate=False)
+    g.paint(mask_of(ellipse(c[0] - 6.0, c[1] - 8.0, 2.4, 3.8, -30)) & inner, GLASS[6], separate=False, emit=0.9)
+
+
+def spore_locket(g):
+    """Spore Locket: a moss-green locket lobed like a bloom, on a moss chain, its lilac glass full of glowing orchid
+    spores."""
+    hanging(g, MOSS)
+    c = (48.0, 63.0)
+    lobes = [ellipse(c[0] + math.cos(math.radians(a)) * 15.0, c[1] + math.sin(math.radians(a)) * 15.0, 5.2)
+             for a in range(-90, 270, 45)]
+    case = union(ellipse(*c, 16.4), *lobes)
+    cm = mask_of(case)
+    idx = pillow_idx(cm, 4, 2.0, hi=5, lo=2, shade=1.0)
+    part(g, cm, colours(MOSS, np.round(idx).astype(int)), MOSS)
+    face = ellipse(*c, 12.0)
+    fm = mask_of(face)
+    part(g, fm, skin_dome(face, LILAC, 3, 2.4, glint=False), LILAC, inline=1, emit=0.3)
+    for x, y, big in ((-4, -4.5, True), (4, -2.5, False), (-0.5, 5.5, True), (5.5, 5.5, False), (-5.5, 2.5, False),
+                      (2.5, -8.5, False), (5, 1.5, True)):
+        if big:
+            m = mask_of(ellipse(c[0] + x, c[1] + y, 2.0))
+            g.paint(m, ORCHID[6], separate=False, emit=1.3)
+            g.paint(ndimage.binary_dilation(m) & ~m & fm, ORCHID[4], separate=False, emit=0.8)
+        else:
+            g.dot(c[0] + x, c[1] + y, ORCHID[5], emit=1.2)
+    g.paint(mask_of(ellipse(c[0] - 5.5, c[1] - 7.5, 1.5)), WHITE, separate=False, emit=0.6)
+    for side in (-1, 1):
+        lf = blade((48, 46.5), (48 + side * 7, 41.5), [1.6, 2.6, 0.4], tip=0.4)
+        part(g, lf, skin_tube(lf, MOSS, 4, 1.4), MOSS, inline=1)
+
+
+def band(g, metal, cx=48.0, cy=64.0, rx=34.0, ry=19.0, thick=7.5, inlay=None, inlay_emit=0.0):
+    """A ring's band seen from above its front: an ellipse with its hole set back, so the front of the band shows its
+    full width and the back its inside, in shadow; lit on its top-left, a glint along its front."""
+    outer = mask_of(ellipse(cx, cy, rx, ry))
+    hole = mask_of(ellipse(cx, cy - thick * 0.34, rx - thick, ry - thick * 0.62))
+    m = outer & ~hole
+    dx, dy = (CX - cx) / rx, (CY - cy) / ry
+    r = np.maximum(np.hypot(dx, dy), 1e-3)
+    facing = -(dx / r * LXY[0] + dy / r * LXY[1])
+    idx = np.round(3.4 + 1.6 * facing)
+    back = m & (CY < cy - thick * 0.34)
+    idx = np.where(back, np.round(2.0 + 0.8 * facing), idx)
+    cols = colours(metal, idx.astype(int))
+    front = m & (CY > cy + ry * 0.35)
+    streak = front & (np.abs(dy - 0.80) < 0.09) & (dx < 0.35) & (dx > -0.85)
+    cols[streak] = metal[metal.top]
+    part(g, m, cols, metal)
+    if inlay is not None:
+        # A line of another metal round the middle of the band's front.
+        mx, my = (CX - cx) / (rx - thick * 0.5), (CY - cy + thick * 0.17) / (ry - thick * 0.31)
+        line = m & ~back & ~edge_of(m) & (np.abs(np.hypot(mx, my) - 1.0) < 0.045)
+        g.paint(line, colours(inlay, np.where(dx < 0, 5, 4)), separate=False, emit=inlay_emit)
+    return dict(mask=m, top=(cx, cy - ry))
+
+
+def claws(g, metal, c, r, angles=(-150, -30, 150, 30)):
+    for a in angles:
+        ar = math.radians(a)
+        p0 = (c[0] + math.cos(ar) * (r - 2.5), c[1] + math.sin(ar) * (r - 2.5))
+        p1 = (c[0] + math.cos(ar) * (r + 1.8), c[1] + math.sin(ar) * (r + 1.8))
+        cl = blade(p1, p0, [1.7, 1.2], tip=0.4)
+        part(g, cl, skin_tube(cl, metal, 4, 1.4), metal, inline=1)
+
+
+def cinder_ring(g):
+    """Cinder Ring: a dark iron band with a copper inlay, an iron cup and copper claws holding a cinder - a coal
+    burning from below, its charcoal crust split by seams of glowing ember."""
+    band(g, FOUNDRY_IRON, inlay=COPPER)
+    c = (48.0, 33.5)
+    cup = mask_of(polygon([(37, 43), (59, 43), (55, 51), (41, 51)]))
+    part(g, cup, skin_pillow(cup, FOUNDRY_IRON, 4, 1.0, hi=5, lo=2), FOUNDRY_IRON)
+    pts = [(c[0] + math.cos(math.radians(a)) * rr, c[1] + math.sin(math.radians(a)) * rr * 0.94)
+           for a, rr in ((-90, 15.0), (-45, 14.4), (0, 15.6), (40, 14.0), (90, 13.6), (140, 14.4), (180, 15.6),
+                         (225, 14.0))]
+    coal = mask_of(polygon(pts))
+    idx = pillow_idx(coal, 3, 1.6, hi=4, lo=2, shade=0.8)
+    part(g, coal, colours(FOUNDRY_IRON, np.round(idx).astype(int)), FOUNDRY_IRON, inline=1)
+    inner = coal & ~edge_of(coal)
+    # It burns from below: its lower half glowing ember under a crust of charcoal, cracks of fire running up through the
+    # crust from a white-hot heart.
+    yy = (CY - c[1]) / 14.0
+    wave = 0.16 * np.sin((CX - c[0]) * 0.55)
+    hot = inner & (yy + wave > 0.42)
+    g.paint(hot & (yy + wave > 0.75), EMBER[3], separate=False, emit=1.0)
+    g.paint(hot & (yy + wave <= 0.75), EMBER[4], separate=False, emit=1.2)
+    heart_ = (49.0, 40.0)
+    for a, ln in ((-118, 14.5), (-52, 13.5), (-170, 11.5)):
+        ar = math.radians(a)
+        mid = (heart_[0] + math.cos(ar + 0.30) * ln * 0.5, heart_[1] + math.sin(ar + 0.30) * ln * 0.5)
+        end = (heart_[0] + math.cos(ar) * ln, heart_[1] + math.sin(ar) * ln)
+        for p0, p1 in ((heart_, mid), (mid, end)):
+            crack = mask_of(blade(p0, p1, [0.85])) & inner
+            g.paint(crack, EMBER[5], separate=False, emit=1.4)
+    g.paint(mask_of(ellipse(*heart_, 3.6)) & inner, EMBER[5], separate=False, emit=1.5)
+    g.paint(mask_of(ellipse(*heart_, 1.8)) & inner, EMBER[6], separate=False, emit=1.6)
+    claws(g, COPPER, c, 14.6, angles=(-155, -25, 155, 25))
+
+
+def mirror_ring(g):
+    """Mirror Ring: a band of polished silver, a silver bezel holding a round mirror of blue-white glass with a bright
+    reflection across it, glinting."""
+    band(g, QUICK, inlay=GLASS)
+    c = (48.0, 33.0)
+    cup = mask_of(polygon([(39, 43), (57, 43), (54, 51), (42, 51)]))
+    part(g, cup, skin_pillow(cup, QUICK, 4, 1.0, hi=5, lo=2), QUICK)
+    bez = ellipse(*c, 16.4)
+    bm = mask_of(bez)
+    part(g, bm, round_skin(bm, QUICK, *c, 4.0, 1.8), QUICK)
+    face = mask_of(ellipse(*c, 12.8))
+    k = (CX - c[0]) * 0.70 + (CY - c[1]) * 0.70
+    gidx = np.round(4.6 - k / 6.5).astype(int)
+    cols = colours(GLASS, gidx)
+    band_ = face & (np.abs((CX - c[0]) * 0.70 - (CY - c[1]) * 0.70 + 2.2) < 2.9)
+    cols[band_] = GLASS[6]
+    cols[face & (np.abs((CX - c[0]) * 0.70 - (CY - c[1]) * 0.70 - 5.2) < 1.1)] = GLASS[5]
+    part(g, face, cols, GLASS, inline=2, emit=0.45)
+    g.sparkle(70.5, 19.5, 3, GLASS[6], emit=1.4)
+    g.sparkle(25.5, 27.5, 2, GLASS[5], emit=1.2)
+
+
+def gloam_signet(g):
+    """Gloam Signet: a heavy lilac-silver signet, moss leaves on its shoulders, its flat face of orchid enamel bearing
+    a pale five-petalled seal."""
+    band(g, LILAC, thick=8.5, inlay=None)
+    c = (48.0, 36.0)
+    for side in (-1, 1):
+        lf = blade((48 + side * 11.0, 47.5), (48 + side * 24.0, 45.0), [1.6, 3.0, 2.4, 0.4], tip=0.45, curve=side * 1.6)
+        part(g, lf, skin_tube(lf, MOSS, 4, 1.5), MOSS, inline=1)
+    side_ = ellipse(c[0], c[1] + 4.2, 18.4, 11.6)
+    part(g, side_, colours(LILAC, 2), LILAC, inline=1)
+    top = ellipse(*c, 18.4, 11.6)
+    tm = mask_of(top)
+    part(g, tm, round_skin(tm, LILAC, *c, 4.4, 1.6), LILAC, inline=1)
+    face = ellipse(*c, 14.4, 8.6)
+    fm = mask_of(face)
+    part(g, fm, skin_pillow(fm, ORCHID, 3, 1.0, hi=2, lo=4), ORCHID, inline=1, emit=0.25)
+    for k in range(5):
+        a = math.radians(-90 + 72 * k)
+        pe = ellipse(c[0] + math.cos(a) * 4.4, c[1] + math.sin(a) * 2.8, 2.3, 1.7, math.degrees(a))
+        g.paint(mask_of(pe) & fm, ORCHID[6], separate=False, emit=0.7)
+    g.paint(mask_of(ellipse(c[0], c[1], 1.3)), GOLD[5], separate=False, emit=0.8)
+
+
+ITEMS = [
+    # (item id, draw, halo): one row a floor - the Foundry, the Quicksilver Vaults, the Gloam Gardens - and in each row
+    # its armour, its amulet and its ring.
+    ("item_foundry_mail", foundry_mail, EMBER_HALO),
+    ("item_ember_locket", ember_locket, EMBER_HALO),
+    ("item_cinder_ring", cinder_ring, EMBER_HALO),
+    ("item_quicksilver_hauberk", quicksilver_hauberk, QUICK_HALO),
+    ("item_quicksilver_locket", quicksilver_locket, QUICK_HALO),
+    ("item_mirror_ring", mirror_ring, QUICK_HALO),
+    ("item_bark_mail", bark_mail, GLOAM_HALO),
+    ("item_spore_locket", spore_locket, GLOAM_HALO),
+    ("item_gloam_signet", gloam_signet, GLOAM_HALO),
+]
+
+
+# ----------------------------------------------------------------------------------------------------------------------
 # Rendering: each icon for its card (144 square, on the navy, exported with the field's light as alpha), and the
 # weapons, their evolutions and the tomes once more for the loadout row's sockets: the glyph cropped close and filtered
 # straight down to the socket's 56 from the same painting, its glow kept low, so it reads at a third of the card's size
@@ -1372,6 +1825,22 @@ def build_icons(only=None):
             raise ValueError(f"{name}: {error}") from None
         slot = render_slot(g, halo, evolved)[0] if name in SLOT_IDS else None
         built[name] = dict(card=card, card_final=final, slot=slot, evolved=evolved)
+    return built
+
+
+def build_item_icons(only=None):
+    """item id -> dict(card=RGBA, card_final=RGB over the navy): each item's icon, painted and rendered as a card's is,
+    for the bag's places and the Anvil's piece cards."""
+    built = {}
+    for name, draw, halo in ITEMS:
+        if only and name not in only:
+            continue
+        g = paint_icon(draw)
+        try:
+            card, final = render_card(g, halo, False)
+        except ValueError as error:
+            raise ValueError(f"{name}: {error}") from None
+        built[name] = dict(card=card, card_final=final)
     return built
 
 
@@ -1654,6 +2123,34 @@ def astc_bytes(width, height):
     return ((width + 3) // 4) * ((height + 3) // 4) * 16
 
 
+def write_sheet(png, name, sheet, keys, rects):
+    """A sheet's PNG and its meta (Multiple sprites, each key's rect named name_key, the painted HUD's import),
+    keeping the meta's GUID and every sprite's ids it already holds, so a repaint never breaks a reference. Returns the
+    sheet's GUID and name -> (internalID, spriteID)."""
+    import io
+    buf = io.BytesIO()
+    Image.fromarray(sheet, "RGBA").save(buf, format="PNG", optimize=True)
+    write(png, buf.getvalue())
+    height = sheet.shape[0]
+    meta = png + ".meta"
+    guid = existing_guid(meta)
+    ids = existing_ids(meta)
+    taken = {v[0] for v in ids.values()}
+    for n in (f"{name}_{k}" for k in keys):
+        if n not in ids:
+            ids[n] = (fresh_internal_id(taken), uuid.uuid4().hex)
+            taken.add(ids[n][0])
+    table = "".join(f"  - first:\n      213: {ids[f'{name}_{k}'][0]}\n    second: {name}_{k}\n" for k in keys)
+    sprites = ""
+    for k in keys:
+        x, y, w, h = rects[k]
+        sprites += SPRITE_META.format(name=f"{name}_{k}", x=x, y=height - y - h, w=w, h=h,
+                                      sprite_id=ids[f"{name}_{k}"][1], internal_id=ids[f"{name}_{k}"][0])
+    name_table = "".join(f"      {name}_{k}: {ids[f'{name}_{k}'][0]}\n" for k in keys)
+    write(meta, TEXTURE_META.format(guid=guid, table=table, tpu=number(TPU), sprites=sprites, names=name_table))
+    return guid, ids
+
+
 def build(frames=None):
     if not os.path.exists(SCRIPT_META):
         raise SystemExit(f"{SCRIPT_META} is missing: the set needs its script's GUID.")
@@ -1673,30 +2170,8 @@ def build(frames=None):
     os.makedirs(OUT_DIR, exist_ok=True)
     folder_meta = OUT_DIR + ".meta"
     write(folder_meta, FOLDER_META.format(guid=existing_guid(folder_meta)))
-    png = os.path.join(OUT_DIR, SHEET + ".png")
-    import io
-    buf = io.BytesIO()
-    Image.fromarray(sheet, "RGBA").save(buf, format="PNG", optimize=True)
-    write(png, buf.getvalue())
-
-    meta = png + ".meta"
-    guid = existing_guid(meta)
-    ids = existing_ids(meta)
-    taken = {v[0] for v in ids.values()}
-    names = [f"{SHEET}_{key}" for key in card_ids] + [f"{SHEET}_{key}_slot" for key in slot_ids]
-    for n in names:
-        if n not in ids:
-            ids[n] = (fresh_internal_id(taken), uuid.uuid4().hex)
-            taken.add(ids[n][0])
     keys = card_ids + [k + "_slot" for k in slot_ids]
-    table = "".join(f"  - first:\n      213: {ids[f'{SHEET}_{k}'][0]}\n    second: {SHEET}_{k}\n" for k in keys)
-    sprites = ""
-    for k in keys:
-        x, y, w, h = rects[k]
-        sprites += SPRITE_META.format(name=f"{SHEET}_{k}", x=x, y=height - y - h, w=w, h=h,
-                                      sprite_id=ids[f"{SHEET}_{k}"][1], internal_id=ids[f"{SHEET}_{k}"][0])
-    name_table = "".join(f"      {SHEET}_{k}: {ids[f'{SHEET}_{k}'][0]}\n" for k in keys)
-    write(meta, TEXTURE_META.format(guid=guid, table=table, tpu=number(TPU), sprites=sprites, names=name_table))
+    guid, ids = write_sheet(os.path.join(OUT_DIR, SHEET + ".png"), SHEET, sheet, keys, rects)
 
     script_guid = existing_guid(SCRIPT_META)
     body = ["%YAML 1.1", "%TAG !u! tag:unity3d.com,2011:", "--- !u!114 &11400000", "MonoBehaviour:",
@@ -1723,6 +2198,75 @@ def build(frames=None):
             Image.fromarray(to_bytes(built[k]["card"]), "RGBA").save(os.path.join(frames, k + ".png"))
         for k in slot_ids:
             Image.fromarray(to_bytes(built[k]["slot"]), "RGBA").save(os.path.join(frames, k + "_slot.png"))
+    return built
+
+
+# The items' own sheet, beside the upgrade cards' rather than in it: the cards' sheet and its set stay as they are, every
+# sprite and rect of theirs untouched, and the items' icons are referenced from the items themselves (ItemDefinition's
+# icon), so AnvilView needs no set wired into the scene for them. The same import as the cards' sheet; a fixed grid three
+# across, one row a floor in ITEMS' order, so an item added later moves none of the others.
+ITEM_DIR = os.path.join(ROOT, "Assets", "_Project", "Art", "UI", "ItemIcons")
+ITEM_SHEET = "UI_ItemIcons"
+ITEM_DATA = os.path.join(ROOT, "Assets", "_Project", "Data", "Items")
+ITEM_COLUMNS = 3
+
+
+def item_assets():
+    """item id -> the path of its ItemDefinition asset under Data/Items."""
+    found = {}
+    for name in sorted(os.listdir(ITEM_DATA)):
+        if name.endswith(".asset"):
+            path = os.path.join(ITEM_DATA, name)
+            m = re.search(r"^  _id: (\S+)$", open(path, encoding="utf-8").read(), re.M)
+            if m:
+                found[m.group(1)] = path
+    return found
+
+
+def build_items(frames=None):
+    """The items' sheet, its meta, and each item's ItemDefinition pointed at its icon (its _icon line, written after
+    _floor as Unity serializes it, or replaced where it is already)."""
+    built = build_item_icons()
+    keys = [name for name, *_ in ITEMS]
+    assets = item_assets()
+    missing = [k for k in keys if k not in assets]
+    if missing:
+        raise SystemExit(f"No ItemDefinition under {ITEM_DATA} for {', '.join(missing)}.")
+    rects = {}
+    for i, k in enumerate(keys):
+        r, c = divmod(i, ITEM_COLUMNS)
+        rects[k] = (c * (CARD + GUTTER), r * (CARD + GUTTER), CARD, CARD)
+    rows = -(-len(keys) // ITEM_COLUMNS)
+    width = (ITEM_COLUMNS * (CARD + GUTTER) - GUTTER + 3) // 4 * 4
+    height = (rows * (CARD + GUTTER) - GUTTER + 3) // 4 * 4
+    sheet = np.zeros((height, width, 4), np.uint8)
+    for k in keys:
+        x, y, w, h = rects[k]
+        sheet[y:y + h, x:x + w] = to_bytes(built[k]["card"])
+    sheet = bleed(sheet)
+
+    os.makedirs(ITEM_DIR, exist_ok=True)
+    folder_meta = ITEM_DIR + ".meta"
+    write(folder_meta, FOLDER_META.format(guid=existing_guid(folder_meta)))
+    guid, ids = write_sheet(os.path.join(ITEM_DIR, ITEM_SHEET + ".png"), ITEM_SHEET, sheet, keys, rects)
+
+    for k in keys:
+        path = assets[k]
+        text = open(path, encoding="utf-8").read()
+        line = f"  _icon: {{fileID: {ids[f'{ITEM_SHEET}_{k}'][0]}, guid: {guid}, type: 3}}"
+        if re.search(r"^  _icon: .*$", text, re.M):
+            text = re.sub(r"^  _icon: .*$", lambda _: line, text, count=1, flags=re.M)
+        else:
+            text = re.sub(r"^(  _floor: .*)$", lambda m: m.group(1) + "\n" + line, text, count=1, flags=re.M)
+        write(path, text)
+
+    size = astc_bytes(width, height)
+    print(f"{ITEM_SHEET}.png {width}x{height}  {len(keys)} item icons {CARD}x{CARD}  ASTC 4x4 {size} bytes "
+          f"({size / 1024:.1f} KiB)")
+    if frames:
+        os.makedirs(frames, exist_ok=True)
+        for k in keys:
+            Image.fromarray(to_bytes(built[k]["card"]), "RGBA").save(os.path.join(frames, k + ".png"))
     return built
 
 
@@ -1759,6 +2303,7 @@ def main():
         preview(args.preview, args.only)
     else:
         build(args.frames)
+        build_items(args.frames)
 
 
 if __name__ == "__main__":

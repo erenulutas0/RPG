@@ -16,3 +16,4 @@ MonoBehaviour:
   _displayName: Mirror Ring
   _slot: 3
   _floor: 2
+  _icon: {fileID: -3871370014958224040, guid: 4d180d37e6f648b7bdf5fb83088a3c4f, type: 3}

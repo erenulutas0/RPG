@@ -16,3 +16,4 @@ MonoBehaviour:
   _displayName: Gloam Signet
   _slot: 3
   _floor: 3
+  _icon: {fileID: 3480925255611396981, guid: 4d180d37e6f648b7bdf5fb83088a3c4f, type: 3}

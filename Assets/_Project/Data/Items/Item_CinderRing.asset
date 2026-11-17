@@ -16,3 +16,4 @@ MonoBehaviour:
   _displayName: Cinder Ring
   _slot: 3
   _floor: 1
+  _icon: {fileID: -4949732026782745106, guid: 4d180d37e6f648b7bdf5fb83088a3c4f, type: 3}
