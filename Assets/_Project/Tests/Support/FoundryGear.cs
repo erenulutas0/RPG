@@ -38,7 +38,8 @@ namespace Cryptforge.Tests
             new EfsunLine(GearStat.MoveSpeed, 3)
         };
 
-        // Section 13's cohorts, in its order: careful at +5, +7, +9 and +9 with good lines, clumsy and the auto-farmer at +5.
+        // Section 13's cohorts, in its order: careful at +5, +7, +9 and +9 with good lines, clumsy and the auto-farmer at +5;
+        // and the auto-farmer's ladder further up, at +9 and +9 with good lines (the lead, 2026-11-17).
         public static readonly IReadOnlyList<GearedCohort> Cohorts = new[]
         {
             new GearedCohort { Name = "careful+5", Cohort = AutopilotCohort.Careful, Level = 5 },
@@ -46,7 +47,9 @@ namespace Cryptforge.Tests
             new GearedCohort { Name = "careful+9", Cohort = AutopilotCohort.Careful, Level = 9 },
             new GearedCohort { Name = "careful+9g", Cohort = AutopilotCohort.Careful, Level = 9, GoodLines = true },
             new GearedCohort { Name = "clumsy+5", Cohort = AutopilotCohort.Clumsy, Level = 5 },
-            new GearedCohort { Name = "auto-farmer+5", Cohort = AutopilotCohort.AutoFarmer, Level = 5 }
+            new GearedCohort { Name = "auto-farmer+5", Cohort = AutopilotCohort.AutoFarmer, Level = 5 },
+            new GearedCohort { Name = "auto-farmer+9", Cohort = AutopilotCohort.AutoFarmer, Level = 9 },
+            new GearedCohort { Name = "auto-farmer+9g", Cohort = AutopilotCohort.AutoFarmer, Level = 9, GoodLines = true }
         };
 
         // The modelled set (gear_economy.py's, GearStatsTests'): the weapon's gear and a Gold armour, amulet and ring, all

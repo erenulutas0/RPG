@@ -13,8 +13,9 @@ namespace Cryptforge.Tests
     // The profile's gear reaches the run (docs/54 phase 5): CombatSetup reads the carried weapon's own gear and the equipped
     // armour, amulet and ring as the run begins and applies them through GearStats.Apply, the body the foundry simulation
     // calls too. A profile with a +9 Sword starts its run striking 10 % harder - in the hall, on its one weapon; on the
-    // foundry, on the loadout's first weapon - a +9 armour starts the hero full at +10 % health, and a profile without gear
-    // starts exactly as before, to the bit. Another weapon's gear does not count: the weapon slot is per weapon id.
+    // foundry, on the loadout's first weapon - a +9 armour starts the hero full at +10 % health, the rule lines reach the
+    // loadout's shares, the hero's heals, the ability and the drops, and a profile without gear starts exactly as before, to
+    // the bit. Another weapon's gear does not count: the weapon slot is per weapon id.
     public sealed class GearRunStartTests
     {
         private const string ScenePath = "Assets/_Project/Scenes/Gameplay/Gameplay.unity";
@@ -96,6 +97,42 @@ namespace Cryptforge.Tests
             Assert.That(hero.Maximum, Is.EqualTo(_setup.Hero.MaximumHealth * 1.1f).Within(1e-3f));
             Assert.That(hero.Current, Is.EqualTo(hero.Maximum), "the gain arrives filled");
             Assert.That(_setup.Weapon.Damage, Is.EqualTo(_setup.HeroWeapon.CreateRuntime().Damage), "a +0 Sword adds nothing");
+        }
+
+        // The rule lines reach the scene's own objects (docs/54 section 20): a Gold ring with damage vs elites, healing,
+        // ability cooldown and pickup radius at tier 5 - the loadout's shares, the hero's heals, the ability and the drops.
+        [UnityTest]
+        public IEnumerator TheRuleLinesReachTheScenesObjects()
+        {
+            var snapshot = new GearSnapshot
+            {
+                Items = new[]
+                {
+                    new GearRecord
+                    {
+                        Uid = 1, ItemId = "item_cinder_ring", Slot = (int)GearSlot.Ring, Rarity = (int)UpgradeRarity.Gold, Level = 0,
+                        Lines = new[]
+                        {
+                            new GearLineRecord("elite_damage", 5), new GearLineRecord("healing", 5),
+                            new GearLineRecord("ability_cooldown", 5), new GearLineRecord("pickup_radius", 5)
+                        }
+                    }
+                },
+                EquippedUids = new[] { 0, 0, 1 },
+                NextItemUid = 2,
+                AnvilSeed = 7
+            };
+            yield return Load(new PlayerProfile(0, null, null, 0, null, null, null, null, ProfileGear.Restore(snapshot)), true);
+            Assert.That(_setup.Gear.IsEmpty, Is.False);
+            Assert.That(_setup.Gear.Power, Is.Zero, "no line of the power index");
+            WeaponLoadout loadout = _setup.Upgrades.Loadout;
+            Assert.That(loadout.TargetShareFactor, Is.EqualTo(1.06f).Within(1e-6f));
+            Assert.That(loadout.At(0).Runtime.GateBossShare, Is.EqualTo(WardenRule.SwordShare * 1.06f).Within(1e-5f), "the Sword's share, +6 %");
+            Assert.That(GameObject.Find("Vanguard").GetComponent<Health>().State.HealingReceived, Is.EqualTo(1.09f).Within(1e-6f));
+            Assert.That(_setup.Ability.Cooldown, Is.EqualTo(_setup.Hero.Ability.CreateRuntime().Cooldown * .94f).Within(1e-4f));
+            Assert.That(_setup.Drops.PickupRadius, Is.EqualTo(Cryptforge.Economy.DropRule.PickupRadius * 1.12f).Within(1e-6f));
+            WeaponRuntime fresh = _setup.HeroWeapon.CreateCategoryRuntime();
+            Assert.That(loadout.At(0).Runtime.Damage, Is.EqualTo(fresh.Damage), "and the sheet untouched");
         }
 
         // The sheet and the body as the hero's definition makes them; full, where nothing can have struck yet (the hall).
