@@ -20,6 +20,15 @@ namespace Cryptforge.Tests
         public const float Docs52MaulDamage = 10.8f;
         public const float Docs52MaulReach = 1.5f;
 
+        // docs/52 section 3's Pollen Wraith with its pollen (research only; the shipped Wraith has none and the simulation
+        // plays it as the Mite): the Cinder Mite's body, strike and speed unchanged, its pollen (PollenRule) its one
+        // addition, in the Mite's place in floor 3's horde (role 0) and its three halls. Its own object, so the pollen keys on
+        // it and never on a Mite.
+        public static readonly Enemy PollinatingWraith = new Enemy { Name = "Pollen Wraith", Health = 15f, Damage = .6f, Interval = 1.5f, Gold = 0, Experience = 1, Speed = 2.2f, Reach = 1.5f };
+        // docs/52 section 4's Thornling: the Runner's body, strike and speed unchanged (its dive is its one addition,
+        // ThornlingRule), in the Runner's place in floor 3's horde (role 2) and Ash Orchard's second wave (research only).
+        public static readonly Enemy Thornling = new Enemy { Name = "Thornling", Health = 30f, Damage = 1.2f, Interval = .4f, Gold = 3, Experience = 10, Speed = 3f, Reach = 1.5f };
+
         // Whether the levers leave the shipped Bloom as it is.
         private static bool ShippedBloom(FoundryLevers levers) =>
             levers.BloomHealthScale == ShippedHealthScale && levers.BloomMaulDamage == CinderBloom.Damage &&
@@ -59,11 +68,34 @@ namespace Cryptforge.Tests
                     Enemy[] wave = (Enemy[])three.Rooms[r][w].Clone();
                     if (three.Kinds[r] == RoomKind.Elite && wave.Length > 0 && wave[0] == CinderBloom)
                         wave[0] = levers.GloamCaptain ? Captain : Bloom(levers);
+                    // The Wraiths and the Thornling in the halls only (the lead's decision 4): Thorn Post's and the Grove's
+                    // Cinder Mites stay.
+                    if (three.Kinds[r] == RoomKind.Combat)
+                        for (int i = 0; i < wave.Length; i++)
+                        {
+                            if (levers.GloamWraiths && wave[i] == Mite)
+                                wave[i] = PollinatingWraith;
+                            if (levers.GloamThornlings && wave[i] == Runner)
+                                wave[i] = Thornling;
+                        }
                     rooms[r][w] = wave;
                 }
             }
             // Floor 2 is VaultsChain's own copy (Reshaped), so its next floor can be set without touching another chain.
-            two.Next = three.Reshaped(rooms, three.Kinds);
+            FoundryFloor shaped = three.Reshaped(rooms, three.Kinds);
+            if (levers.GloamWraiths || levers.GloamThornlings)
+            {
+                var roles = (Enemy[])three.HordeRoles.Clone();
+                for (int i = 0; i < roles.Length; i++)
+                {
+                    if (levers.GloamWraiths && roles[i] == Mite)
+                        roles[i] = PollinatingWraith;
+                    if (levers.GloamThornlings && roles[i] == Runner)
+                        roles[i] = Thornling;
+                }
+                shaped.HordeRoles = roles;
+            }
+            two.Next = shaped;
             return one;
         }
 
@@ -86,8 +118,57 @@ namespace Cryptforge.Tests
             public float BloomOpen = BloomRule.OpenSeconds;
             public float BloomBark = BloomRule.BarkShare;
 
-            // Whether GloamChain reshapes Thorn Post.
-            public bool Gloam => GloamCaptain || !ShippedBloom(this);
+            // docs/52 section 3's Pollen Wraith (research, off by default): in the Mite's place in floor 3's horde and halls
+            // (GloamChain), its pollen (PollenRule) at these rates - the rise a second for each Wraith within WraithRadius of
+            // a still hero (at most WraithMost), the fall a second while moving, the bloom's share of the hero's maximum
+            // health, the smoothed speed under which the hero is still.
+            public bool GloamWraiths;
+            public float WraithRate = PollenRule.RisePerWraith;
+            public int WraithMost = PollenRule.MostWraiths;
+            public float WraithFall = PollenRule.FallPerSecond;
+            public float WraithShare = PollenRule.BloomShare;
+            public float WraithRadius = PollenRule.Radius;
+            public float WraithStillSpeed = PollenRule.StillSpeed;
+            // The redesign screen (research 2026-11-16, after the specified Wraith was found idle): (a) WraithClouds - a
+            // fallen Wraith leaves a pollen cloud of WraithCloudRadius for WraithCloudSeconds where it fell, and the clouds the
+            // hero stands in feed the pollen in place of the bodies near (still only, or with WraithCloudWhileMoving whenever
+            // it is inside one, falling only outside); (c) WraithSettleAfter - the pollen rises only once the hero has stood
+            // still that many seconds without a break.
+            public bool WraithClouds;
+            public float WraithCloudRadius = 1.2f;
+            public float WraithCloudSeconds = 4f;
+            public bool WraithCloudWhileMoving;
+            public float WraithSettleAfter;
+            // docs/52 section 4's Thornling (research, off by default): in the Runner's place in floor 3's horde and Ash
+            // Orchard (GloamChain), its dive (ThornlingRule) - walked ThornlingWalk, ThornlingDiveMin-Max from the hero, a
+            // ring of ThornlingRadius filling ThornlingTelegraph, ThornlingShare of the hero's maximum health, stuck
+            // ThornlingStuck, one ring on the floor and ThornlingGap after the last eruption.
+            public bool GloamThornlings;
+            public float ThornlingTelegraph = ThornlingRule.Telegraph;
+            public float ThornlingRadius = ThornlingRule.Radius;
+            public float ThornlingShare = ThornlingRule.Share;
+            public float ThornlingGap = ThornlingRule.Gap;
+            public float ThornlingWalk = ThornlingRule.WalkSeconds;
+            public float ThornlingStuck = ThornlingRule.StuckSeconds;
+            public float ThornlingDiveMin = ThornlingRule.DiveMin;
+            public float ThornlingDiveMax = ThornlingRule.DiveMax;
+            // Research 2026-11-16 (after seeds 1-400 at lead-integrate-2 put the clumsy cohort's cost at the gate): no new ring
+            // while the gate boss stands, so the Warden's mark is the fight's one escape.
+            public bool ThornlingQuietAtGate;
+            // Research diagnostic (2026-11-16): the Thornling comes up where it dove, not at the ring's centre (the ring
+            // still hurts there) - what the dive's closing of the gap costs on its own.
+            public bool ThornlingEruptsHome;
+            // Research diagnostic (2026-11-16): the ring is no mark for the pilots (nobody leaves it, no step-in pauses) - with
+            // ThornlingShare 0, the Thornling's body alone (its dive, its time under the ash, its stuck second).
+            public bool ThornlingUnseen;
+            // The balance rule's A/A probe (research 2026-11-17, docs/56): on entering floor NudgeFloor the realistic pilot's
+            // dice give NudgeDraws draws that nothing reads - the game is the shipped one, only the hands' later draws shift,
+            // so the runs diverge from that floor on as any change would make them. 0: off.
+            public int NudgeFloor;
+            public int NudgeDraws = 1;
+
+            // Whether GloamChain reshapes floor 3.
+            public bool Gloam => GloamCaptain || !ShippedBloom(this) || GloamWraiths || GloamThornlings;
         }
 
         // One elite room's leader felled: its kind, from walking in to falling, the seconds it stood within reach of the
@@ -131,6 +212,32 @@ namespace Cryptforge.Tests
             public float BloomBarked;
             // Swings of a maul with a windup that found the hero gone.
             public int BloomWhiffs;
+            // docs/52's Pollen Wraith: the blooms (in all, and while a hall's or an elite room's wave stood), the health they
+            // took, and - read on every floor 3, Wraiths or not - the seconds the hero stood still within the Wraith's radius
+            // of a body in the Wraith's place (a Wraith, or a horde or hall Cinder Mite: the Wraith's opportunity).
+            public int PollenBlooms;
+            public int PollenBloomsInRooms;
+            public float TakenFromPollen;
+            public float StillNearSeconds;
+            // The redesign screen's clouds: left, and the seconds the hero stood in one (and still in one).
+            public int PollenClouds;
+            public float InCloudSeconds;
+            public float StillInCloudSeconds;
+            // Its parts, read alike: the seconds the hero stood still at all, and those it stood within the radius of such a
+            // body, still or not.
+            public float StillSeconds;
+            public float NearSeconds;
+            // docs/52's Thornling: the rings put down, the eruptions that caught the hero (and of them, those whose ring
+            // overlapped a lapse of the pilot's, a card's included), the health they took, the rings cancelled (their
+            // Thornling left the floor), the hero's weapon landings on a stuck Thornling, and the shortest ring that hit
+            // (from its start to its eruption: the telegraph holds).
+            public int ThornRings;
+            public int ThornHits;
+            public int ThornHitsInLapse;
+            public float TakenFromThorns;
+            public int ThornRingsCancelled;
+            public int ThornStuckLandings;
+            public float ThornShortestHit = float.PositiveInfinity;
         }
 
         private sealed partial class Foe
@@ -141,15 +248,32 @@ namespace Cryptforge.Tests
             public float InReachSeconds;
             // The run second the Bloom's swing began (FoundryLevers.BloomWindup), NaN while none is under way.
             public float SwingSince = float.NaN;
+            // The Thornling's dive (ThornlingRule): null until its first step - and for every other enemy; and under the
+            // ash (no target: FoundryRun.IsValid, FoeDamaged).
+            public ThornlingClock Thorn;
+            public bool Burrowed;
         }
 
         private sealed partial class FoundryRun
         {
             private static bool IsBloom(Enemy kind) => ReferenceEquals(kind, CinderBloom) || kind.Name == CinderBloom.Name;
 
-            // GloamService's step, where the Warden's slam and the Sentry's guard step: every standing Bloom's clock runs
-            // (not on the frame it walks in) and roots it while open; while the fight holds (a choice, the reveal), neither.
+            // GloamService's step, where the Warden's slam and the Sentry's guard step: the Blooms, then floor 3's pollen and
+            // Thornlings (research levers; the pollen's stillness is read on every floor 3 for the report).
             private void StepGloam()
+            {
+                StepBlooms();
+                if (!ReferenceEquals(_floor, _gloamFloor))
+                    GloamFloorBegan();
+                if (_pollen != null)
+                    StepPollen();
+                if (_thornField != null)
+                    StepThornlings();
+            }
+
+            // Every standing Bloom's clock runs (not on the frame it walks in) and roots it while open; while the fight holds
+            // (a choice, the reveal), neither.
+            private void StepBlooms()
             {
                 if (!_eliteWave || _run.HasEnded || _choices.IsOpen || _revealHold)
                     return;
@@ -237,6 +361,242 @@ namespace Cryptforge.Tests
                     _result.EliteTakenFromEscort += taken;
                 else if (foe.Horde)
                     _result.EliteTakenFromHorde += taken;
+            }
+
+            // docs/52's Pollen Wraith and Thornling (research levers): the floor they were last stepped on, the hero's pollen
+            // and smoothed speed (on every floor 3, for the stillness reading; its rise only with Wraiths), where the hero stood
+            // at the last step, and the floor's one Thornling ring with its diver and its mark for the pilot.
+            private FoundryFloor _gloamFloor;
+            private PollenState _pollen;
+            private float _pollenX;
+            private float _pollenY;
+            private ThornlingField _thornField;
+            private Foe _thornDiver;
+            private HazardMark _thornMark;
+            private bool _thornLapsed;
+
+            // The redesign screen's pollen clouds (FoundryLevers.WraithClouds): where a Wraith fell, and since when (the
+            // mark's Onset, held with the fight).
+            private List<HazardMark> _clouds;
+
+            private const string PollenHarm = "Pollen bloom";
+
+            // FoeDied's hook (FoundryLevers.WraithClouds): a fallen Wraith leaves its cloud where it fell.
+            private void WraithFell(Foe foe)
+            {
+                if (_clouds == null || !IsWraith(foe))
+                    return;
+                _clouds.Add(new HazardMark { X = foe.X, Y = foe.Y, Radius = _levers.WraithCloudRadius, Onset = 0f });
+                _result.PollenClouds++;
+            }
+
+            // The clouds aged by a running frame (a gone one dropped), and how many hold the hero.
+            private int CloudsHolding()
+            {
+                int holding = 0;
+                for (int i = _clouds.Count - 1; i >= 0; i--)
+                {
+                    HazardMark cloud = _clouds[i];
+                    cloud.Onset += Step;
+                    if (!PollenRule.CloudStands(cloud.Onset, _levers.WraithCloudSeconds))
+                    {
+                        _clouds.RemoveAt(i);
+                        continue;
+                    }
+                    if (PollenRule.Near(ArenaFloor.FloorDistanceSquared(cloud.X, cloud.Y, HeroX, HeroY), cloud.Radius))
+                        holding++;
+                }
+                if (holding > 0)
+                {
+                    _result.InCloudSeconds += Step;
+                    if (_pollen.IsStill)
+                        _result.StillInCloudSeconds += Step;
+                }
+                return holding;
+            }
+            private const string ThornHarm = "Thornling eruption";
+
+            private static bool IsWraith(Foe foe) => ReferenceEquals(foe.Definition, PollinatingWraith);
+
+            private static bool IsThornling(Foe foe) => ReferenceEquals(foe.Definition, Thornling);
+
+            // A body in the Wraith's place: a Wraith, or a Cinder Mite of the horde or a hall (not Thorn Post's, not the
+            // Grove's escort).
+            private static bool InWraithsPlace(Foe foe) =>
+                IsWraith(foe) || (ReferenceEquals(foe.Definition, Mite) && !foe.Elite && !foe.Escort);
+
+            // A new floor: the pollen and the ring start again (the scene resets them at each checkpoint), on floor 3 only.
+            private void GloamFloorBegan()
+            {
+                _gloamFloor = _floor;
+                if (_thornMark != null)
+                    _marks.Remove(_thornMark);
+                _thornMark = null;
+                _thornDiver = null;
+                if (_levers.NudgeFloor == _floor.FloorNumber && _dice != null)
+                    for (int i = 0; i < _levers.NudgeDraws; i++)
+                        _dice.Disc(1f, out _, out _);
+                bool three = _floor.FloorNumber == 3;
+                _pollen = three
+                    ? new PollenState(_levers.WraithRate, _levers.WraithMost, _levers.WraithFall, _levers.WraithStillSpeed,
+                        PollenRule.SpeedWindow)
+                    : null;
+                _pollenX = HeroX;
+                _pollenY = HeroY;
+                _clouds = three && _levers.GloamWraiths && _levers.WraithClouds ? new List<HazardMark>() : null;
+                _thornField = three && _levers.GloamThornlings
+                    ? new ThornlingField(_levers.ThornlingTelegraph, _levers.ThornlingGap)
+                    : null;
+            }
+
+            // The hero's pollen, once a running frame: its smoothed speed from its walk since the last step, the living
+            // Wraiths within the radius, the bloom. Held while the fight holds (a choice, the reveal) or the hero is down.
+            private void StepPollen()
+            {
+                float dx = HeroX - _pollenX, dy = HeroY - _pollenY;
+                _pollenX = HeroX;
+                _pollenY = HeroY;
+                if (_run.HasEnded || _choices.IsOpen || _revealHold || !_heroHealth.IsAlive)
+                    return;
+                int wraiths = 0;
+                bool near = false;
+                float radius = _levers.WraithRadius;
+                for (int i = 0; i < TargetCount; i++)
+                {
+                    Foe foe = TargetAt(i);
+                    if (!IsValid(foe) || !InWraithsPlace(foe))
+                        continue;
+                    if (!PollenRule.Near(ArenaFloor.FloorDistanceSquared(foe.X, foe.Y, HeroX, HeroY), radius))
+                        continue;
+                    near = true;
+                    if (IsWraith(foe))
+                        wraiths++;
+                }
+                bool bloomed;
+                if (_clouds != null)
+                    bloomed = _pollen.Step(Step, PollenRule.Distance(dx, dy), CloudsHolding(), _levers.WraithCloudWhileMoving,
+                        _levers.WraithSettleAfter);
+                else if (_levers.WraithSettleAfter > 0f)
+                    bloomed = _pollen.Step(Step, PollenRule.Distance(dx, dy), wraiths, false, _levers.WraithSettleAfter);
+                else
+                    bloomed = _pollen.Step(Step, PollenRule.Distance(dx, dy), wraiths);
+                if (_pollen.IsStill)
+                    _result.StillSeconds += Step;
+                if (near)
+                    _result.NearSeconds += Step;
+                if (near && _pollen.IsStill)
+                    _result.StillNearSeconds += Step;
+                if (!bloomed)
+                    return;
+                _result.PollenBlooms++;
+                if (_waveAlive > 0)
+                    _result.PollenBloomsInRooms++;
+                float before = _heroHealth.Current;
+                _hazardHarm = PollenHarm;
+                _harmIsSlam = false;
+                _hero.ApplyDamage(new DamageContext(PollenRule.BloomDamage(_heroHealth.Maximum, _levers.WraithShare)));
+                _hazardHarm = null;
+                _result.TakenFromPollen += before - _heroHealth.Current;
+            }
+
+            // The Thornlings, once a running frame: each one's clock (walking, stuck) and its walk speed; the floor's ring -
+            // filling, then the eruption at its centre; or, with none down and the gap passed, the first free Thornling that
+            // has walked long enough within the dive's distances dives and a ring goes down at the hero's spot. Held while the
+            // fight holds: the ring's mark keeps its time to land.
+            private void StepThornlings()
+            {
+                if (_run.HasEnded || _choices.IsOpen || _revealHold || !_heroHealth.IsAlive)
+                {
+                    if (_thornMark != null)
+                    {
+                        _thornMark.Onset += Step;
+                        _thornMark.LandsAt += Step;
+                    }
+                    return;
+                }
+                for (int i = 0; i < TargetCount; i++)
+                {
+                    Foe foe = TargetAt(i);
+                    if (foe == null || foe.Released || !foe.IsAlive || foe.SpawnFrame == _frame || !IsThornling(foe))
+                        continue;
+                    foe.Thorn ??= new ThornlingClock(_levers.ThornlingWalk, _levers.ThornlingStuck);
+                    foe.Thorn.Step(Step);
+                    foe.Motion.SetSpeed(foe.Slot, foe.Thorn.Speed(foe.Definition.Speed));
+                }
+                if (_thornField.IsDown)
+                {
+                    if (_thornDiver == null || _thornDiver.Released || !_thornDiver.IsAlive)
+                    {
+                        _thornField.Cancel();
+                        _marks.Remove(_thornMark);
+                        _thornMark = null;
+                        _thornDiver = null;
+                        _result.ThornRingsCancelled++;
+                        return;
+                    }
+                    if (_seconds < _lapseUntil)
+                        _thornLapsed = true;
+                    if (!_thornField.Step(Step))
+                        return;
+                    Erupt();
+                    return;
+                }
+                _thornField.Step(Step);
+                if (!_thornField.MayRing || ThornlingRule.Quiet(_levers.ThornlingQuietAtGate, GateBoss != null && GateBoss.IsAlive))
+                    return;
+                for (int i = 0; i < TargetCount; i++)
+                {
+                    Foe foe = TargetAt(i);
+                    if (!IsValid(foe) || foe.Thorn == null ||
+                        !foe.Thorn.WouldDive(ArenaFloor.FloorDistanceSquared(foe.X, foe.Y, HeroX, HeroY),
+                            _levers.ThornlingDiveMin, _levers.ThornlingDiveMax))
+                        continue;
+                    foe.Thorn.Dive();
+                    foe.Burrowed = true;
+                    foe.Motion.SetSpeed(foe.Slot, 0f);
+                    _thornDiver = foe;
+                    _thornLapsed = _seconds < _lapseUntil;
+                    _thornField.Down(HeroX, HeroY);
+                    _thornMark = new HazardMark
+                    {
+                        X = HeroX, Y = HeroY, Radius = _levers.ThornlingRadius, Onset = _seconds,
+                        LandsAt = _seconds + _levers.ThornlingTelegraph, Share = _levers.ThornlingShare, Harm = ThornHarm,
+                        SourceX = foe.X, SourceY = foe.Y
+                    };
+                    if (!_levers.ThornlingUnseen)
+                        _marks.Add(_thornMark);
+                    _result.ThornRings++;
+                    return;
+                }
+            }
+
+            // The ring filled: the Thornling up at its centre, stuck; the hero caught if inside.
+            private void Erupt()
+            {
+                Foe foe = _thornDiver;
+                HazardMark mark = _thornMark;
+                _marks.Remove(mark);
+                _thornMark = null;
+                _thornDiver = null;
+                foe.Thorn.Erupt();
+                foe.Burrowed = false;
+                foe.Motion.Vacate(foe.Slot);
+                float ux = _levers.ThornlingEruptsHome ? mark.SourceX : _thornField.X;
+                float uy = _levers.ThornlingEruptsHome ? mark.SourceY : _thornField.Y;
+                foe.Motion.Replace(foe.Slot, foe, new EntryPlacement(EntrySides.SideOf(0, 0), 0f, ux, uy),
+                    foe.Thorn.Speed(foe.Definition.Speed), foe.Weapon.Range);
+                if (!_thornField.Holds(HeroX, HeroY, _levers.ThornlingRadius))
+                    return;
+                _result.ThornHits++;
+                if (_thornLapsed)
+                    _result.ThornHitsInLapse++;
+                _result.ThornShortestHit = System.Math.Min(_result.ThornShortestHit, _seconds - mark.Onset);
+                float before = _heroHealth.Current;
+                _hazardHarm = ThornHarm;
+                _harmIsSlam = false;
+                _hero.ApplyDamage(new DamageContext(ThornlingRule.EruptionDamage(_heroHealth.Maximum, _levers.ThornlingShare)));
+                _hazardHarm = null;
+                _result.TakenFromThorns += before - _heroHealth.Current;
             }
 
             // FoeDied's hook: an elite leader's fight, for the report.

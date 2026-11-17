@@ -1063,6 +1063,197 @@ steps, wire them).
   list of everything beside the sets); the first look kept beside as `*-pass1.*`, the pink Wraith and jointed Thornling
   the lead looked at as `*-pass2.*`.
 
+## Measured: Pollen Wraith and Thornling (simulation only, 2026-11-15 to 11-17)
+
+Section 9's step 1 for the Wraith (section 3) and the Thornling (section 4), as research levers off by default. Nothing
+the game plays changed: no scene, prefab, asset or setting.
+
+**What was built.**
+- `Scripts/Combat/PollenRule.cs` (compiled by CombatChecks): the pollen in never-inlined bodies - `Smoothed` (the hero's
+  speed, an exponential average over 0.5 s), `Still`, `Near`, `Distance`, `Step`, `Blooms`, `SecondsToBloom` (for a later
+  meter's red-orange last second), `BloomDamage` - and a `PollenState` (pollen, smoothed speed, `Step`, `Reset`) for a
+  later `GloamService` and the simulation alike. The redesign screen below added `StillFor`, `Advance` and `CloudStands`
+  and a second `PollenState.Step` (sources, rising while moving, a settle time).
+- `Scripts/Combat/ThornlingRule.cs`: `Dives`, `MayRing`, `Quiet`, `Lands`, `Progress` (the ring's fill), `InRing`,
+  `EruptionDamage`, `SpeedOf`; a `ThornlingClock` a Thornling (walked, under the ash, stuck) and a `ThornlingField` for
+  the floor (one ring, its telegraph, the gap after an eruption). `PollenRuleTests` and `ThornlingRuleTests` hold them.
+- `Tests/Support/DescentSimulation.Gloam.cs`: `PollinatingWraith` (the Cinder Mite's numbers, the Wraith with its pollen;
+  named apart from the shipped `PollenWraith`, which is the Mite) and `Thornling` (the Runner's);
+  `GloamChain` puts them in the Mite's place in floor 3's horde (role 0) and its three halls (17 Mites) and in the
+  Runner's place in the horde (role 2) and Ash Orchard's second wave, Thorn Post's and the Grove's Mites unchanged
+  (section 11, decision 4). Levers: `GloamWraiths`, `WraithRate`, `WraithMost`, `WraithFall`, `WraithShare`,
+  `WraithRadius`, `WraithStillSpeed` (and the screen's `WraithClouds`, `WraithCloudRadius`, `WraithCloudSeconds`,
+  `WraithCloudWhileMoving`, `WraithSettleAfter`); `GloamThornlings`, `ThornlingTelegraph`, `ThornlingRadius`,
+  `ThornlingShare`, `ThornlingGap`, `ThornlingWalk`, `ThornlingStuck`, `ThornlingDiveMin`/`Max` (and the diagnostics'
+  `ThornlingQuietAtGate`, `ThornlingEruptsHome`, `ThornlingUnseen`). The pollen and the ring step where the Blooms step
+  (GloamService's place, after the Warden's slam and the Sentry's guard), hold under a panel and the reveal, and start
+  again on each floor. A Thornling under the ash is no target (`IsValid`) and takes nothing (`FoeDamaged`); under the ash
+  or stuck it neither ticks nor strikes; it comes up at the ring's centre by the Wisp's placement (`Vacate`/`Replace`).
+  Its ring is a `HazardMark` in `_marks`, so the pilots that escape marks leave it (`EscapeHazard`) and the careful
+  step-in pauses while it is down (section 4: measured, not changed). Readings: blooms (and in rooms), pollen taken,
+  still / near / still-near seconds, rings, eruption hits (and in a lapse), thorns taken, rings cancelled, stuck
+  landings, the shortest ring that hit.
+- `GloamEnemiesResearch`: `wraith`, `wraith-*`, `thorn`, `thorn-*`, `both`, `both:<wraith>+<thorn>`; a creatures table and
+  the CSV's columns. `FoundryFloorThreeTests` holds the chain (17 Wraiths, 1 Thornling, the shipped chain untouched,
+  floors 1-2 untouched), and with each addition switched off (no rise, no dive) the shipped runs.
+
+**Bases.** Rounds 1-2 (the sweeps, 2026-11-15) ran on verify-1115 (floor 2 the Regent of that branch, Thorn Post the
+earlier Bloom `m35-r1.0`); round 3 on (2026-11-16/17) on `gloam-wraith-thornling-2` = lead-integrate-2 (15ddc8f5: the
+final Regent, the shipped Bloom `m20-h70-r1.2`) with this research cherry-picked. Every cell is against `shipped` on the
+same code and seeds; the final readings are all at lead-integrate-2. Typical hands unless named, both heroes, the
+four-floor Descent.
+
+### Pollen Wraith: idle as specified, and no redesign separates
+
+**Baseline (section 8 asked for it).** A floor-3 hero stands still (smoothed speed under 1.0) 34-37 s a floor careful,
+45-47 standing, 43-45 clumsy - but within 1.6 of a body in the Wraith's place (a horde or hall Mite) only 0.4-0.5 s a
+floor (clumsy 1.1-1.5), and still *and* that near 0.04-0.05 s careful, 0.10-0.11 standing, 0.10-0.19 clumsy. At floor
+3's level (25-30) the horde's 9-14-health bodies fall to the first strike or splash before they come within 1.6: the
+Wisp's lesson (section 2.2) again, on the opportunity rather than the punishment.
+
+**The specified Wraith and its levers** (seeds 1-200, verify-1115; careful / standing / clumsy):
+
+| Option | Still-near s a floor | Blooms a floor | Completions vs shipped (standing / clumsy, of 400) |
+|---|---|---|---|
+| `wraith` (r 0.10, radius 1.6, fall 0.5, 6 %) | 0.05 / 0.11 / 0.10 | 0 / 0 / 0 | the shipped runs exactly |
+| rise 0.15, 0.2, 0.3, 0.5; fall 0.25, 0.1; share 8 %; stillness 1.4 | 0.05-0.08 / 0.11-0.14 | 0 | the shipped runs exactly |
+| radius 1.8 / 2.5 / 3.0 / 4.0 (rise 0.10) | 0.12 / 1.3 / 4.4 / 13.2 (careful) | 0 | +0 / +0 |
+| `wraith-d3.0-r0.3-f0.5` | 4.4 / 5.4 | 0.01 / 0.03 / 0.03 | +0 / +0 (201-400: +0) |
+| `wraith-d4.0-r0.3-f0.5` | 13.2 / 15.4 | 0.41 / 0.80 / 1.04 | -5 / -2 (201-400: clumsy -2) |
+| `wraith-d4.0-r0.3-f0.1` | 13.2 / 15.4 | 1.14 / 1.98 / 1.65 | -13 / -3 |
+
+The radius buys opportunity for every cohort alike (careful 13.2 s against standing 15.4 at 4.0), and once anything
+blooms the clumsy cohort blooms as much as the standing one or more: its straight kite stalls against walls and it stands
+there (section 3 foresaw it), so a stillness read cannot spare it. Section 8's row (careful at most 0.5 blooms, standing
+at least 4) is missed by every variant; the ones that bloom fail the lead's rule on the clumsy cohort.
+
+**The redesign screen** (the lead, 2026-11-16: no more tuning; screen redesigns on seeds 1-200 first). At
+lead-integrate-2, careful / standing / clumsy, completions of 400 against shipped (careful 384, standing 343, clumsy 161):
+
+| Option | What | Blooms a floor | Pollen taken | Completions standing / clumsy |
+|---|---|---|---|---|
+| `wraith-cloud-d1.2-r0.1` | (a) a fallen Wraith leaves a cloud (r 1.2, 4 s); a hero standing still in one gains 0.1 a second a cloud | 0 / 0 / 0 | 0 | +0 / +0 |
+| `wraith-cloud-d1.2-r0.3` | the same at 0.3 | 0.06 / 0.13 / 0.35 | 0.7 / 1.6 / 3.4 | +0 / -2 |
+| `wraith-cloud-d2.0-r0.1` | cloud r 2.0 | 0.00 / 0.01 / 0.03 | 0 / 0.1 / 0.3 | +0 / +0 |
+| `wraith-cloud-d2.0-r0.3` | cloud r 2.0 at 0.3 | 0.44 / 1.02 / 1.60 | 4.9 / 12.0 / 15.9 | -7 / -8 |
+| `wraith-cloud-move-d1.2-r0.1` | inside a cloud at all, moving or not (falls only outside) | 0.23 / 0.20 / 0.33 | 3.0 / 2.7 / 3.1 | -2 / -2 |
+| `wraith-cloud-move-d1.2-r0.3` | the same at 0.3 | 8.8 / 7.8 / 8.6 | 92 / 86 / 85 | -37 / -21 (careful -33) |
+| `wraith-cloud-move-d2.0-r0.1` | r 2.0, inside at all | 7.2 / 6.3 / 6.8 | 77 / 69 / 68 | -28 / -19 (careful -25) |
+| `wraith-settle1.5-d4.0-r0.3` | (c) Wraiths within 4 feed a hero who has stood still 1.5 s without a break | 0.02 / 0.10 / 0.20 | 0.2 / 1.3 / 1.9 | +0 / -1 |
+| `wraith-settle1.5-d4.0-r0.5` | the same at 0.5 | 0.34 / 0.69 / 0.94 | 3.9 / 8.4 / 8.8 | -4 / -3 |
+| `wraith-settle3.0-d4.0-r0.3` / `-r0.5` | still 3 s first | 0-0.02 / 0-0.04 / 0.02-0.11 | under 1 | +0 / +0 |
+
+- **(a) Clouds.** A careful hero is *in* a cloud more than a standing one (76 s a floor against 67 at r 1.2; 131 against
+  115 at r 2.0): it kites across the ground where the horde fell. Still in a cloud: 5.4 / 5.3 / 6.3 s (r 1.2), 11.4 /
+  12.6 / 12.9 (r 2.0) - no separation. Rising while merely inside hits every cohort alike and hard.
+- **(b) Latching** (Wraiths drift in and cling to a still hero) was not built: it needs a body to reach the hero, and the
+  bodies reach 1.6 of it 0.4-0.5 s a floor; a latch that waits for contact fires as seldom as the specified pollen, and
+  one that reaches farther is (c) with a body to animate.
+- **(c) Settle.** A hero must stand still a while first: it reads standing long, and the clumsy cohort's stalls are long
+  too (clumsy 0.20 blooms against standing's 0.10 at 1.5 s).
+- Read on the rest of 1-800 (seeds 201-800, 3 cohorts) for the two cheapest that bloom at all: `wraith-settle1.5-d4.0-r0.3`
+  clumsy -1 (1-200) and -2 (201-800): **3 in 1,600, fails**; `wraith-cloud-d1.2-r0.3` -2 and -4: **6, fails**.
+
+**Why.** In the pilot model the clumsy cohort is still as long as the standing one (43-45 s against 45-47 a floor 3) and
+as near the horde when it is; only the careful and first-card cohorts are still less (34-37 s). Every pollen read so far
+is a stillness read, so it charges the clumsy cohort at least what it charges the standing one - against section 11's
+decision 3 (no creature may cost the clumsy cohort).
+
+**Recommendation for the lead's decision: do not build a pollen.** Build the Pollen Wraith as the Mite's body with its
+own look (the art of 2026-11-15) and no pollen, or hold the creature until a read exists that the clumsy cohort passes.
+If the lead wants the meter anyway, `wraith-settle1.5-d4.0-r0.3` is the least costly variant that blooms (0.02 / 0.10 /
+0.20 a floor, 0.2-1.9 health) and costs the clumsy cohort 3 in 1,600 - one over the scaled bar, and it separates
+standing from careful 5x on a read worth a couple of health points. Runner-up: none; every other blooming variant costs
+more.
+
+### Thornling: no variant passes at lead-integrate-2
+
+**Seeds 1-800 at lead-integrate-2** (`shipped` and the two the lead named; deltas against shipped on the same seeds;
+floor-3 clears V / I of those that went down, completions pooled over both heroes):
+
+| Range | Option | Careful F3 V / I | Standing F3 | First-card F3 | Clumsy F3 | Completions careful / standing / first-card / clumsy | Hits a floor careful / standing / clumsy |
+|---|---|---|---|---|---|---|---|
+| 1-400 | `shipped` | 384 / 386 | 359 / 346 | 324 / 354 | 118 / 191 | 770 / 705 / 678 / 309 | - |
+| 1-400 | `thorn` (0.8 s) | +1 / -2 | -4 / -2 | +2 / +0 | -6 / +2 | -1 / -6 / +2 / **-4** | 0.43 / 0.38 / 0.25 |
+| 1-400 | `thorn-t1.0` | +0 / +0 | -5 / -2 | +0 / -1 | -4 / -3 | +0 / -7 / -1 / **-7** | 0.11 / 0.11 / 0.09 |
+| 401-800 | `shipped` | 382 / 378 | 348 / 345 | 296 / 331 | 108 / 206 | 760 / 693 / 627 / 314 | - |
+| 401-800 | `thorn` | **-5** / +2 | -4 / -2 | -2 / +3 | -2 / -5 | -3 / -6 / +1 / **-7** | 0.43 / 0.41 / 0.17 |
+| 401-800 | `thorn-t1.0` | -1 / +3 | -5 / +1 | -3 / +1 | +0 / -10 | +2 / -4 / -2 / **-10** | 0.11 / 0.12 / 0.07 |
+
+- **The lead's rule: both fail.** Clumsy completions over 1,600: `thorn` -11 (26 lost, 15 gained seed for seed),
+  `thorn-t1.0` -17 (28 lost, 11 gained); the bar is 2. Careful within 3 a range: `thorn` misses on 401-800 (Vanguard -5);
+  `thorn-t1.0` holds (-1 to +3). Nearly every lost run dies at the Warden's Grove (Warden, slam, pit, horde Grunt), most
+  with no eruption hit on the floor at all.
+- **Section 8's rows** (reported beside the rule): careful typical hits 0.43 a floor (at most 1.5: met); no hit came
+  sooner than its telegraph (shortest 0.816 s at 0.8, 1.016 at 1.0: met); careful slow hands 0.80-0.83 hits (1.9x
+  typical; 2x asked: missed by a hair); careful slow floor-3 clears **+0 / -2 and -2 / +5** of about 305 / 312 (the
+  3-8 points asked: missed - the slow careful pilot loses nothing it can see; section 11's 8-point trigger for 1.0 s is
+  not reached); standing slow -3 / -7 and -2 / -4; `thorn-t1.0` slow careful +4 / +0 and +0 / +3, hits 0.42-0.45.
+  Typical careful, first-card and clumsy floor-3 clears within 2 points: clumsy's are 2-5 points lower in two cells
+  (thorn 1-400 V -6 of 126, t1.0 401-800 I -10 of 219). Floor 3 P50 241-255 s, the Warden 46-63 s for every playing
+  cohort, the Descent P50 13.8-14.5 min: unchanged. Roles (careful Vanguard, seeds 1-200): `thorn` Staff on the horde
+  +220 %, Daggers on the elite +82 %, Sword on the Warden +16 % (shipped 216 / 91 / 16 %): met.
+- **What costs: not the eruption.** Diagnostics on 1-800 (careful, standing, clumsy), clumsy completions over 1,600:
+
+| Option | What changes | Clumsy 1-400 / 401-800 | In 1,600 | Hits clumsy |
+|---|---|---|---|---|
+| `thorn` | - | -4 / -7 | -11 | 0.17-0.25 |
+| `thorn-s0` | the eruption takes nothing | -3 / -7 | -10 | (0 health) |
+| `thorn-quiet` | no ring while the gate boss stands | -4 / -6 | -10 | 0.14-0.21 |
+| `thorn-t1.0-quiet` | 1.0 s and quiet at the gate | -7 / -8 | -15 | 0.06-0.07 |
+| `thorn-home` | it comes up where it dove, not at the ring | -9 / -7 | -16 | 0.23 |
+| `thorn-g6.0` | 6 s between rings (9 rings a floor, not 11) | -4 / -11 | -15 | 0.16-0.18 |
+| `thorn-dv3-6` | dives from 3-6 | +1 / -7 | -6 | 0.18-0.22 |
+| `thorn-t1.2` | 1.2 s ring | +0 / -3 | -3 | 0.04 |
+| `thorn-s0-unseen` | no damage and no mark: nobody dodges (the body alone) | -1 / +1 | **0** | 3.2 rings stood in (0 health) |
+
+  A ring that takes nothing costs what the real one costs; the gate's quiet, the dive's landing spot and fewer rings
+  change nothing measurable. With no mark (nobody leaves the ring) and no damage the cost is gone (0 in 1,600; standing -11, careful +3): the Thornling's body - its dive, its second under the ash, its stuck second, its landing at the ring - costs nothing; **the cost is the pilots' leaving the ring.** The hazard escape (`EscapeHazard`) comes before the kite, the shelter and the step-in, so every ring at the hero's feet (11 a floor) pulls the pilot off its footwork for a moment; the clumsy cohort leaves by the nearest of eight ways, whatever stands or glows there, and most of what it loses it loses at the Warden's Grove. Without leaving, the hero stands in 2.6-3.3 rings a floor; leaving, 0.17-0.43.
+
+**Recommendation for the lead's decision: do not ship the Thornling as specified.** No measured variant passes the
+scaled bar; the nearest, `thorn-t1.2` (-3 in 1,600, careful -2 / +3 and +2 / +0), leaves 0.04 hits a floor - a ring
+nobody is caught by, with no hands read left (section 8's slow-hands row needs the ring to land). Runner-up for a
+re-read: `thorn-dv3-6` (-6). If the lead accepts section 4's mechanic with this cost, `thorn` (0.8 s) is the variant
+whose read works for typical hands (0.43 hits, 2-4 health a floor) - and it costs the clumsy cohort about 1 % of its
+completions (11 in 1,600), the standing cohort 12 and the careful 4. What could pass is a ring that asks for less leaving - fewer rings near the gate did not (`thorn-quiet`), so the next candidates are a smaller ring (radius 1.0) and a ring placed off the hero's spot (ahead of its walk, so a moving hero is already out); neither is measured. The cost sits in the pilot model's escape, so a scene build should also check on the phone whether a person's dodge costs what the autopilot's does.
+
+### What the scene builds (steps 3-4) would need
+
+- Both rules are in `Scripts/Combat` (`PollenRule`/`PollenState`, `ThornlingRule`/`ThornlingClock`/`ThornlingField`);
+  `GloamService` (order -38) would step the pollen and the ring after the Blooms, hold them under the reveal and a panel,
+  and reset them at each checkpoint, as the simulation does.
+- **Wraith** (if built without pollen): `Enemy_PollenWraith` with the Mite's numbers, `PollenWraithArtSet`, floor 3's
+  horde role 0 and the halls' 17 Mites in `Floor_GloamGardens` (Thorn Post's and the Grove's stay);
+  `DescentSimulation.GloamGardens` and `FoundryFloorThree`'s roles to match; `FoundrySimulationSceneValueTests` holds it.
+  With a pollen: the hero's `PollenState` in `GloamService`, the orchid meter under the hero (red-orange when
+  `SecondsToBloom` is a second or less: decision 5), the bloom as a hit without a source.
+- **Thornling**: `Enemy_Thornling` (the Runner's numbers), `ThornlingArtSet` with its dive, erupt and stuck frames; a
+  `ThornlingClock` on each and one `ThornlingField` in `GloamService`; untargetable while under the ash
+  (`EncounterController`'s candidates and `Targeting`), no weapon tick under the ash or stuck (`AttackController.IsHeld`,
+  as the Bloom's maul), its slot placed at the ring's centre (`PackMotion.Vacate`/`Replace`) and rooted (`SetSpeed`)
+  while stuck; the ring a mark the autopilot leaves (`DevelopmentAutopilot`'s hazard escape) and that pauses the
+  step-in; the ring's orchid fill turning red-orange in its last second (section 11, decision 5's rule).
+
+### The default batch
+
+`FOUNDRY_SEEDS=200 FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_REALISM=typical`, `FOUNDRY_FLOORS=4` and `2`, this branch
+against lead-integrate-2 (15ddc8f5) on the same machine: every CSV, `foundry-gate.md`, `foundry-cohorts.md` and
+`foundry-finale.md` match byte for byte; in `foundry-batch.md` only the clock in its header and the wall-seconds column
+differ. CombatChecks: 854 green at the head (`Başarılı`); the Unity compile check green.
+
+## Lead decisions 2026-11-17 (on the Wraith's and the Thornling's measurement)
+
+1. **Pollen Wraith: no pollen.** It ships later as the Mite's body with its own art (another agent builds that scene
+   change); `PollenRule` stays in code as a research lever, off.
+2. **Thornling: on hold** - not shipped, not abandoned. The diagnosis is the valuable part: the cost is the dodge pulling
+   the pilots off their footwork; a ring nobody dodges costs 0.
+3. **The rule itself gets a statistics pass before any more creature calls** (searching variants until one lands inside
+   the noise is selection on noise): each shipped creature against what it replaced, and the Thornling's variants, with
+   a seed-level bootstrap CI on seeds 1-800 and an A/A check; a proposed rule with a design-grounded threshold.
+   Done: docs/56 (the balance rule) - the A/A probe (`FoundryLevers.NudgeFloor`), each shipped creature against what it
+   replaced and the Thornling's variants, on the tuning seeds 1-800 and the fresh seeds 801-2000, the proposed rule and
+   its verdicts.
+
 ## Step 3: the Pollen Wraith in the game, as the Cinder Mite reskinned (2026-11-17)
 
 **The lead's decision (2026-11-17).** The Pollen Wraith ships on floor 3 as a pure reskin of the Cinder Mite: the Mite's

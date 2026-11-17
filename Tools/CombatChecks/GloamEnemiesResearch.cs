@@ -16,9 +16,12 @@ namespace Cryptforge.Tests
     // by the shipped Mirror Sentry - and once for each option: the Grunt Captain back (`captain`, floor 3 before), the
     // Bloom at docs/52's starting values (`bloom`) or a swept variant (DescentSimulation.GloamChain; every `bloom-*` option
     // starts from the starting values: 280 health, maul 10.8 at reach 1.5), or with floor 2's Grunt Captain back (`-f2c`,
-    // VaultsCaptain). Where an option reads the roles, the
-    // careful Vanguard is also started with the Staff and with the Daggers beside its Sword. No pilot habit: the Bloom
-    // asks for none.
+    // VaultsCaptain).
+    // docs/52 sections 3 and 4 (2026-11-15): the Pollen Wraith in the Mite's place in floor 3's horde and halls
+    // (`wraith`, `wraith-*`: PollenRule's rates, radius, bloom and stillness), the Thornling in the Runner's place in the
+    // horde and Ash Orchard (`thorn`, `thorn-*`: ThornlingRule's ring, damage, dive range and gap), and the two together
+    // with the shipped Bloom (`both:*`). Where an option reads the roles, the careful Vanguard is also started with the
+    // Staff and with the Daggers beside its Sword. No pilot habit: none of the three asks for one.
     //
     // Explicit, so a plain `dotnet test` skips it:
     //
@@ -61,6 +64,16 @@ namespace Cryptforge.Tests
             yield return new Option { Key = "shipped", What = "floor 3 as shipped since 2026-11-15: the Cinder Bloom (bloom-m20-h70-r1.2: 196 health, maul 2.16 every 1.8 s at reach 1.2) leads Thorn Post; floor 2's Sentry Hall the shipped Mirror Sentry", Roles = true };
             yield return new Option { Key = "captain", What = "floor 3 before 2026-11-15: the Grunt Captain leads Thorn Post (FoundryLevers.GloamCaptain)", Roles = true, Set = l => l.GloamCaptain = true };
             yield return new Option { Key = "bloom", What = "the Cinder Bloom leads Thorn Post at docs/52's starting values: 280 health (549 on floor 3), Bark Maul 10.8 / 1.8 s at reach 1.5 (0.6 s), speed 1.2; closed 3.5 s taking 25 %, open 2.5 s rooted and taking 100 %", Roles = true, Set = Bloom() };
+            // The balance rule's study (2026-11-17, docs/56): each shipped creature against what it replaced, one at a time,
+            // and the A/A probes (the shipped game, the hands' draws shifted from floor 2 or floor 3 on: divergence alone).
+            yield return new Option { Key = "f2-captain", What = "floor 2's Grunt Captain back in Sentry Hall (VaultsCaptain), floor 3 as shipped", Set = l => l.VaultsCaptain = true };
+            yield return new Option { Key = "f2-warden", What = "floor 2's Forge Warden back at its gate at its share then (VaultsWarden), the rest as shipped", Set = l => l.VaultsWarden = true };
+            yield return new Option { Key = "aa-f2", What = "A/A: the shipped game, one unread draw of the pilot's dice on entering floor 2", Set = l => l.NudgeFloor = 2 };
+            yield return new Option { Key = "aa-f3", What = "A/A: the shipped game, one unread draw of the pilot's dice on entering floor 3", Set = l => l.NudgeFloor = 3 };
+            yield return new Option { Key = "aa-f3b", What = "A/A: the shipped game, two unread draws of the pilot's dice on entering floor 3", Set = l => { l.NudgeFloor = 3; l.NudgeDraws = 2; } };
+            yield return new Option { Key = "aa-f2b", What = "A/A: the shipped game, two unread draws of the pilot's dice on entering floor 2", Set = l => { l.NudgeFloor = 2; l.NudgeDraws = 2; } };
+            yield return new Option { Key = "aa-f2c", What = "A/A: the shipped game, three unread draws of the pilot's dice on entering floor 2", Set = l => { l.NudgeFloor = 2; l.NudgeDraws = 3; } };
+            yield return new Option { Key = "aa-f3c", What = "A/A: the shipped game, three unread draws of the pilot's dice on entering floor 3", Set = l => { l.NudgeFloor = 3; l.NudgeDraws = 3; } };
             yield return new Option { Key = "shipped-f2c", What = "`captain` with floor 2's Grunt Captain back in Sentry Hall (VaultsCaptain: floor 2 before 2026-11-12)", Set = l => { l.VaultsCaptain = true; l.GloamCaptain = true; } };
             yield return new Option { Key = "bloom-f2c", What = "`bloom` with floor 2's Grunt Captain back in Sentry Hall", Set = Bloom(l => l.VaultsCaptain = true) };
             // docs/52 section 5's sweep and section 8's fallbacks, one lever at a time off the starting values.
@@ -118,6 +131,129 @@ namespace Cryptforge.Tests
             yield return new Option { Key = "bloom-h80-m75", What = "the Bloom at 80 % health with its maul at 75 %", Roles = true, Set = Bloom(l => { l.BloomHealthScale = .8f; l.BloomMaulDamage = Maul(.75f); }) };
             yield return new Option { Key = "bloom-h60-m75", What = "the Bloom at 60 % health with its maul at 75 %", Roles = true, Set = Bloom(l => { l.BloomHealthScale = .6f; l.BloomMaulDamage = Maul(.75f); }) };
             yield return new Option { Key = "bloom-h60", What = "the Bloom at 60 % health", Roles = true, Set = Bloom(l => l.BloomHealthScale = .6f) };
+
+            // docs/52 section 3's Pollen Wraith (step 1), the shipped Bloom at Thorn Post: the starting values, then one lever
+            // at a time (section 3's sweep and section 8's fallbacks), then the combinations read after them.
+            yield return new Option { Key = "wraith", What = "the Pollen Wraith in the Mite's place in floor 3's horde and halls at docs/52's starting values: +0.10 a second a Wraith within 1.6 of a still hero (at most 3), -0.5 a second moving, the bloom 6 % of the hero's maximum health, still under 1.0 a second (smoothed over 0.5 s)", Roles = true, Set = Wraith() };
+            foreach ((string key, string what, Action<DescentSimulation.FoundryLevers> set) in WraithSweep())
+                yield return new Option { Key = key, What = what, Set = Wraith(set) };
+            // docs/52 section 4's Thornling (step 1), the shipped Bloom at Thorn Post.
+            yield return new Option { Key = "thorn", What = "the Thornling in the Runner's place in floor 3's horde and Ash Orchard at docs/52's starting values: walked 3 s, 2.5-5 from the hero, a ring of 1.2 at the hero's spot filling 0.8 s, 5 % of the hero's maximum health, stuck 1 s, one ring on the floor and 2.5 s after the last eruption", Roles = true, Set = Thorn() };
+            foreach ((string key, string what, Action<DescentSimulation.FoundryLevers> set) in ThornSweep())
+                yield return new Option { Key = key, What = what, Set = Thorn(set) };
+            // Both together with the shipped Bloom: the starting values, and the variants read after the sweeps.
+            yield return new Option { Key = "both", What = "`wraith` and `thorn` together, the shipped Bloom at Thorn Post", Roles = true, Set = l => { Wraith()(l); Thorn()(l); } };
+            foreach ((string key, string what, Action<DescentSimulation.FoundryLevers> wraith, Action<DescentSimulation.FoundryLevers> thorn) in BothSweep())
+                yield return new Option { Key = key, What = what, Roles = true, Set = l => { Wraith(wraith)(l); Thorn(thorn)(l); } };
+        }
+
+        private static string Number(float value) => value.ToString("0.0#", CultureInfo.InvariantCulture);
+
+        // The Wraith at docs/52's starting values, then the option's own levers.
+        private static Action<DescentSimulation.FoundryLevers> Wraith(Action<DescentSimulation.FoundryLevers> more = null) => l =>
+        {
+            l.GloamWraiths = true;
+            more?.Invoke(l);
+        };
+
+        // The Thornling at docs/52's starting values, then the option's own levers.
+        private static Action<DescentSimulation.FoundryLevers> Thorn(Action<DescentSimulation.FoundryLevers> more = null) => l =>
+        {
+            l.GloamThornlings = true;
+            more?.Invoke(l);
+        };
+
+        private static IEnumerable<(string, string, Action<DescentSimulation.FoundryLevers>)> WraithSweep()
+        {
+            foreach (float rate in new[] { .05f, .07f, .15f })
+                yield return ($"wraith-r{Number(rate)}", $"the Wraith's rise {Number(rate)} a second a Wraith", l => l.WraithRate = rate);
+            foreach (float fall in new[] { .25f, 1f })
+                yield return ($"wraith-f{Number(fall)}", $"the pollen falling {Number(fall)} a second while moving", l => l.WraithFall = fall);
+            foreach (int share in new[] { 3, 4, 8 })
+                yield return ($"wraith-s{share}", $"the bloom {share} % of the hero's maximum health", l => l.WraithShare = share / 100f);
+            foreach (float radius in new[] { 1.2f, 1.4f, 1.8f, 2.2f, 2.5f, 3f, 3.5f, 4f })
+                yield return ($"wraith-d{Number(radius)}", $"the Wraith's radius {Number(radius)}", l => l.WraithRadius = radius);
+            foreach (float still in new[] { .6f, 1.4f })
+                yield return ($"wraith-v{Number(still)}", $"the hero still under {Number(still)} a second", l => l.WraithStillSpeed = still);
+            foreach (float rate in new[] { .2f, .3f, .5f })
+                yield return ($"wraith-r{Number(rate)}", $"the Wraith's rise {Number(rate)} a second a Wraith", l => l.WraithRate = rate);
+            foreach (float fall in new[] { .1f })
+                yield return ($"wraith-f{Number(fall)}", $"the pollen falling {Number(fall)} a second while moving", l => l.WraithFall = fall);
+            // Round 2 (2026-11-15, after round 1 found the starting Wraith idle: a floor-3 hero stands still within 1.6 of a
+            // body in the Wraith's place about 0.1 s a floor - the horde's bodies fall before they come that near): a
+            // radius the bodies reach, at a rise and a fall that let still seconds add up.
+            foreach (float radius in new[] { 2.5f, 3f, 4f })
+            foreach (float rate in new[] { .15f, .3f })
+            foreach (float fall in new[] { .5f, .1f })
+                yield return ($"wraith-d{Number(radius)}-r{Number(rate)}-f{Number(fall)}", $"the Wraith's radius {Number(radius)}, its rise {Number(rate)} a second, the fall {Number(fall)} a second",
+                    l => { l.WraithRadius = radius; l.WraithRate = rate; l.WraithFall = fall; });
+            // Round 3 (2026-11-16), the redesign screen: (a) a fallen Wraith's pollen cloud feeds the pollen of a hero
+            // standing in it (or, `-move`, of a hero inside it at all); (c) the pollen settles only after the hero has stood
+            // still a while without a break, from Wraiths within a wide radius.
+            foreach (float rate in new[] { .1f, .3f })
+            foreach (float radius in new[] { 1.2f, 2f })
+            foreach (bool moving in new[] { false, true })
+                yield return ($"wraith-cloud{(moving ? "-move" : string.Empty)}-d{Number(radius)}-r{Number(rate)}",
+                    $"a fallen Wraith's pollen cloud (radius {Number(radius)}, 4 s) feeding {Number(rate)} a second a cloud the hero stands in" + (moving ? ", moving or not (falling only outside every cloud)" : ", still"),
+                    l => { l.WraithClouds = true; l.WraithCloudRadius = radius; l.WraithRate = rate; l.WraithCloudWhileMoving = moving; });
+            foreach (float settle in new[] { 1.5f, 3f })
+            foreach (float rate in new[] { .3f, .5f })
+                yield return ($"wraith-settle{Number(settle)}-d4.0-r{Number(rate)}", $"the pollen rising {Number(rate)} a second a Wraith within 4 only after {Number(settle)} s still without a break",
+                    l => { l.WraithSettleAfter = settle; l.WraithRadius = 4f; l.WraithRate = rate; });
+            // Combinations, read after the single levers.
+            foreach (float rate in new[] { .05f, .07f })
+            foreach (int share in new[] { 3, 4 })
+                yield return ($"wraith-r{Number(rate)}-s{share}", $"the Wraith's rise {Number(rate)} a second, the bloom {share} %", l => { l.WraithRate = rate; l.WraithShare = share / 100f; });
+            foreach (int share in new[] { 3, 4 })
+                yield return ($"wraith-d1.4-s{share}", $"the Wraith's radius 1.4, the bloom {share} %", l => { l.WraithRadius = 1.4f; l.WraithShare = share / 100f; });
+            foreach (int share in new[] { 3, 4 })
+                yield return ($"wraith-v0.6-s{share}", $"the hero still under 0.6, the bloom {share} %", l => { l.WraithStillSpeed = .6f; l.WraithShare = share / 100f; });
+        }
+
+        private static IEnumerable<(string, string, Action<DescentSimulation.FoundryLevers>)> ThornSweep()
+        {
+            foreach (float telegraph in new[] { .9f, 1f, 1.2f })
+                yield return ($"thorn-t{Number(telegraph)}", $"the ring filling {Number(telegraph)} s", l => l.ThornlingTelegraph = telegraph);
+            foreach (int share in new[] { 3, 4, 6 })
+                yield return ($"thorn-s{share}", $"the eruption {share} % of the hero's maximum health", l => l.ThornlingShare = share / 100f);
+            yield return ("thorn-dv2-4", "the dive from 2-4 of the hero", l => { l.ThornlingDiveMin = 2f; l.ThornlingDiveMax = 4f; });
+            yield return ("thorn-dv3-6", "the dive from 3-6 of the hero", l => { l.ThornlingDiveMin = 3f; l.ThornlingDiveMax = 6f; });
+            foreach (float gap in new[] { 4f, 6f })
+                yield return ($"thorn-g{Number(gap)}", $"a new ring {Number(gap)} s after the last eruption", l => l.ThornlingGap = gap);
+            yield return ("thorn-r1.4", "the ring's radius 1.4", l => l.ThornlingRadius = 1.4f);
+            // Round 3 (2026-11-16, at lead-integrate-2): a ring that takes nothing (what the dodging and the divergence cost on
+            // their own), and no ring while the gate boss stands.
+            yield return ("thorn-s0", "the eruption taking nothing (the rings and the dodges stay)", l => l.ThornlingShare = 0f);
+            yield return ("thorn-quiet", "no new ring while the gate boss stands", l => l.ThornlingQuietAtGate = true);
+            yield return ("thorn-s0-unseen", "the eruption taking nothing and the ring no mark for the pilots (diagnostic: the Thornling's body alone)", l => { l.ThornlingShare = 0f; l.ThornlingUnseen = true; });
+            yield return ("thorn-home", "the Thornling coming up where it dove (diagnostic: the ring still hurts at the hero's spot)", l => l.ThornlingEruptsHome = true);
+            yield return ("thorn-t1.0-quiet", "the ring filling 1.0 s, no new ring while the gate boss stands", l => { l.ThornlingTelegraph = 1f; l.ThornlingQuietAtGate = true; });
+            // Combinations, read after the single levers.
+            foreach (float telegraph in new[] { .8f, 1f })
+            foreach (int share in new[] { 3, 4 })
+            foreach (float gap in new[] { 2.5f, 4f })
+            {
+                if (telegraph == .8f && gap == 2.5f)
+                    continue;
+                yield return ($"thorn-t{Number(telegraph)}-s{share}-g{Number(gap)}", $"the ring filling {Number(telegraph)} s, the eruption {share} %, {Number(gap)} s between",
+                    l => { l.ThornlingTelegraph = telegraph; l.ThornlingShare = share / 100f; l.ThornlingGap = gap; });
+            }
+        }
+
+        // The two together: each creature's variant (empty: its starting values), named after both.
+        private static IEnumerable<(string, string, Action<DescentSimulation.FoundryLevers>, Action<DescentSimulation.FoundryLevers>)> BothSweep()
+        {
+            var wraiths = WraithSweep().ToDictionary(w => w.Item1);
+            var thorns = ThornSweep().ToDictionary(t => t.Item1);
+            wraiths["wraith"] = ("wraith", "the Wraith at its starting values", _ => { });
+            thorns["thorn"] = ("thorn", "the Thornling at its starting values", _ => { });
+            foreach (string w in wraiths.Keys)
+            foreach (string t in thorns.Keys)
+            {
+                if (w == "wraith" && t == "thorn")
+                    continue;
+                yield return ($"both:{w}+{t}", $"`{w}` and `{t}` together, the shipped Bloom at Thorn Post", wraiths[w].Item3, thorns[t].Item3);
+            }
         }
 
         private sealed class Cell
@@ -258,6 +394,16 @@ namespace Cryptforge.Tests
                 md.AppendLine(Row(c));
             md.AppendLine();
 
+            md.AppendLine("## The Wraith and the Thornling (floor 3, a mean over the floor 3s that went down)").AppendLine();
+            md.AppendLine("Blooms: the pollen's (in rooms: while a hall's or an elite room's wave stood); pollen taken: its health. Still near: seconds the hero stood still " +
+                          "(smoothed speed under the option's threshold) within the Wraith's radius of a body in its place - a Wraith, or a horde or hall Cinder Mite (the Wraith's opportunity, read with or without Wraiths); still: seconds still at all; near: seconds within that radius of such a body, still or not. " +
+                          "Rings: the Thornlings'; hits: eruptions that caught the hero (in a lapse: its ring overlapped one, a card's included); thorns taken: their health; stuck landings: the hero's weapon landings on a stuck Thornling; shortest hit: the shortest ring that hit, s.").AppendLine();
+            md.AppendLine("| Option | Cohort | Hero | Blooms | In rooms | Pollen taken | Still near s | Still s | Near s | Rings | Hits | In a lapse | Thorns taken | Rings cancelled | Stuck landings | Shortest hit s |");
+            md.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|");
+            foreach (Cell c in cells)
+                md.AppendLine(CreatureRow(c));
+            md.AppendLine();
+
             md.AppendLine("## By option (Vanguard / Ilya)").AppendLine();
             md.AppendLine("Floor-3 clears of those that went down; Thorn Post taken: mean health lost while its wave stood; completion: walked out of the finale, pooled over both heroes.").AppendLine();
             string[] names = cells.Select(c => c.Cohort).Distinct().ToArray();
@@ -348,6 +494,16 @@ namespace Cryptforge.Tests
                    $"{M(FoundryBatch.Percentile(c.Runs.Where(Completed).Select(Descent), 50))} |";
         }
 
+        private static string CreatureRow(Cell c)
+        {
+            DescentSimulation.FoundryResult[] down = c.Runs.Select(Three).Where(r => r != null).ToArray();
+            string Mean(Func<DescentSimulation.FoundryResult, double> read) => down.Length == 0 ? "-" : down.Average(read).ToString("0.00", CultureInfo.InvariantCulture);
+            float[] shortest = down.Where(r => r.ThornHits > 0).Select(r => r.ThornShortestHit).ToArray();
+            return $"| `{c.Option.Key}` | {c.Cohort} | {c.Hero} | {Mean(r => r.PollenBlooms)} | {Mean(r => r.PollenBloomsInRooms)} | {Mean(r => r.TakenFromPollen)} | " +
+                   $"{Mean(r => r.StillNearSeconds)} | {Mean(r => r.StillSeconds)} | {Mean(r => r.NearSeconds)} | {Mean(r => r.ThornRings)} | {Mean(r => r.ThornHits)} | {Mean(r => r.ThornHitsInLapse)} | {Mean(r => r.TakenFromThorns)} | " +
+                   $"{Mean(r => r.ThornRingsCancelled)} | {Mean(r => r.ThornStuckLandings)} | {(shortest.Length == 0 ? "-" : shortest.Min().ToString("0.000", CultureInfo.InvariantCulture))} |";
+        }
+
         private static string Room(DescentSimulation.FoundryResult run) =>
             run.DeathRoom < 1 ? "descent"
             : run.DeathRoom <= run.Kinds.Length && run.Kinds[run.DeathRoom - 1] == Cryptforge.Combat.RoomKind.Boss ? "boss"
@@ -357,7 +513,8 @@ namespace Cryptforge.Tests
         {
             var csv = new StringBuilder();
             csv.AppendLine("realism,option,cohort,hero,seed,f1_outcome,f2_outcome,f3_outcome,f3_s,death_room,killer,elite_kind,elite_fight_s,elite_in_reach_s,elite_windows,elite_fell_open," +
-                           "thorn_post_taken,taken_leader,taken_escort,taken_horde,bloom_closed_landings,bloom_open_landings,bloom_barked,bloom_whiffs,gate_s,finale_outcome,descent_s");
+                           "thorn_post_taken,taken_leader,taken_escort,taken_horde,bloom_closed_landings,bloom_open_landings,bloom_barked,bloom_whiffs,gate_s,finale_outcome,descent_s," +
+                           "pollen_blooms,pollen_blooms_rooms,pollen_taken,still_near_s,thorn_rings,thorn_hits,thorn_hits_lapse,thorn_taken,thorn_cancelled,thorn_stuck_landings,pollen_clouds,in_cloud_s,still_in_cloud_s");
             foreach (Cell cell in cells)
             foreach (DescentSimulation.FoundryResult run in cell.Runs)
             {
@@ -367,7 +524,7 @@ namespace Cryptforge.Tests
                 string head = string.Join(",", hands, cell.Option.Key, cell.Cohort, cell.Hero, run.Seed, run.Outcome, two != null ? two.Outcome.ToString() : string.Empty);
                 if (t == null)
                 {
-                    csv.AppendLine(head + new string(',', 20));
+                    csv.AppendLine(head + new string(',', 33));
                     continue;
                 }
                 DescentSimulation.EliteFight? fight = t.EliteFights != null && t.EliteFights.Count > 0 ? t.EliteFights[0] : (DescentSimulation.EliteFight?)null;
@@ -377,7 +534,10 @@ namespace Cryptforge.Tests
                     fight?.Windows.ToString(CultureInfo.InvariantCulture) ?? string.Empty, fight != null ? (fight.Value.FellOpen ? "1" : "0") : string.Empty,
                     Num(t.EliteTaken), Num(t.EliteTakenFromLeader), Num(t.EliteTakenFromEscort), Num(t.EliteTakenFromHorde),
                     t.BloomClosedLandings, t.BloomOpenLandings, Num(t.BloomBarked), t.BloomWhiffs, Num(t.WardenSeconds),
-                    f != null ? (f.WalkedOut ? "WalkedOut" : f.Outcome.ToString()) : string.Empty, Completed(run) ? Num(Descent(run)) : string.Empty));
+                    f != null ? (f.WalkedOut ? "WalkedOut" : f.Outcome.ToString()) : string.Empty, Completed(run) ? Num(Descent(run)) : string.Empty,
+                    t.PollenBlooms, t.PollenBloomsInRooms, Num(t.TakenFromPollen), Num(t.StillNearSeconds), t.ThornRings, t.ThornHits,
+                    t.ThornHitsInLapse, Num(t.TakenFromThorns), t.ThornRingsCancelled, t.ThornStuckLandings, t.PollenClouds,
+                    Num(t.InCloudSeconds), Num(t.StillInCloudSeconds)));
             }
             return csv.ToString();
         }
