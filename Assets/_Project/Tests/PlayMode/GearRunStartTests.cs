@@ -13,8 +13,8 @@ namespace Cryptforge.Tests
     // The profile's gear reaches the run (docs/54 phase 5): CombatSetup reads the carried weapon's own gear and the equipped
     // armour, amulet and ring as the run begins and applies them through GearStats.Apply, the body the foundry simulation
     // calls too. A profile with a +9 Sword starts its run striking 10 % harder - in the hall, on its one weapon; on the
-    // foundry, on the loadout's first weapon - and a profile without gear starts exactly as before, to the bit. Another
-    // weapon's gear does not count: the weapon slot is per weapon id.
+    // foundry, on the loadout's first weapon - a +9 armour starts the hero full at +10 % health, and a profile without gear
+    // starts exactly as before, to the bit. Another weapon's gear does not count: the weapon slot is per weapon id.
     public sealed class GearRunStartTests
     {
         private const string ScenePath = "Assets/_Project/Scenes/Gameplay/Gameplay.unity";
@@ -55,7 +55,7 @@ namespace Cryptforge.Tests
             Assert.That(first.Damage, Is.EqualTo(fresh.Damage), "the category base, to the bit");
             Assert.That(first.Interval, Is.EqualTo(fresh.Interval));
             Assert.That(first.CritChance, Is.EqualTo(fresh.CritChance));
-            AssertHeroAsAuthored();
+            AssertHeroAsAuthored(false);
         }
 
         [UnityTest]
@@ -85,17 +85,29 @@ namespace Cryptforge.Tests
             Assert.That(_setup.HeroStats.MaxHealth, Is.EqualTo(_setup.Hero.MaximumHealth * 1.1f).Within(1e-3f), "the armour's +10 %");
             var hero = GameObject.Find("Vanguard").GetComponent<Health>();
             Assert.That(hero.Maximum, Is.EqualTo(_setup.HeroStats.MaxHealth), "the body wears the sheet");
-            Assert.That(hero.Current, Is.EqualTo(hero.Maximum), "and starts full");
         }
 
-        private void AssertHeroAsAuthored()
+        [UnityTest]
+        public IEnumerator APlusNineArmourStartsTheHeroFullAtItsGain()
+        {
+            // The hall's first pack walks in from the far end, so nothing has struck the hero yet.
+            yield return Load(SwordAt(0, armourLevel: 9), false);
+            var hero = GameObject.Find("Vanguard").GetComponent<Health>();
+            Assert.That(hero.Maximum, Is.EqualTo(_setup.Hero.MaximumHealth * 1.1f).Within(1e-3f));
+            Assert.That(hero.Current, Is.EqualTo(hero.Maximum), "the gain arrives filled");
+            Assert.That(_setup.Weapon.Damage, Is.EqualTo(_setup.HeroWeapon.CreateRuntime().Damage), "a +0 Sword adds nothing");
+        }
+
+        // The sheet and the body as the hero's definition makes them; full, where nothing can have struck yet (the hall).
+        private void AssertHeroAsAuthored(bool full = true)
         {
             Assert.That(_setup.HeroStats.MaxHealth, Is.EqualTo(_setup.Hero.MaximumHealth));
             Assert.That(_setup.HeroStats.Armor, Is.Zero);
             Assert.That(_setup.HeroStats.Luck, Is.Zero);
             var hero = GameObject.Find("Vanguard").GetComponent<Health>();
             Assert.That(hero.Maximum, Is.EqualTo(_setup.Hero.MaximumHealth));
-            Assert.That(hero.Current, Is.EqualTo(hero.Maximum));
+            if (full)
+                Assert.That(hero.Current, Is.EqualTo(hero.Maximum));
         }
 
         private static PlayerProfile SwordAt(int level, int staffLevel = 0, int armourLevel = -1, int ringLevel = -1)
