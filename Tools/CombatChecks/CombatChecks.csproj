@@ -54,6 +54,9 @@
     <Compile Include="../../Assets/_Project/Scripts/Combat/RegentRule.cs" />
     <!-- docs/52's Cinder Bloom, simulation research only (2026-11-12): its bark-and-bloom cycle. -->
     <Compile Include="../../Assets/_Project/Scripts/Combat/BloomRule.cs" />
+    <!-- docs/52's Pollen Wraith and Thornling, simulation research only (2026-11-15): the pollen and the dive. -->
+    <Compile Include="../../Assets/_Project/Scripts/Combat/PollenRule.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Combat/ThornlingRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/HallSurgeRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/AltarRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/PitEruptionRule.cs" />
@@ -104,6 +107,8 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/MirrorGuardRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/RegentRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/BloomRuleTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/PollenRuleTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/ThornlingRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/BurnRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/UpgradeSittingTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/GroundDropsTests.cs" />
