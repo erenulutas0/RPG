@@ -22,9 +22,10 @@ namespace Cryptforge.Tests
         public static DuelSkill ForgeBurst(int rank = 1) =>
             new DuelSkill("Forge Burst", DuelSkillKind.Strike, Ranked(20_000, rank), 8, 400);
 
-        // +60 armour for 4 s every 20 s: 37.5 % less damage taken on a hero with no armour (60 / (60 + 100)).
+        // +100 armour for 4 s every 20 s: half the damage taken on a hero with no armour (100 / (100 + 100)). The first draft's
+        // +60 (37.5 %) was worth half Cinder Ward's 2 s in the Descent's replay; +100 matches it.
         public static DuelSkill IronResolve(int rank = 1) =>
-            new DuelSkill("Iron Resolve", DuelSkillKind.Guard, Ranked(375, rank), 20) { DurationTicks = 240 };
+            new DuelSkill("Iron Resolve", DuelSkillKind.Guard, Ranked(500, rank), 20) { DurationTicks = 240 };
 
         // 4 units along the stick in 0.3 s, 15 to each enemy within 0.8 of the path, a 0.5 s daze, every 12 s.
         public static DuelSkill ShieldRush(int rank = 1) =>
@@ -44,9 +45,11 @@ namespace Cryptforge.Tests
                 DurationTicks = 300, SlowPermille = slow ? Ranked(400, rank) : 0
             };
 
-        // A ward of 30 % of maximum health for 4 s, every 20 s; every blow it takes gives the striker 2 burn stacks.
+        // A ward of 20 % of maximum health (about one Warden slam) for 2 s, every 20 s; every blow it takes gives the striker
+        // 2 burn stacks. The first draft (30 % for 4 s) absorbed every blow of its window in the Descent's replay, worth
+        // 2.5 times Iron Resolve; the window's length, not the ward's size, is what bound it.
         public static DuelSkill CinderWard(int rank = 1) =>
-            new DuelSkill("Cinder Ward", DuelSkillKind.Ward, Ranked(300, rank), 20) { DurationTicks = 240, Stacks = 2 };
+            new DuelSkill("Cinder Ward", DuelSkillKind.Ward, Ranked(200, rank), 20) { DurationTicks = 120, Stacks = 2 };
 
         // The third skill considered for Ilya, kept as a measured alternative: a 2.5-unit ring: 6 now, 2 stacks, the walk
         // slowed 50 % for 2.5 s; every 16 s.
@@ -142,7 +145,8 @@ namespace Cryptforge.Tests
     // FOUNDRY_FIRST_SEED (1), FOUNDRY_PARALLEL (half the processors), FOUNDRY_REALISM (typical); writes
     // TestResults/hero-skills-descent.md. Neither changes the game or the simulation: the duel plays the proposals in
     // ArenaDuel's core; the Descent plays the shipped simulation and reads what the new skills would meet there (the
-    // shipped abilities' yield, the crowd, the damage taken) and replays its hero's health with Iron Resolve laid over it.
+    // shipped abilities' yield, the crowd, the damage taken) and replays its hero's health with each guard laid over it
+    // (Iron Resolve and Cinder Ward at several sizes, GuardReplay.Kinds).
     [Explicit("docs/57's hero skills research: run it by name.")]
     public sealed class HeroSkillsResearch
     {
@@ -214,6 +218,10 @@ namespace Cryptforge.Tests
             foreach ((string label, DuelSkill skill) in new[]
                      {
                          ("Flame Sigil", HeroSkillKits.FlameSigil()), ("Flame Sigil without its slow", HeroSkillKits.FlameSigil(slow: false)),
+                         ("Flame Sigil at radius 2.0 (the first draft)",
+                             new DuelSkill("Flame Sigil", DuelSkillKind.Sigil, 1000, 20, 2_000) { DurationTicks = 300, SlowPermille = 400 }),
+                         ("Flame Sigil adding stacks only (no heat, no slow)",
+                             new DuelSkill("Flame Sigil", DuelSkillKind.Sigil, 0, 20, 2_500) { DurationTicks = 300 }),
                          ("Cinder Ward", HeroSkillKits.CinderWard()), ("Backdraft (the third considered)", HeroSkillKits.Backdraft())
                      })
             {
@@ -261,6 +269,13 @@ namespace Cryptforge.Tests
             md.AppendLine("|---|---|");
             md.AppendLine($"| Vanguard | {Cell(Play(HeroSkillKits.Vanguard(3), HeroSkillKits.Vanguard(3, bold: true), seeds))} |");
             md.AppendLine($"| Ilya | {Cell(Play(HeroSkillKits.Ilya(3), HeroSkillKits.Ilya(3, bold: true), seeds))} |");
+            Func<bool, DuelFighter> backdraftKit = bold =>
+            {
+                DuelFighter f = HeroSkillKits.Ilya(3, bold: bold);
+                f.Skills = new[] { HeroSkillKits.CrucibleVent(), HeroSkillKits.FlameSigil(), HeroSkillKits.Backdraft() };
+                return f;
+            };
+            md.AppendLine($"| Ilya with Backdraft as its third | {Cell(Play(backdraftKit(false), backdraftKit(true), seeds))} |");
             md.AppendLine();
 
             // 5. The cooldown line and ranks: what a utility line and a skill's rank decide in an auto-fight.
@@ -301,18 +316,30 @@ namespace Cryptforge.Tests
 
         // A guard laid over a run's health as the simulation played it: the same blows land (the enemies' play does not
         // answer the guard - a first-order replay), heals fill as they did up to the maximum. Iron Resolve cuts every blow
-        // inside it by Reduction; Cinder Ward (ward set) absorbs blows inside it up to its share of the maximum health. The
-        // guard opens on a blow when it is ready and the policy says so; it lasts Seconds and is ready again Cooldown after
+        // inside it by its reduction; Cinder Ward absorbs blows inside it up to its share of the maximum health. The guard
+        // opens on a blow when it is ready and the policy says so; it lasts its seconds and is ready again Cooldown after
         // it opened.
         private sealed class GuardReplay
         {
-            public const float Seconds = 4f;
             public const float Cooldown = 20f;
-            public const float Reduction = .375f;
-            public const float WardShare = .3f;
+
+            // Every guard the report lays over a run, each by the careful rule and on cooldown: Iron Resolve as proposed
+            // (+60 armour, 37.5 % less for 4 s) and stronger (+100, 50 %); Cinder Ward as first drafted (30 % of the maximum
+            // for 4 s), and smaller or shorter, to find the size whose worth matches the Vanguard's guard.
+            public static readonly (string Name, float Reduction, float Ward, float Seconds, bool Reactive)[] Kinds =
+            {
+                ("Iron Resolve 37.5 % 4 s, careful", .375f, 0f, 4f, true), ("Iron Resolve 37.5 % 4 s, on cooldown", .375f, 0f, 4f, false),
+                ("Iron Resolve 50 % 4 s, careful", .5f, 0f, 4f, true), ("Iron Resolve 50 % 4 s, on cooldown", .5f, 0f, 4f, false),
+                ("Cinder Ward 30 % 4 s, careful", 0f, .3f, 4f, true), ("Cinder Ward 30 % 4 s, on cooldown", 0f, .3f, 4f, false),
+                ("Cinder Ward 10 % 4 s, careful", 0f, .1f, 4f, true), ("Cinder Ward 10 % 4 s, on cooldown", 0f, .1f, 4f, false),
+                ("Cinder Ward 20 % 2 s, careful", 0f, .2f, 2f, true), ("Cinder Ward 20 % 2 s, on cooldown", 0f, .2f, 2f, false),
+                ("Cinder Ward 10 % 2 s, careful", 0f, .1f, 2f, true), ("Cinder Ward 10 % 2 s, on cooldown", 0f, .1f, 2f, false)
+            };
 
             private readonly bool _reactive;
-            private readonly bool _ward;
+            private readonly float _wardShare;
+            private readonly float _reduction;
+            private readonly float _seconds;
             private float _wardLeft;
             public float Prevented;
             private float _max;
@@ -339,11 +366,15 @@ namespace Cryptforge.Tests
             public float Reprieve => !Died ? float.NaN : _health <= 0f ? 0f : _health / Math.Max(1e-3f, _recentSum / 10f);
 
             // reactive: the careful policy, a blow with the health under 70 %; otherwise the first blow it is ready for.
-            public GuardReplay(float maximum, bool reactive, bool ward = false)
+            // reduction: Iron Resolve's cut of every blow; ward: Cinder Ward's share of the maximum health (one of the two is 0);
+            // seconds: how long it holds.
+            public GuardReplay(float maximum, bool reactive, float reduction, float ward, float seconds)
             {
                 _max = maximum;
                 _reactive = reactive;
-                _ward = ward;
+                _reduction = reduction;
+                _wardShare = ward;
+                _seconds = seconds;
             }
 
             public float HealthLeft => _health;
@@ -429,21 +460,21 @@ namespace Cryptforge.Tests
                 if (time < _openUntil)
                 {
                     Covered += blow;
-                    if (_ward)
+                    if (_wardShare > 0f)
                     {
                         cut = Math.Min(_wardLeft, blow);
                         _wardLeft -= cut;
                     }
                     else
-                        cut = blow * Reduction;
+                        cut = blow * _reduction;
                 }
                 Prevented += cut;
                 _health -= blow - cut;
                 if (time >= _readyAt && (!_reactive || _health < _max * .7f))
                 {
-                    _openUntil = time + Seconds;
+                    _openUntil = time + _seconds;
                     _readyAt = time + Cooldown;
-                    _wardLeft = WardShare * _max;
+                    _wardLeft = _wardShare * _max;
                     Uses++;
                 }
             }
@@ -454,10 +485,8 @@ namespace Cryptforge.Tests
             public string Cohort;
             public string Hero;
             public DescentSimulation.FoundryResult Result;
-            public GuardReplay Careful;
-            public GuardReplay Clumsy;
-            public GuardReplay WardCareful;
-            public GuardReplay WardClumsy;
+            // One per GuardReplay.Kinds, in its order.
+            public GuardReplay[] Guards;
             public bool Completed;
             public int FloorsCleared;
             public int DiedOn;
@@ -486,28 +515,22 @@ namespace Cryptforge.Tests
                 var read = new RunRead[seeds.Length];
                 Parallel.For(0, seeds.Length, new ParallelOptions { MaxDegreeOfParallelism = Math.Max(1, parallel) }, i =>
                 {
-                    var careful = new GuardReplay(hero.MaximumHealth, true);
-                    var clumsy = new GuardReplay(hero.MaximumHealth, false);
-                    var wardCareful = new GuardReplay(hero.MaximumHealth, true, ward: true);
-                    var wardClumsy = new GuardReplay(hero.MaximumHealth, false, ward: true);
+                    GuardReplay[] guards = GuardReplay.Kinds
+                        .Select(k => new GuardReplay(hero.MaximumHealth, k.Reactive, k.Reduction, k.Ward, k.Seconds)).ToArray();
                     // HERO_SKILLS_TRACE=<seed>: that seed's trace lines (frames apart) for every cohort and hero, to read a
                     // replay against the run it replays.
                     StringBuilder dump = seeds[i] == Env("HERO_SKILLS_TRACE", 0) ? new StringBuilder() : null;
                     DescentSimulation.FoundryResult result = DescentSimulation.RunFoundry(hero, seeds[i], levers,
                         DescentSimulation.GloamChain(levers), line =>
                         {
-                            careful.Line(line);
-                            clumsy.Line(line);
-                            wardCareful.Line(line);
-                            wardClumsy.Line(line);
+                            for (int g = 0; g < guards.Length; g++)
+                                guards[g].Line(line);
                             if (dump != null && line.IndexOf(" frame ", StringComparison.Ordinal) < 0)
                                 dump.AppendLine(line);
                         });
                     if (dump != null)
                         Write($"hero-skills-trace-{cohort.Name}-{hero.Id}-{seeds[i]}.txt", dump.ToString(), quiet: true);
-                    read[i] = Read(cohort.Name, hero.Name, result, careful, clumsy);
-                    read[i].WardCareful = wardCareful;
-                    read[i].WardClumsy = wardClumsy;
+                    read[i] = Read(cohort.Name, hero.Name, result, guards);
                 });
                 runs.AddRange(read);
                 TestContext.Progress.WriteLine($"{cohort.Name} {hero.Name}: done");
@@ -516,10 +539,9 @@ namespace Cryptforge.Tests
             Assert.That(runs.Count, Is.EqualTo(cohorts.Length * heroes.Length * count));
         }
 
-        private static RunRead Read(string cohort, string hero, DescentSimulation.FoundryResult result, GuardReplay careful,
-            GuardReplay clumsy)
+        private static RunRead Read(string cohort, string hero, DescentSimulation.FoundryResult result, GuardReplay[] guards)
         {
-            var run = new RunRead { Cohort = cohort, Hero = hero, Result = result, Careful = careful, Clumsy = clumsy };
+            var run = new RunRead { Cohort = cohort, Hero = hero, Result = result, Guards = guards };
             for (DescentSimulation.FoundryResult floor = result; floor != null; floor = floor.NextFloor)
             {
                 run.Minutes += floor.FloorSeconds / 60f;
@@ -607,12 +629,12 @@ namespace Cryptforge.Tests
                           "caught (overkill lowers it); the Vent's is its stacks x 8 on each burning enemy and its 1.2-unit neighbours.");
             md.AppendLine();
 
-            md.AppendLine($"## 3. A guard laid over the hero's health: Iron Resolve ({F(GuardReplay.Reduction * 100)} % less for {F(GuardReplay.Seconds, "0")} s) " +
-                          $"and Cinder Ward (absorbs {F(GuardReplay.WardShare * 100, "0")} % of the maximum for {F(GuardReplay.Seconds, "0")} s), every {F(GuardReplay.Cooldown, "0")} s");
+            md.AppendLine($"## 3. A guard laid over the hero's health: Iron Resolve (a share of every blow) and Cinder Ward (absorbs a share of the " +
+                          $"maximum health), every {F(GuardReplay.Cooldown, "0")} s");
             md.AppendLine();
             md.AppendLine("A first-order replay: the same blows, cut inside the guard; the enemies do not answer it. Careful: a blow taken under 70 % " +
                           "of the maximum opens it; on cooldown: the first blow it is ready for (the clumsy cohort's rule). Every cohort and hero is " +
-                          "replayed with both guards and both rules, the auto-farmer included (it uses no skill: its row is what a guard would be " +
+                          "replayed with every guard and both rules, the auto-farmer included (it uses no skill: its row is what a guard would be " +
                           "worth to it if it did). A replay with no feedback outlives nearly every death by the damage it took off earlier, so the " +
                           "death columns read the **seconds it buys at the killing moment**: the replayed health left over the last 10 s's rate of damage.");
             md.AppendLine();
@@ -620,12 +642,11 @@ namespace Cryptforge.Tests
             md.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|");
             foreach (var g in runs.GroupBy(r => (r.Cohort, r.Hero)))
             {
-                foreach ((string policy, Func<RunRead, GuardReplay> pick) in new (string, Func<RunRead, GuardReplay>)[]
-                         {
-                             ("Iron Resolve, careful", r => r.Careful), ("Iron Resolve, on cooldown", r => r.Clumsy),
-                             ("Cinder Ward, careful", r => r.WardCareful), ("Cinder Ward, on cooldown", r => r.WardClumsy)
-                         })
+                for (int kind = 0; kind < GuardReplay.Kinds.Length; kind++)
                 {
+                    string policy = GuardReplay.Kinds[kind].Name;
+                    int k = kind;
+                    Func<RunRead, GuardReplay> pick = r => r.Guards[k];
                     GuardReplay[] replays = g.Select(pick).ToArray();
                     double taken = replays.Sum(x => (double)x.Taken);
                     double covered = replays.Sum(x => (double)x.Covered);
