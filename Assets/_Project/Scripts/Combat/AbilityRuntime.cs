@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Cryptforge.Combat
 {
@@ -19,7 +20,8 @@ namespace Cryptforge.Combat
         public float Damage { get; }
         // Floor units from the hero.
         public float Radius { get; }
-        public float Cooldown { get; }
+        // As the definition authors it, or shorter by the gear's ability-cooldown line (ShortenCooldown, at the run's start).
+        public float Cooldown { get; private set; }
         public AbilityKind Kind { get; }
         // Seconds until the ability is ready again; zero means ready.
         public float Remaining { get; private set; }
@@ -42,6 +44,17 @@ namespace Cryptforge.Combat
             Radius = radius;
             Cooldown = cooldown;
             Kind = kind;
+        }
+
+        // The gear's ability cooldown (docs/54 section 20): every cooldown from now on is factor of the authored one, factor
+        // in (0, 1] - 0.9 at the line's cap of 10 %. Called once as the run begins (GearStats.Apply), before any use; a
+        // cooldown already running keeps what it has left. One body, never inlined, for the scene and the simulation.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void ShortenCooldown(float factor)
+        {
+            if (!(factor > 0f) || factor > 1f)
+                throw new ArgumentOutOfRangeException(nameof(factor));
+            Cooldown *= factor;
         }
 
         public void Tick(float deltaTime)

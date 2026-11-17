@@ -48,11 +48,13 @@ namespace Cryptforge.Combat
         // Sets the enemy alight: stacks from the hero's hit (spread false) or a neighbour's fall (spread true). source is
         // whose damage the burn deals; neighbourhood finds who stands beside it when it falls.
         // hold: the encounter's fight hold (EncounterController.FightHold) - while it reads true, the burn waits.
-        public void Ignite(int stacks, bool spread, IDamageable source, INeighbourhood neighbourhood, Func<bool> hold = null)
+        // damageScale: the burner's gear burn-damage factor (docs/54 section 20), 1 without one; a spread passes its own on.
+        public void Ignite(int stacks, bool spread, IDamageable source, INeighbourhood neighbourhood, Func<bool> hold = null,
+            float damageScale = 1f)
         {
             if (_health == null || !_health.IsAlive)
                 return;
-            State.Apply(stacks, spread);
+            State.Apply(stacks, spread, damageScale);
             _source = source;
             _neighbourhood = neighbourhood;
             if (hold != null)
@@ -98,6 +100,7 @@ namespace Cryptforge.Combat
         private void OnDied()
         {
             bool spreads = State.Spreads;
+            float scale = State.DamageScale;
             State.Clear();
             if (!spreads || _neighbourhood == null)
                 return;
@@ -111,7 +114,7 @@ namespace Cryptforge.Combat
                 BurnStatus status = On(neighbour);
                 if (status == null)
                     continue;
-                status.Ignite(BurnRule.SpreadStacks, true, _source, _neighbourhood, _hold);
+                status.Ignite(BurnRule.SpreadStacks, true, _source, _neighbourhood, _hold, scale);
                 Spread?.Invoke(_health, neighbour);
             }
         }

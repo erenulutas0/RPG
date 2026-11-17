@@ -50,6 +50,8 @@ namespace Cryptforge.Core
         private RunTelemetryBridge _telemetry;
         // A deeper start's level-ups are open: the first wave waits for the last of them (OnChoicesChanged).
         private bool _firstWaveAfterChoices;
+        // What Ember Memory's burns tick at: the gear's burn-damage factor (GearStats.BurnFactor), 1 without one.
+        private float _burnFactor = 1f;
 
         // The floor this run began on: 1, or the deeper map chosen before this load (MapChoiceView, DescentStart).
         public int StartFloor { get; private set; } = 1;
@@ -213,12 +215,6 @@ namespace Cryptforge.Core
                 for (int i = 0; i < tomes.Length; i++)
                     tomes[i] = _economy.TomeAt(i).CreateOption();
             }
-            // The gear the profile wears for this run's weapon (docs/54 phase 5): that weapon's own basma and lines (per
-            // weapon id) and the equipped armour, amulet and ring, through the one body the Descent simulation calls at the
-            // same moment - the weapon's stats onto every weapon the hero holds or will hold, the hero's onto its sheet.
-            // A profile without gear adds nothing, and the run is today's.
-            Gear = new GearLoadout(Profile.Gear.EquippedPieces(HeroWeapon.Id));
-            GearStats.Apply(Gear, HeroStats, loadout, Weapon);
             Upgrades = new UpgradeService(Run, Weapon, options,
                 categories ? _economy.CategoryChoiceCount : _economy.UpgradeChoiceCount, HeroStats,
                 movement != null ? movement.Stamina.Enabled : HeroStamina.CurrentRulesEnabled, loadout, weaponCards, tomes);
@@ -235,6 +231,14 @@ namespace Cryptforge.Core
             Pause.Changed += ApplyPause;
             Choices.Changed += OnChoicesChanged;
             Drops = new GroundDrops(Run);
+            // The gear the profile wears for this run's weapon (docs/54 section 20): that weapon's own basma and lines (per
+            // weapon id) and the equipped armour, amulet and ring, through the one body the Descent simulation calls at the
+            // same moment - the weapon's stats onto every weapon the hero holds or will hold, the hero's onto its sheet,
+            // and the rules onto the shares, the heals, the ability and the drops. A profile without gear touches nothing,
+            // and the run is today's. Its burn line is read where Ember Memory lights a burn (IgniteStruck).
+            Gear = new GearLoadout(Profile.Gear.EquippedPieces(HeroWeapon.Id));
+            GearStats.Apply(Gear, HeroStats, loadout, Weapon, _hero.State, Ability, Drops);
+            _burnFactor = GearStats.BurnFactor(Gear);
             // The map this run starts on (MapChoiceView): the one chosen before this load, if any - the scene reloads to
             // start deeper - or, with none chosen, the choice itself, which holds the first wave and the run's telemetry
             // until the player taps a map.
@@ -383,6 +387,7 @@ namespace Cryptforge.Core
                 DeepestFloorCleared = Profile.DeepestFloorCleared,
                 Seed = Run.Seed,
                 StartFloor = StartFloor,
+                Gear = Gear,
                 KillerId = () => KillerTelemetryId,
                 HeroHealth = () => _hero.Current,
                 HeroMaximumHealth = () => _hero.Maximum,
@@ -602,7 +607,7 @@ namespace Cryptforge.Core
 
         // Ember Memory: one direct Burn stack on the enemy each hit lands on; its fall then passes the burn on.
         private void IgniteStruck(Health target, WeaponRuntime weapon) =>
-            BurnStatus.On(target)?.Ignite(1, false, _hero, _burnNeighbourhood, _encounters.FightHold);
+            BurnStatus.On(target)?.Ignite(1, false, _hero, _burnNeighbourhood, _encounters.FightHold, _burnFactor);
 
         // For tests: the neighbourhood a burn's fall asks.
         internal INeighbourhood BurnNeighbourhood => _burnNeighbourhood;

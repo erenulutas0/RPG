@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Cryptforge.Combat;
 using Cryptforge.Core;
 
@@ -19,6 +20,11 @@ namespace Cryptforge.Economy
         // One body for the distance, never inlined, so the scene's assembly and the simulation's pick up on the same frame.
         public static bool IsWithinReach(float heroX, float heroY, float dropX, float dropY) =>
             ArenaFloor.FloorDistanceSquared(heroX, heroY, dropX, dropY) <= PickupRadius * PickupRadius;
+
+        // As above at another radius: a hero whose gear widens its reach (docs/54 section 20, GroundDrops.PickupRadius).
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static bool IsWithinReach(float heroX, float heroY, float dropX, float dropY, float radius) =>
+            ArenaFloor.FloorDistanceSquared(heroX, heroY, dropX, dropY) <= radius * radius;
     }
 
     // The drops lying on a floor, in the order they fell. Collecting pays the run exactly what the kill would have paid;
@@ -51,6 +57,18 @@ namespace Cryptforge.Economy
 
         public int Count => _drops.Count;
         public Drop At(int index) => _drops[index];
+
+        // How close the hero's feet must come to a drop: DropRule.PickupRadius, or wider by the gear's pickup-radius line
+        // (docs/54 section 20), set once as the run begins (GearStats.Apply). The scene and the simulation both pick up
+        // through CollectNear, so both read it.
+        public float PickupRadius { get; private set; } = DropRule.PickupRadius;
+
+        public void SetPickupRadius(float radius)
+        {
+            if (float.IsNaN(radius) || float.IsInfinity(radius) || radius <= 0f)
+                throw new ArgumentOutOfRangeException(nameof(radius));
+            PickupRadius = radius;
+        }
 
         // A drop fell. Raised after it lies, for whatever shows it.
         public event Action<Drop> Dropped;
@@ -86,7 +104,9 @@ namespace Cryptforge.Economy
             for (int i = 0; i < _drops.Count;)
             {
                 Drop drop = _drops[i];
-                if (!DropRule.IsWithinReach(heroX, heroY, drop.X, drop.Y))
+                if (!(PickupRadius == DropRule.PickupRadius
+                        ? DropRule.IsWithinReach(heroX, heroY, drop.X, drop.Y)
+                        : DropRule.IsWithinReach(heroX, heroY, drop.X, drop.Y, PickupRadius)))
                 {
                     i++;
                     continue;

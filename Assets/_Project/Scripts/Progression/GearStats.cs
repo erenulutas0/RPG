@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Cryptforge.Combat;
+using Cryptforge.Economy;
 
 namespace Cryptforge.Progression
 {
@@ -9,12 +10,17 @@ namespace Cryptforge.Progression
     // summed per stat and clamped at the stat's cap; and the power index, DPS x EHP - 1. All in hundredths and integers, so
     // the scene, the simulation and the model read the same numbers.
     //
-    // And what it does to a run (docs/54 phase 5, section 20): Apply turns a loadout's clamped totals into modifiers on the
-    // run's own stats, on the paths the cards and tomes already ride - the weapon's stats granted to every weapon the hero
-    // holds or will hold (WeaponLoadout.AddGlobal, as a tome's are), the hero's on HeroStats. One body, never inlined, that
-    // CombatSetup and the Descent simulation both call as the run begins: two copies of float arithmetic in two assemblies
-    // have already disagreed in the last bit once (docs/21, the movement budget). A stat the run has no rule for yet is
-    // inert (RunStat). An ungeared run (GearLoadout.None) is today's run to the bit: Apply adds nothing to it.
+    // And what it does to a run (docs/54 phases 5 and 5b, section 20): Apply turns a loadout's clamped totals into the run's
+    // own numbers. Damage, attack speed, area, health and move speed are a factor of their own on the final stat (the lead,
+    // 2026-11-17: an item's "+14 %" is 14 % more whatever the tomes hold, ModifierOperation.Multiply); crit, armour and luck
+    // are points added as the cards add theirs. The weapon's stats go to every weapon the hero holds or will hold
+    // (WeaponLoadout.AddGlobal, the tomes' path), the hero's to HeroStats; damage vs elites and bosses multiplies every
+    // weapon's elite and gate-boss shares (the Daggers' path); burn damage scales the hero's burns' ticks (BurnFactor, read
+    // where a burn is lit); pickup radius widens GroundDrops' reach; ability cooldown shortens the ability's; healing
+    // received scales every heal of the hero's HealthState. One body, never inlined, that CombatSetup and the Descent
+    // simulation both call as the run begins: two copies of float arithmetic in two assemblies have already disagreed in
+    // the last bit once (docs/21, the movement budget). An ungeared run (GearLoadout.None) is today's run to the bit: Apply
+    // touches nothing.
     public static class GearStats
     {
         // A crit strikes for twice the damage (the power index's reading; the weapon's own multiplier is the run's).
@@ -111,25 +117,23 @@ namespace Cryptforge.Progression
             return (int)(dps * ehp / one - one);
         }
 
-        // ---- The run (docs/54 phase 5) ----
+        // ---- The run (docs/54 phases 5 and 5b) ----
 
-        // How a gear stat reaches a run: the UpgradeStat whose path it rides and the operation, as a card carrying that stat
-        // would. False for a stat the run has no rule for yet, which Apply leaves inert: damage vs elites and bosses (a
-        // weapon's elite and gate-boss shares are fixed by its id, WeaponLoadout.TryAdd), burn damage (BurnRule's damage a
-        // stack is a constant), pickup radius (GroundDrops.PickupRadius is a constant), ability cooldown (AbilityRuntime's
-        // cooldown is fixed when it is made) and healing received (the chest's mend, the forge's heal and Second Wind read no
-        // stat). Each would be a new rule of the run; phase 5 maps gear onto the rules there are.
+        // How a gear stat reaches the run's stat sheet: the UpgradeStat whose path it rides and the operation - Multiply for
+        // damage, attack speed, area, health and move speed (a factor of its own, the lead's decision of 2026-11-17), Flat
+        // for crit, armour and luck (points, as the cards add theirs). False for the five stats that ride a rule of their own
+        // rather than the sheet (Apply: damage vs elites and bosses, burn damage, pickup radius, ability cooldown, healing).
         public static bool RunStat(GearStat stat, out UpgradeStat runStat, out ModifierOperation operation)
         {
             switch (stat)
             {
                 case GearStat.Damage:
                     runStat = UpgradeStat.Damage;
-                    operation = ModifierOperation.Percent;
+                    operation = ModifierOperation.Multiply;
                     return true;
                 case GearStat.AttackSpeed:
                     runStat = UpgradeStat.AttackSpeed;
-                    operation = ModifierOperation.Percent;
+                    operation = ModifierOperation.Multiply;
                     return true;
                 case GearStat.CritChance:
                     runStat = UpgradeStat.CritChance;
@@ -137,7 +141,7 @@ namespace Cryptforge.Progression
                     return true;
                 case GearStat.MaxHealth:
                     runStat = UpgradeStat.MaxHealth;
-                    operation = ModifierOperation.Percent;
+                    operation = ModifierOperation.Multiply;
                     return true;
                 case GearStat.Armour:
                     runStat = UpgradeStat.Armor;
@@ -145,11 +149,11 @@ namespace Cryptforge.Progression
                     return true;
                 case GearStat.Area:
                     runStat = UpgradeStat.Area;
-                    operation = ModifierOperation.Percent;
+                    operation = ModifierOperation.Multiply;
                     return true;
                 case GearStat.MoveSpeed:
                     runStat = UpgradeStat.MoveSpeed;
-                    operation = ModifierOperation.Percent;
+                    operation = ModifierOperation.Multiply;
                     return true;
                 case GearStat.Luck:
                     runStat = UpgradeStat.Luck;
@@ -162,24 +166,17 @@ namespace Cryptforge.Progression
             }
         }
 
-        // The amount of the modifier a clamped total makes, in its run stat's units: a percent as a fraction (1000, +10 %,
-        // is 0.1), crit points as a chance (300, three points, is 0.03), luck in points (500 is 5); 0 for an inert stat.
-        // Armour is the share of a hit taken away (section 7.1: 400 is four points, 4 % less), while the run's armour is a
-        // pool with diminishing returns (HeroStats.DamageReduction = armour / (armour + ArmorSoftness)); the points become
-        // the pool that takes exactly that share off an unarmoured hero, ArmorSoftness x r / (1 - r): 4.17 for four
-        // points. Beside armour from cards the same pool takes a little less off, as any armour there does.
+        // The amount of a sheet modifier a clamped total makes, in its run stat's units: a percent as a fraction (1000,
+        // +10 %, is 0.1; ModifiableStat multiplies by 1 + it), crit points as a chance (300, three points, is 0.03), luck in
+        // points (500 is 5). Armour is the share of a hit taken away (section 7.1: 400 is four points, 4 % less), while the
+        // run's armour is a pool with diminishing returns (HeroStats.DamageReduction = armour / (armour + ArmorSoftness)); the
+        // points become the pool that takes exactly that share off an unarmoured hero, ArmorSoftness x r / (1 - r): 4.17
+        // for four points. For the five rule stats, the fraction itself (Factor turns it into the factor).
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static float RunAmount(GearStat stat, int total)
         {
             switch (stat)
             {
-                case GearStat.Damage:
-                case GearStat.AttackSpeed:
-                case GearStat.CritChance:
-                case GearStat.MaxHealth:
-                case GearStat.Area:
-                case GearStat.MoveSpeed:
-                    return total / 10000f;
                 case GearStat.Armour:
                 {
                     float share = total / 10000f;
@@ -188,17 +185,39 @@ namespace Cryptforge.Progression
                 case GearStat.Luck:
                     return total / 100f;
                 default:
-                    return 0f;
+                    return total / 10000f;
             }
         }
 
-        // The loadout on the run, once, as it begins: every stat with a value and a run rule becomes one modifier, in
-        // GearStat's order - the hero's on hero; the weapon's granted to every weapon of loadout (the foundry's, which
-        // replays it onto each weapon picked up later, so a second weapon wears the gear too) or, where the run keeps no
-        // loadout (the hall arena), onto weapon alone. An empty loadout, or a stat at 0, adds no modifier at all, so an
-        // ungeared run is today's to the bit. Returns how many modifiers it added.
+        // The factor a stat's clamped total makes on what it multiplies: 1 + the fraction (1.06 for +6 % damage vs elites),
+        // and 1 - it for ability cooldown (0.9 at its 10 % cap); exactly 1 for a total of 0. Not for crit, armour or luck,
+        // which add points. One body, never inlined, for Apply and for the burns the scene and the simulation light.
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public static int Apply(GearLoadout gear, HeroStats hero, WeaponLoadout loadout, WeaponRuntime weapon = null)
+        public static float Factor(GearLoadout gear, GearStat stat)
+        {
+            if (stat == GearStat.CritChance || stat == GearStat.Armour || stat == GearStat.Luck)
+                throw new ArgumentOutOfRangeException(nameof(stat), "Crit, armour and luck add points; they have no factor.");
+            int total = gear != null ? gear.Total(stat) : 0;
+            if (total <= 0)
+                return 1f;
+            float fraction = RunAmount(stat, total);
+            return stat == GearStat.AbilityCooldown ? 1f - fraction : 1f + fraction;
+        }
+
+        // What every tick of the hero's burns is multiplied by (BurnState.DamageScale): read where a burn is lit - the
+        // scene's Ember Memory (CombatSetup) and the simulation's - since a burn is made per enemy, long after the start.
+        public static float BurnFactor(GearLoadout gear) => Factor(gear, GearStat.BurnDamage);
+
+        // The loadout on the run, once, as it begins, in GearStat's order: each sheet stat with a value becomes one modifier -
+        // the hero's on hero; the weapon's granted to every weapon of loadout (the foundry's, which replays it onto each
+        // weapon picked up later, so a second weapon wears the gear too) or, where the run keeps no loadout (the hall
+        // arena), onto weapon alone. Then the rules: damage vs elites and bosses on the loadout's shares (or the one
+        // weapon's), healing received on health, ability cooldown on ability, pickup radius on drops. Any of the targets
+        // may be null and is then left alone; burn damage is read where burns are lit (BurnFactor). An empty loadout, or a
+        // stat at 0, touches nothing, so an ungeared run is today's to the bit. Returns how many stats it applied.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static int Apply(GearLoadout gear, HeroStats hero, WeaponLoadout loadout, WeaponRuntime weapon = null,
+            HealthState health = null, AbilityRuntime ability = null, GroundDrops drops = null)
         {
             if (gear == null || gear.IsEmpty)
                 return 0;
@@ -230,6 +249,36 @@ namespace Cryptforge.Progression
                 {
                     continue;
                 }
+                applied++;
+            }
+
+            if (gear.Total(GearStat.EliteDamage) > 0 && (loadout != null || weapon != null))
+            {
+                float factor = Factor(gear, GearStat.EliteDamage);
+                if (loadout != null)
+                {
+                    loadout.SetTargetShareFactor(factor);
+                }
+                else
+                {
+                    weapon.GateBossShare = WeaponLoadout.ShareOf(weapon.GateBossShare, factor);
+                    weapon.EliteShare = WeaponLoadout.ShareOf(weapon.EliteShare, factor);
+                }
+                applied++;
+            }
+            if (gear.Total(GearStat.Healing) > 0 && health != null)
+            {
+                health.SetHealingReceived(Factor(gear, GearStat.Healing));
+                applied++;
+            }
+            if (gear.Total(GearStat.AbilityCooldown) > 0 && ability != null)
+            {
+                ability.ShortenCooldown(Factor(gear, GearStat.AbilityCooldown));
+                applied++;
+            }
+            if (gear.Total(GearStat.PickupRadius) > 0 && drops != null)
+            {
+                drops.SetPickupRadius(DropRule.PickupRadius * Factor(gear, GearStat.PickupRadius));
                 applied++;
             }
             return applied;

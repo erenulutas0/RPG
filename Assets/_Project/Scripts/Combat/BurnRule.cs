@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Cryptforge.Combat
 {
@@ -32,6 +33,11 @@ namespace Cryptforge.Combat
             return stacks * DamagePerStackPerSecond * TickSeconds;
         }
 
+        // A frame's tick damage at a burn's damage scale (the gear's burn-damage line, docs/54 section 20). One body, never
+        // inlined, for the scene's BurnStatus and the simulation's burns alike.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static float Scaled(float damage, float scale) => damage * scale;
+
         // What Crucible Vent deals for this many spent stacks, at the ability's damage per stack.
         public static float VentDamage(int stacks, float damagePerStack)
         {
@@ -58,13 +64,22 @@ namespace Cryptforge.Combat
         public bool IsBurning => Stacks > 0;
         // Whether this enemy, falling now, passes its burn to its neighbours.
         public bool Spreads => IsBurning && HasDirectStack;
+        // What every tick of this burn is multiplied by: the burner's gear burn-damage line (docs/54 section 20), 1 without
+        // one. The burn is the hero's damage, so a spread passes it on with the stacks (BurnStatus, the simulation).
+        public float DamageScale { get; private set; } = 1f;
 
         // Adds stacks up to the cap and refreshes the duration. spread: the stacks came from a neighbour's fall.
-        public void Apply(int stacks, bool spread)
+        public void Apply(int stacks, bool spread) => Apply(stacks, spread, 1f);
+
+        // As above, the ticks from now on at damageScale (the hero's gear factor, GearStats.Factor of BurnDamage).
+        public void Apply(int stacks, bool spread, float damageScale)
         {
             if (stacks < 1)
                 throw new ArgumentOutOfRangeException(nameof(stacks));
+            if (float.IsNaN(damageScale) || float.IsInfinity(damageScale) || damageScale <= 0f)
+                throw new ArgumentOutOfRangeException(nameof(damageScale));
 
+            DamageScale = damageScale;
             if (!IsBurning)
                 _tickClock = 0f;
             Stacks = Math.Min(BurnRule.MaxStacks, Stacks + stacks);
@@ -92,6 +107,8 @@ namespace Cryptforge.Combat
                 _tickClock -= BurnRule.TickSeconds;
                 damage += BurnRule.TickDamage(Stacks);
             }
+            if (damage > 0f && DamageScale != 1f)
+                damage = BurnRule.Scaled(damage, DamageScale);
             if (Remaining <= 0f)
                 Clear();
             return damage;
