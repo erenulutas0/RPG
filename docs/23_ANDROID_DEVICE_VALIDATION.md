@@ -2404,6 +2404,8 @@ report (steps 7-8) only read, so they need no focus check.
    ```
    The folder holds no `pull.txt`, so the batch report never reads it.
 4. **Install the APK and check its hash.** The APK is `Builds/Android/Cryptforge-Prototype.apk`, the clean build of
+   main 2f9f1984 with floor 3's Pollen Wraith (the Cinder Mite's numbers in a pale drifting spirit, no pollen) in
+   the Gloam Gardens' horde and halls on top of
    main d357e75b with the gear (docs/54): items in four slots, basma +0..+9 that never breaks, efsun lines kept old or
    new and a bag of 30 behind the forge's Anvil button, loot from floor clears, elites and bosses (save version 4: a
    version-3 profile migrates with its gold kept) on top of
@@ -2423,8 +2425,8 @@ report (steps 7-8) only read, so they need no focus check.
    with a point on every locale; Gradle's 10 MB of holes gone; 36,819,361 bytes). Check the file
    itself, never a hash written down earlier:
    ```
-   (Get-FileHash Builds/Android/Cryptforge-Prototype.apk -Algorithm SHA256).Hash   # 9299DDE3DDA865F1... on 2026-11-17 14:02
-   (Get-Item Builds/Android/Cryptforge-Prototype.apk).Length                        # 60761513
+   (Get-FileHash Builds/Android/Cryptforge-Prototype.apk -Algorithm SHA256).Hash   # F20B289A81C5ED36... on 2026-11-17 14:41
+   (Get-Item Builds/Android/Cryptforge-Prototype.apk).Length                        # 60815679
    adb install -r Builds/Android/Cryptforge-Prototype.apk
    ```
    `install -r` keeps the profile and the telemetry. `Cryptforge-Prototype-679df68d.apk` (47 MB, DA3D13FD...) and the
