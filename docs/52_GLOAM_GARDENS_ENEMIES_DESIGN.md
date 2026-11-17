@@ -1062,3 +1062,71 @@ steps, wire them).
   saturation maps, the squint, checks.json, and `pollen-wraith/sprites.json`, `thornling/sprites.json` (the runtime's
   list of everything beside the sets); the first look kept beside as `*-pass1.*`, the pink Wraith and jointed Thornling
   the lead looked at as `*-pass2.*`.
+
+## Step 3: the Pollen Wraith in the game, as the Cinder Mite reskinned (2026-11-17)
+
+**The lead's decision (2026-11-17).** The Pollen Wraith ships on floor 3 as a pure reskin of the Cinder Mite: the Mite's
+health (15), speed (2.2), weapon (the Mite Bite itself, 0.6 every 1.5 s at reach 1.5), gold (0) and experience (1), and
+**no pollen**. It takes the Mite's place in floor 3's horde role 0 and in the three halls' Mite waves - Ash Orchard 6,
+Rootbound Walk 8, Bloom Gate 3 (section 3) - and Thorn Post's two Mites and the Warden's Grove's escort stay Cinder Mites
+(section 11, decision 4).
+
+**Why no pollen.** Section 3's stillness read (`PollenRule`) was never built or measured: there is no simulation lever and
+no scene service for it, and step 1's research measured only the Bloom. The lead ships the Wraith's look now and keeps
+pollen as a research lever, off; a pollen round, if one comes, would be read under the relative rule on seeds 1-800 (the
+lesson of the Bloom's step 2). With no pollen the Wraith is the Mite in every number, so the floor plays as it did: no clear, no completion and
+no report line moves (the default batch below), and nothing here needs the relative rule.
+
+**What was built.**
+- `Data/Enemies/Enemy_PollenWraith.asset` (`enemy_pollen_wraith`, "Pollen Wraith"; a new GUID): the Mite's numbers and its
+  `Weapon_MiteBite`.
+- `Prefabs/Enemies/PollenWraith.prefab` (a new GUID): a variant of the Grunt's prefab, as the Mite's, the Mirror Sentry's and
+  the Cinder Bloom's are, carrying the Mite's overrides value for value - the Mite look (5: its compact bar), the attack nudge 0.04, the body's
+  scale and colour - with `PollenWraithArtSet` as its painted set. The set has no themed copy, so on floor 3 the Wraith
+  wears its own set where the Grunt and the Runner wear their bloomed copies; its visual top (0.6) and shadow (0.34) come
+  from the set, so its hover needs no override. A Grunt variant rather than a variant of the Mite's prefab: every override
+  then targets one of the Grunt's own objects (the Mite's file copied with three lines changed: the instance's file id, the
+  name, the set), and only the definition's reference to the variant's `Health` is derived (the instance's id XOR the
+  Grunt's `Health`, the rule the Mite, the Mirror Sentry and the Cinder Bloom already follow). A test holds it to the Mite's
+  body in every component and serialized value but the set (below), which is what a variant of the Mite would have given.
+- `Data/Floors/Floor_GloamGardens.asset`: horde role 0 and the halls' 17 Mites name the Wraith; Thorn Post and the Grove
+  unchanged.
+- The simulation plays the Wraith as the Mite itself: `DescentSimulation.PollenWraith` is `Mite` (the same object, under
+  the Mite's name), named in `GloamGardens`' halls and `FoundryFloorThree`'s horde roles, so every run, kill label and report
+  line is the one it was. No enemy id flows through the simulation, so nothing else changed there.
+- Tests. EditMode: `FoundrySimulationSceneValueTests.ThePollenWraithIsTheCinderMiteReskinned` (the asset's numbers and
+  weapon are the Mite's; the prefab is a Grunt variant like the Mite's and its body is the Mite's in every component and
+  visible serialized value but `_paintedArt`, references into the body compared by place; it wears `PollenWraithArtSet`
+  with no themed copy, the Mite keeps `CinderMiteArtSet`; no floor but floor 3 names it); `TheFoundrysThirdFloorIsTheAsset`
+  reads floor 3's Wraiths as the simulation's Mite and counts them room by room (6, 8, 3; Thorn Post's and the Grove's two
+  Mites each) with the horde's roles Wraith, Grunt, Runner and floors 1 and 2's role 0 still the Mite;
+  `FoundryFloorThreeTests` names the horde's Wraith. PlayMode: `PollenWraithFlowTests` - a Descent started on floor 3 driven
+  through the halls and the forge to Thorn Post: the waves are the halls' Wraiths and Thorn Post's two Cinder Mites, every
+  Wraith in `PollenWraithArtSet` itself with the Mite look and the Mite Bite, every Mite in its bloomed copy, at least three
+  Wraiths and no Mite in the horde; floors 1 and 2 started each still field Cinder Mites (the painted set, the frosted copy)
+  and no Wraith. `GloamThemeTests.FloorThreesHordeStandsUpBloomed` counts the horde's Wraiths apart: their own set, not a
+  bloomed copy.
+
+**The default batch.** Against main 0243c55d, `FOUNDRY_SEEDS=200 FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1
+FOUNDRY_REALISM=typical FOUNDRY_PARALLEL=4`, with `FOUNDRY_FLOORS=4` and with `FOUNDRY_FLOORS=2`: every file is
+byte-identical but `foundry-batch.md`'s clock and wall-seconds column - floor 3, the finale and the whole Descent included
+(`foundry-cohorts-floor3.csv`, `foundry-cohorts.md`, `foundry-finale.md` and `.csv` match byte for byte). The reports print
+enemy names (the killers, the TTK table), which is why the simulation keeps the Mite's name rather than taking the Wraith's.
+CombatChecks 838 green ("Başarılı"); the Unity compile check green.
+
+**Files.** `Data/Enemies/Enemy_PollenWraith.asset` (+ `.meta`), `Prefabs/Enemies/PollenWraith.prefab` (+ `.meta`),
+`Data/Floors/Floor_GloamGardens.asset`, `Tests/Support/DescentSimulation.cs` and `DescentSimulation.Foundry.cs`,
+`Tests/EditMode/FoundrySimulationSceneValueTests.cs` and `FoundryFloorThreeTests.cs`, `Tests/PlayMode/PollenWraithFlowTests.cs`
+(+ `.meta`) and `GloamThemeTests.cs`.
+
+**Risks the build leaves open.**
+- **Not yet run in Unity.** The hand-written prefab variant and metas, the EditMode suite and the PlayMode flow are compiled,
+  not run (no Unity in a worktree). If the definition's `_prefab` reference were wrong, `ThePollenWraithIsTheCinderMiteReskinned`
+  fails on a null prefab at once.
+- **A smaller body on the Mite's footprint.** The Wraith's drawings are 0.31 wide and 0.48 tall against the Mite's 0.51 and
+  0.50, while its spacing, reach and the hero's targeting are the Mite's: it reads smaller and hovers (shadow 0.34), with the
+  compact bar at its own visual top 0.6. The look on the phone is the owner's call.
+- **A new horde kind on floor 3.** The Wraith's bodies are pooled as their own kind; the Mite's shelf from floor 2 is trimmed
+  on the descent, so floor 3's first Wraiths are instantiated rather than reused. Frame time at the descent is unmeasured.
+- **Telemetry** reports `enemy_pollen_wraith` for floor 3's horde and halls (kills, the killer), where it reported
+  `enemy_cinder_mite`; nothing in the tools keys on that id.
