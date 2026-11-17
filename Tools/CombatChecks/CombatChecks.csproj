@@ -182,6 +182,8 @@
     <Compile Include="GloamEnemiesResearch.cs" />
     <!-- docs/54's income on demand: forge gold banked, elites and bosses felled a run, by cohort and hero. -->
     <Compile Include="GearEconomyResearch.cs" />
+    <!-- docs/54 section 13's geared cohorts on Forged (phase 5) on demand: completion, the bosses, minutes and income with gear. -->
+    <Compile Include="GearedCohortsResearch.cs" />
     <!-- docs/55's PvP prototype (2026-11-17): a deterministic integer 1v1 duel, its replay test, and the research on demand. -->
     <Compile Include="ArenaDuel.cs" />
     <Compile Include="ArenaDuelResearch.cs" />

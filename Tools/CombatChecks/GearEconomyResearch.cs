@@ -36,7 +36,7 @@ namespace Cryptforge.Tests
         private static readonly HashSet<string> Elites = new HashSet<string> { "Grunt Captain", "Mirror Sentry", "Cinder Bloom" };
         private static readonly HashSet<string> Bosses = new HashSet<string> { "Forge Warden", "Glass Regent" };
 
-        private sealed class Run
+        internal sealed class Run
         {
             public string Cohort;
             public string Hero;
@@ -91,7 +91,7 @@ namespace Cryptforge.Tests
         }
 
         // Every Enemy the simulation names, by name, with its base gold (the first field wins on a shared name).
-        private static Dictionary<string, int> BaseGold()
+        internal static Dictionary<string, int> BaseGold()
         {
             var gold = new Dictionary<string, int>();
             foreach (FieldInfo field in typeof(DescentSimulation).GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
@@ -105,7 +105,7 @@ namespace Cryptforge.Tests
             return gold;
         }
 
-        private static float[] Modifiers(DescentSimulation.FoundryFloor chain)
+        internal static float[] Modifiers(DescentSimulation.FoundryFloor chain)
         {
             var modifiers = new float[4];
             int i = 0;
@@ -114,7 +114,7 @@ namespace Cryptforge.Tests
             return modifiers;
         }
 
-        private static Run Read(string cohort, string hero, int seed, DescentSimulation.FoundryResult result, float[] modifiers,
+        internal static Run Read(string cohort, string hero, int seed, DescentSimulation.FoundryResult result, float[] modifiers,
             Dictionary<string, int> gold, HashSet<string> unknown)
         {
             var run = new Run { Cohort = cohort, Hero = hero, Seed = seed };
@@ -199,7 +199,7 @@ namespace Cryptforge.Tests
 
         private static int P(int[] sorted, double q) => sorted.Length == 0 ? 0 : sorted[Math.Min(sorted.Length - 1, (int)(q * sorted.Length))];
 
-        private static string Csv(List<Run> runs)
+        internal static string Csv(List<Run> runs)
         {
             var csv = new StringBuilder();
             csv.AppendLine("cohort,hero,seed,floors_cleared,completed,banked,lost,gold_f1,gold_f2,gold_f3,gold_f4,elites_f1,elites_f2,elites_f3,elites_f4,bosses_f1,bosses_f2,bosses_f3,chests,minutes");
