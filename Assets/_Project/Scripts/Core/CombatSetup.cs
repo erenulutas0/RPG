@@ -562,6 +562,21 @@ namespace Cryptforge.Core
             return itemId;
         }
 
+        // A dropped item's own painted icon (ItemDefinition.Icon) for the Anvil's screens; null for a weapon, for an id
+        // this build no longer has and for an item without one (AnvilView then shows its slot's card icon).
+        public Sprite ItemIcon(string itemId)
+        {
+            if (string.IsNullOrEmpty(itemId))
+                return null;
+            for (int i = 0; _economy != null && i < _economy.ItemCount; i++)
+            {
+                ItemDefinition item = _economy.ItemAt(i);
+                if (item != null && item.Id == itemId)
+                    return item.Icon;
+            }
+            return null;
+        }
+
         // The game's text, for views built in code.
         internal PrototypeTextDefinition Text => _text;
 

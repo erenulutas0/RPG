@@ -71,7 +71,7 @@ namespace Cryptforge.Tests
 
     // The Forge's Anvil, Efsun and Bag tabs in the scene (docs/54 phase 4): the tabs open and close; a held strike holds or
     // fails and never breaks or lowers the item, and a tap is not a strike; a reroll is kept old or taken new; melt asks
-    // twice; inherit moves the level for its 10 %; equip; a full bag shows thirty.
+    // twice; inherit moves the level for its 10 %; equip; a full bag shows thirty; each item shows its own painted icon.
     public sealed class AnvilFlowTests
     {
         private const string ScenePath = "Assets/_Project/Scenes/Gameplay/Gameplay.unity";
@@ -274,6 +274,46 @@ namespace Cryptforge.Tests
             for (int i = 0; i < ProfileGear.BagCapacity; i++)
                 Assert.That(_anvil.TileItem(i), Is.Not.Null, "place " + i);
             Assert.That(_anvil.DetailText, Does.Contain("full"));
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // Each item shows its own painted icon (ItemDefinition.Icon, Art/UI/ItemIcons, 2026-11-17) in its bag place, on
+        // its equipped card and on the Anvil's card - no longer the upgrade card its slot borrowed (the shield, the
+        // gauntlet, the crit sword) - and the weapon its own card icon.
+        [UnityTest]
+        public IEnumerator EachItemShowsItsOwnPaintedIcon()
+        {
+            yield return OpenForge(AnvilFixtures.Profile());
+            Tap(_anvil.BagEntry);
+            yield return Settle();
+            var shown = new System.Collections.Generic.Dictionary<string, Sprite>();
+            for (int i = 0; i < ProfileGear.BagCapacity; i++)
+            {
+                ItemInstance item = _anvil.TileItem(i);
+                if (item == null)
+                {
+                    Assert.That(_anvil.TileIcon(i), Is.Null, "An empty place shows no icon.");
+                    continue;
+                }
+                Sprite icon = _anvil.TileIcon(i);
+                Assert.That(icon, Is.Not.Null, item.ItemId);
+                Assert.That(icon, Is.SameAs(_setup.ItemIcon(item.ItemId)), $"{item.ItemId}: its place shows the item's own icon.");
+                Assert.That(icon.name, Is.EqualTo("UI_ItemIcons_" + item.ItemId), item.ItemId);
+                shown[item.ItemId] = icon;
+            }
+            Assert.That(shown.Count, Is.EqualTo(8), "The fixture's eight items.");
+            Assert.That(new System.Collections.Generic.HashSet<Sprite>(shown.Values).Count, Is.EqualTo(8), "No two share an icon.");
+            for (int slot = 1; slot <= 3; slot++)
+            {
+                ItemInstance equipped = _setup.Profile.Gear.Equipped((GearSlot)slot);
+                Assert.That(_anvil.PieceIcon(slot), Is.SameAs(shown[equipped.ItemId]), $"{(GearSlot)slot}: the equipped item's own.");
+            }
+            Assert.That(_anvil.PieceIcon(0).name, Is.EqualTo("UI_UpgradeIcons_weapon_sword"), "The weapon its own card icon.");
+            Tap(_anvil.TabButton(AnvilView.Tab.Anvil));
+            yield return Settle();
+            Tap(_anvil.PieceButton(3));
+            Assert.That(_anvil.Selected.ItemId, Is.EqualTo("item_cinder_ring"));
+            Assert.That(_anvil.AnvilCardIcon, Is.SameAs(shown["item_cinder_ring"]), "The Anvil's card shows the ring's own icon.");
             LogAssert.NoUnexpectedReceived();
         }
 

@@ -16,3 +16,4 @@ MonoBehaviour:
   _displayName: Spore Locket
   _slot: 2
   _floor: 3
+  _icon: {fileID: 454204144194084538, guid: 4d180d37e6f648b7bdf5fb83088a3c4f, type: 3}

@@ -16,3 +16,4 @@ MonoBehaviour:
   _displayName: Quicksilver Locket
   _slot: 2
   _floor: 2
+  _icon: {fileID: 5136306647074010168, guid: 4d180d37e6f648b7bdf5fb83088a3c4f, type: 3}
