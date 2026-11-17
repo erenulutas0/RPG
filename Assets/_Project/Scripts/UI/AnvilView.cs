@@ -209,6 +209,8 @@ namespace Cryptforge.UI
         public Button TabButton(Tab tab) => _tabs[(int)tab];
         public Button PieceButton(int slot) => _pieces[slot].Button;
         public string PieceText(int slot) => _pieces[slot].Level.text + " " + _pieces[slot].Name.text;
+        public Sprite PieceIcon(int slot) => _pieces[slot].Icon.sprite;
+        public Sprite AnvilCardIcon => _anvilCard.Icon.sprite;
         public HoldToStrike Strike => _hold;
         public Button StrikeButton => _strike;
         public string StrikeText => _strikeLabel.text;
@@ -231,6 +233,7 @@ namespace Cryptforge.UI
         public string BagCountText => _bagCount.text;
         public Button TileButton(int index) => _tiles[index].Button;
         public ItemInstance TileItem(int index) => _tiles[index].Item;
+        public Sprite TileIcon(int index) => _tiles[index].Icon.sprite;
         public string DetailText => _detail.text;
         public Button EquipButton => _equip;
         public Button MeltButton => _melt;
@@ -1158,22 +1161,30 @@ namespace Cryptforge.UI
 
         // ---- Parts. ----
 
-        // The piece's painted card icon (UpgradeIconSet): a weapon's own, and for the dropped slots the card of the stat they
-        // carry - armour, attack speed, crit.
-        private Sprite IconFor(GearSlot slot, string id)
+        // The piece's painted icon: a dropped item's own (its ItemDefinition's, CombatSetup.ItemIcon), a weapon's card icon.
+        private Sprite IconFor(GearSlot slot, string id) =>
+            IconOf(slot, id, slot != GearSlot.Weapon && _setup != null ? _setup.ItemIcon(id) : null, _icons);
+
+        // The icon a piece shows. A dropped item (armour, amulet, ring) shows its own icon (itemIcon); one without
+        // shows the upgrade card of the stat its slot carries - armour, attack speed, crit - as every item did before
+        // they were painted (2026-11-17). A weapon shows its own card icon and never an item's. Null when neither is
+        // there (no set, an id it lacks): the card or the place shows no icon.
+        public static Sprite IconOf(GearSlot slot, string id, Sprite itemIcon, UpgradeIconSet icons)
         {
-            if (_icons == null)
+            if (slot != GearSlot.Weapon && itemIcon != null)
+                return itemIcon;
+            if (icons == null)
                 return null;
             switch (slot)
             {
                 case GearSlot.Weapon:
-                    return _icons.CardIconFor(id);
+                    return icons.CardIconFor(id);
                 case GearSlot.Armour:
-                    return _icons.CardIconFor("upgrade_armor");
+                    return icons.CardIconFor("upgrade_armor");
                 case GearSlot.Amulet:
-                    return _icons.CardIconFor("upgrade_attack_speed");
+                    return icons.CardIconFor("upgrade_attack_speed");
                 default:
-                    return _icons.CardIconFor("upgrade_crit");
+                    return icons.CardIconFor("upgrade_crit");
             }
         }
 
