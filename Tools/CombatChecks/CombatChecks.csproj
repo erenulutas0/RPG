@@ -183,6 +183,9 @@
     <!-- docs/55's PvP prototype (2026-11-17): a deterministic integer 1v1 duel, its replay test, and the research on demand. -->
     <Compile Include="ArenaDuel.cs" />
     <Compile Include="ArenaDuelResearch.cs" />
+    <!-- docs/57's hero skills (2026-11-17): the six skills in the duel core, a pin that docs/55's fights are untouched, and
+         the research on demand (the duel matrix; the shipped Descent read as the new skills would meet it). -->
+    <Compile Include="HeroSkillsResearch.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackMotionTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackSpacingTests.cs" />
