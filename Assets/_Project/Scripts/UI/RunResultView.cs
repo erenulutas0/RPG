@@ -104,6 +104,8 @@ namespace Cryptforge.UI
                     break;
             }
 
+            // A run on a tier above Forged names it after the title (docs/54 section 21): "Ascent complete  ·  Tempered".
+            _titleLabel.text = TierText.AfterTitle(_titleLabel.text, _setup.Tier);
             _progressLabel.text = string.Format(CultureInfo.InvariantCulture, _text.ResultProgressFormat, _encounters.FloorNumber, _encounters.TotalRoomsCleared,
                 run.Level, run.Experience);
             _goldLabel.text = run.GoldLost > 0

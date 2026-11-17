@@ -156,7 +156,7 @@ namespace Cryptforge.Combat
             else
             {
                 FloorModifierDefinition modifier = _encounters.Floor != null ? _encounters.Floor.Modifier : null;
-                _setup.Run.AddGold(FloorScaling.Gold(_reward.Gold, modifier != null ? modifier.GoldPercent : 0f));
+                _setup.Run.AddGold(FloorScaling.Gold(_reward.Gold, modifier != null ? modifier.GoldPercent : 0f, _encounters.Tier));
             }
             // The book is granted before the opening is announced, so a report of this chest can name what it held.
             LastBook = null;

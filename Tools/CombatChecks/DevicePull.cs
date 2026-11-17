@@ -26,6 +26,8 @@ namespace Cryptforge.Tests
         public const string FolderPrefix = "device-";
         // horde-probe.txt's hero (CombatSetup) stands with a million health more, so the density probe measures the fight.
         public const double ProbeHealth = 1000000;
+        // run_start's tier for Forged (DifficultyTiers.Id); a Forged run writes none, so this is only ever read, never seen.
+        public static readonly string ForgedTier = Cryptforge.Progression.DifficultyTiers.Id(Cryptforge.Progression.DifficultyTier.Forged);
         // A window's alive count reads the telemetry's samples this far either side of it, and a run's end this late.
         private const double SlackSeconds = 1;
         // A run's opening, where its telemetry names no wave: its first seconds. With one, its first wave's entry and this.
@@ -97,6 +99,13 @@ namespace Cryptforge.Tests
                 if (run.StartFloor > 1)
                 {
                     device.DeeperStartRuns++;
+                    continue;
+                }
+                // Played on a difficulty tier above Forged (run_start's tier, docs/54 section 21): its enemies are not the
+                // floors the simulation's Forged rows hold, so it is left out of the floor rows and counted apart.
+                if (run.Tier != null && run.Tier != ForgedTier)
+                {
+                    device.TieredRuns++;
                     continue;
                 }
                 // Worn gear (run_start's gear_power, docs/54 section 12): the simulation the owner's floors are read against
@@ -280,6 +289,9 @@ namespace Cryptforge.Tests
             // without them (an ungeared run, and every run before docs/54 phase 5).
             public int GearPower = -1;
             public string GearLevels;
+            // The difficulty tier: run_start's tier ("tempered", "inferno", "abyssal"); null without one (a Forged run, and
+            // every run before docs/54 phase 6).
+            public string Tier;
             // run_end's result, "interrupted" for run_interrupted, null for neither; run_end's cause (cleared, extracted,
             // killed, killed_by:<id> - the pit's is killed_by:pit_eruption) and its active_sec, the whole run's.
             public string Result;
@@ -325,6 +337,7 @@ namespace Cryptforge.Tests
                             run.StartFloor = Int(f, "start_floor", 1);
                             run.GearPower = Int(f, "gear_power", -1);
                             run.GearLevels = Text(f, "gear_levels");
+                            run.Tier = Text(f, "tier");
                             break;
                         case "room_start":
                             floor = Int(f, "floor_index", floor);

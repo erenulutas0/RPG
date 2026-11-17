@@ -43,6 +43,10 @@ namespace Cryptforge.Progression
     // Hammer, a Rune and an item; the finale's walk-out a chance at a Rune and at an item; and the first floor-1 boss a
     // profile fells an armour for certain. Rates in parts of 10,000. Every draw is from the run's loot stream
     // (RunRandom.Loot), one index per drop moment, so loot never reads a word of the offers', chests' or crits' streams.
+    // On a difficulty tier above Forged (docs/54 sections 8 and 21) every chance is the tier's reward times its Forged one
+    // (DifficultyTiers.Chance), a material's amount likewise (its fraction made whole by one word drawn last, so the
+    // moment's other draws stay where they were), and an item's rarity is drawn at the tier's item luck; Forged draws
+    // exactly the words it always drew.
     public static class LootRule
     {
         public const int Parts = 10000;
@@ -63,7 +67,7 @@ namespace Cryptforge.Progression
         // The loot of one moment. items is the run's item list (EconomyConfig's), giftArmour that this is the first floor-1
         // boss the profile fells (the gift replaces that boss's item chance with a certain armour).
         public static LootDrop Roll(LootSource source, int floor, int seed, int index, IReadOnlyList<ItemTemplate> items,
-            bool giftArmour = false)
+            bool giftArmour = false, DifficultyTier tier = DifficultyTier.Forged)
         {
             if (index < 0)
                 throw new ArgumentOutOfRangeException(nameof(index));
@@ -74,41 +78,44 @@ namespace Cryptforge.Progression
                 case LootSource.FloorClear:
                     if (GearCurrency.TryMaterialOfFloor(floor, out MaterialKind cleared))
                         SetMaterial(drop, cleared, MaterialPerClear);
-                    if (Chance(random, ScrollPerClear))
+                    if (Chance(random, ScrollPerClear, tier))
                         drop.AddBooster(BoosterKind.EfsunScroll);
                     break;
                 case LootSource.Elite:
                     if (GearCurrency.TryMaterialOfFloor(floor, out MaterialKind elite))
                         SetMaterial(drop, elite, MaterialPerElite);
-                    if (Chance(random, SealPerElite))
+                    if (Chance(random, SealPerElite, tier))
                         drop.AddBooster(BoosterKind.ForgeSeal);
                     if (Chance(random, ItemPerElite))
-                        drop.Item = RollItem(random, items, floor, source, null);
+                        drop.Item = RollItem(random, items, floor, source, null, tier);
                     break;
                 case LootSource.Boss:
                 case LootSource.FirstBoss:
-                    if (Chance(random, SealPerBoss))
+                    if (Chance(random, SealPerBoss, tier))
                         drop.AddBooster(BoosterKind.ForgeSeal);
-                    if (Chance(random, HammerPerBoss))
+                    if (Chance(random, HammerPerBoss, tier))
                         drop.AddBooster(BoosterKind.MastersHammer);
-                    if (Chance(random, RunePerBoss))
+                    if (Chance(random, RunePerBoss, tier))
                         drop.AddBooster(BoosterKind.BindingRune);
                     // The word is drawn either way, so a gift never moves the draws after it.
                     bool item = Chance(random, ItemPerBoss);
                     if (giftArmour)
-                        drop.Item = RollItem(random, items, floor, LootSource.FirstBoss, GearSlot.Armour);
+                        drop.Item = RollItem(random, items, floor, LootSource.FirstBoss, GearSlot.Armour, tier);
                     else if (item)
-                        drop.Item = RollItem(random, items, floor, source, null);
+                        drop.Item = RollItem(random, items, floor, source, null, tier);
                     break;
                 case LootSource.WalkOut:
-                    if (Chance(random, RunePerWalkOut))
+                    if (Chance(random, RunePerWalkOut, tier))
                         drop.AddBooster(BoosterKind.BindingRune);
                     if (Chance(random, ItemPerWalkOut))
-                        drop.Item = RollItem(random, items, floor, source, null);
+                        drop.Item = RollItem(random, items, floor, source, null, tier);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(source));
             }
+            // The tier's share of the material, last, so a fraction's word moves no draw before it.
+            if (drop.HasMaterial && tier != DifficultyTier.Forged)
+                drop.MaterialAmount = DifficultyTiers.Amount(drop.MaterialAmount, tier, random);
             return drop;
         }
 
@@ -131,15 +138,20 @@ namespace Cryptforge.Progression
             drop.MaterialAmount = amount;
         }
 
+        // An item's chance is the same on every tier (the tier pays in item luck); a booster's is the tier's reward times it.
         private static bool Chance(RunRandom random, int parts) => random.NextBelow(Parts) < parts;
 
+        private static bool Chance(RunRandom random, int parts, DifficultyTier tier) =>
+            random.NextBelow(Parts) < DifficultyTiers.Chance(parts, tier);
+
         // An item of the slot (drawn evenly from armour, amulet and ring unless given) for the floor (the finale's is the
-        // third floor's), its rarity from RarityTable at no luck and its lines from the same stream. Null when the run's
-        // list has no item for that slot.
-        private static ItemDrop RollItem(RunRandom random, IReadOnlyList<ItemTemplate> items, int floor, LootSource source, GearSlot? slot)
+        // third floor's), its rarity from RarityTable at the tier's item luck (none on Forged) and its lines from the same
+        // stream. Null when the run's list has no item for that slot.
+        private static ItemDrop RollItem(RunRandom random, IReadOnlyList<ItemTemplate> items, int floor, LootSource source, GearSlot? slot,
+            DifficultyTier tier)
         {
             GearSlot chosen = slot ?? (GearSlot)(1 + random.NextBelow(3));
-            UpgradeRarity rarity = RarityTable.Draw(random, 0f);
+            UpgradeRarity rarity = RarityTable.Draw(random, DifficultyTiers.ItemLuck(tier));
             EfsunLine[] lines = EfsunRule.Roll(GearStats.MainStatOf(chosen), EfsunRule.LinesFor(rarity), random);
             ItemTemplate template = Find(items, chosen, Math.Max(1, Math.Min(DeepestItemFloor, floor)));
             return template == null ? null

@@ -55,6 +55,9 @@ namespace Cryptforge.Core
 
         // The floor this run began on: 1, or the deeper map chosen before this load (MapChoiceView, DescentStart).
         public int StartFloor { get; private set; } = 1;
+        // The difficulty tier this run is played on (docs/54 section 21): the one chosen with the map before this load, or
+        // the profile's choice - always an open tier. Forged is the Descent as it shipped.
+        public DifficultyTier Tier { get; private set; }
         // The map choice is open: the first wave and the run's telemetry wait for a map (StartOnMap).
         public bool IsChoosingMap { get; private set; }
 
@@ -140,9 +143,10 @@ namespace Cryptforge.Core
             Profile = _profileStore.Load();
             ReportLoadProblems();
             Relics = new RelicShop(Profile, relics);
-            // The map and hero chosen before this load (MapChoiceView), if any: taken here, before the hero is chosen.
-            int wanted = RunStartRequest.Take(out string requestedHero);
+            // The map, hero and tier chosen before this load (MapChoiceView), if any: taken here, before the hero is chosen.
+            int wanted = RunStartRequest.Take(out string requestedHero, out DifficultyTier? requestedTier);
             Hero = ChooseHero(requestedHero);
+            Tier = requestedTier.HasValue && Profile.Tiers.IsOpen(requestedTier.Value) ? requestedTier.Value : Profile.Tiers.Selected;
             _weaponOptions = weapons;
             Weapons = new WeaponShop(Profile, weapons, weapons[Array.IndexOf(_weapons, Hero.StartingWeapon)],
                 Hero.StartsWithItsOwnWeaponOnly);
@@ -171,7 +175,7 @@ namespace Cryptforge.Core
             int seed = DevelopmentStart.TryRunSeed(out int chosen) ? chosen : RunSeeds.Fresh();
             Run = new RunState(_economy.ExperiencePerLevel, _economy.AtRiskGoldLoss, _economy.ExperienceGrowth, seed);
             _rewards = new RewardService(Run);
-            Loot = new RunLoot(Run, ItemTemplates(), !Profile.Gear.FirstArmourGiven, _economy.AtRiskGoldLoss);
+            Loot = new RunLoot(Run, ItemTemplates(), !Profile.Gear.FirstArmourGiven, _economy.AtRiskGoldLoss, Tier);
             // Created before any view subscribes to Run.Ended, so banked gold and loot reach the profile before results show.
             Bank = new RunBank(Run, Profile, Loot);
             Anvil = new Anvil(Profile);
@@ -266,7 +270,7 @@ namespace Cryptforge.Core
             bool catchUp = StartFloor > 1;
             bool arrival = !catchUp && DevelopmentStart.GateArrival();
             _encounters.Initialize(Choices, Forge, () => HeroStats.Difficulty, Upgrades, Drops, arrival || IsChoosingMap || catchUp,
-                Run.Seed, StartFloor);
+                Run.Seed, StartFloor, Tier);
             if (arrival) gameObject.AddComponent<GateArrivalView>().Initialize(this, movement);
             // After the encounter knows its floor.
             Altars.Initialize(this, _hero.transform);
@@ -339,21 +343,25 @@ namespace Cryptforge.Core
                 _encounters.BeginFirstEncounter();
         }
 
-        // The map the player tapped on the map choice (MapChoiceView), with the hero chosen beside it: floor 1 with the
-        // scene's own hero begins here and now, as every run began before the choice existed; a deeper floor, or another
-        // playable hero, reloads the scene with the choice (RunStartRequest), and that load begins with that hero on that
-        // floor (Awake) without the choice. Once only, and only while the choice is open.
-        public void StartOnMap(int floorNumber, HeroDefinition hero = null)
+        // The map the player tapped on the map choice (MapChoiceView), with the hero and the difficulty tier chosen beside
+        // it: floor 1 with the scene's own hero and tier begins here and now, as every run began before the choice existed;
+        // a deeper floor, another playable hero or another open tier reloads the scene with the choice (RunStartRequest),
+        // and that load begins with that hero on that floor and tier (Awake) without the choice. Once only, and only while
+        // the choice is open. tier null keeps the scene's.
+        public void StartOnMap(int floorNumber, HeroDefinition hero = null, DifficultyTier? tier = null)
         {
             bool deeper = floorNumber > DescentStart.FirstFloor && DescentStart.IsStart(floorNumber);
-            // A deeper map not yet reached (MapUnlock) starts nothing; the choice stays open.
-            if (!IsChoosingMap || _restarting || (deeper && !IsMapOpen(floorNumber)))
+            DifficultyTier chosen = tier ?? Tier;
+            // A tier not yet opened, or a deeper map not yet reached on the chosen tier (MapUnlock), starts nothing; the
+            // choice stays open.
+            if (!IsChoosingMap || _restarting || !IsTierOpen(chosen) || (deeper && !IsMapOpen(floorNumber, chosen)))
                 return;
             IsChoosingMap = false;
             bool otherHero = hero != null && hero != Hero && IsHeroPlayable(hero);
-            if (deeper || otherHero)
+            bool otherTier = chosen != Tier;
+            if (deeper || otherHero || otherTier)
             {
-                RunStartRequest.Set(deeper ? floorNumber : DescentStart.FirstFloor, otherHero ? hero.Id : null);
+                RunStartRequest.Set(deeper ? floorNumber : DescentStart.FirstFloor, otherHero ? hero.Id : null, chosen);
                 RestartRun();
                 return;
             }
@@ -388,6 +396,7 @@ namespace Cryptforge.Core
                 Seed = Run.Seed,
                 StartFloor = StartFloor,
                 Gear = Gear,
+                Tier = Tier,
                 KillerId = () => KillerTelemetryId,
                 HeroHealth = () => _hero.Current,
                 HeroMaximumHealth = () => _hero.Maximum,
@@ -598,10 +607,25 @@ namespace Cryptforge.Core
         public bool IsHeroPlayable(HeroDefinition hero) => HeroUnlock.IsPlayable(hero != null && hero.UnlockedFromStart,
             hero != null && Profile.HasUnlockedHero(hero.Id), DevelopmentStart.AllHeroesOpen());
 
-        // Whether the map choice may start a run on this floor: the Foundry always, a deeper map once the profile has
-        // cleared the floor above it (MapUnlock, docs/53). Unlike a hero, a development build gets no exception here: the
-        // development files (start-floor.txt) start deeper without the panel.
-        public bool IsMapOpen(int floorNumber) => MapUnlock.IsOpen(floorNumber, Profile.DeepestFloorCleared);
+        // Whether the map choice may start a run on this floor on this run's tier: the Foundry always, a deeper map once a
+        // run on the tier has cleared the floor above it (MapUnlock, docs/53; each tier its own record, docs/54 section 21).
+        // Unlike a hero, a development build gets no exception here: the development files (start-floor.txt) start deeper
+        // without the panel.
+        public bool IsMapOpen(int floorNumber) => IsMapOpen(floorNumber, Tier);
+
+        public bool IsMapOpen(int floorNumber, DifficultyTier tier) => Profile.Tiers.IsMapOpen(floorNumber, tier);
+
+        // Whether a run may be played on this tier: Forged always, another once the Descent is completed on the tier below
+        // it. No development exception, as for the maps.
+        public bool IsTierOpen(DifficultyTier tier) => Profile.Tiers.IsOpen(tier);
+
+        // The gear power a hero would wear into a run from this start (GearLoadout.Power, hundredths of a percent): the
+        // weapon it would carry (WeaponFor) with its own basma and lines, and the equipped armour, amulet and ring.
+        public int GearPowerFor(HeroDefinition hero)
+        {
+            WeaponDefinition weapon = WeaponFor(hero);
+            return weapon != null ? new GearLoadout(Profile.Gear.EquippedPieces(weapon.Id)).Power : 0;
+        }
 
         // The Foundry cleared: every hero unlocked by carrying a weapon through it, and carried this run, unlocks.
         internal void UnlockHeroesForTheFoundry()
@@ -643,13 +667,15 @@ namespace Cryptforge.Core
             // Whatever still lies on the floor flies to the hero before anything else happens, so the floor's gold is
             // whole when the checkpoint shows it and its level-ups are offered before the checkpoint opens.
             Drops.CollectAll();
-            Profile.RecordFloorCleared(_encounters.FloorNumber);
+            Profile.RecordFloorCleared(_encounters.FloorNumber, Tier);
             Loot.FloorCleared(_encounters.FloorNumber);
             if (_encounters.FloorNumber == 1)
                 UnlockHeroesForTheFoundry();
             if (!_encounters.HasNextFloor)
             {
                 Loot.WalkedOut(_encounters.FloorNumber);
+                // The Descent walked out of on this tier: the tier above it opens (ProfileTiers).
+                Profile.RecordDescentCompleted(Tier);
                 Run.End(RunOutcome.Victory);
                 return;
             }

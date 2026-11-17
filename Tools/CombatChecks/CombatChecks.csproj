@@ -67,6 +67,7 @@
     <!-- docs/54 phase 2: the profile's gear, its plain snapshot and the save's mapping of it. -->
     <Compile Include="../../Assets/_Project/Scripts/Core/ProfileGear.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/GearSnapshot.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Core/ProfileTiers.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/RunPause.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/FrameStats.cs" />
     <!-- The development autopilot's drop detour, one body for the scene's autopilot and the foundry simulation's copy. -->
@@ -86,6 +87,7 @@
     <Compile Include="../../Assets/_Project/Scripts/Save/ProfileSaveData.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Save/ProfileMigration.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Save/ProfileGearSave.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Save/ProfileTiersSave.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/CombatStateTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/RewardTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/UpgradeTests.cs" />
@@ -189,6 +191,8 @@
     <Compile Include="GearEconomyResearch.cs" />
     <!-- docs/54 section 13's geared cohorts on Forged (phase 5) on demand: completion, the bosses, minutes and income with gear. -->
     <Compile Include="GearedCohortsResearch.cs" />
+    <!-- docs/54 phase 6: the difficulty tiers with their matched geared cohorts (explicit; section 21). -->
+    <Compile Include="DifficultyTiersResearch.cs" />
     <!-- docs/55's PvP prototype (2026-11-17): a deterministic integer 1v1 duel, its replay test, and the research on demand. -->
     <Compile Include="ArenaDuel.cs" />
     <Compile Include="ArenaDuelResearch.cs" />
@@ -244,6 +248,8 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/GearStatsTests.cs" />
     <!-- docs/54 phase 2: the profile's gear and the Anvil over it. -->
     <Compile Include="../../Assets/_Project/Tests/EditMode/ProfileGearTests.cs" />
+    <!-- docs/54 phase 6: the difficulty tiers (Progression/DifficultyTier.cs, Core/ProfileTiers.cs, Save/ProfileTiersSave.cs). -->
+    <Compile Include="../../Assets/_Project/Tests/EditMode/DifficultyTierTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/AnvilTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/RunLootTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/GearTextTests.cs" />

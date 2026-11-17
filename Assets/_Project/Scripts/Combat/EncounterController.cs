@@ -166,6 +166,10 @@ namespace Cryptforge.Combat
         // The floor the run began on: 1, or the map the player chose (Initialize's startFloor). A development start-floor
         // file keeps 1 here, as it keeps FloorNumber.
         public int StartFloorNumber { get; private set; } = 1;
+        // The difficulty tier the run is played on (docs/54 section 21, Initialize's tier): every enemy's health and damage
+        // on every floor times the tier's (FloorScaling.TierHealth and TierDamage on the floor's own tier), and its gold
+        // times the tier's reward. Forged changes nothing.
+        public DifficultyTier Tier { get; private set; }
         public bool HasNextFloor => _currentFloor != null && _currentFloor.NextFloor != null;
         public RoomDefinition CurrentRoom =>
             _floorProgress != null && _floorProgress.RoomIndex >= 0 ? _rooms[_floorProgress.RoomIndex] : null;
@@ -294,11 +298,14 @@ namespace Cryptforge.Combat
         // startFloor is the map the player chose (MapChoiceView): the Descent's floor of that number, entered as if the hero
         // had walked down to it - its FloorNumber (the climb's scaling, the horde's seed, the telemetry's floor) and the halls
         // the floors above it added to the round - with no descent's transition. 1, the default, is floor 1 exactly as
-        // before; a development start-floor file wins over it (ResolveStartFloor).
+        // before; a development start-floor file wins over it (ResolveStartFloor). tier is the run's difficulty tier.
         public void Initialize(RunChoices choices, ForgeService forge, Func<float> difficulty = null,
             UpgradeService upgrades = null, GroundDrops drops = null, bool deferFirstEncounter = false, int hordeSeed = 0,
-            int startFloor = 1)
+            int startFloor = 1, DifficultyTier tier = DifficultyTier.Forged)
         {
+            if (!DifficultyTiers.IsDefined((int)tier))
+                throw new ArgumentOutOfRangeException(nameof(tier));
+            Tier = tier;
             _difficulty = difficulty;
             _hordeSeed = hordeSeed;
             _upgrades = upgrades;
@@ -1313,13 +1320,14 @@ namespace Cryptforge.Combat
                 SpawnWave(waveDefinition, atGate, boss, elite);
         }
 
-        // The floor's tier: authored, or the climb's formula by the floor's height with a boss room's own hardening.
-        private float FloorHealthMultiplier(bool boss) => _currentFloor.ClimbScaled
+        // The floor's tier: authored, or the climb's formula by the floor's height with a boss room's own hardening; then
+        // the run's difficulty tier on top (Forged: the floor's own), through the body the Descent simulation shares.
+        private float FloorHealthMultiplier(bool boss) => FloorScaling.TierHealth(_currentFloor.ClimbScaled
             ? ClimbScaling.Health(FloorNumber) * (boss ? ClimbScaling.Boss(FloorNumber) : 1f)
-            : _currentFloor.EnemyHealthMultiplier;
+            : _currentFloor.EnemyHealthMultiplier, Tier);
 
-        private float FloorDamageMultiplier =>
-            _currentFloor.ClimbScaled ? ClimbScaling.Damage(FloorNumber) : _currentFloor.EnemyDamageMultiplier;
+        private float FloorDamageMultiplier => FloorScaling.TierDamage(
+            _currentFloor.ClimbScaled ? ClimbScaling.Damage(FloorNumber) : _currentFloor.EnemyDamageMultiplier, Tier);
 
         // The gate is far from the court: its pack marches across at GateMarchFactor times its speed until within
         // GateMarchRange of the hero, so a waiting hero meets the boss in about ten seconds instead of twenty.
@@ -1517,7 +1525,7 @@ namespace Cryptforge.Combat
             spawn.Slot = 0;
             spawn.Health = enemy;
             spawn.Definition = definition;
-            spawn.Gold = horde ? 0 : FloorScaling.Gold(definition.GoldReward, goldPercent);
+            spawn.Gold = horde ? 0 : FloorScaling.Gold(definition.GoldReward, goldPercent, Tier);
             // An overrun floor's horde pays nothing (HordeClock.PaysExperience): the overrun is a reason to leave.
             spawn.Experience = !horde ? definition.ExperienceReward :
                 _horde != null && !HordeClock.PaysExperience(_horde.Seconds) ? 0 :

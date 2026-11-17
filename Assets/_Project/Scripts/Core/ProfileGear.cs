@@ -32,9 +32,6 @@ namespace Cryptforge.Core
         public int AnvilDraws { get; private set; }
         // The first floor-1 boss a profile fells drops an armour (docs/54 section 3.2): given once.
         public bool FirstArmourGiven { get; private set; }
-        // Difficulty tiers (docs/54 section 8), stored ahead of their build: 0 none / Forged.
-        public int HighestTierCompleted { get; private set; }
-        public int SelectedTier { get; private set; }
         // A reroll shown and not yet kept or discarded (docs/54 section 6.2); null when none.
         public ItemInstance PendingRerollPiece { get; private set; }
         public IReadOnlyList<EfsunLine> PendingRerollLines => _pendingLines;
@@ -201,8 +198,6 @@ namespace Cryptforge.Core
                 AnvilSeed = AnvilSeed,
                 AnvilDraws = AnvilDraws,
                 FirstArmourGiven = FirstArmourGiven,
-                HighestTierCompleted = HighestTierCompleted,
-                SelectedTier = SelectedTier,
                 PendingRerollKey = PendingRerollPiece != null ? KeyOf(PendingRerollPiece) : null,
                 PendingRerollLines = Records(_pendingLines)
             };
@@ -298,8 +293,6 @@ namespace Cryptforge.Core
             gear.AnvilSeed = snapshot.AnvilSeed;
             gear.AnvilDraws = Math.Max(0, snapshot.AnvilDraws);
             gear.FirstArmourGiven = snapshot.FirstArmourGiven;
-            gear.HighestTierCompleted = Math.Max(0, snapshot.HighestTierCompleted);
-            gear.SelectedTier = Math.Max(0, Math.Min(snapshot.SelectedTier, gear.HighestTierCompleted));
 
             ItemInstance pending = Resolve(gear, snapshot.PendingRerollKey);
             if (pending != null && snapshot.PendingRerollLines != null && snapshot.PendingRerollLines.Length > 0)

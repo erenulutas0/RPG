@@ -114,8 +114,10 @@ namespace Cryptforge.Tests
             return modifiers;
         }
 
+        // tier: the difficulty tier the run was played on (docs/54 section 21), whose reward multiplies each kill's and
+        // chest's gold as the scene pays it (FloorScaling.Gold with the tier); Forged by default.
         internal static Run Read(string cohort, string hero, int seed, DescentSimulation.FoundryResult result, float[] modifiers,
-            Dictionary<string, int> gold, HashSet<string> unknown)
+            Dictionary<string, int> gold, HashSet<string> unknown, Cryptforge.Progression.DifficultyTier tier = default)
         {
             var run = new Run { Cohort = cohort, Hero = hero, Seed = seed };
             int index = 0;
@@ -134,14 +136,14 @@ namespace Cryptforge.Tests
                             unknown.Add(kill.Kind);
                         continue;
                     }
-                    paid += FloorScaling.Gold(baseGold, modifiers[index]);
+                    paid += FloorScaling.Gold(baseGold, modifiers[index], tier);
                     if (Elites.Contains(kill.Kind))
                         run.FloorElites[index]++;
                     if (Bosses.Contains(kill.Kind))
                         run.FloorBosses[index]++;
                 }
                 // Odd rooms' chests pay, even rooms' heal: half the chests opened, on average.
-                paid += floor.ChestsOpened * FloorScaling.Gold(ChestRule.GoldReward, modifiers[index]) / 2;
+                paid += floor.ChestsOpened * FloorScaling.Gold(ChestRule.GoldReward, modifiers[index], tier) / 2;
                 run.FloorChests[index] = floor.ChestsOpened;
                 run.FloorGold[index] = paid;
                 run.Seconds += floor.FloorSeconds;

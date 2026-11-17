@@ -3,7 +3,7 @@ using Cryptforge.Progression;
 
 namespace Cryptforge.Save
 {
-    // The gear between its JSON fields (ProfileSaveData version 4) and the plain GearSnapshot ProfileGear restores from and
+    // The gear between its JSON fields (ProfileSaveData versions 4 and 5) and the plain GearSnapshot ProfileGear restores from and
     // writes to. Copies values only; ProfileGear.Restore does the repairing, so a damaged field here is never fatal.
     public static class ProfileGearSave
     {
@@ -48,8 +48,6 @@ namespace Cryptforge.Save
             snapshot.AnvilSeed = data.anvilSeed;
             snapshot.AnvilDraws = data.anvilDraws;
             snapshot.FirstArmourGiven = data.firstArmourGiven;
-            snapshot.HighestTierCompleted = data.highestTierCompleted;
-            snapshot.SelectedTier = data.selectedTier;
             snapshot.PendingRerollKey = data.pendingRerollKey;
             snapshot.PendingRerollLines = Lines(data.pendingRerollLines);
             return snapshot;
@@ -96,8 +94,6 @@ namespace Cryptforge.Save
             data.anvilSeed = snapshot.AnvilSeed;
             data.anvilDraws = snapshot.AnvilDraws;
             data.firstArmourGiven = snapshot.FirstArmourGiven;
-            data.highestTierCompleted = snapshot.HighestTierCompleted;
-            data.selectedTier = snapshot.SelectedTier;
             data.pendingRerollKey = snapshot.PendingRerollKey ?? string.Empty;
             data.pendingRerollLines = Lines(snapshot.PendingRerollLines);
         }

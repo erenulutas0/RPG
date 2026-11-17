@@ -103,7 +103,6 @@ namespace Cryptforge.Tests
                 Boosters = null,
                 NextItemUid = -8,
                 AnvilDraws = -1,
-                SelectedTier = 3,
                 PendingRerollKey = "item:77",
                 PendingRerollLines = new[] { new GearLineRecord("damage", 1) }
             };
@@ -123,7 +122,6 @@ namespace Cryptforge.Tests
             Assert.That(gear.Booster(BoosterKind.ForgeSeal), Is.Zero);
             Assert.That(gear.NextItemUid, Is.EqualTo(5));
             Assert.That(gear.AnvilDraws, Is.Zero);
-            Assert.That(gear.SelectedTier, Is.Zero, "No tier above the highest completed.");
             Assert.That(gear.PendingRerollPiece, Is.Null, "item:77 does not resolve.");
             Assert.That(ProfileGear.Restore(null).Bag, Is.Empty);
         }
@@ -132,7 +130,7 @@ namespace Cryptforge.Tests
         public void VersionThreeMigratesToAnEmptyBag()
         {
             ProfileSaveData upgraded = ProfileMigration.Upgrade(new ProfileSaveData { saveVersion = 3, revision = 4, gold = 39491 });
-            Assert.That(upgraded.saveVersion, Is.EqualTo(4));
+            Assert.That(upgraded.saveVersion, Is.EqualTo(ProfileSaveData.CurrentVersion), "Through 4 (gear) to the current.");
             Assert.That(upgraded.gold, Is.EqualTo(39491));
             Assert.That(upgraded.items, Is.Empty);
             Assert.That(upgraded.weaponGear, Is.Empty);
@@ -140,7 +138,7 @@ namespace Cryptforge.Tests
             Assert.That(upgraded.nextItemUid, Is.EqualTo(1));
             ProfileGear gear = ProfileGear.Restore(ProfileGearSave.ToSnapshot(upgraded));
             Assert.That(Describe(gear), Is.EqualTo(Describe(new ProfileGear())));
-            Assert.That(ProfileMigration.Upgrade(new ProfileSaveData { saveVersion = 1 }).items, Is.Empty, "Every older version reaches 4.");
+            Assert.That(ProfileMigration.Upgrade(new ProfileSaveData { saveVersion = 1 }).items, Is.Empty, "Every older version passes 4.");
         }
     }
 }

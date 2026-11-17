@@ -90,6 +90,15 @@ namespace Cryptforge.Tests
             // through the scene's own body (GearStats.Apply). None for every shipped test, the batch and the gate, whose
             // runs it leaves as they were; FoundryGear's geared cohorts set it (research, section 13).
             public GearLoadout Gear = GearLoadout.None;
+            // The difficulty tier the run is played on (docs/54 section 21), as CombatSetup reads it from the profile: every
+            // enemy's health and damage on every floor through the scene's own bodies (FloorScaling.TierHealth and
+            // TierDamage), and its gold times the tier's reward. Forged for every shipped test, the batch and the gate,
+            // whose runs it leaves as they were; DifficultyTiersResearch sets it.
+            public DifficultyTier Tier = DifficultyTier.Forged;
+            // Research only (DifficultyTiersResearch's candidates): the tier's enemy health and damage multipliers played
+            // in place of its own (DifficultyTiers.EnemyHealth and EnemyDamage) through the same body; NaN for the tier's.
+            public float TierHealthOverride = float.NaN;
+            public float TierDamageOverride = float.NaN;
         }
 
         // Data/Heroes/Hero_Vanguard.asset: 100 health, the Sword, the Forge Burst.
@@ -1307,6 +1316,10 @@ namespace Cryptforge.Tests
             // burn-damage factor (GearStats.BurnFactor, 1 without one).
             private readonly List<Foe> _burning = new List<Foe>();
             private readonly float _burnFactor = 1f;
+            // The run's difficulty tier (FoundryHero.Tier; Forged leaves every enemy and coin as it was).
+            private readonly DifficultyTier _tier;
+            private readonly float _tierHealth = 1f;
+            private readonly float _tierDamage = 1f;
             // The Daggers' design levers (research 2026-11-11): every enemy with a wound open, in the order it was first
             // wounded; the run second the next throw and the next lunge may come; and a wound's tick landing now.
             private readonly List<Foe> _bleeding = new List<Foe>();
@@ -1505,6 +1518,10 @@ namespace Cryptforge.Tests
                 // 20): nothing for None. Its burn line is read where a burn is lit (Ignite).
                 GearStats.Apply(hero.Gear, _heroStats, _loadout, weapon, _heroHealth, _ability, _drops);
                 _burnFactor = GearStats.BurnFactor(hero.Gear);
+                // The tier EncounterController.Initialize is given (CombatSetup.Tier), and its multipliers.
+                _tier = hero.Tier;
+                _tierHealth = float.IsNaN(hero.TierHealthOverride) ? DifficultyTiers.EnemyHealth(hero.Tier) : hero.TierHealthOverride;
+                _tierDamage = float.IsNaN(hero.TierDamageOverride) ? DifficultyTiers.EnemyDamage(hero.Tier) : hero.TierDamageOverride;
                 _rift = hero.Rift;
                 if (_rift != null)
                 {
@@ -2333,8 +2350,11 @@ namespace Cryptforge.Tests
                 _nonCombat = false;
                 int n = _floor.FloorNumber;
                 float scale = _heroStats.Difficulty;
-                float damageBonus = FloorScaling.DamageBonus(ClimbScaling.Damage(n) * scale, _floor.ModifierDamagePercent);
-                float floorHealth = ClimbScaling.Health(n) * (boss ? ClimbScaling.Boss(n) : 1f);
+                // EncounterController.FloorDamageMultiplier and FloorHealthMultiplier: the climb's tier, then the run's
+                // difficulty tier through the scene's own body (Forged: the climb's).
+                float damageBonus = FloorScaling.DamageBonus(FloorScaling.Tiered(ClimbScaling.Damage(n), _tierDamage) * scale,
+                    _floor.ModifierDamagePercent);
+                float floorHealth = FloorScaling.Tiered(ClimbScaling.Health(n) * (boss ? ClimbScaling.Boss(n) : 1f), _tierHealth);
                 int count = definitions.Count;
                 float heroX = HeroX;
                 float heroY = HeroY;
@@ -2354,7 +2374,7 @@ namespace Cryptforge.Tests
                         healthScale *= _levers.NodeHealthScale;
                     Foe foe = CreateFoe(definition,
                         FloorScaling.Health(definition.Health, healthScale, _floor.ModifierHealthPercent), damageBonus, false);
-                    foe.Gold = FloorScaling.Gold(definition.Gold, _floor.ModifierGoldPercent);
+                    foe.Gold = FloorScaling.Gold(definition.Gold, _floor.ModifierGoldPercent, _tier);
                     foe.Experience = definition.Experience;
                     foe.Motion = _waveMotion;
                     foe.Slot = _waveMotion.Add(foe, _placements[i], definition.Speed, foe.Weapon.Range);
@@ -2597,10 +2617,11 @@ namespace Cryptforge.Tests
                 // The horde's growth and clock as the director reads them (HordeHealthNow, HordeDamageNow, HordeClockNow:
                 // the director's own at the default levers; FoundryLevers.LaterHordeClockCap, research only, caps them).
                 float damageBonus = FloorScaling.DamageBonus(
-                    ClimbScaling.Damage(n) * scale * HordeRule.DamageShare * HordeDamageNow, _floor.ModifierDamagePercent);
+                    FloorScaling.Tiered(ClimbScaling.Damage(n), _tierDamage) * scale * HordeRule.DamageShare * HordeDamageNow,
+                    _floor.ModifierDamagePercent);
                 Foe foe = CreateFoe(definition,
                     FloorScaling.Health(definition.Health,
-                        ClimbScaling.Health(n) * scale * _levers.HordeHealthShare * HordeHealthNow,
+                        FloorScaling.Tiered(ClimbScaling.Health(n), _tierHealth) * scale * _levers.HordeHealthShare * HordeHealthNow,
                         _floor.ModifierHealthPercent),
                     damageBonus, true);
                 // An overrun floor's horde pays nothing (HordeClock.PaysExperience); otherwise its share.
@@ -3741,7 +3762,7 @@ namespace Cryptforge.Tests
                 if (_chestReward.Kind == ChestRewardKind.Heal)
                     _heroHealth.Heal(_heroHealth.Maximum * _chestReward.HealFraction);
                 else
-                    _run.AddGold(FloorScaling.Gold(_chestReward.Gold, _floor.ModifierGoldPercent));
+                    _run.AddGold(FloorScaling.Gold(_chestReward.Gold, _floor.ModifierGoldPercent, _tier));
                 if (_chestReward.HoldsBook)
                     _upgrades.TryGrantBook(_chestIndex, out _, out _);
             }

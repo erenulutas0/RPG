@@ -93,7 +93,8 @@ namespace Cryptforge.UI
                 return;
             }
 
-            _titleLabel.text = _text.Title;
+            // The run's title on the pause screen's readout names a difficulty tier above Forged (docs/54 section 21).
+            _titleLabel.text = TierText.AfterTitle(_text.Title, _setup.Tier);
             _hero.Changed += RefreshHero;
             _encounters.ProgressChanged += RefreshEncounter;
             // A swarm's ladder moves on its clock, with or without a spawn or a hit to report it.
@@ -223,7 +224,9 @@ namespace Cryptforge.UI
             if (!ReferenceEquals(_floorLabel.text, _floorText) || floorNumber != _floorNumber || roomNumber != _floorRoom ||
                 rooms != _floorRooms || !string.Equals(roomName, _floorRoomName, System.StringComparison.Ordinal))
             {
-                _floorLabel.text = string.Format(CultureInfo.InvariantCulture, _text.FloorProgressFormat, floorNumber, roomNumber, rooms, roomName);
+                // A run on a tier above Forged says which before its floor (docs/54 section 21); Forged's line is as it was.
+                _floorLabel.text = TierText.BeforeFloor(_setup.Tier,
+                    string.Format(CultureInfo.InvariantCulture, _text.FloorProgressFormat, floorNumber, roomNumber, rooms, roomName));
                 // Read back: the label keeps its old string when the new one has the same characters.
                 _floorText = _floorLabel.text;
                 _floorNumber = floorNumber;

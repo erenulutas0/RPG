@@ -83,6 +83,8 @@ namespace Cryptforge.Analytics
         // whose run_start keeps its keys exactly.
         private readonly int _gearPower = -1;
         private readonly string _gearLevels;
+        // The difficulty tier (docs/54 section 21): a Forged run's run_start keeps its keys exactly.
+        private readonly DifficultyTier _tier;
         private readonly Func<string> _killerId;
         private readonly Func<float> _heroHealth;
         private readonly Func<float> _heroMaximumHealth;
@@ -198,6 +200,9 @@ namespace Cryptforge.Analytics
                 _gearPower = context.Gear.Power;
                 _gearLevels = GearLevels(context.Gear);
             }
+            if (!DifficultyTiers.IsDefined((int)context.Tier))
+                throw new ArgumentOutOfRangeException(nameof(context), "RunTelemetryContext.Tier is not a difficulty tier.");
+            _tier = context.Tier;
             // Emitting before session_start throws in the session; refusing here keeps that out of every handler.
             if (!_session.HasStarted)
                 throw new ArgumentException("Start the telemetry session before recording a run.", nameof(context));
@@ -243,6 +248,11 @@ namespace Cryptforge.Analytics
             // the amulet's and the ring's basma, -1 for an empty slot.
             if (_gearLevels != null)
                 start.Add("gear_power", _gearPower).Add("gear_levels", _gearLevels);
+            // A run on a difficulty tier above Forged says which (docs/54 section 21: "tempered", "inferno", "abyssal"), so a
+            // reader of the floors (DevicePull) can set it apart from the Forged runs the simulation's rows are read against;
+            // a Forged run's line stays as it was.
+            if (_tier != DifficultyTier.Forged)
+                start.Add("tier", DifficultyTiers.Id(_tier));
             _session.Emit("run_start", start);
 
             // A run that already ended missed its Ended event; close it now so the log never shows it as still running.

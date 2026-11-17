@@ -158,6 +158,9 @@ namespace Cryptforge.Tests
             // Worn gear (run_start's gear_power, docs/54 section 12): left out of the floors, which the ungeared simulation
             // is read against.
             public int GearedRuns;
+            // Played on a difficulty tier above Forged (run_start's tier, docs/54 section 21): left out of the floors, which
+            // the simulation's Forged runs are read against.
+            public int TieredRuns;
             public int UnfinishedFloors;
             // FrameTimeProbe's [Perf] windows and RenderStatsProbe's [RenderStats] ones, in time order, on that APK; the
             // frames past 35 ms the [Perf] lines name one by one; the windows the log held from before the install.
@@ -613,6 +616,8 @@ namespace Cryptforge.Tests
                 left.Add($"{device.ProbeRuns} of the density probe (development/horde-probe.txt, its hero at a million health)");
             if (device.DeeperStartRuns > 0)
                 left.Add($"{device.DeeperStartRuns} begun on a deeper map (the map choice's floor 2 or 3, its hero caught up)");
+            if (device.TieredRuns > 0)
+                left.Add($"{device.TieredRuns} on a difficulty tier above Forged (run_start's tier; the simulation plays Forged)");
             if (device.GearedRuns > 0)
                 left.Add($"{device.GearedRuns} wearing gear (run_start's gear_power; the simulation plays ungeared)");
             if (device.UnfinishedFloors > 0)

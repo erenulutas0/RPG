@@ -39,6 +39,8 @@ namespace Cryptforge.Analytics
         // What the run wears (docs/54 phase 5): run_start writes gear_power and gear_levels when it wears anything that
         // changes the run (GearLoadout.IsEmpty false); null or empty for an ungeared run, whose run_start keeps its keys.
         public GearLoadout Gear;
+        // The difficulty tier the run is played on (docs/54 section 21): run_start writes it as tier when it is not Forged.
+        public DifficultyTier Tier;
 
         // The id of the enemy that last hit the hero, or null; read once when a defeat ends the run.
         public Func<string> KillerId;

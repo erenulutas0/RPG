@@ -141,6 +141,55 @@ namespace Cryptforge.Tests
             RunStartRequest.Clear();
         }
 
+        // The difficulty tier chosen beside the map (docs/54 section 21) rides with it as the hero does: never alone, never
+        // twice, and a map alone keeps the profile's tier.
+        [Test]
+        public void TheTierChosenWithTheMapIsReadOnceWithIt()
+        {
+            RunStartRequest.Clear();
+            RunStartRequest.Set(1, null, DifficultyTier.Inferno);
+            Assert.That((RunStartRequest.IsPending, RunStartRequest.PendingTier), Is.EqualTo((true, (DifficultyTier?)DifficultyTier.Inferno)));
+            Assert.That(RunStartRequest.Take(out string hero, out DifficultyTier? tier), Is.EqualTo(1));
+            Assert.That((hero, tier), Is.EqualTo(((string)null, (DifficultyTier?)DifficultyTier.Inferno)));
+            Assert.That(RunStartRequest.Take(out hero, out tier), Is.EqualTo(0), "Taken, it is gone.");
+            Assert.That(tier, Is.Null);
+            RunStartRequest.Set(0, null, DifficultyTier.Tempered);
+            Assert.That(RunStartRequest.PendingTier, Is.Null, "A tier without a map is no request.");
+            RunStartRequest.Set(2, "hero_vanguard", (DifficultyTier)9);
+            Assert.That(RunStartRequest.PendingTier, Is.Null, "Not a tier.");
+            RunStartRequest.Set(3, "hero_vanguard", DifficultyTier.Tempered);
+            Assert.That(RunStartRequest.Take(out hero), Is.EqualTo(3), "The floor and hero alone may be taken");
+            Assert.That(RunStartRequest.PendingTier, Is.Null, "and the tier goes with them.");
+            RunStartRequest.Set(2, "hero_vanguard");
+            Assert.That(RunStartRequest.PendingTier, Is.Null, "A map and hero alone keep the profile's tier.");
+            RunStartRequest.Clear();
+        }
+
+        // The line under the tier row (docs/54 section 21) says the tier's foes, rewards, luck and built-for gear beside the
+        // hero's own, and reads the same on a Turkish phone.
+        [Test]
+        public void TheTierLineReadsTheSameOnATurkishPhone()
+        {
+            CultureInfo before = Thread.CurrentThread.CurrentCulture;
+            try
+            {
+                Thread.CurrentThread.CurrentCulture = new CultureInfo("tr-TR");
+                string forged = MapChoiceView.DescribeTier(DifficultyTier.Forged, 0);
+                Assert.That(forged, Does.StartWith("Forged:").And.Contain("rewards x1").And.EndWith("Your gear: +0%"));
+                string tempered = MapChoiceView.DescribeTier(DifficultyTier.Tempered, 1470);
+                Assert.That(tempered, Does.StartWith("Tempered: foes +").And.Contain("rewards x1.25").And.Contain("item luck +10")
+                    .And.Contain("Built for gear +15% (a +5 set)").And.EndWith("Your gear: +14.7%"));
+                Assert.That(MapChoiceView.DescribeTier(DifficultyTier.Abyssal, 4190),
+                    Does.Contain("rewards x2").And.Contain("+9 with good efsun").And.EndWith("+41.9%"));
+                Assert.That(tempered, Does.Not.Contain("14,7").And.Not.Contain("1,25"), "no decimal comma");
+                Assert.That(tempered.Split('\n').Length, Is.EqualTo(2), "two lines");
+            }
+            finally
+            {
+                Thread.CurrentThread.CurrentCulture = before;
+            }
+        }
+
         // Map starts unlock as reached (docs/53, 2026-11-14): the Foundry always; the Vaults once floor 1 is cleared, the
         // Gardens once floor 2 is; never the finale or anything that is not a start. The hint reads the same on a Turkish
         // phone.
