@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Cryptforge.Combat
 {
@@ -72,6 +73,19 @@ namespace Cryptforge.Combat
             DamageReduction = reduction;
         }
 
+        // What every heal is multiplied by: the gear's healing-received line on the hero (docs/54 section 20), set once as
+        // the run begins (GearStats.Apply); 1 for everything else. Every heal the game has - the chest's mend, the forge's
+        // heal, Second Wind - comes through Heal, so this is the one place it applies. Raising the maximum (SetMaximum) is
+        // not a heal and is not scaled.
+        public float HealingReceived { get; private set; } = 1f;
+
+        public void SetHealingReceived(float factor)
+        {
+            if (float.IsNaN(factor) || float.IsInfinity(factor) || factor <= 0f)
+                throw new ArgumentOutOfRangeException(nameof(factor));
+            HealingReceived = factor;
+        }
+
         // Healing never revives: death is final for this state.
         public void Heal(float amount)
         {
@@ -80,8 +94,14 @@ namespace Cryptforge.Combat
             if (!IsAlive || amount == 0f || Current >= Maximum)
                 return;
 
+            if (HealingReceived != 1f)
+                amount = Received(amount, HealingReceived);
             Current = Math.Min(Maximum, Current + amount);
             Changed?.Invoke();
         }
+
+        // One body, never inlined, so the scene's assembly and the simulation's scale a heal alike.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static float Received(float amount, float factor) => amount * factor;
     }
 }

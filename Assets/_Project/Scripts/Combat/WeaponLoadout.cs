@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Cryptforge.Progression;
 
 namespace Cryptforge.Combat
@@ -84,13 +85,39 @@ namespace Cryptforge.Combat
                     throw new InvalidOperationException("One runtime cannot fill two slots.");
 
             runtime.Seed = SeedFor(_runSeed, _slots.Count);
-            runtime.GateBossShare = WardenRule.GateBossShareOf(weaponId);
-            runtime.EliteShare = EliteRule.EliteShareOf(weaponId);
+            HandShares(weaponId, runtime);
             for (int i = 0; i < _globalStats.Count; i++)
                 runtime.AddModifier(_globalStats[i], _globalModifiers[i]);
             _slots.Add(new Slot(weaponId, runtime));
             return true;
         }
+
+        // What every weapon's elite and gate-boss shares are multiplied by: the gear's damage vs elites and bosses (docs/54
+        // section 20), 1 without it. Set once as the run begins (GearStats.Apply); each weapon held is handed its shares
+        // again, and every weapon picked up later is handed them so.
+        public float TargetShareFactor { get; private set; } = 1f;
+
+        public void SetTargetShareFactor(float factor)
+        {
+            if (float.IsNaN(factor) || float.IsInfinity(factor) || factor <= 0f)
+                throw new ArgumentOutOfRangeException(nameof(factor));
+
+            TargetShareFactor = factor;
+            for (int i = 0; i < _slots.Count; i++)
+                HandShares(_slots[i].WeaponId, _slots[i].Runtime);
+        }
+
+        // A weapon's shares on the foundry's gate boss and elites by its id (WardenRule.GateBossShareOf: the Sword's 1.5;
+        // EliteRule.EliteShareOf: the Daggers' 2), times the gear's factor where there is one.
+        private void HandShares(string weaponId, WeaponRuntime runtime)
+        {
+            runtime.GateBossShare = ShareOf(WardenRule.GateBossShareOf(weaponId), TargetShareFactor);
+            runtime.EliteShare = ShareOf(EliteRule.EliteShareOf(weaponId), TargetShareFactor);
+        }
+
+        // One body, never inlined, for the scene's assembly and the simulation's; a factor of 1 leaves the share as it is.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static float ShareOf(float share, float factor) => factor == 1f ? share : share * factor;
 
         // A repeat pick of a held weapon. False, and nothing changed, when the weapon is not held or is at MaxLevel.
         public bool TryLevelUp(string weaponId)

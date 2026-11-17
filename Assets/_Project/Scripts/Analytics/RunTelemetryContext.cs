@@ -36,6 +36,9 @@ namespace Cryptforge.Analytics
         // The floor the run begins on: 1 (or 0, read as 1), or the deeper map the player chose (MapChoiceView); run_start
         // writes it as start_floor only when it is deeper than 1.
         public int StartFloor;
+        // What the run wears (docs/54 phase 5): run_start writes gear_power and gear_levels when it wears anything that
+        // changes the run (GearLoadout.IsEmpty false); null or empty for an ungeared run, whose run_start keeps its keys.
+        public GearLoadout Gear;
 
         // The id of the enemy that last hit the hero, or null; read once when a defeat ends the run.
         public Func<string> KillerId;

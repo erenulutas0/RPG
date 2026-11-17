@@ -86,6 +86,10 @@ namespace Cryptforge.Tests
             // The Riftblade's kit (docs/46, research 2026-11-11): Quicksilver Stride and its active, which stands in the
             // ability's place (Ability null). Null for every hero the game has, whose runs it leaves as they were.
             public RiftbladeKit Rift;
+            // What the hero wears (docs/54 phase 5): the profile's gear as CombatSetup reads it, applied at the run's start
+            // through the scene's own body (GearStats.Apply). None for every shipped test, the batch and the gate, whose
+            // runs it leaves as they were; FoundryGear's geared cohorts set it (research, section 13).
+            public GearLoadout Gear = GearLoadout.None;
         }
 
         // Data/Heroes/Hero_Vanguard.asset: 100 health, the Sword, the Forge Burst.
@@ -1299,8 +1303,10 @@ namespace Cryptforge.Tests
             private readonly List<HordeDirector.Spawn> _hordeSpawns = new List<HordeDirector.Spawn>(8);
             private readonly Func<float, float, bool> _pitHeld;
 
-            // Every enemy that has caught fire, in the order its BurnStatus was added.
+            // Every enemy that has caught fire, in the order its BurnStatus was added; and what every burn ticks at, the gear's
+            // burn-damage factor (GearStats.BurnFactor, 1 without one).
             private readonly List<Foe> _burning = new List<Foe>();
+            private readonly float _burnFactor = 1f;
             // The Daggers' design levers (research 2026-11-11): every enemy with a wound open, in the order it was first
             // wounded; the run second the next throw and the next lunge may come; and a wound's tick landing now.
             private readonly List<Foe> _bleeding = new List<Foe>();
@@ -1493,7 +1499,12 @@ namespace Cryptforge.Tests
                 _choices = new RunChoices(_upgrades, _forge);
                 _drops = new GroundDrops(_run);
                 // The Riftblade's active stands in the ability's place: no AbilityRuntime, its own clock (research).
+                // CombatSetup makes its AbilityRuntime first of all; made here, before the gear, it is the same object.
                 _ability = hero.Ability?.CreateRuntime();
+                // CombatSetup's gear, at the same moment - the drops made - and through the same body (docs/54 section
+                // 20): nothing for None. Its burn line is read where a burn is lit (Ignite).
+                GearStats.Apply(hero.Gear, _heroStats, _loadout, weapon, _heroHealth, _ability, _drops);
+                _burnFactor = GearStats.BurnFactor(hero.Gear);
                 _rift = hero.Rift;
                 if (_rift != null)
                 {
@@ -3103,7 +3114,8 @@ namespace Cryptforge.Tests
                     foe.BurnFresh = true;
                     _burning.Add(foe);
                 }
-                foe.Burn.Apply(stacks, spread);
+                // Every burn here is the hero's, a spread's included: the gear's burn factor, as BurnStatus passes it on.
+                foe.Burn.Apply(stacks, spread, _burnFactor);
             }
 
             // Health.ApplyDamage on the hero, and its Damaged event as the measurement and the death report read it.

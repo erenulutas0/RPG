@@ -1216,6 +1216,53 @@ namespace Cryptforge.Tests
             recorder.Dispose();
         }
 
+        // A run that wears gear says so on run_start (docs/54 section 12): its power index in hundredths of a percent and the
+        // weapon's, armour's, amulet's and ring's levels, after the keys every run writes, so a device pull can set geared
+        // runs apart from the ungeared runs the simulation measures; an ungeared run's line keeps its keys exactly.
+        [Test]
+        public void ARunWearingGearSaysSoOnRunStart()
+        {
+            string[] runStartKeys =
+            {
+                "v", "seq", "t", "st", "session", "run", "event",
+                "run_ordinal", "hero_id", "weapon_id", "relic_id", "ability_id", "forge_gold", "deepest_floor", "seed"
+            };
+            foreach (GearLoadout ungeared in new[] { null, GearLoadout.None, new GearLoadout(new[]
+                     {
+                         new ItemInstance(1, "item_foundry_mail", GearSlot.Armour, UpgradeRarity.Common, 0, 0, null)
+                     }) })
+            {
+                var plain = new Telemetry();
+                var plainRecorder = new RunTelemetry(Mutated(new Scene(null), plain, c => c.Gear = ungeared));
+                plainRecorder.Begin();
+                Assert.That(Single(plain.Lines(), "run_start").Keys, Is.EqualTo(runStartKeys), "a +0 armour without lines changes nothing");
+                plainRecorder.Dispose();
+            }
+
+            var gear = new GearLoadout(new[]
+            {
+                new ItemInstance(0, "weapon_sword", GearSlot.Weapon, UpgradeRarity.Rare, 9, 0, null),
+                new ItemInstance(1, "item_foundry_mail", GearSlot.Armour, UpgradeRarity.Gold, 7, 0, null),
+                new ItemInstance(3, "item_cinder_ring", GearSlot.Ring, UpgradeRarity.Gold, 9, 0, null)
+            });
+            var telemetry = new Telemetry();
+            var recorder = new RunTelemetry(Mutated(new Scene(null), telemetry, c => c.Gear = gear));
+            recorder.Begin();
+            List<Line> lines = telemetry.Lines();
+            AssertLogShape(lines);
+            Line start = Single(lines, "run_start");
+            Assert.That(start.Keys, Is.EqualTo(With(runStartKeys, "gear_power", "gear_levels")));
+            Assert.That(start.Integer("gear_power"), Is.EqualTo((long)gear.Power));
+            Assert.That(start.Integer("gear_power"), Is.EqualTo(2123L).Within(5L), "+10 % damage, +7 % health, 3 crit points: +21.2 %");
+            Assert.That(start.Text("gear_levels"), Is.EqualTo("9,7,-1,9"), "weapon, armour, amulet (empty), ring");
+            recorder.Dispose();
+
+            Assert.That(RunTelemetry.GearLevels(new GearLoadout(new[]
+            {
+                new ItemInstance(2, "item_ember_locket", GearSlot.Amulet, UpgradeRarity.Rare, 4, 0, null)
+            })), Is.EqualTo("0,-1,4,-1"), "a weapon the Anvil never touched is +0");
+        }
+
         [Test]
         public void TheContextIsValidatedBeforeAnythingSubscribes()
         {

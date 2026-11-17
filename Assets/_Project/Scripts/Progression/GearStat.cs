@@ -3,8 +3,9 @@ using System;
 namespace Cryptforge.Progression
 {
     // What a piece of gear can carry: the slots' main stats and the efsun line pool (docs/54 section 6.1; gold find dropped
-    // by the lead, 2026-11-16). Its own enum rather than UpgradeStat's: gear is not applied to a run yet (docs/54 phase 5),
-    // and when it is, GearStats maps these onto the run's stats in one body. Append, never reorder; the save writes the id.
+    // by the lead, 2026-11-16). Its own enum rather than UpgradeStat's, so nothing that switches on UpgradeStat moved: the
+    // run reads gear through GearStats.RunStat and Apply (docs/54 phases 5 and 5b, section 20), which map these onto the
+    // run's stats and rules in one body - every one of them reaches the run. Append, never reorder; the save writes the id.
     public enum GearStat
     {
         Damage = 0,

@@ -155,6 +155,9 @@ namespace Cryptforge.Tests
             public int ProbeRuns;
             // Begun on a deeper map (the map choice, run_start's start_floor 2 or 3): left out of the floors.
             public int DeeperStartRuns;
+            // Worn gear (run_start's gear_power, docs/54 section 12): left out of the floors, which the ungeared simulation
+            // is read against.
+            public int GearedRuns;
             public int UnfinishedFloors;
             // FrameTimeProbe's [Perf] windows and RenderStatsProbe's [RenderStats] ones, in time order, on that APK; the
             // frames past 35 ms the [Perf] lines name one by one; the windows the log held from before the install.
@@ -610,6 +613,8 @@ namespace Cryptforge.Tests
                 left.Add($"{device.ProbeRuns} of the density probe (development/horde-probe.txt, its hero at a million health)");
             if (device.DeeperStartRuns > 0)
                 left.Add($"{device.DeeperStartRuns} begun on a deeper map (the map choice's floor 2 or 3, its hero caught up)");
+            if (device.GearedRuns > 0)
+                left.Add($"{device.GearedRuns} wearing gear (run_start's gear_power; the simulation plays ungeared)");
             if (device.UnfinishedFloors > 0)
                 left.Add($"{Many(device.UnfinishedFloors, "floor")} never finished (the app closed, the run still on at the pull, or its lines rotated away on the phone)");
             string basis =
