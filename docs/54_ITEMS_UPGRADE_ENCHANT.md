@@ -685,12 +685,196 @@ carry no crest (the gold clasp would stand into the row above). The forge's titl
 608 units so the Bag and Anvil buttons sit clear of it; `RelicForgeFlowTests`' layout test checks them on the title's
 row, clear of the title and at least 44 units tall.
 
+## 20. Built: phase 5, the gear on the run (2026-11-17)
+
+The equipped gear reaches the run, and the simulation measures geared cohorts. Nothing measured moves: every shipped
+balance test, the gate and the default batch play ungeared (`GearLoadout.None`), and an ungeared run adds no modifier at
+all, so it is today's run to the bit (the batch below is byte-identical). No balance constant changed; the difficulty
+tiers (phase 6) are not built.
+
+**One body** (section 7.1, the stamina lesson of docs/21). `GearStats.Apply(GearLoadout, HeroStats, WeaponLoadout,
+WeaponRuntime)` is `[MethodImpl(NoInlining)]` in `Progression` and is the only place gear becomes run modifiers;
+`GearStats.RunAmount`, the float conversion, is non-inlined too. `CombatSetup.Awake` calls it once, after the hero's stat
+sheet is bound and the weapon loadout made and before the `UpgradeService`; `DescentSimulation.FoundryRun` calls it at the
+same point of its copy of that Awake. `GearLoadout` (`Progression`) is what a run wears: the carried weapon's own gear
+and the equipped armour, amulet and ring, with its clamped totals taken once, so nothing changed later moves a run
+already started. The scene builds it from `PlayerProfile.Gear.EquippedPieces(HeroWeapon.Id)`: the weapon slot is per
+weapon id (section 17, decision 3), so the Vanguard carrying the Sword wears the Sword's basma and lines and never the
+Staff's; Ilya always carries the Staff and wears its. `CombatSetup.Gear` exposes it.
+
+**What maps where.** Each stat's total over the whole gear, main stats and lines, is clamped at its cap (6.1) first.
+
+| Gear stat (`GearStat`) | Run path | Modifier | At the cap |
+|---|---|---|---|
+| Damage (the weapon's main) | `UpgradeStat.Damage` on every weapon held and every weapon picked up later (`WeaponLoadout.AddGlobal`, the tomes' path); the hall arena's one weapon | percent | +14 % |
+| Attack speed (the amulet's main) | `UpgradeStat.AttackSpeed`, the same way | percent | +7 % |
+| Crit chance (the ring's main) | `UpgradeStat.CritChance`, the same way; a rolled crit strikes for 2x (`WeaponRuntime`) | flat, points / 100 | 0.04 |
+| Area | `UpgradeStat.Area` (the Reach tome's), the same way | percent | +5 % |
+| Max health (the armour's main) | `HeroStats.MaxHealth` (the gain arrives filled) | percent | +14 % |
+| Armour (damage taken) | `HeroStats.Armor`: the pool that takes exactly that share off an unarmoured hero, 100 r / (1 - r) | flat | 4.17 armour, 4 % less |
+| Move speed | `HeroStats.MoveSpeed` | percent | +6 % |
+| Luck | `HeroStats.Luck` (`RarityTable`, the cards' rarity only) | flat points | 10 |
+| Damage vs elites and bosses | **inert**: a weapon's elite and gate-boss shares are fixed by its id (`WeaponLoadout.TryAdd`, `EliteRule`, `WardenRule`) | - | - |
+| Burn damage | **inert**: `BurnRule.DamagePerStackPerSecond` is a constant | - | - |
+| Pickup radius | **inert**: `GroundDrops.PickupRadius` is a constant | - | - |
+| Ability cooldown | **inert**: `AbilityRuntime`'s cooldown is fixed when it is made | - | - |
+| Healing received | **inert**: the chest's mend, the forge's heal and Second Wind read no stat | - | - |
+
+The five inert lines still roll, show in the Efsun tab, count against their caps and are saved; they do nothing in a run
+until each gets its rule (`GearStats.RunStat` returns false for them, `GearApplyTests` pins it). None of them is in the
+power index or in section 7.2's good lines, so no measured row below reads them. Proposal for the lead, not built: the
+cheapest to give a rule is ability cooldown (`AbilityRuntime` made with the cooldown times 1 - the line, at the run's
+start); damage vs elites and bosses would multiply the shares `WeaponLoadout.TryAdd` hands each weapon; burn, pickup and
+healing each need a stat the run does not keep.
+
+Two readings of the mapping worth knowing:
+- **Percents add, they do not multiply.** `ModifiableStat` sums a stat's percents (05_ECONOMY_BALANCING), so the
+  weapon's +10 % joins the Force tome's percents: on a run holding, say, +48 % from tomes it is worth 1.58 / 1.48, +6.8 %,
+  not +10 %. Gear shows most early in a run, least late in a strong build. Health's percent multiplies the base and the
+  cards' flat health together (Vital Surge, Ironblood, the Vitality tome), so it grows with the build.
+- **Armour joins the cards' armour pool.** On an unarmoured hero four points take exactly 4 % off; beside Iron Skin's 20
+  the same 4.17 armour takes about 2.8 points more.
+
+### The geared cohorts and the research
+
+`FoundryGear` (`Tests/Support`) holds section 13's cohorts, each an autopilot cohort wearing section 7.2's modelled set
+(the hero's own weapon at the level, a Gold armour, amulet and ring at the level; for +9g each piece carries damage,
+crit, health and move speed at tier 3, less its own main stat): `careful+5` (+15 %), `careful+7` (+21 %), `careful+9`
+(+31 %), `careful+9g` (+42 %), `clumsy+5` and `auto-farmer+5` (+15 %). `DescentSimulation.FoundryHero.Gear` is
+`GearLoadout.None` unless a report wears one. `GearedCohortsResearch` (`Tools/CombatChecks`, explicit) plays the named
+geared cohorts (`FOUNDRY_GEAR`, all by default) and the ungeared cohorts they are drawn from, both heroes, down the whole
+Descent on the same seeds with the batch's levers and typical hands, and writes `gear-cohorts.md` and `gear-cohorts.csv`
+(one row a run; `gear-economy.csv`'s columns first, so `gear_economy.py` can read geared income).
+
+**Measured: section 13's Forged rows** (2026-11-17, this branch; seeds 1-200 a hero, typical human hands, the whole
+Descent; `FOUNDRY_PARALLEL=4`, 18 minutes). The ungeared rows match the default batch's cohorts to the seed (careful
+190 / 194 completed, clumsy 61 / 100, auto-farmer 5 / 6). Completed and paired are of the 200 seeds; paired with the
+ungeared cohort on the same seeds: both / only ungeared / only geared. The bosses: P50 of the felled fights (floor 1's
+Warden from walking out to falling, as the gate's 45-65 s band reads it; floor 2's Regent and floor 3's Warden their own
+fights). Minutes: the Descent's active minutes, P50 of the completed runs. Banked: forge gold a run, mean, rebuilt as
+`GearEconomyResearch` does.
+
+| Cohort | Hero | Gear | Completed | Paired | Floor 1 cleared | Warden (f1) P50 / P90 | Regent (f2) | Warden (f3) | Minutes | Banked |
+|---|---|---|---|---|---|---|---|---|---|---|
+| careful | Vanguard | - | 190 (95.0 %) | - | 195 | 51.3 / 62.4 s | 49.5 s | 61.6 s | 14.5 | 489 |
+| careful | Ilya | - | 194 (97.0 %) | - | 198 | 46.0 / 55.8 s | 46.0 s | 56.7 s | 14.3 | 501 |
+| careful+5 | Vanguard | +14.7 % | 199 (99.5 %) | 190 / 0 / 9 | 199 | 48.0 / 60.0 s | 46.8 s | 59.3 s | 14.4 | 507 |
+| careful+5 | Ilya | +14.7 % | 199 (99.5 %) | 194 / 0 / 5 | 200 | 44.2 / 52.0 s | 43.8 s | 55.5 s | 14.2 | 510 |
+| careful+7 | Vanguard | +21.0 % | 197 (98.5 %) | 189 / 1 / 8 | 197 | 47.9 / 58.5 s | 46.4 s | 59.1 s | 14.3 | 506 |
+| careful+7 | Ilya | +21.0 % | 195 (97.5 %) | 190 / 4 / 5 | 197 | 44.1 / 52.2 s | 43.1 s | 54.6 s | 14.2 | 504 |
+| careful+9 | Vanguard | +30.9 % | 198 (99.0 %) | 188 / 2 / 10 | 199 | 46.2 / 58.1 s | 45.7 s | 55.5 s | 14.3 | 507 |
+| careful+9 | Ilya | +30.9 % | 198 (99.0 %) | 192 / 2 / 6 | 199 | 43.3 / 51.2 s | 43.0 s | 52.3 s | 14.1 | 510 |
+| careful+9g | Vanguard | +41.9 % | 199 (99.5 %) | 189 / 1 / 10 | 200 | **44.7** / 55.3 s | 43.8 s | 55.1 s | 14.2 | 511 |
+| careful+9g | Ilya | +41.9 % | 200 (100 %) | 194 / 0 / 6 | 200 | **41.6** / 51.1 s | 41.2 s | 51.8 s | 14.0 | 514 |
+| clumsy | Vanguard | - | 61 (30.5 %) | - | 78 | 47.8 / 58.1 s | 46.2 s | 60.1 s | 14.3 | 196 |
+| clumsy | Ilya | - | 100 (50.0 %) | - | 131 | 47.9 / 61.5 s | 48.6 s | 61.7 s | 14.4 | 312 |
+| clumsy+5 | Vanguard | +14.7 % | 75 (37.5 %) | 53 / 8 / 22 | 90 | 46.1 / 54.7 s | 44.9 s | 59.8 s | 14.2 | 229 |
+| clumsy+5 | Ilya | +14.7 % | 125 (62.5 %) | 85 / 15 / 40 | 152 | 45.6 / 60.9 s | 45.3 s | 59.3 s | 14.2 | 368 |
+| auto-farmer | Vanguard | - | 5 (2.5 %) | - | 10 | 34.0 / 37.1 s | 30.2 s | 37.1 s | 13.3 | 58 |
+| auto-farmer | Ilya | - | 6 (3.0 %) | - | 29 | 28.7 / 35.4 s | 35.0 s | 35.6 s | 13.4 | 99 |
+| auto-farmer+5 | Vanguard | +14.7 % | 4 (2.0 %) | 4 / 1 / 0 | 18 | 30.6 / 32.6 s | 35.9 s | 36.4 s | 13.3 | 77 |
+| auto-farmer+5 | Ilya | +14.7 % | 6 (3.0 %) | 3 / 3 / 3 | 55 | 27.7 / 31.7 s | 33.9 s | 35.4 s | 13.4 | 137 |
+
+Against section 13's Forged targets:
+
+| Check | Target | Measured | Read |
+|---|---|---|---|
+| Geared completion | never below the ungeared cohort's | careful +1 to +9 completions at every level and both heroes (95.0 / 97.0 % ungeared, 97.5-100 % geared) | **met** |
+| Warden fight at +9g | P50 not under 30 s | floor 1's Warden 44.7 s (Vanguard), 41.6 s (Ilya); the Regent 43.8 / 41.2 s; floor 3's Warden 55.1 / 51.8 s | **met**, with room |
+| `clumsy+5` | completion up by a measurable step | Vanguard 61 -> 75 (+7 points), Ilya 100 -> 125 (+12.5 points); floor 1 cleared 78 -> 90 and 131 -> 152 | **met** |
+| `auto-farmer+5` | completion up by a measurable step | Vanguard 5 -> 4, Ilya 6 -> 6 completions; floor 1 cleared 10 -> 18 and 29 -> 55 | **missed** on completion: the step is on floor 1 only |
+| The 14-minute Descent on Forged | unchanged | careful 14.5 -> 14.2-14.4 min (Vanguard), 14.3 -> 14.0-14.2 (Ilya); clumsy 14.3-14.4 -> 14.2 | **met** (at most 0.3 min shorter at +9g) |
+
+What the rows say:
+- **Gear shows less than the index.** Section 7.2 expected a +9 set to kill the Warden "about a fifth faster"; at +9g
+  (index +42 %, DPS +24 %) floor 1's Warden falls 13 % faster for the Vanguard (51.3 -> 44.7 s) and 10 % for Ilya (46.0 ->
+  41.6 s). The percents add to the tomes' rather than multiplying them (above), and a run's late build is mostly tomes.
+  The 30 s floor is far away; the cost is the other side: from +5 on, Ilya's Warden P50 already sits under the gate's 45 s
+  band (44.2 s), and the Vanguard's from +9g. That is the gap phase 6's tiers exist to close; on Forged it is expected.
+- **The careful cohort saturates.** Its few ungeared losses (10 and 6 of 200, five and two of them on floor 1) almost
+  all go at +5 (199 of 200 complete), and +7 to +9g change nothing measurable beyond that. More gear buys speed, not completion,
+  for this cohort.
+- **clumsy's ladder works**: +5 adds 14 and 25 completions, with real churn (22 and 40 seeds now complete, 8 and 15 no
+  longer do - geared runs crit on other swings and see other offers).
+- **The auto-farmer's does not, at +5.** Gear nearly doubles its floor-1 clears (it dies to the Warden's slams less), and
+  then floor 2 and 3 kill it as before: 4 and 6 of 200 complete. It plays without dodging, the ability or a card score
+  (docs/40 9.4's Auto Farmer); a +15 % index does not buy that back. **Proposal, not tuned:** keep the target for clumsy
+  and read the auto-farmer's step as floor-1 clears (10 -> 18, 29 -> 55), or measure an `auto-farmer+9` and `+9g`
+  (one line in `FoundryGear.Cohorts`) before deciding whether its ladder needs a tier below Forged rather than more gear.
+- **Income with gear (the model's gap).** The careful cohort banks 3-5 % more geared (489 -> 507-511, 501 -> 504-514: fewer
+  deaths lose half a floor); clumsy+5 banks **+17 % and +18 %** (196 -> 229, 312 -> 368); auto-farmer+5 +33 % and +38 % from
+  a small base (58 -> 77, 99 -> 137). `gear_economy.py` plays every run at ungeared income, so its clumsy row (first +5 in 5
+  runs, set +9 in 294) is pessimistic by about a sixth after the first +5; feeding `gear-cohorts.csv`'s rows to a player
+  once its gear reaches +5 would close it (the CSV keeps `gear-economy.csv`'s columns; the model is not changed here).
+
+### Tests
+
+- **EditMode, also in CombatChecks: `GearApplyTests`.** An empty loadout (None, no pieces, a +0 set) adds no modifier and
+  raises no change; a known loadout gives known numbers on the weapon and the hero; the caps bind (damage 14 %, attack
+  speed 7 %, crit and armour 4 points, health 14 %, luck 10 of 20, move speed 6 of 12); section 7.2's +15 / +21 / +31 /
+  +42 / +51 % read back off the run's own weapon (damage, interval, crit) and hero (health, damage reduction) and equal
+  `GearLoadout.Power`; the five inert stats change nothing; a weapon picked up later wears the gear; the hall gears its one
+  weapon; the weapon's gear is the carried weapon's own (`EquippedPieces`); the simulation's heroes are ungeared by default,
+  an empty loadout plays the same floor and careful+9g's does not; the six cohorts' indices.
+- **PlayMode: `GearRunStartTests`.** A fresh profile starts the hall and the foundry with the weapon exactly as its
+  definition makes it (`CreateRuntime`, `CreateCategoryRuntime`) and the hero at its authored health, full; a +9 Sword
+  starts the hall's run at 1.1x damage and nothing else; on the foundry a +9 Sword (with the Staff at +9, not carried),
+  a +9 armour and a +9 ring give the first weapon 1.1x damage and three points of crit and the hero 1.1x health, full.
+
+      Unity, EditMode:  pwsh -File Tools/Run-UnityTests.ps1 -Platform EditMode -SkipApk -Filter "GearApplyTests;GearStatsTests;FoundrySimulationTests;FoundryCohortTests;HeroStatsTests;UpgradeTests"
+      Unity, PlayMode:  pwsh -File Tools/Run-UnityTests.ps1 -Platform PlayMode -SkipApk -Filter "GearRunStartTests;AnvilFlowTests;UpgradeFlowTests;RunResultTests;CombatSceneTests;DescentFlowTests;FoundryDescentFlowTests"
+
+The whole EditMode suite is the safer read (`CombatSetup` and the simulation changed); in PlayMode, `AnvilFlowTests`'
+fixture profile wears gear (a +7 Sword, +3 armour, +7 amulet, +9 ring), so its runs now start geared - it kills the hero
+with 100,000 damage and reads the forge, so nothing it asserts should move; the others start ungeared and pin the
+weapon's and hero's starting numbers.
+
+### The regression line
+
+Against main b0fa98c2 (its sources exported to a clean folder and run there), `FOUNDRY_SEEDS=200 FOUNDRY_LEVERS=0
+FOUNDRY_COHORTS=1 FOUNDRY_REALISM=typical FOUNDRY_PARALLEL=4`, each run into its own empty output folder with the same
+empty `FOUNDRY_EDITOR` and `FOUNDRY_DEVICE=none`:
+- `FOUNDRY_FLOORS=4`: `foundry-gate.md`, `foundry-batch.csv`, `foundry-batch-floor2.csv`, `foundry-cohorts.md`,
+  `foundry-cohorts-floor2.csv`, `foundry-cohorts-floor3.csv`, `foundry-finale.md` and `foundry-finale.csv` match byte for
+  byte; in `foundry-batch.md` only the clock in its header and the wall-seconds column differ.
+- `FOUNDRY_FLOORS=2`: the same - every file byte-identical but `foundry-batch.md`'s clock and wall seconds.
+
+CombatChecks: 892 green (`Başarılı`; 881 on main, eleven new in `GearApplyTests`); the Unity compile check green;
+`Verify-Project.ps1` passes (a fresh worktree lacks the untracked `Assets/_Project/Editor` folder its tracked `.meta`
+names - main's state, not this branch's; the check passes with the empty folder present).
+
+### Risks the build leaves open
+
+- **Not run in Unity.** The compile check, CombatChecks and `Verify-Project.ps1` only; the EditMode and PlayMode suites
+  above are the lead's to run. `GearRunStartTests` reads the foundry's start one frame after the load; the hall's tests
+  also read the hero full, which holds while the first pack walks in from the far end.
+- **Geared parity is by construction, not measured.** The scene and the simulation call the same body at the same point
+  of the same Awake, and an ungeared run is byte-identical; but no Editor measurement (`HordePacingMeasurement`) has
+  played a geared profile, so the parity table has nothing geared to read. A pacing run with a +9g test profile would
+  measure it.
+- **The owner's own runs now wear their gear.** Any gear the owner equipped testing phase 4 on the S23 is applied from the
+  next build. The device pulls the gate reads (`FOUNDRY_DEVICE`, the owner's floor time) would then mix geared runs with an
+  ungeared batch, and section 12's `run_start` `gear_power` is not built yet, so the log cannot tell them apart. Proposal:
+  add `gear_power` and `gear_levels` to `run_start` before the next device week, or read device pulls only from an
+  ungeared profile until then.
+- **Five lines roll and do nothing.** Elite damage, burn damage, pickup radius, ability cooldown and healing are drawn
+  (5 of the 12 stats a piece can draw, about two lines in five), shown and rerolled in the Efsun tab like the rest, but are inert in a run. A
+  player can spend gold and scrolls chasing them. Proposal: until each has its rule, either mark them "(not active yet)" in
+  the Efsun tab or take them out of `EfsunRule`'s draw (a change to the save's meaning, so the lead's call).
+- **Percents add.** Gear's damage and attack speed percents stack additively with the tomes' (`ModifiableStat`), so section
+  7.2's index overstates what a set adds late in a strong run; the measured rows below are the honest read.
+- **`AnvilFlowTests`' fixture starts geared runs.** Its asserts read the forge after the hero is killed with 100,000
+  damage; a geared start should not move them, but it has not been run.
+
 ## Measured and modelled: how to re-run
 
     dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~GearEconomyResearch"
       # FOUNDRY_SEEDS=100 (default), FOUNDRY_REALISM=typical; writes TestResults/gear-economy.md and .csv
     python Tools/Economy/gear_economy.py --players 2000
       # reads Tools/Economy/income-2026-11-16.csv (the run of 2026-11-16, seeds 1-100 a hero, copied from TestResults)
+    dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~GearedCohortsResearch"
+      # section 20's geared cohorts: FOUNDRY_GEAR (all), FOUNDRY_SEEDS=200, FOUNDRY_REALISM=typical, FOUNDRY_PARALLEL;
+      # writes TestResults/gear-cohorts.md and .csv (the 2026-11-17 run: FOUNDRY_PARALLEL=4, 18 minutes)
 
 ## Sources
 
