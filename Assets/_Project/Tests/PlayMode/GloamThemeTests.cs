@@ -323,7 +323,9 @@ namespace Cryptforge.Tests
 #endif
         }
 
-        // The encounter stands floor 3's horde up bloomed (EncounterController.CreateEnemy passes the floor's theme).
+        // The encounter stands floor 3's horde up bloomed (EncounterController.CreateEnemy passes the floor's theme) - all
+        // but its Pollen Wraiths (role 0 since 2026-11-17, docs/52), born on floor 3, which stand in their own set: it has
+        // no bloomed copy.
         [UnityTest, Timeout(240000)]
         public IEnumerator FloorThreesHordeStandsUpBloomed()
         {
@@ -340,13 +342,23 @@ namespace Cryptforge.Tests
             Assert.That(third.Theme, Is.EqualTo(FloorTheme.Gloam));
             FieldInfo current = typeof(EncounterController).GetField("_currentFloor", Private);
             PropertyInfo shown = typeof(EnemyLookView).GetProperty("ShownTheme", Private);
-            int bloomed = 0, other = 0;
+            FieldInfo painted = typeof(EnemyLookView).GetField("_paintedArt", Private);
+            int bloomed = 0, wraiths = 0, other = 0;
             System.Action<int> spawned = slot =>
             {
                 Health enemy = encounters.HordeEnemyAt(slot);
                 if (enemy == null || enemy.GetComponent<EnemyLookView>().PaintedArt == null)
                     return;
-                if ((FloorTheme)shown.GetValue(enemy.GetComponent<EnemyLookView>()) == FloorTheme.Gloam) bloomed++;
+                var look = enemy.GetComponent<EnemyLookView>();
+                EnemyDefinition definition = encounters.DefinitionOf(enemy);
+                if (definition != null && definition.Id == "enemy_pollen_wraith")
+                {
+                    var own = (EnemyArtSet)painted.GetValue(look);
+                    if (own.ForTheme(FloorTheme.Gloam) == null && ReferenceEquals(look.PaintedArt, own)) wraiths++;
+                    else other++;
+                    return;
+                }
+                if ((FloorTheme)shown.GetValue(look) == FloorTheme.Gloam) bloomed++;
                 else other++;
             };
             float wait = Time.realtimeSinceStartup + 30;
@@ -357,7 +369,7 @@ namespace Cryptforge.Tests
             try
             {
                 float deadline = Time.realtimeSinceStartup + 60;
-                while (bloomed < 3 && !setup.Run.HasEnded && Time.realtimeSinceStartup < deadline)
+                while ((bloomed < 3 || wraiths < 3) && !setup.Run.HasEnded && Time.realtimeSinceStartup < deadline)
                 {
                     for (int i = 0; i < 4 && setup.Choices.IsOpen; i++)
                         setup.Choices.TrySelect(setup.Choices.Current, 0);
@@ -378,6 +390,7 @@ namespace Cryptforge.Tests
                 current.SetValue(encounters, first);
             }
             Assert.That(bloomed, Is.GreaterThanOrEqualTo(3), "Floor 3's horde stands up bloomed.");
+            Assert.That(wraiths, Is.GreaterThanOrEqualTo(3), "Its Pollen Wraiths in their own set.");
             Assert.That(other, Is.EqualTo(0), "No painted or frosted body on floor 3.");
             LogAssert.NoUnexpectedReceived();
         }

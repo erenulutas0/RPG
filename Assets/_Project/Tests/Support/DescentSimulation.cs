@@ -243,6 +243,13 @@ namespace Cryptforge.Tests
         public static readonly Enemy GlassRegent = new Enemy { Name = "Glass Regent", Health = 300f, Damage = 5f, Interval = 1.8f, InitialDelay = 1f, EnrageAt = 0.5f, Gold = 50, Experience = 10, Speed = 1f, Reach = 1.7f };
         // Mites come in numbers, so each one is worth only a little experience and no gold.
         public static readonly Enemy Mite = new Enemy { Name = "Cinder Mite", Health = 15f, Damage = 0.6f, Interval = 1.5f, Gold = 0, Experience = 1, Speed = 2.2f, Reach = 1.5f };
+        // Enemy_PollenWraith (docs/52 section 3; the lead's decision 2026-11-17): floor 3's horde role 0 and its three halls'
+        // Mites, a pure reskin of the Cinder Mite - the Mite's health, speed, Mite Bite, gold and experience, and no pollen
+        // (docs/52's PollenRule stays a research lever, off: none of it is built). The simulation plays it as the Mite
+        // itself, under the Mite's name, so every run and every report line is the one it was;
+        // FoundrySimulationSceneValueTests holds the asset to these numbers and its slots to GloamGardens' and
+        // FoundryFloorThree's.
+        public static readonly Enemy PollenWraith = Mite;
 
         // Weapon_Sword.asset: 10 damage every 0.8 s, cleaving the nearest enemy within 2 units of the target for 60%.
         public static HeroWeapon Sword() =>
@@ -326,17 +333,18 @@ namespace Cryptforge.Tests
         };
 
         // Data/Floors/Floor_GloamGardens, the climb's floor 3 (docs/48, phase 1): floor 2's six rooms wave for wave under
-        // the garden's names - Ash Orchard, Rootbound Walk and Bloom Gate, the Grafting Forge, Thorn Post (led since
-        // 2026-11-15 by the Cinder Bloom, docs/52), the Warden's Grove with its Forge Warden and two Cinder Mites - at
+        // the garden's names - Ash Orchard, Rootbound Walk and Bloom Gate, whose Mites are Pollen Wraiths since 2026-11-17
+        // (the Mite reskinned, PollenWraith), the Grafting Forge, Thorn Post (led since 2026-11-15 by the Cinder Bloom,
+        // docs/52, its two Cinder Mites kept), the Warden's Grove with its Forge Warden and two Cinder Mites - at
         // ClimbScaling's floor-3 tier (x1.96 health, x1.8032 damage) and no modifier. The foundry plays it as
         // DescentSimulation.FoundryFloorThree.
         public static readonly Floor GloamGardens = new Floor
         {
             Rooms = new[]
             {
-                new[] { new[] { Grunt, Mite, Mite, Mite }, new[] { Runner, Mite, Mite, Mite } },
-                new[] { new[] { Tank, Mite, Mite, Mite }, new[] { Mite, Mite, Mite, Mite, Mite } },
-                new[] { new[] { Grunt, Grunt, Mite, Mite, Mite } },
+                new[] { new[] { Grunt, PollenWraith, PollenWraith, PollenWraith }, new[] { Runner, PollenWraith, PollenWraith, PollenWraith } },
+                new[] { new[] { Tank, PollenWraith, PollenWraith, PollenWraith }, new[] { PollenWraith, PollenWraith, PollenWraith, PollenWraith, PollenWraith } },
+                new[] { new[] { Grunt, Grunt, PollenWraith, PollenWraith, PollenWraith } },
                 null,
                 new[] { new[] { CinderBloom, Grunt, Mite, Mite } },
                 new[] { new[] { Warden, Mite, Mite } }

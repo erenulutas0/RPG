@@ -39,7 +39,10 @@ namespace Cryptforge.Tests
             Assert.That(three.ClimbScaled, Is.True);
             Assert.That(three.Rooms, Is.SameAs(DescentSimulation.GloamGardens.Rooms));
             Assert.That(three.Kinds, Is.EqualTo(new[] { RoomKind.Combat, RoomKind.Combat, RoomKind.Combat, RoomKind.Forge, RoomKind.Elite, RoomKind.Boss }));
-            Assert.That(three.HordeRoles, Is.EqualTo(new[] { DescentSimulation.Mite, DescentSimulation.Grunt, DescentSimulation.Runner }));
+            // The Pollen Wraith takes the Mite's role (the lead's decision 2026-11-17): the Mite reskinned, so the simulation
+            // plays it as the Mite itself and every run is the one it was.
+            Assert.That(three.HordeRoles, Is.EqualTo(new[] { DescentSimulation.PollenWraith, DescentSimulation.Grunt, DescentSimulation.Runner }));
+            Assert.That(DescentSimulation.PollenWraith, Is.SameAs(DescentSimulation.Mite), "the Wraith is the Mite reskinned");
             Assert.That((three.ModifierHealthPercent, three.ModifierDamagePercent, three.ModifierGoldPercent), Is.EqualTo((0f, 0f, 0f)));
             Assert.That((three.HallSurges, three.ExtraElites, three.GateNotBeforeSeconds), Is.EqualTo((0, 0, 180f)));
             Assert.That(DescentSimulation.FloorThreeGateSeconds, Is.EqualTo(180f), "half a minute before floors 1 and 2");
@@ -48,10 +51,11 @@ namespace Cryptforge.Tests
             Assert.That(DescentSimulation.GloamGardens.HealthMultiplier, Is.EqualTo(ClimbScaling.Health(3)).Within(1e-5f));
             Assert.That(DescentSimulation.GloamGardens.DamageMultiplier, Is.EqualTo(ClimbScaling.Damage(3)).Within(1e-5f));
 
-            // Floor 2's rooms wave for wave: the same parts, the garden's names (the asset holds them) - but its elite room,
-            // Thorn Post, keeps the Grunt Captain where floor 2's Sentry Hall has the Mirror Sentry, and its gate, the
-            // Warden's Grove, keeps the Forge Warden where floor 2's has the Glass Regent, since 2026-11-12 (docs/50, the
-            // lead's decisions); the escorts are the same.
+            // Floor 2's rooms wave for wave: the same parts, the garden's names (the asset holds them), the halls' Mites the
+            // Pollen Wraiths the simulation plays as Mites - but its elite room, Thorn Post, is led by the Cinder Bloom where
+            // floor 2's Sentry Hall has the Mirror Sentry (docs/52, 2026-11-15), and its gate, the Warden's Grove, keeps the
+            // Forge Warden where floor 2's has the Glass Regent, since 2026-11-12 (docs/50, the lead's decisions); the escorts
+            // are the same, Cinder Mites both.
             Assert.That(three.Rooms.Length, Is.EqualTo(DescentSimulation.QuicksilverVaults.Rooms.Length));
             int elite = System.Array.IndexOf(three.Kinds, RoomKind.Elite);
             int gate = System.Array.IndexOf(three.Kinds, RoomKind.Boss);

@@ -214,6 +214,132 @@ namespace Cryptforge.Tests
             Assert.That(proof.RoomAt(0).WaveAt(0).EnemyAt(0), Is.SameAs(bloom));
         }
 
+        private const string PollenWraithId = "enemy_pollen_wraith";
+        private const string CinderMiteId = "enemy_cinder_mite";
+
+        // The Pollen Wraith (docs/52 section 3; the lead's decision 2026-11-17): the Cinder Mite reskinned, with no pollen. Its
+        // asset is the Mite's - health, speed, the Mite Bite itself, gold and experience - under its own id and name, and the
+        // simulation plays it as the Mite (DescentSimulation.PollenWraith). Its prefab is a variant of the Grunt's as the
+        // Mite's is, the Mite's body in every component and value but the painted set: PollenWraithArtSet, which has no
+        // themed copy (born on floor 3, the set is its own look), where the Mite keeps CinderMiteArtSet. It stands on floor 3
+        // alone: no other floor in the project names it.
+        [Test]
+        public void ThePollenWraithIsTheCinderMiteReskinned()
+        {
+            var wraith = AssetDatabase.LoadAssetAtPath<EnemyDefinition>("Assets/_Project/Data/Enemies/Enemy_PollenWraith.asset");
+            var mite = AssetDatabase.LoadAssetAtPath<EnemyDefinition>("Assets/_Project/Data/Enemies/Enemy_CinderMite.asset");
+            Assert.That(wraith, Is.Not.Null);
+            Assert.That(mite, Is.Not.Null);
+            Assert.That(wraith.Id, Is.EqualTo(PollenWraithId));
+            Assert.That(wraith.DisplayName, Is.EqualTo("Pollen Wraith"));
+            Assert.That(mite.Id, Is.EqualTo(CinderMiteId));
+            Assert.That((wraith.MaximumHealth, wraith.MoveSpeed, wraith.GoldReward, wraith.ExperienceReward),
+                Is.EqualTo((mite.MaximumHealth, mite.MoveSpeed, mite.GoldReward, mite.ExperienceReward)), "the Mite's numbers");
+            Assert.That(wraith.Weapon, Is.SameAs(mite.Weapon), "the Mite Bite itself");
+            Assert.That(DescentSimulation.PollenWraith, Is.SameAs(DescentSimulation.Mite), "the simulation plays it as the Mite");
+            AssertEnemy(wraith, DescentSimulation.PollenWraith, wraith.Id, true);
+            AssertEnemy(mite, DescentSimulation.Mite, mite.Id);
+
+            // The prefab: a Grunt variant, as the Mite's is, the Mite's body but for its painted set.
+            Assert.That(wraith.Prefab, Is.Not.Null, "the definition finds the variant's Health");
+            Assert.That(wraith.Prefab, Is.Not.SameAs(mite.Prefab));
+            UnityEngine.GameObject body = wraith.Prefab.gameObject, miteBody = mite.Prefab.gameObject;
+            Assert.That(body.name, Is.EqualTo("PollenWraith"));
+            Assert.That(PrefabUtility.GetPrefabAssetType(body), Is.EqualTo(PrefabAssetType.Variant));
+            Assert.That(PrefabUtility.GetCorrespondingObjectFromSource(body), Is.Not.Null);
+            Assert.That(PrefabUtility.GetCorrespondingObjectFromSource(body),
+                Is.SameAs(PrefabUtility.GetCorrespondingObjectFromSource(miteBody)), "a variant of the Mite's own base, the Grunt");
+            AssertSameBody(miteBody, body, "_paintedArt");
+            var look = body.GetComponent<EnemyLookView>();
+            Assert.That(look, Is.Not.Null);
+            Assert.That(look.Look, Is.EqualTo(Cryptforge.Art.EnemyLook.Mite), "the Mite's look: its compact bar");
+            var art = new SerializedObject(look).FindProperty("_paintedArt").objectReferenceValue as Cryptforge.Art.EnemyArtSet;
+            Assert.That(art, Is.SameAs(AssetDatabase.LoadAssetAtPath<Cryptforge.Art.EnemyArtSet>(
+                "Assets/_Project/Art/Characters/PollenWraith/PollenWraithArtSet.asset")));
+            Assert.That(art.IsValid, Is.True);
+            foreach (FloorTheme theme in new[] { FloorTheme.Foundry, FloorTheme.Ice, FloorTheme.Gloam })
+                Assert.That(art.ForTheme(theme), Is.Null, theme + ": the set is its own look");
+            var miteArt = new SerializedObject(miteBody.GetComponent<EnemyLookView>()).FindProperty("_paintedArt").objectReferenceValue;
+            Assert.That(miteArt, Is.SameAs(AssetDatabase.LoadAssetAtPath<Cryptforge.Art.EnemyArtSet>(
+                "Assets/_Project/Art/Characters/CinderMite/CinderMiteArtSet.asset")), "the Mite keeps its own");
+
+            // Floor 3 alone names it.
+            foreach (string guid in AssetDatabase.FindAssets("t:" + nameof(FloorDefinition), new[] { "Assets/_Project" }))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                var floor = AssetDatabase.LoadAssetAtPath<FloorDefinition>(path);
+                if (floor.Id == "floor_gloam_gardens")
+                    continue;
+                for (int role = 0; role < floor.HordeRoleCount; role++)
+                    Assert.That(floor.HordeRoleAt(role), Is.Not.SameAs(wraith), $"{path} horde role {role}");
+                for (int room = 0; room < floor.RoomCount; room++)
+                    Assert.That(Count(floor.RoomAt(room), PollenWraithId), Is.Zero, $"{path} room {room}");
+            }
+        }
+
+        // The enemies of a room's waves with the given id.
+        private static int Count(RoomDefinition room, string id)
+        {
+            int count = 0;
+            if (room == null)
+                return count;
+            for (int wave = 0; wave < room.WaveCount; wave++)
+                for (int e = 0; e < room.WaveAt(wave).EnemyCount; e++)
+                    if (room.WaveAt(wave).EnemyAt(e) != null && room.WaveAt(wave).EnemyAt(e).Id == id)
+                        count++;
+            return count;
+        }
+
+        // Two prefab bodies alike component for component and value for value, but the named fields: the same components
+        // in the same places, each visible serialized value equal, a reference to a part of the body naming the same part
+        // (the bodies' roots differ), any other reference the same asset.
+        private static void AssertSameBody(UnityEngine.GameObject expected, UnityEngine.GameObject actual, params string[] except)
+        {
+            UnityEngine.Component[] a = expected.GetComponentsInChildren<UnityEngine.Component>(true);
+            UnityEngine.Component[] b = actual.GetComponentsInChildren<UnityEngine.Component>(true);
+            Assert.That(b.Length, Is.EqualTo(a.Length), actual.name + ": its components");
+            for (int i = 0; i < a.Length; i++)
+            {
+                string where = actual.name + ": " + PartOf(a[i], expected.transform);
+                Assert.That(PartOf(b[i], actual.transform), Is.EqualTo(PartOf(a[i], expected.transform)), where);
+                SerializedProperty pa = new SerializedObject(a[i]).GetIterator(), pb = new SerializedObject(b[i]).GetIterator();
+                int compared = 0;
+                while (pa.NextVisible(true))
+                {
+                    Assert.That(pb.NextVisible(true), Is.True, where + ": " + pa.propertyPath);
+                    Assert.That(pb.propertyPath, Is.EqualTo(pa.propertyPath), where);
+                    if (System.Array.IndexOf(except, pa.propertyPath) >= 0 || pa.propertyType == SerializedPropertyType.Generic)
+                        continue;
+                    compared++;
+                    if (pa.propertyType == SerializedPropertyType.ObjectReference)
+                    {
+                        UnityEngine.Object ra = pa.objectReferenceValue, rb = pb.objectReferenceValue;
+                        if (ra is UnityEngine.Component || ra is UnityEngine.GameObject)
+                            Assert.That(PartOf(rb, actual.transform), Is.EqualTo(PartOf(ra, expected.transform)), where + ": " + pa.propertyPath);
+                        else
+                            Assert.That(rb, Is.SameAs(ra), where + ": " + pa.propertyPath);
+                        continue;
+                    }
+                    Assert.That(SerializedProperty.DataEquals(pa, pb), Is.True, where + ": " + pa.propertyPath);
+                }
+                Assert.That(pb.NextVisible(true), Is.False, where + ": nothing more");
+                Assert.That(compared, Is.GreaterThan(0), where);
+            }
+        }
+
+        // A component or game object of a body by its place under the body's root and its type ("Enemy Body:SpriteRenderer").
+        private static string PartOf(UnityEngine.Object part, UnityEngine.Transform root)
+        {
+            UnityEngine.Transform at = part is UnityEngine.Component c ? c.transform : part is UnityEngine.GameObject g ? g.transform : null;
+            if (at == null)
+                return "not a part: " + (part != null ? part.name : "none");
+            string path = string.Empty;
+            for (; at != null && at != root; at = at.parent)
+                path = path.Length == 0 ? at.name : at.name + "/" + path;
+            Assert.That(at, Is.SameAs(root), "a part of the body itself");
+            return path + ":" + part.GetType().Name;
+        }
+
         // The Glass Regent (RegentRule; the lead's decisions 2026-11-12): the scene's Regent is the Forge Warden's prefab with
         // a GlassRegent - its lanes' sprites on it - and its own Blender-rendered set, and the simulation's shipped levers mark
         // its lanes with RegentRule's tuning on its beat and sidestep them as DevelopmentAutopilot does; the asset is the
@@ -357,7 +483,8 @@ namespace Cryptforge.Tests
         // scaled at floor 3 (the first floor where ClimbScaling.Boss's x1.15 reaches the gate boss), no modifier, floor 1's
         // three horde roles, no surges or extra elite, the gate held for 3:00 and its Warden's own share, which the
         // simulation reads through the scene's WardenRule.GateHealthShareOn - its gate boss the Forge Warden with two Cinder
-        // Mites, the Foundry's look (its own theme comes later), the districts the round goes on from, and below it the
+        // Mites, its halls' Mites and its horde's Pollen Wraiths since 2026-11-17 (the Mite reskinned: the simulation's Mite),
+        // its own overgrown look (docs/51), the districts the round goes on from, and below it the
         // finale's swarm room, which the simulation plays after a floor-3 clear (FoundryLevers.Floors = 4,
         // TheFoundrysFinaleIsTheAsset).
         [Test]
@@ -370,7 +497,7 @@ namespace Cryptforge.Tests
             DescentSimulation.FoundryFloor floor = DescentSimulation.FoundryFloorOne().Next.Next;
             Assert.That(floor, Is.Not.Null);
             Assert.That(floor.FloorNumber, Is.EqualTo(3));
-            AssertFloor(asset, floor);
+            AssertFloor(asset, floor, wraiths: true);
             Assert.That(asset.DisplayName, Is.EqualTo("Gloam Gardens"));
             Assert.That(asset.Modifier, Is.Null, "no modifier on floor 3's first build");
             Assert.That(asset.Theme, Is.EqualTo(FloorTheme.Gloam), "floor 3 wears its own overgrown look (docs/51)");
@@ -397,6 +524,26 @@ namespace Cryptforge.Tests
             Assert.That(asset.RoomAt(elite).DisplayName, Is.EqualTo("Thorn Post"), "Thorn Post keeps its name (docs/52)");
             Assert.That(asset.RoomAt(elite).WaveAt(0).EnemyAt(0).Id, Is.EqualTo("enemy_cinder_bloom"));
             Assert.That(floor.Rooms[elite][0][0], Is.SameAs(DescentSimulation.CinderBloom));
+
+            // The Pollen Wraith (the lead's decision 2026-11-17, docs/52 section 3) takes the Mite's place in the horde's
+            // role 0 and in the three halls' waves - Ash Orchard 6, Rootbound Walk 8, Bloom Gate 3 - and Thorn Post's two and
+            // the Grove's two stay Cinder Mites, so the elite and the gate are read on their own.
+            Assert.That(asset.HordeRoleCount, Is.EqualTo(3));
+            Assert.That(asset.HordeRoleAt(0).Id, Is.EqualTo(PollenWraithId), "the horde's role 0");
+            Assert.That(asset.HordeRoleAt(1).Id, Is.EqualTo("enemy_grunt"));
+            Assert.That(asset.HordeRoleAt(2).Id, Is.EqualTo("enemy_runner"));
+            Assert.That(second.HordeRoleAt(0).Id, Is.EqualTo(CinderMiteId), "floor 2's horde keeps its Mite");
+            Assert.That(first.HordeRoleAt(0).Id, Is.EqualTo(CinderMiteId), "floor 1's too");
+            var rooms = new[] { ("Ash Orchard", 6, 0), ("Rootbound Walk", 8, 0), ("Bloom Gate", 3, 0), ("The Grafting Forge", 0, 0),
+                                ("Thorn Post", 0, 2), ("Warden's Grove", 0, 2) };
+            Assert.That(asset.RoomCount, Is.EqualTo(rooms.Length));
+            for (int room = 0; room < rooms.Length; room++)
+            {
+                (string name, int wraiths, int mites) = rooms[room];
+                Assert.That(asset.RoomAt(room).DisplayName, Is.EqualTo(name));
+                Assert.That(Count(asset.RoomAt(room), PollenWraithId), Is.EqualTo(wraiths), name + "'s Pollen Wraiths");
+                Assert.That(Count(asset.RoomAt(room), CinderMiteId), Is.EqualTo(mites), name + "'s Cinder Mites");
+            }
 
             // The districts go on from floors 1 and 2's authored halls.
             Assert.That(DescentSimulation.LaterHalls(floor), Is.EqualTo(EncounterController.LaterHalls(asset)));
@@ -458,8 +605,9 @@ namespace Cryptforge.Tests
         }
 
         // A foundry floor of the simulation against its asset: id, climb scaling, modifier, its own foundry knobs, the rooms'
-        // kinds, waves and enemies (a forge's options in the order the autopilot takes them) and the horde's roles.
-        private static void AssertFloor(FloorDefinition asset, DescentSimulation.FoundryFloor floor)
+        // kinds, waves and enemies (a forge's options in the order the autopilot takes them) and the horde's roles. On floor 3
+        // (wraiths) a Pollen Wraith of the asset is the simulation's Mite (AssertEnemy).
+        private static void AssertFloor(FloorDefinition asset, DescentSimulation.FoundryFloor floor, bool wraiths = false)
         {
             Assert.That(asset, Is.Not.Null);
             string where = asset.Id;
@@ -491,17 +639,24 @@ namespace Cryptforge.Tests
                     WaveDefinition waveDefinition = definition.WaveAt(wave);
                     Assert.That(waveDefinition.EnemyCount, Is.EqualTo(floor.Rooms[room][wave].Length), $"{where} room {room} wave {wave}");
                     for (int e = 0; e < waveDefinition.EnemyCount; e++)
-                        AssertEnemy(waveDefinition.EnemyAt(e), floor.Rooms[room][wave][e], $"{where} room {room} wave {wave} enemy {e}");
+                        AssertEnemy(waveDefinition.EnemyAt(e), floor.Rooms[room][wave][e], $"{where} room {room} wave {wave} enemy {e}", wraiths);
                 }
             }
             Assert.That(asset.HordeRoleCount, Is.EqualTo(floor.HordeRoles.Length), where);
             for (int role = 0; role < asset.HordeRoleCount; role++)
-                AssertEnemy(asset.HordeRoleAt(role), floor.HordeRoles[role], $"{where} horde role {role}");
+                AssertEnemy(asset.HordeRoleAt(role), floor.HordeRoles[role], $"{where} horde role {role}", wraiths);
         }
 
-        private static void AssertEnemy(EnemyDefinition definition, DescentSimulation.Enemy enemy, string where)
+        // An enemy of the simulation against its asset. The Pollen Wraith is the Cinder Mite reskinned (the lead's decision
+        // 2026-11-17): where wraiths are allowed (floor 3), a Wraith of the asset stands where the simulation has its Mite
+        // (DescentSimulation.PollenWraith, the Mite itself under the Mite's name), its own name and every number the Mite's.
+        // Elsewhere a Wraith fails on its name.
+        private static void AssertEnemy(EnemyDefinition definition, DescentSimulation.Enemy enemy, string where, bool wraiths = false)
         {
-            Assert.That(definition.DisplayName, Is.EqualTo(enemy.Name), where);
+            bool wraith = wraiths && definition.Id == PollenWraithId;
+            if (wraith)
+                Assert.That(enemy, Is.SameAs(DescentSimulation.PollenWraith), where + ": the simulation plays the Wraith as its Mite");
+            Assert.That(definition.DisplayName, Is.EqualTo(wraith ? "Pollen Wraith" : enemy.Name), where);
             Assert.That(definition.MaximumHealth, Is.EqualTo(enemy.Health), where);
             Assert.That(definition.MoveSpeed, Is.EqualTo(enemy.Speed), where);
             Assert.That(definition.ExperienceReward, Is.EqualTo(enemy.Experience), where);
