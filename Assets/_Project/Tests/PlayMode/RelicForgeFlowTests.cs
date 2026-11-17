@@ -355,6 +355,7 @@ namespace Cryptforge.Tests
                 Canvas.ForceUpdateCanvases();
                 var spans = new List<(string Name, float Bottom, float Top)>();
                 RectTransform chooser = null;
+                var entries = new List<RectTransform>();
                 foreach (RectTransform child in safeArea)
                 {
                     // The decorative background intentionally lies behind every row; only functional rows may not overlap.
@@ -364,6 +365,12 @@ namespace Cryptforge.Tests
                     if (child.name == "Hero Choice")
                     {
                         chooser = child;
+                        continue;
+                    }
+                    // The Bag and Anvil buttons (docs/54 phase 4) share the title's row at its ends: checked against it below.
+                    if (child.name == AnvilView.BagEntryName || child.name == AnvilView.AnvilEntryName)
+                    {
+                        entries.Add(child);
                         continue;
                     }
                     child.GetWorldCorners(corners);
@@ -391,6 +398,26 @@ namespace Cryptforge.Tests
                 Assert.That(chooserMax.y, Is.EqualTo(startMax.y).Within(.5f), "On the start button's row.");
                 Assert.That(startMax.x - startMin.x, Is.GreaterThan(chooserMax.x - chooserMin.x),
                     "The start button keeps the larger share of the row.");
+                // The two entries: inside the safe area, on the title's row, and clear of the title on either side.
+                Assert.That(entries.Count, Is.EqualTo(2), "Bag and Anvil beside the nameplate.");
+                var title = safeArea.Find("Forge Title").GetComponent<RectTransform>();
+                var titleCorners = new Vector3[4];
+                title.GetWorldCorners(titleCorners);
+                Vector3 titleMin = safeArea.InverseTransformPoint(titleCorners[0]);
+                Vector3 titleMax = safeArea.InverseTransformPoint(titleCorners[2]);
+                foreach (RectTransform entry in entries)
+                {
+                    entry.GetWorldCorners(corners);
+                    Vector3 entryMin = safeArea.InverseTransformPoint(corners[0]);
+                    Vector3 entryMax = safeArea.InverseTransformPoint(corners[2]);
+                    Assert.That(entryMin.x, Is.GreaterThanOrEqualTo(safeArea.rect.xMin - .5f), entry.name);
+                    Assert.That(entryMax.x, Is.LessThanOrEqualTo(safeArea.rect.xMax + .5f), entry.name);
+                    Assert.That(entryMin.y, Is.GreaterThanOrEqualTo(titleMin.y - .5f), entry.name + " stays in the title's row.");
+                    Assert.That(entryMax.y, Is.LessThanOrEqualTo(titleMax.y + .5f), entry.name + " stays in the title's row.");
+                    bool clear = entryMax.x <= titleMin.x + .5f || entryMin.x >= titleMax.x - .5f;
+                    Assert.That(clear, Is.True, entry.name + " overlaps the title.");
+                    Assert.That(entryMax.y - entryMin.y, Is.GreaterThanOrEqualTo(44f), entry.name + " is a thumb's target.");
+                }
                 Assert.That(spans[0].Bottom, Is.GreaterThanOrEqualTo(-.5f));
                 Assert.That(spans[spans.Count - 1].Top, Is.LessThanOrEqualTo(height + .5f), spans[spans.Count - 1].Name);
                 for (int i = 1; i < spans.Count; i++)

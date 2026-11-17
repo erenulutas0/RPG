@@ -99,6 +99,7 @@ namespace Cryptforge.Tests
             Tap(_anvil.AnvilEntry);
             yield return Settle();
             Assert.That(_anvil.IsOpen, Is.True);
+            AssertFillsTheScreen();
             Assert.That(_anvil.Current, Is.EqualTo(AnvilView.Tab.Anvil));
             Assert.That(_anvil.Selected.ItemId, Is.EqualTo("weapon_sword"), "The equipped weapon first.");
             Assert.That(_anvil.PieceText(0), Is.EqualTo("+7 Sword"));
@@ -109,6 +110,13 @@ namespace Cryptforge.Tests
             Tap(_anvil.TabButton(AnvilView.Tab.Bag));
             yield return Settle();
             Assert.That(_anvil.Current, Is.EqualTo(AnvilView.Tab.Bag));
+            AssertLabelsFit("Bag");
+            Tap(_anvil.TabButton(AnvilView.Tab.Efsun));
+            yield return Settle();
+            AssertLabelsFit("Efsun");
+            Tap(_anvil.TabButton(AnvilView.Tab.Anvil));
+            yield return Settle();
+            AssertLabelsFit("Anvil");
             Tap(_anvil.TabButton(AnvilView.Tab.Forge));
             Assert.That(_anvil.IsOpen, Is.False, "Forge closes the panel.");
             Assert.That(_forge.IsOpen, Is.True, "The Relic Forge stands under it.");
@@ -286,6 +294,41 @@ namespace Cryptforge.Tests
             yield return new WaitForSecondsRealtime(.4f);
             _anvil = _forge.Anvil;
             Assert.That(_anvil, Is.Not.Null);
+        }
+
+        // The panel is a root canvas over the whole screen (the first capture drew it as a 100 x 100 nested canvas inside the
+        // forge), and its surface fills the screen's width or, on a screen too short for it, its height.
+        private void AssertFillsTheScreen()
+        {
+            Canvas canvas = _anvil.Panel.GetComponent<Canvas>();
+            Assert.That(canvas.isRootCanvas, Is.True, "The Anvil's canvas is a root canvas, not nested in the forge's.");
+            var root = (RectTransform)_anvil.Panel.transform;
+            Canvas.ForceUpdateCanvases();
+            Assert.That(root.rect.width * canvas.scaleFactor, Is.GreaterThanOrEqualTo(.9f * Screen.width),
+                "The panel's root covers the screen's width.");
+            var surface = (RectTransform)_anvil.Panel.transform.Find("Anvil Safe Area/Anvil Surface");
+            var corners = new Vector3[4];
+            surface.GetWorldCorners(corners);
+            float width = corners[2].x - corners[0].x, height = corners[2].y - corners[0].y;
+            Assert.That(width >= .85f * Screen.width || height >= .85f * Screen.height, Is.True,
+                $"The surface fills the screen: {width} x {height} of {Screen.width} x {Screen.height}.");
+        }
+
+        // Every shown label of the panel holds its text at its smallest font size, as ArtHudFlowTests asks of the forge's.
+        private void AssertLabelsFit(string tab)
+        {
+            Canvas.ForceUpdateCanvases();
+            foreach (Text label in _anvil.Panel.GetComponentsInChildren<Text>())
+            {
+                if (label.text.Length == 0)
+                    continue;
+                TextGenerationSettings settings = label.GetGenerationSettings(new Vector2(label.rectTransform.rect.width, 0));
+                settings.resizeTextForBestFit = false;
+                settings.fontSize = label.resizeTextMinSize;
+                float needed = label.cachedTextGeneratorForLayout.GetPreferredHeight(label.text, settings) / label.pixelsPerUnit;
+                Assert.That(needed, Is.LessThanOrEqualTo(label.rectTransform.rect.height + 1f),
+                    $"{tab}: {label.name} (\"{label.text}\") truncates even at its minimum font size.");
+            }
         }
 
         private static IEnumerator Settle()

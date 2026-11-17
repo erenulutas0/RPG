@@ -414,7 +414,7 @@ weapons and relics, unchanged), **Anvil**, **Bag**. Portrait, the 1080-wide canv
   **Anvil's memory** bar (failures toward the ceiling, "holds in 5"), the cost with what is owned ("1,300 gold · 4 / 9
   Gloam Spores"), and toggles for a Forge Seal and a Master's Hammer when owned and allowed.
 - **Strike**, wide, at the bottom; a hold of 0.4 s (a ring fills) so a stray tap never spends 2,400 gold.
-- The result over the card for 1.2 s: success - sparks, the badge rolls up, a chime; failure - "The metal held." in
+- The result over the card for 1.2 s: success - sparks, the badge rolls up, a chime; failure - "Missed: +N kept" in
   grey, the memory bar fills a notch, no break, no downgrade, said every time until the player has seen it ten times.
 - Below the slots, two small buttons: **Efsun** (opens the reroll sheet) and **Inherit** (when the bag holds a same-slot
   item).
@@ -639,7 +639,7 @@ swap); plain colours where either set is missing. Legacy uGUI, no scene or asset
   short, the material in its colour with what is held), the Seal and Hammer toggles shown only where they change the
   strike, and **Hold to strike +N** (`UI/HoldToStrike`: a 0.4 s fill; lifting or sliding off cancels; a tap is not a
   strike). The moment after, for 1.4 s over the chance: "+9: the strike held!" in gold on the nameplate plate, which
-  settles from a slight swell, or "The metal held: +8 kept / The anvil remembers: +1 memory" in grey. The button says why
+  settles from a slight swell, or "Missed: +8 kept / The anvil remembers: +1 memory" in grey. The button says why
   it cannot strike ("Need 120 more gold", "Need 2 more Gloam Spore", "Keep or discard the reroll first", "+9: nothing
   more to strike"). A weapon without gear yet strikes at +0 and its gear (two lines) is made by that strike; opening the
   tab makes nothing.
@@ -674,8 +674,16 @@ taken new, a rune's line; the bag equips, melts on the second tap and inherits f
 label fits at its minimum size on 1760- and 2232-unit safe areas) read the two new forge buttons.
 
 **Risks.** Not seen in Unity: the layout is laid out by the numbers above and compiled, not looked at; the capture is for
-that look. The gold tier's aura on a 220-wide piece card may reach its neighbour across the 16-unit gap. Item icons are
-stand-ins (the stat cards).
+that look. Item icons are stand-ins (the stat cards).
+
+**Fix after the first capture (2026-11-17).** The panel drew as a 100 x 100 thumbnail inside the forge: its canvas was
+parented under the forge's view, which sits on the result's canvas, so it was a nested canvas (scaler ignored, a default
+100 x 100 rect). It is now a root canvas in the scene, under nothing; `AnvilFlowTests` asserts it is a root canvas
+covering the screen's width and that its surface fills the width (or, on a short screen, the height), and that every
+label on each tab fits at its minimum size. The piece cards stand 30 apart (the gold glow reaches 14 past a card) and
+carry no crest (the gold clasp would stand into the row above). The forge's title is narrowed to the nameplate's middle
+608 units so the Bag and Anvil buttons sit clear of it; `RelicForgeFlowTests`' layout test checks them on the title's
+row, clear of the title and at least 44 units tall.
 
 ## Measured and modelled: how to re-run
 

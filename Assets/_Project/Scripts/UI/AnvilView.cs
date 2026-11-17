@@ -22,7 +22,7 @@ namespace Cryptforge.UI
     //   - Anvil: the piece, its main stat now and at the next level, the chance (the base, the anvil's memory - the pity -
     //     and a Seal, or certain by the ceiling or a Hammer), the memory's bar towards the ceiling, the cost in gold and
     //     material, the Seal and Hammer toggles where they apply, and a strike held for 0.4 s (HoldToStrike). The moment
-    //     after: "+8: the strike held" in gold, or "The metal held: +7 kept" in grey with the memory a notch fuller. Never a
+    //     after: "+8: the strike held" in gold, or "Missed: +7 kept" in grey with the memory a notch fuller. Never a
     //     break, never a lower level.
     //   - Efsun: the piece's lines with their tiers; a reroll (gold, or an Efsun Scroll) shows the new set beside the old,
     //     kept with Keep old or Take new; a Binding Rune adds a line.
@@ -45,6 +45,9 @@ namespace Cryptforge.UI
         public const string BagEntryName = "Forge Bag Button";
         public const int SortingOrder = 90;
         public const float InputDelay = .25f;
+        // The forge's two entries: this wide, this far in from the screen's edges.
+        public const float EntryWidth = 186f;
+        public const float EntryOuter = 36f;
         // How long the strike's moment stays over the piece.
         public const float MomentSeconds = 1.4f;
 
@@ -62,6 +65,7 @@ namespace Cryptforge.UI
         private const float BoostersHeight = 46f;
         private const float PiecesTop = 400f;
         private const float PieceHeight = 236f;
+        private const float PieceGap = 30f;
         private const float PageTop = 656f;
         private const float BottomMargin = 34f;
         private const float FitMargin = 16f;
@@ -215,7 +219,7 @@ namespace Cryptforge.UI
         public string CostText => _cost.text;
         public string MainStatText => _mainStat.text;
         public string MemoryText => _memory.text;
-        // The strike's moment while it shows ("+8: the strike held" or "The metal held: +7 kept"), else empty.
+        // The strike's moment while it shows ("+8: the strike held" or "Missed: +7 kept"), else empty.
         public string MomentText => _moment != null && _moment.activeSelf ? _momentText.text : string.Empty;
         public Button RerollWithGold => _rerollGold;
         public Button RerollWithScroll => _rerollScroll;
@@ -252,6 +256,11 @@ namespace Cryptforge.UI
             _fallback = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             if (forgeTitle != null)
             {
+                // The title keeps the nameplate's 600 units in the row's middle (the plate is centred on it, so it stays
+                // put); the two entries take the ends, clear of it.
+                RectTransform titleRect = forgeTitle.rectTransform;
+                titleRect.offsetMin = new Vector2(EntryOuter + EntryWidth + 14f, titleRect.offsetMin.y);
+                titleRect.offsetMax = new Vector2(-(EntryOuter + EntryWidth + 14f), titleRect.offsetMax.y);
                 BagEntry = Entry(forgeTitle, BagEntryName, TabNames[(int)Tab.Bag], true, () => Open(Tab.Bag));
                 AnvilEntry = Entry(forgeTitle, AnvilEntryName, TabNames[(int)Tab.Anvil], false, () => Open(Tab.Anvil));
             }
@@ -269,8 +278,8 @@ namespace Cryptforge.UI
             rect.anchorMin = new Vector2(left ? 0f : 1f, titleRect.anchorMin.y);
             rect.anchorMax = new Vector2(left ? 0f : 1f, titleRect.anchorMax.y);
             rect.pivot = new Vector2(left ? 0f : 1f, .5f);
-            rect.offsetMin = new Vector2(left ? 36f : -226f, 4f);
-            rect.offsetMax = new Vector2(left ? 226f : -36f, -4f);
+            rect.offsetMin = new Vector2(left ? EntryOuter : -(EntryOuter + EntryWidth), 4f);
+            rect.offsetMax = new Vector2(left ? EntryOuter + EntryWidth : -EntryOuter, -4f);
             var button = entry.GetComponent<Button>();
             button.targetGraphic = entry.GetComponent<Image>();
             Paint(button, false);
@@ -366,9 +375,13 @@ namespace Cryptforge.UI
 
         private void Build()
         {
+            // A root canvas of its own, in this view's scene but under nothing: the forge's view sits on the result's canvas,
+            // and a canvas under it would be a nested one - its scaler ignored, its rect a default 100 x 100 inside the
+            // forge (the first capture, 2026-11-17).
             _canvas = new GameObject(CanvasName, typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             _canvas.layer = LayerMask.NameToLayer("UI") >= 0 ? LayerMask.NameToLayer("UI") : 0;
-            _canvas.transform.SetParent(transform, false);
+            if (_canvas.scene != gameObject.scene && gameObject.scene.IsValid())
+                UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(_canvas, gameObject.scene);
             var canvas = _canvas.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.sortingOrder = SortingOrder;
@@ -420,12 +433,13 @@ namespace Cryptforge.UI
             _boosters = Label(surface.transform, "Anvil Boosters", _descriptionSource, 28, TextAnchor.MiddleCenter);
             Row(_boosters.rectTransform, BoostersTop, BoostersHeight, Inset);
 
-            float pieceWidth = (SurfaceWidth - 2 * Inset - 3 * 16f) / 4f;
+            // 30 apart, so the gold card's glow (14 units past its edge) never reaches its neighbour's.
+            float pieceWidth = (SurfaceWidth - 2 * Inset - 3 * PieceGap) / 4f;
             for (int i = 0; i < _pieces.Length; i++)
             {
                 int slot = i;
                 _pieces[i] = MakePieceCard(surface.transform, "Anvil Piece " + GearText.SlotName((GearSlot)i),
-                    Inset + i * (pieceWidth + 16f), PiecesTop, pieceWidth, PieceHeight, 30, true);
+                    Inset + i * (pieceWidth + PieceGap), PiecesTop, pieceWidth, PieceHeight, 30, true);
                 _pieces[i].Button.onClick.AddListener(() => OnPiece(slot));
             }
 
@@ -954,7 +968,7 @@ namespace Cryptforge.UI
             }
             ShowMoment(strike.Success
                 ? string.Format(CultureInfo.InvariantCulture, "{0}: the strike held!", GearText.Level(piece.Level))
-                : string.Format(CultureInfo.InvariantCulture, "The metal held: {0} kept\n<size=34>The anvil remembers: +1 memory</size>", GearText.Level(before)),
+                : string.Format(CultureInfo.InvariantCulture, "Missed: {0} kept\n<size=34>The anvil remembers: +1 memory</size>", GearText.Level(before)),
                 strike.Success);
             Refresh();
         }
@@ -1114,6 +1128,10 @@ namespace Cryptforge.UI
             }
         }
 
+        // Fits the surface to the safe area the canvas measures now - the capture tool calls it after it redraws the
+        // canvases at a phone's size, since Update would only fit them a frame later.
+        public void FitNow() => FitToSafeArea();
+
         private void FitToSafeArea()
         {
             if (_safe == null || _surface == null)
@@ -1132,6 +1150,10 @@ namespace Cryptforge.UI
                 _hold.Completed -= OnStrike;
             if (_white != null)
                 Destroy(_white);
+            if (_whiteSprite != null)
+                Destroy(_whiteSprite);
+            if (_canvas != null)
+                Destroy(_canvas);
         }
 
         // ---- Parts. ----
@@ -1326,6 +1348,10 @@ namespace Cryptforge.UI
             }
             ChoiceCardArtSet.Treatment look = rarity != null ? _cards.Tier(rarity.Value) : _cards.Neutral;
             _painter.Paint(paintSlot, card.Button, card.Name, null, card.Icon, look ?? _cards.Neutral);
+            // No crest on these cards: the gold clasp stands above a card's top edge, into the row above it.
+            Transform crest = card.Button.transform.Find(ChoiceCardPainter.CrestName);
+            if (crest != null && crest.TryGetComponent(out Image crestImage))
+                crestImage.enabled = false;
         }
 
         // A bag place: the rarity's frame, its well and its ground under the icon, thinner than a card's at this size;

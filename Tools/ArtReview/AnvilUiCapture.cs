@@ -201,7 +201,11 @@ namespace Cryptforge.Tests
                     canvas.scaleFactor = scaleBefore;
                 }
                 Canvas.ForceUpdateCanvases();
-                // A frame later the canvases have measured themselves; the panels fit the safe area they now see.
+                // The canvases have measured themselves at the phone's size; the Anvil fits the safe area it now sees
+                // (its Update fitted the batch run's small screen) and the canvases measure again.
+                foreach (var anvil in Object.FindObjectsByType<AnvilView>(FindObjectsSortMode.None))
+                    anvil.FitNow();
+                Canvas.ForceUpdateCanvases();
                 UnityEngine.Rendering.SortingGroup.UpdateAllSortingGroups();
                 _camera.Render();
                 RenderTexture.active = target;
