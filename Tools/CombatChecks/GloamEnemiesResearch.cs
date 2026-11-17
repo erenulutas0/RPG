@@ -69,6 +69,10 @@ namespace Cryptforge.Tests
             yield return new Option { Key = "f2-captain", What = "floor 2's Grunt Captain back in Sentry Hall (VaultsCaptain), floor 3 as shipped", Set = l => l.VaultsCaptain = true };
             yield return new Option { Key = "f2-warden", What = "floor 2's Forge Warden back at its gate at its share then (VaultsWarden), the rest as shipped", Set = l => l.VaultsWarden = true };
             yield return new Option { Key = "aa-f2", What = "A/A: the shipped game, one unread draw of the pilot's dice on entering floor 2", Set = l => l.NudgeFloor = 2 };
+            // The Glass Regent's round of 2026-11-17 (docs/50 "The Regent's bite for the standing hero"; docs/56 section 9,
+            // decision 3): the candidate read once on seeds 2001-5200 against `f2-warden` - the Regent holds its rod through
+            // its cast and the shards' run only for a hero beyond 1.5 of it as the mark goes down (RegentRule.AtItsFeet).
+            yield return new Option { Key = "regent-feet", What = "the Glass Regent keeps its rod for a hero at its feet: a beat whose mark goes down with the hero within 1.5 of it holds no rod (FoundryLevers.RegentFeetReach)", Set = l => l.RegentFeetReach = Cryptforge.Combat.RegentRule.FeetReach };
             yield return new Option { Key = "aa-f3", What = "A/A: the shipped game, one unread draw of the pilot's dice on entering floor 3", Set = l => l.NudgeFloor = 3 };
             yield return new Option { Key = "aa-f3b", What = "A/A: the shipped game, two unread draws of the pilot's dice on entering floor 3", Set = l => { l.NudgeFloor = 3; l.NudgeDraws = 2; } };
             yield return new Option { Key = "aa-f2b", What = "A/A: the shipped game, two unread draws of the pilot's dice on entering floor 2", Set = l => { l.NudgeFloor = 2; l.NudgeDraws = 2; } };

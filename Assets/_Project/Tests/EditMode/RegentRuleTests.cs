@@ -30,6 +30,64 @@ namespace Cryptforge.Tests
             Assert.That(RegentRule.LanePast, Is.EqualTo(4f));
             Assert.That(RegentRule.LanePast, Is.GreaterThan(FootworkRule.SidestepRing(FootworkRule.SidestepRingCount - 1)),
                 "a step along a far lane, as far as the sidestep or the circle's escape walks, stays in it");
+            Assert.That(RegentRule.FeetReach, Is.EqualTo(1.5f), "the rod at its feet (docs/50, 2026-11-17)");
+            Assert.That(RegentRule.FeetReach, Is.LessThan(DescentSimulation.GlassRegent.Reach), "inside the Glass Rod's reach");
+            Assert.That(RegentRule.FeetReach, Is.LessThan(FootworkRule.ThreatReach(0f, DescentSimulation.GlassRegent.Reach, true)),
+                "inside where a kite keeps a gate boss");
+        }
+
+        // The rod at its feet (docs/50 "The Regent's bite for the standing hero"): a hero within FeetReach of the Regent - the
+        // boundary included - stands at its feet; the beat's lanes read it from their mark and their first caster.
+        [Test]
+        public void AHeroWithinFeetReachStandsAtItsFeet()
+        {
+            const float reach = RegentRule.FeetReach;
+            Assert.That(RegentRule.AtItsFeet(0f, 0f, 0f, 0f, reach), Is.True, "on it");
+            Assert.That(RegentRule.AtItsFeet(reach, 0f, 0f, 0f, reach), Is.True, "on the boundary");
+            Assert.That(RegentRule.AtItsFeet(0f, -reach, 0f, 0f, reach), Is.True);
+            Assert.That(RegentRule.AtItsFeet(reach + .01f, 0f, 0f, 0f, reach), Is.False, "just beyond it");
+            float d = reach / (float)Math.Sqrt(2.0);
+            Assert.That(RegentRule.AtItsFeet(3f + d - .01f, 2f + d - .01f, 3f, 2f, reach), Is.True, "turned, round any spot");
+            Assert.That(RegentRule.AtItsFeet(3f + d + .02f, 2f + d + .02f, 3f, 2f, reach), Is.False);
+
+            var lanes = new RegentLanes();
+            Assert.That(lanes.AtItsFeet(reach), Is.False, "no lane down");
+            lanes.Mark(0f, 0f);
+            lanes.Add(-1.2f, 0f);
+            Assert.That(lanes.AtItsFeet(reach), Is.True, "the mark 1.2 from the Regent");
+            lanes.Add(0f, .5f);
+            Assert.That(lanes.AtItsFeet(reach), Is.True, "the first caster's: the Regent's");
+            lanes.Mark(0f, 0f);
+            lanes.Add(-2f, 0f);
+            lanes.Add(0f, .5f);
+            Assert.That(lanes.AtItsFeet(reach), Is.False, "the Regent 2 away; a copy at its feet does not count");
+            lanes.Clear();
+            Assert.That(lanes.AtItsFeet(reach), Is.False);
+        }
+
+        // The Regent holds its rod where the clock holds the Warden's weapon - from the mark until the recovery after the
+        // blow - but never through a beat whose mark found the hero at its feet.
+        [Test]
+        public void TheRegentHoldsItsRodOnlyForAHeroBeyondItsFeet()
+        {
+            Assert.That(RegentRule.HoldsRod(true, false), Is.True, "the cast, the hero beyond its feet: held");
+            Assert.That(RegentRule.HoldsRod(true, true), Is.False, "at its feet: struck through the cast");
+            Assert.That(RegentRule.HoldsRod(false, false), Is.False, "between beats: free, as the Warden's");
+            Assert.That(RegentRule.HoldsRod(false, true), Is.False);
+
+            // Over a beat on the Regent's clock: held from the mark through the recovery for a far hero, never for one at its
+            // feet.
+            var clock = new WardenSlamClock();
+            clock.Tune(RegentRule.Every, RegentRule.EveryPhaseTwo, RegentRule.Telegraph);
+            clock.Reset();
+            Assert.That(clock.Advance(RegentRule.Every - RegentRule.Telegraph + .01f, false), Is.EqualTo(WardenSlamClock.Step.Marked));
+            Assert.That(RegentRule.HoldsRod(clock.HoldsWeapon, false), Is.True);
+            Assert.That(RegentRule.HoldsRod(clock.HoldsWeapon, true), Is.False);
+            Assert.That(clock.Advance(RegentRule.Telegraph, false), Is.EqualTo(WardenSlamClock.Step.Slammed));
+            Assert.That(RegentRule.HoldsRod(clock.HoldsWeapon, false), Is.True, "the shards' run");
+            Assert.That(RegentRule.HoldsRod(clock.HoldsWeapon, true), Is.False);
+            clock.Advance(WardenRule.RecoverySeconds + .01f, false);
+            Assert.That(RegentRule.HoldsRod(clock.HoldsWeapon, false), Is.False, "the recovery over");
         }
 
         // A lane runs from its body through the mark, LaneLength from the body, half its width either side of its line;

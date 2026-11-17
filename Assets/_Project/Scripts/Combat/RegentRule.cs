@@ -50,6 +50,16 @@ namespace Cryptforge.Combat
         // sidestep reach, so a step along a far lane stays in it as a step along a near one does. Measured with the rest
         // of the tuning (docs/50 "Regent").
         public const float LanePast = 4f;
+        // The rod at its feet (docs/50 "The Regent's bite for the standing hero", 2026-11-17): the Warden's clock holds the
+        // boss's weapon from the mark until RecoverySeconds after the blow - the Warden's hammer raised and then in the
+        // floor, the window a hero that read the mark strikes back in. The Regent casts its lane with its mirror, and its
+        // longer telegraph made that hold 3.2 s of every 6 s beat (4 s in phase two): a hero that stood at its side was
+        // safe from its rod for most of the fight, the standing cohort's whole easing against the Forge Warden. So the
+        // Regent holds its rod for a beat only when the mark goes down with the hero beyond FeetReach of it; a hero at its
+        // feet is struck through the cast and the shards' run (HoldsRod). FeetReach lies a fifth of a unit inside the Glass
+        // Rod's 1.7: the rod's whole reach also caught a hero kiting at its edge (the clumsy cohort's straight kite stood
+        // 1.5-1.7 from the Regent at 13 % of its marks, the standing hero within 1.5 at 37 %).
+        public const float FeetReach = 1.5f;
 
         // A lane from (ax, ay) through (mx, my), length long from (ax, ay) and halfWidth either side of its line: whether
         // (px, py) stands in it. A lane whose two points meet runs toward the floor's front (0, -1).
@@ -88,6 +98,39 @@ namespace Cryptforge.Combat
             float dx = mx - ax, dy = my - ay;
             float d = (float)Math.Sqrt(dx * dx + dy * dy);
             return Math.Max(length, d + past);
+        }
+
+        // Whether a hero at (x, y) stands within walk of (fromX, fromY) - where the last blow found it: it has stood since.
+        // The squares are cast to float, as PollenRule.Near's: Unity's Mono keeps a product wider than .NET does.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static bool Stood(float x, float y, float fromX, float fromY, float walk)
+        {
+            float dx = x - fromX, dy = y - fromY;
+            return (float)(dx * dx + dy * dy) <= (float)(walk * walk);
+        }
+
+        // Whether a hero at (x, y) stands at the Regent's feet, the Regent at (regentX, regentY): within reach of it. The
+        // squares are cast to float, as PollenRule.Near's (Unity's Mono keeps a product wider than .NET does).
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static bool AtItsFeet(float x, float y, float regentX, float regentY, float reach)
+        {
+            float dx = x - regentX, dy = y - regentY;
+            return (float)(dx * dx + dy * dy) <= (float)(reach * reach);
+        }
+
+        // Whether the Regent holds its rod now: as the clock holds the Warden's weapon (clockHolds: from the mark until the
+        // recovery after the blow), but never for a hero at its feet.
+        public static bool HoldsRod(bool clockHolds, bool atItsFeet) => clockHolds && !atItsFeet;
+
+        // (bx, by) turned degrees round (mx, my), counter-clockwise on the floor.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static void TurnedRound(float bx, float by, float mx, float my, float degrees, out float x, out float y)
+        {
+            double angle = degrees * Math.PI / 180.0;
+            float cos = (float)Math.Cos(angle), sin = (float)Math.Sin(angle);
+            float ox = bx - mx, oy = by - my;
+            x = mx + ox * cos - oy * sin;
+            y = my + ox * sin + oy * cos;
         }
 
         // The unit direction of a lane from (ax, ay) through (mx, my), as InLane reads it: for the lanes' look.
@@ -171,6 +214,11 @@ namespace Cryptforge.Combat
             Count++;
             return true;
         }
+
+        // Whether the beat's mark went down at its first caster's feet: the hero's spot (the mark) within reach of where the
+        // lane's first body (the Regent) stood (RegentRule.AtItsFeet). False with no lane down.
+        public bool AtItsFeet(float reach) =>
+            Count > 0 && RegentRule.AtItsFeet(MarkX, MarkY, _x[0], _y[0], reach);
 
         // The beat is over (its blow landed, or the fight stopped): no lane is down.
         public void Clear() => Count = 0;

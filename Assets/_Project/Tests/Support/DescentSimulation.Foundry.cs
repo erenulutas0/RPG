@@ -3431,8 +3431,7 @@ namespace Cryptforge.Tests
                 // WardenSlamService holds the gate boss's AttackController from the mark until the hammer is out of the
                 // floor: its weapon neither ticks nor strikes meanwhile, the mark's own frame included (StepWarden runs
                 // first).
-                if (ReferenceEquals(foe, _slamBoss) && _levers.WardenRecoverySeconds >= 0f &&
-                    _slam.HoldsWeaponFor(_levers.WardenRecoverySeconds))
+                if (ReferenceEquals(foe, _slamBoss) && _levers.WardenRecoverySeconds >= 0f && GateBossHeld(foe))
                     return;
                 // docs/52's open Cinder Bloom holds its maul (DescentSimulation.Gloam.cs).
                 if (Rooted(foe))
@@ -3458,8 +3457,11 @@ namespace Cryptforge.Tests
                 else if (!inReach)
                     return;
                 _harmIsSlam = false;
-                if (foe.Weapon.TryAttack(_hero, foe) && _trace != null && ReferenceEquals(foe, _slamBoss))
+                bool struck = foe.Weapon.TryAttack(_hero, foe);
+                if (struck && _trace != null && ReferenceEquals(foe, _slamBoss))
                     Emit($"warden_strike hp={N(_heroHealth.Current)}");
+                if (struck && ReferenceEquals(foe, _slamBoss) && _levers.RegentRodStreakShare > 0f && IsRegent(foe))
+                    RegentRodStruck(foe);
             }
 
             // BurnStatus.Update on every burning enemy, in the order the statuses were added; a status added this frame
@@ -3570,11 +3572,14 @@ namespace Cryptforge.Tests
                     if (IsRegent(boss))
                         RegentPhaseTwo(boss);
                 }
+                if (IsRegent(boss))
+                    RegentFeet(boss);
                 switch (_slam.Advance(Step, _slamEnraged))
                 {
                     case WardenSlamClock.Step.Marked:
                         _markX = HeroX;
                         _markY = HeroY;
+                        WatchMark(boss);
                         if (IsRegent(boss))
                             RegentMarked(boss);
                         if (_trace != null)
@@ -3582,6 +3587,7 @@ namespace Cryptforge.Tests
                         break;
                     case WardenSlamClock.Step.Slammed:
                         _result.Slams++;
+                        WatchBlow();
                         float distanceSquared = ArenaFloor.FloorDistanceSquared(HeroX, HeroY, _markX, _markY);
                         bool regent = IsRegent(boss);
                         bool hit = regent
@@ -3592,7 +3598,7 @@ namespace Cryptforge.Tests
                             _result.SlamHits++;
                             _harmIsSlam = true;
                             if (regent)
-                                _hero.ApplyDamage(new DamageContext(_heroHealth.Maximum * _levers.RegentLaneShare, boss));
+                                _hero.ApplyDamage(new DamageContext(_heroHealth.Maximum * RegentBlowShare(), boss));
                             else
                                 _hero.ApplyDamage(new DamageContext(_heroHealth.Maximum * WardenRule.HeroShare, boss));
                             _harmIsSlam = false;
