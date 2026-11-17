@@ -171,3 +171,21 @@ default. CombatChecks 897 green (`Başarılı`); the Unity compile check green. 
 FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_REALISM=typical`, `FOUNDRY_FLOORS=4` and `2`) against main's own on the same
 machine: every CSV, `foundry-gate.md`, `foundry-cohorts.md` and `foundry-finale.md` byte-identical; in
 `foundry-batch.md` only the clock in its header and the wall-seconds column differ.
+
+## 9. Lead decisions 2026-11-17
+
+1. **The rule is adopted** as section 0 states it, and it replaces the relative rule of 2-in-1,600 everywhere a new
+   creature ships. Seeds 1-2000 are spent; the next confirmation block starts at 2001, and each read records the block
+   it used here so no block is read twice.
+2. **First-card is read from now on.** This study let careful stand in for it; the next confirmation reads all three
+   gated cohorts.
+3. **The Glass Regent stays shipped, and it is reopened as a design miss.** It passes the harm rule, but docs/50 built
+   it to separate the careful player from the standing one ("mechanics that a careful player reads and a standing one
+   does not"), and it moved the standing cohort the wrong way (+5.6 points against the Warden while careful moved
+   +0.6). The next Regent round gives the standing hero back the bite the Warden had: at most two candidates with a
+   written design reason, read once on a fresh 3,200-seed block. Pass means the rule's harm bar for clumsy, careful
+   and first-card, plus standing no better than the Warden's (point change <= 0).
+4. **The Thornling stays on hold.** When floor 3 gets its next content pass, `thorn` (0.8 s) and at most one more
+   candidate go once to a fresh 1,200-seed block.
+5. **The Wraith's pollen stays unbuilt** (docs/52's decision); `PollinatingWraith` remains a research lever, off.
+
