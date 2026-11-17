@@ -611,6 +611,25 @@ Four, each with the recommended answer first.
 10. **Ilya's third: Cinder Ward or Backdraft.** The ward answers what kills Ilya's weaker players (the boss); Backdraft
     is the more caster-like tool and wins less in the lane (section 3.2). Recommended: the Ward.
 
+## 11. Lead decisions 2026-11-17
+
+The lead takes section 10's recommendations:
+
+1. Skill 1 (Burst, Vent) keeps its shipped numbers in phase 1; its build scaling is a measured lever under the
+   relative rule, later.
+2. `TimesTheSkills` is added for skills 2-3; the clumsy cohort lacks it.
+3. Until docs/56 lands, the upper bound is the bosses' 45-65 s bands and the 13-16 minute Descent.
+4. Slow, never knockback (PackMotion's spacing invariant).
+5. One `HeroDash` body, built with Shield Rush; the Riftblade's Phase Dash reuses it when it comes.
+6. Skill ranks count with gear in the tiers' matched power (about +55 % at the top); no gear cap is trimmed.
+7. Automatic skills 2-3 only if the device session shows one-hand play stalling.
+8. The arena retires docs/55's stand-in skills for the heroes' three, deals boons for variety, plays ranked at rank III
+   without the cooldown line, starts Ilya's coefficient near x0.8, and the skills read the hero's own maximum health.
+9. Save version 5 for skills.
+10. Ilya's third is the Cinder Ward; Backdraft stays the measured alternative.
+
+Section 9's four owner questions are open; the build (section 8) starts once the owner answers 1, 2 and 4 (3 is later).
+
 ## How to re-run
 
     dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~HeroSkillDuelTests"
