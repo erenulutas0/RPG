@@ -731,6 +731,27 @@ against it.
 5. *Lead*: the open arena's matchmaking (docs/55 3.4 asked for bands) - 10.6's curve says a 2 % gear gap is already
    about two fights in three; match the open ladder's offers within +-2 % gear power?
 
+### 10.10 The lead's answers (2026-11-19; the owner delegated gameplay decisions to the lead)
+
+1. **Training rivals climb.** Until real players fill the ladder, the generated ranked rivals are labelled *training
+   rivals* and carry a handicap by rung. The handicap is a damage coefficient on the rival only, never on the player. It
+   is recorded in the rival's snapshot under the rules' version. It is set by measurement, not guessed: the player's
+   expected win against the bottom rung is about 75 %, and against the top rung 50 %. The rating earned against them is
+   the *training rating* and does not carry into an online ladder.
+2. **Move speed stays out of the arena, and one dealt boon a round stays on**, as measured in 10.3.
+3. **The three departures stay arena-only:** the kite's backpedal, the walk by role and the burn that grows with the
+   build. The Descent's rules do not change. The arena's three live in `ArenaRules` under its version and hash.
+4. **The skill ids are confirmed.** The hero-skills branch (83f775b9, docs/57 phase 1) names its four assets
+   `ability_iron_resolve`, `ability_shield_rush`, `ability_flame_sigil` and `ability_cinder_ward`, the same as this
+   table.
+5. **The open ladder offers three rivals:**
+   - about 2 % of gear power below the player;
+   - one level within +-0.5 %;
+   - about 2 % above.
+
+   Each card shows both powers and the expected chance read from 10.6's curve, so the player chooses the risk. An online
+   ladder (P1) matches within +-2 % and widens the band with the wait, as 3.4 says.
+
 ## How to re-run
 
     dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~ArenaDuelTests"
