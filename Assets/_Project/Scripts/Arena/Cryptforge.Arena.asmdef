@@ -1,0 +1,7 @@
+{
+  "name": "Cryptforge.Arena",
+  "rootNamespace": "Cryptforge.Arena",
+  "references": [],
+  "noEngineReferences": true,
+  "autoReferenced": true
+}

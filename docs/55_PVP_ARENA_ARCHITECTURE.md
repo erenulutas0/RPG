@@ -8,7 +8,8 @@ scene, setting or package changed. One tool is added so the questions that numbe
 side, and `ArenaDuelResearch.cs` beside it (its replay test runs in every plain `dotnet test`; the research runs by name,
 section "How to re-run"). Numbers cited as "measured" come from it (2026-11-17, main `0243c55d`, seeds 1-2000, this
 12-thread Windows machine); costs are the vendors' published prices on the day (sources at the end); every other number
-is a starting value.
+is a starting value. **Since 2026-11-18, section 10 records P0's core as built and measured** (the `Cryptforge.Arena`
+assembly, both modes, the local ladder, the arena's balance table).
 
 The earlier docs said "no PvP, no server authority, no live backend" for the MVP (docs/00, docs/01, docs/16) and named
 the conditions for a backend (docs/06, "Backend decision": account sync, server-validated purchases, anti-cheat with
@@ -469,6 +470,267 @@ P0 comes before any backend.
 The normalised build of answer 5 refines section 3.4's option 1, which had gear as cosmetics only. P0 builds both modes
 on the integer core: **ranked-normalised**, which is the default, and **open**.
 
+## 10. P0's core, built and measured (2026-11-18)
+
+Built on the branch after section 9's answers: the arena's integer core as its own assembly, both modes, the generated
+rivals and a local ladder with its own save, the `arena_fight` event's fields, and the research that sets the arena's
+balance table. **No view, no UI, no scene, no asset**; the profile, its save and its version are untouched (the arena
+keeps its own file), and the Descent is untouched (the default batch re-runs byte-identical but its clocks, below).
+Numbers cited as measured come from `ArenaBalanceResearch` (2026-11-18, seeds 1-2000 unless named, best of three,
+3 threads of this 12-thread machine while three other agents' simulations ran).
+
+### 10.1 What is built
+
+| Where | What |
+|---|---|
+| `Assets/_Project/Scripts/Arena/` (`Cryptforge.Arena.asmdef`, `noEngineReferences`, nothing of the game's referenced) | `DuelRules` and `ArenaRules` (the versioned, hashed table: the heroes and their coefficients, the weapons and their patterns and coefficients, the six skills, the ranked pool and its values, the common + level and line count, the boons, the kite's backpedal), `ArenaGearTable` (the gear's tables, copied and pinned equal to `GearStats` and `EfsunRule`), `ArenaRandom` (`RunRandom`'s construction, pinned word for word), `ArenaBuild` and `ArenaSnapshots` (a snapshot's ids and levels, its hash), `ArenaResolver` (re-resolution under the fight's rules, with repairs), `DuelCore` (the duel, best of three), `DuelLog` and `DuelReplay` (the event log and a replay from the log alone), `DuelCredits` and `DuelSummary` (the "why"), `ArenaRivals` and `ArenaLadder` (generated rivals, the local ladder, an integer Elo), `ArenaSaveData` and `ArenaSaveJson` (the arena's own save, version 1, JSON written and read in pure C#), `ArenaFightTelemetry` (the event's fields) |
+| `Scripts/Core/ArenaProfileBuild.cs` | the thin bridge: the player's ranked or open build read from `PlayerProfile` (the weapon it carries and owns, the gear `EquippedPieces` gives that weapon); reads, never writes |
+| `Scripts/Save/ArenaSaveStore.cs` | the save's file, `arena.json` beside the profile, in `ProfileStore`'s shape (temp, backup, newest revision); System.IO only |
+| `Project.Gameplay.asmdef`, `Project.EditModeTests.asmdef` | reference `Cryptforge.Arena` by name |
+| `Tests/EditMode/DuelCoreTests.cs`, `ArenaBuildTests.cs`, `ArenaLadderTests.cs` | 24 tests, in Unity's EditMode suite and in every plain `dotnet test` of `Tools/CombatChecks` |
+| `Tools/CombatChecks/ArenaBalanceResearch.cs` | the research, on demand (How to re-run) |
+| `Tools/UnityCompileCheck/Arena/Cryptforge.Arena.csproj` | the arena's sources compiled alone (netstandard2.1, warnings as errors, no Unity, no game): a stray engine type or a reach into the game fails here as it would in Unity and in a server module; `UnityCompileCheck.csproj` references it as the asmdefs do |
+
+The prototype (`ArenaDuel.cs`, `ArenaDuelResearch.cs`, `HeroSkillsResearch.cs`) is untouched: its report
+(`arena-duel.md`, sections 2-3's numbers) re-runs byte-identical but its two clock lines.
+
+### 10.2 The duel as built
+
+Grown from the prototype, in integers only (milli-points, positions in micro-units, 60 ticks a second, chances per
+mille; `ArenaRandom` streams per (seed, purpose, index)):
+
+- **The heroes' own three skills** replace the five stand-ins (docs/57 decision 8): the Vanguard's Forge Burst, Iron
+  Resolve and Shield Rush, Ilya's Crucible Vent, Flame Sigil and Cinder Ward, at **rank III** (+12 % of each skill's own
+  number - damage, the guard's share, the glyph's heat and slow, the ward's size; never the cooldown) and **no cooldown
+  line in ranked**. The radii are the run's (the Burst 2.5 and the Vent 3 round the caster, the glyph 2.5, the Rush 4
+  units), not "the weapon's reach plus". **The ward reads the hero's own maximum health** (with its health line and a
+  Vitality boon): about 20-23 points a ward, never a share of the arena's x8 (pinned by a test).
+- **Weapon types and patterns**: the Sword, the Staff and the Daggers at their category numbers; the Staff kites; the
+  Daggers crit every third strike for x2 and roll their chance only on the other two (as `WeaponRuntime` does); the
+  cleave and the blast are kept for the view (one on one they have no second target). The Vanguard carries all three,
+  Ilya the Staff only.
+- **The walk, by role** - a kiter backs off from the tick's opening positions, then a side short of its reach closes on
+  where the foe now stands - and **a kiter backs off at 60 % of its speed**. The prototype stepped side A first, so a
+  kiter on side B could keep a short reach out of range for the whole lane and on side A could not (docs/55's and
+  docs/57's numbers are unaffected: the Sword stops at 2.1, outside the Staff's kite trigger at 2.0, so no prototype
+  fight ever kited); and a kiter as fast as its chaser keeps whatever gap it opens, so the Daggers (1.8) never reach a
+  Staff that kites from 2.0 until the wall: at full speed the Vanguard + Staff beats the Vanguard + Daggers 88 % and Ilya beats it 94 %; at 60 % they
+  stand at 48 % and 54 % (10.4).
+- **Every point of a hero's output grows with its build**: the strikes, the striking skills, and Ember Memory's burn,
+  whose tick grows with the damage, attack speed, crit and burn bonuses (the gear's DPS terms). The run's burn is flat;
+  in the lane it is a third of Ilya's damage, and flat it made the hero balance move with the gear level - measured with
+  each variant's coefficients calibrated in ranked, Ilya beat the Vanguard + Sword 81 % at no gear and 39 % at +40 %;
+  grown, 45-51 % across the range, and Ilya's coefficient settles at 857-859 from + level 3 to 9 alike (10.4).
+- **Best of three**, up to five rounds while rounds draw (a double knock-out, about 5 % of mirror rounds, is a drawn
+  round); **each round deals each side one boon of the same quality** (Force +6 % damage, Tempo +6 % attack speed,
+  Vitality +6 % health, Keen +3 crit points), docs/57's "dealt boons" for variety.
+- **Blows land one by one** (the victim's armour, then its guard, then its ward) and every event goes into the
+  fingerprint and, when kept, the log; the policies are the prototype's two (careful waits for a skill's moment, bold
+  uses it whenever it lands) and part of the build.
+- **The "why"** (`DuelSummary`): each side's credits per effect over the match - the damage it dealt by source and the
+  damage it kept off itself, with each bonus (a line type in ranked, the gear in the open arena, the round's boon)
+  carved out of what it scaled - and the winner's two or three effects ranked by how much more each gave it than the
+  same effect gave the loser (the third kept when at least a quarter of the first). Examples from generated rivals:
+  "Ember Memory's burn dealt 764 / Crucible Vent dealt 314" (Ilya over the Vanguard), "Iron Resolve turned away 372 /
+  Sword strikes dealt 1,502 / Forge Burst dealt 205" (the Vanguard over Ilya), "Damage lines added 72 / Crit lines added
+  31" (a narrow Daggers mirror). The lines are English placeholders; the view localises from the effect ids.
+
+### 10.3 The ranked normalisation: the constants and why
+
+| Constant | Value | Why (measured) |
+|---|---|---|
+| The common + level | **+5** on all four slots (weapon damage +5 %, armour health +5 %, amulet attack speed +2.5 %, ring crit +1.5 points) | once each level is calibrated, **+3, +5, +7 and +9 balance alike** (best build 60-62 %, spread 18-23 points at 300 seeds a build, inside the noise) and fight alike (27-28 s rounds), so the level is not a balance lever; a careful player's first +5 item comes in about two runs and a clumsy one's in five (docs/54 section 9), so +5 keeps the ranked hero near most players' PvE hero |
+| Lines a build | **3, distinct types** | the most distinct builds: 10 line choices a Vanguard weapon and 20 for Ilya, 100 builds with the two policies; 2 lines spread about as wide with fewer builds, 4 lines narrow it a little (17.7 points) but leave the Vanguard 5 choices (which one to leave out) |
+| Each line type's value (the gear's hundredths) | **damage 300** (the reference), **attack speed 300, crit 325, health 300, armour 275, burn 900** (Ilya only) | the calibration loop (10.4): each type's carriers even with its non-carriers against the field (49.8-51.3 % against 50.1-51.5 %, 10.5) |
+| Out of the pool | **move speed**; the **ability-cooldown** line; damage vs elites, area, pickup radius, healing, luck | move speed buys nothing in a lane where a chaser keeps up with a kiter: one move-speed line against one damage line wins **15-28 %** at any value from 5 % to 20 %; the cooldown line by docs/57 decision 8; the rest have nothing to act on one to one |
+| Caps | **none in ranked** (the open arena keeps the gear's) | the values are the arena's and the same for both sides; under the gear's caps the crit line stopped counting past 2.5 points over the +5 ring (measured before the change), a type dead at one level and alive at another |
+| Skills | **rank III**, no cooldown line | docs/57 decision 8 |
+| Boons | **one a side a round** | with them the best build is 60.0 % and 8 builds stand above 55 %; without, 60.3 % and 10 (the variety they add costs nothing in balance) |
+
+One line one on one against the damage line (mirrors, at the shipped values) shows each identity's own taste: crit is
+worth 50 % to the Sword, the Staff and Ilya and **34 % to the Daggers** (their rhythm crit never rolls, so a crit chance
+works on two strikes in three, as in the run); attack speed 41-50 %; health and armour 48-50 %; the burn line 52 % for
+Ilya. A line type is a real choice, and the field still evens out (10.5).
+
+### 10.4 The coefficients
+
+**The calibration loop** (`Normalisation`, section 1): every ranked build against the field a pass (400 seeds a
+build), from docs/57's starting point (Ilya x0.8, the Staff and the Daggers untouched, the first guesses at the line
+values); each identity's coefficient moves its mean toward the Vanguard + Sword's (about 0.4 points a per mille, damped),
+each line type's value moves its carriers toward its non-carriers. It settles in about seven passes; **the shipped table
+is the median of the last five**:
+
+| Coefficient (per mille of damage) | Start | Shipped |
+|---|---|---|
+| The Vanguard, the Sword | 1000 | **1000** (the reference) |
+| Ilya (all its damage: strikes, skills, burn; health x1.000) | 800 | **859** |
+| The Staff (both heroes) | 1000 | **1023** (so Ilya's Staff deals x0.879 in all) |
+| The Daggers | 1000 | **784** |
+
+**The round-robin as shipped** (`Coefficients`, seeds 1-2000, best of three, each side's lines and policy drawn per
+seed from its identity's 20 or 40 builds):
+
+| A \ B | Vanguard + Sword | Vanguard + Staff | Vanguard + Daggers | Ilya + Staff | A against the four |
+|---|---|---|---|---|---|
+| Vanguard + Sword | 49.3 % | 49.8 % | 45.9 % | 49.6 % | 48.7 % |
+| Vanguard + Staff | 49.0 % | 49.2 % | 47.6 % | 46.3 % | 48.0 % |
+| Vanguard + Daggers | 49.7 % | 47.9 % | 47.1 % | 46.2 % | 47.7 % |
+| Ilya + Staff | 49.0 % | 51.2 % | 53.5 % | 48.4 % | 50.5 % |
+
+**Mirrors 47-49 %** (draws count half; a double knock-out ends about 5 % of mirror rounds) and **hero against hero:
+the Vanguard against Ilya 47.3 %, Ilya against the Vanguard 51.2 %** - inside the 45-55 % target. Every pair stands in
+45.9-53.5 %. Uncoefficiented (all at x1.000) the same matrix runs from 0.0 % to 100 %: the Daggers win nearly every fight,
+Ilya beats the Sword and the Staff Vanguards 99 %.
+
+**How steep it is**: ten per mille on one coefficient moves that identity's mean **5-8 points** (the Staff 43.6 / 48.0 /
+53.7 % at -10 / 0 / +10, the Daggers 40.0 / 47.7 / 55.8 %, Ilya 43.3 / 50.5 / 58.3 %) - so the table keeps them to the
+per mille, and any change to a hero, a skill or a weapon is re-calibrated, not guessed.
+
+**The kite's backpedal** (shipped coefficients): at full speed the Vanguard + Staff beats the Vanguard + Daggers
+**87.8 %** and Ilya beats it **94.1 %** (the Daggers' mean against the four 28.4 %); at 80 % 52.2 % and 58.6 %; at
+**60 % (shipped) 47.6 % and 53.5 %**; at 40 % nearly the same as 60 %. The Sword's pairs do not move (it stops at 2.1,
+before the kite's trigger at 2.0).
+
+**The burn that grows** (`OpenCurve`, equal gear on both sides, each variant's coefficients calibrated in ranked the same
+way - the flat burn settles Ilya at x0.905): with the run's flat burn Ilya beats the Vanguard + Sword **81 % at no gear,
+66 % at +10 %, 50 % at +25 %, 39 % at +40 %**; with the burn that grows, **50 / 45 / 47 / 51 %**. And in ranked, Ilya's
+calibrated coefficient is **857-859 at + level 3, 5, 7 and 9** alike.
+
+### 10.5 Ranked builds against the field (the dominance table)
+
+`Dominance`: the 100 ranked builds (identity x line types x policy), each in 2,000 best-of-threes against an opponent
+drawn per seed (an identity evenly, then one of its builds evenly). **No build wins more than 60 %: the top is 59.8 %.**
+
+| # | Build | Against the field |
+|---|---|---|
+| 1 | Vanguard + Daggers: damage, health, armour; careful | 59.8 % |
+| 2 | Vanguard + Daggers: damage, health, armour; bold | 58.5 % |
+| 3 | Vanguard + Daggers: damage, attack speed, health; careful | 57.1 % |
+| 4 | Vanguard + Daggers: attack speed, health, armour; careful | 56.1 % |
+| 5 | Vanguard + Daggers: damage, attack speed, health; bold | 54.7 % |
+| 6 | Vanguard + Daggers: damage, attack speed, armour; careful | 54.6 % |
+| 7 | Vanguard + Daggers: damage, attack speed, armour; bold | 54.4 % |
+| 8 | Ilya + Staff: attack speed, armour, burn; careful | 54.2 % |
+| 9 | Ilya + Staff: attack speed, crit, burn; bold | 54.1 % |
+| 10 | Vanguard + Daggers: attack speed, health, armour; bold | 53.9 % |
+
+The bottom five are all the Daggers with crit (42.0-44.6 %). By identity the means are **49.7 / 49.7 / 49.7 / 51.4 %**
+(Sword, Staff, Daggers, Ilya) and the ranges 46.5-52.2 %, 45.1-53.7 %, **42.0-59.8 %** and 48.1-54.2 %: the Daggers'
+builds spread widest because their crit line is worth two thirds, so for the Daggers "no crit" is the build and the
+view should say so. By line type, carriers against non-carriers: damage 50.6 / 50.1 %, attack speed 50.0 / 50.9 %,
+crit 49.8 / 51.1 %, health 50.6 / 50.1 %, armour 50.6 / 50.1 %, burn 51.3 / 51.5 % - no type is a must-pick. Careful
+50.6 %, bold 50.2 %.
+
+### 10.6 The open arena's gear curve
+
+`OpenCurve`: A wears gear made to a power index (the ladder's own recipe), B none; same identity; best of three.
+
+| A's gear power | Vanguard + Sword mirror | Vanguard + Staff mirror | Vanguard + Daggers mirror | Ilya mirror | Ilya (A) against the Vanguard + Sword | The Vanguard + Sword (A) against Ilya |
+|---|---|---|---|---|---|---|
+| 0 | 49.7 % | 49.2 % | 48.4 % | 49.1 % | 50.2 % | 45.8 % |
+| +2.8 % (+1) | 74.6 % | 72.3 % | 77.7 % | 78.0 % | 68.6 % | 69.9 % |
+| +5.7 % (+2) | 88.4 % | 86.1 % | 94.4 % | 92.0 % | 88.3 % | 90.3 % |
+| +9.7 % (+3) | 97.2 % | 96.2 % | 99.8 % | 98.3 % | 97.5 % | 97.4 % |
+| +14.7 % (+5) | 100.0 % | 99.4 % | 100.0 % | 100.0 % | 99.9 % | 100.0 % |
+| +19.9 % (+6) to +50 % | 100 % | 100 % | 100 % | 100 % | 100 % | 100 % |
+
+Between matched powers (Vanguard + Sword, B at +19.9 %): a **1.7 % gap wins 67.8 %**, 4.1 % 83.0 %, 8.2 % 94.4 %,
+12.5 % 99.1 %. Section 3.4's verdict stands on the new core with three skills a hero: in the open arena gear decides,
+and an open ladder that wants close fights offers rivals within about +-2 % gear power. At equal gear across the range
+the hero axis holds (above), but **the weapons drift**: the Vanguard's Sword against its Daggers runs 33 % at no gear,
+35 % at +10 %, 43 % at +25 %, 51 % at +40 % (the Daggers' fixed rhythm counts for more where the gear's crit and speed are
+low), and Ilya against the Staff Vanguard 47-59 %. Ranked is tuned; open is casual, as the owner set it.
+
+### 10.7 Determinism and cost
+
+- **The replay pin.** `DuelCoreTests` (in every plain `dotnet test` and in the Editor): 300 best-of-threes sequential
+  and in parallel give identical fingerprints; the XOR of 50 pinned matches (40 ranked rival pairs, 10 open pairs at
+  rising gear) is **0x0E7077FD7DB78B0E** on .NET 9 - the Editor's Mono must compute the same; every one of those
+  matches' logs replays to its match (each round's winner, ticks, both healths and both final positions from the log
+  alone) and the log's own FNV-1a is the match's fingerprint. At scale (`Cost`): **2,000 of 2,000** fingerprints
+  identical sequential against three threads, **500 of 500** logs replayed.
+- **The rules' pin.** Version 1, hash **0x6988134A9881CFE8** (every number of `DuelRules`, `ArenaRules` and
+  `ArenaGearTable`), pinned together in `ArenaBuildTests`: a change without a version bump fails.
+- **Cost.** A best of three: **0.30 ms** of one core of this machine with other simulations running (60 s of fighting,
+  about 350 events); a log is about 11 KB uncompressed at 32 bytes an event (the server's stored form would pack it).
+  A million fights stays a few CPU minutes.
+
+### 10.8 Rivals, the local ladder, the save, the event
+
+- **Generated rivals** (`ArenaRivals`), every draw from the arena save's seed: ranked rivals draw a hero, a weapon it
+  carries, a policy and three distinct line types of its pool - under normalisation, as strong as anyone; open rivals
+  wear gear made to a power index (`GearAt`: all four slots at the highest common + level within the target, then power
+  lines at the highest tier that still fits), rung by rung from none to +50 % (the ceiling). Their names are placeholders
+  for the view.
+- **The ladder** (`ArenaLadder`): 30 rivals an arena, rated 700 to 1500 by rung; the player starts at 1000; three are
+  offered, the nearest the player's rating; a fight's seed is drawn from the save's seed at its fight count; both builds
+  are re-resolved under the current rules; Elo with K 32 in integers (an expectation table at 25-point steps,
+  interpolated, symmetric to the per mille), zero-sum between the player and the rival; the last 20 fights kept, each
+  with its seed, rules version and hash, and fingerprint, so any of them re-runs and checks itself.
+- **The player's own past heroes** (`KeepSnapshot`): a build is kept with the player's rating at the time (five at most,
+  oldest dropped) and stands in its arena's ladder in place of the generated rival rated nearest it (or of the oldest past
+  hero once five stand); the same build is kept once. When to keep one (a changed build, every N fights) is the view's
+  call.
+- **The save** (`ArenaSaveData`, `arena.json`): version 1, its own file and its own version, never inside the profile:
+  `saveVersion`, `revision`, `rulesVersion`, `seed`, `fights`, both ladders (rating, wins, losses, draws, rivals, history),
+  the player's ranked and open builds (ids; the open build's gear is read from the profile at each fight) and the past
+  heroes. JSON in camelCase, written and read by `ArenaSaveJson` in pure C# (a round trip writes the same text; unknown keys
+  ignored, missing keys default, a newer version refused rather than guessed); `ArenaSaveStore` only moves the text to and
+  from the file. A missing or broken arena save starts the arena afresh and never touches the profile.
+- **`arena_fight`** (`ArenaFightTelemetry.Fields`, in this order): `mode`, `rules_version`, `rules_hash`, `seed`, `fight`,
+  `hero_id`, `weapon_id`, `policy`, `skill_ids`, `line_ids`, `gear_power`, `rival_id`, `rival_past_self`, `rival_hero_id`,
+  `rival_weapon_id`, `rival_policy`, `rival_line_ids`, `rival_gear_power`, `rival_rating`, `result`, `rounds`, `rounds_won`,
+  `rounds_lost`, `duel_sec`, `rating_before`, `rating_after`, `rating_delta`, `why` (the summary's effect ids), `events`,
+  `fingerprint`. Keys checked against `TelemetryFields.IsValidKey` and the envelope's; the view's wiring hands them to
+  `TelemetryFields` under the event name (local log only, docs/10). The arena's assembly cannot see the game's telemetry,
+  which is why the fields are defined there and written here.
+
+### 10.9 Limits, and what comes next
+
+**Limits.** One lane, two heroes, three weapons, four identities; a hand-written autopilot with two policies; the
+coefficients and line values hold at ranked's + level 5 with three lines (re-calibrate after any change to a hero, a
+skill, a weapon, the level or the count - `Normalisation` does it in about five minutes); the open arena's weapons drift
+with the gear level (10.6); the Daggers' builds spread widest (their crit line is worth two thirds); ranked against
+generated rivals is even by construction, so P0's ranked ladder is a walk around 50 % rather than a climb (question 1
+below); the rival names are placeholders; the summary's lines are English placeholders. Nothing here is drawn: the
+first look at whether watching is fun is still the view and the owner's S23 session (section 6's gate).
+
+**What the view phase needs from the core** (all public, in `Cryptforge.Arena`):
+- the build screens: `ArenaRules.Current.RankedPool(hero)` and `RankedLines` for the line picker (three distinct types;
+  the Vanguard's five, Ilya's six), the policy (careful or bold), `ArenaProfileBuild.Ranked/Open` for the player's build;
+  the hero's unlock (Ilya) is the view's check (`HeroUnlock`), as the run's;
+- the ladder: `ArenaSaveStore(ProfileLocation.Resolve()).Load(seed)` (a new arena draws its seed from the caller, e.g.
+  the clock), `ArenaLadder.Opponents`, `Fight` (pass a `DuelLog` to draw), `KeepSnapshot` (when: the view's rule - on a
+  changed build, say), then `Save`;
+- the playback: `DuelLog`'s events at 60 ticks a second - `RoundStart` (health, entry, boon), `Move` (position and step a
+  tick in micro-units; a leap is a Shield Rush), `Strike`/`Hit` (health taken, ward absorbed, crit and rhythm flags),
+  `Skill` (slot, lasting ticks, the glyph's position), `Burn`, `Stacks`, `Daze`, `RoundEnd`; the lane is 12 units wide,
+  entries at +-4; `DuelReplay` shows how health and positions follow from the log alone;
+- the result screen: `DuelMatch.Why` with `DuelSummary.Line` (or `DuelSummary.Id` for a localised string), the rounds,
+  the rating change;
+- the event: `ArenaFightTelemetry.Fields(outcome, fight)` handed to `TelemetryFields` under `arena_fight` - the run's
+  telemetry is per run, so the view needs a session-level writer for it;
+- the skill icons: the ids `ability_iron_resolve`, `ability_shield_rush`, `ability_flame_sigil`, `ability_cinder_ward`
+  are this table's; the hero-skills work must name its assets the same (or this table follows it, with a version bump).
+
+**For the lead, Unity-only checks** (a worktree has no Unity): the new asmdef `Cryptforge.Arena` (`noEngineReferences`,
+no references) and the two asmdefs that now reference it by name (`Project.Gameplay`, `Project.EditModeTests`) import
+and compile; the 24 EditMode tests run in the Editor - `TheFingerprintIsTheSameOnEveryRuntime` is the Mono-against-.NET
+pin (the value was computed on .NET 9), `TheStoreLoadsTheNewestRevision` writes a temporary folder, one test uses
+`Parallel.For`; the meta files' GUIDs are fresh. `Tools/UnityCompileCheck` already builds the arena alone and the game
+against it.
+
+**Questions.**
+1. *Owner*: ranked against generated rivals is even by design, so P0's ranked ladder does not climb. Should the
+   generated ranked rivals carry a handicap by rung (a few per cent of damage below the player's rating, above it more),
+   labelled as training rivals, so the local ladder feels like a climb before real players fill it?
+2. *Owner*: move speed is out of the arena (the lane gives it nothing); the dealt boons are on (one a round). Agree?
+3. *Lead*: the arena's rules depart from the run's in three measured places - the kite's backpedal, the walk by role,
+   the burn that grows with the build. Agree they stay arena-only?
+4. *Lead*: the four new skill ids (above) - confirm against the hero-skills work before the view.
+5. *Lead*: the open arena's matchmaking (docs/55 3.4 asked for bands) - 10.6's curve says a 2 % gear gap is already
+   about two fights in three; match the open ladder's offers within +-2 % gear power?
+
 ## How to re-run
 
     dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~ArenaDuelTests"
@@ -476,6 +738,15 @@ on the integer core: **ranked-normalised**, which is the default, and **open**.
     dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~ArenaDuelResearch"
       # ARENA_SEEDS (2000), ARENA_RACE_SEEDS (20); writes TestResults/arena-duel.md: replays, cost, the gear table,
       # the patch's effect on stored duels, the race's re-simulation of floor 1
+    dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~DuelCoreTests|FullyQualifiedName~ArenaBuildTests|FullyQualifiedName~ArenaLadderTests"
+      # P0's core (section 10), in every plain run and in Unity's EditMode suite: the rules' version and hash pinned
+      # together, the fingerprint pin, sequential against parallel, logs replayed, the tables equal to the game's, ranked
+      # normalisation, open gear, the resolver's repairs, rivals, the ladder, the save's JSON and file, the event's keys
+    dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~ArenaBalanceResearch"
+      # section 10's research, by name or all five: Normalisation (the calibration loop, about 5 minutes on 3 threads),
+      # Coefficients, Dominance, OpenCurve, Cost; ARENA_SEEDS (2000), ARENA_DOMINANCE_SEEDS (2000), ARENA_LOOP_SEEDS (400),
+      # ARENA_LOOP_PASSES (12), ARENA_SWEEP_SEEDS (300), ARENA_SWEEP_PASSES (5), ARENA_PARALLEL (3), ARENA_OUT (TestResults);
+      # writes arena-p0-<name>.md
 
 The prototype's limits: one lane, no horde, two heroes at their run-start kits with a 10 % base crit, a pool of five
 skills, a hand-written autopilot (close or keep reach, skills by health thresholds). Its numbers are the shape of the

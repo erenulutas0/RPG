@@ -10,6 +10,10 @@
   worktree has no Library of its own; point it at the main checkout's, read only:
 
     dotnet build Tools/UnityCompileCheck/UnityCompileCheck.csproj -p:UnityLibrary=E:/MobileGame/Library
+
+  The arena's core is an assembly of its own in Unity (Cryptforge.Arena, no engine references, docs/55 section 5.1): it is
+  compiled apart by Arena/Cryptforge.Arena.csproj, with nothing of Unity's or the game's to lean on, and referenced here as
+  Project.Gameplay and Project.EditModeTests reference its asmdef - so its folder stays out of this project's glob.
 -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
@@ -23,9 +27,10 @@
     <OutputType>Library</OutputType>
     <UnityEditorRoot Condition="'$(UnityEditorRoot)' == ''">E:/Unity/Editors/6000.0.65f1/Editor</UnityEditorRoot>
     <UnityLibrary Condition="'$(UnityLibrary)' == ''">../../Library</UnityLibrary>
+    <DefaultItemExcludes>$(DefaultItemExcludes);Arena/**</DefaultItemExcludes>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="../../Assets/_Project/Scripts/**/*.cs" Exclude="../../Assets/_Project/Scripts/Editor/**/*.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/**/*.cs" Exclude="../../Assets/_Project/Scripts/Editor/**/*.cs;../../Assets/_Project/Scripts/Arena/**/*.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/**/*.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/**/*.cs" />
     <Compile Include="../../Assets/_Project/Tests/PlayMode/**/*.cs" />
@@ -33,5 +38,6 @@
     <Reference Include="$(UnityLibrary)/ScriptAssemblies/UnityEngine.UI.dll" />
     <Reference Include="$(UnityLibrary)/ScriptAssemblies/UnityEngine.TestRunner.dll" />
     <Reference Include="$(UnityLibrary)/PackageCache/com.unity.ext.nunit@*/net40/unity-custom/nunit.framework.dll" />
+    <ProjectReference Include="Arena/Cryptforge.Arena.csproj" />
   </ItemGroup>
 </Project>
