@@ -53,6 +53,9 @@ namespace Cryptforge.Arena
     //                        ranked, the gear's in the open arena)
     //   rival_id, rival_past_self, rival_hero_id, rival_weapon_id, rival_policy, rival_line_ids, rival_gear_power,
     //   rival_rating         the rival as it fought (the rating before the fight)
+    //   rival_training, rival_handicap   a training rival, and its handicap per mille (1000 none; docs/55 10.10)
+    //   offer_kind, offer_expected       an open offer's "below", "level" or "above" and its card's chance per mille
+    //                        (null and 0 for a ladder rival)
     //   result               "win", "loss" or "draw"; rounds, rounds_won, rounds_lost
     //   duel_sec             the rounds' fighting time, seconds (ticks / 60, rounded down)
     //   rating_before, rating_after, rating_delta
@@ -97,6 +100,10 @@ namespace Cryptforge.Arena
                 ArenaTelemetryField.Of("rival_line_ids", Join(f.LineTypes)),
                 ArenaTelemetryField.Of("rival_gear_power", f.GearPower),
                 ArenaTelemetryField.Of("rival_rating", outcome.RivalRatingBefore),
+                ArenaTelemetryField.Of("rival_training", outcome.TrainingRival),
+                ArenaTelemetryField.Of("rival_handicap", f.HandicapPermille),
+                ArenaTelemetryField.Of("offer_kind", outcome.Offer != null ? OfferId(outcome.Offer.Kind) : null),
+                ArenaTelemetryField.Of("offer_expected", outcome.Offer != null ? outcome.Offer.ExpectedPermille : 0),
                 ArenaTelemetryField.Of("result", m.Winner == 0 ? "win" : m.Winner == 1 ? "loss" : "draw"),
                 ArenaTelemetryField.Of("rounds", m.Rounds.Count),
                 ArenaTelemetryField.Of("rounds_won", m.WinsA),
@@ -110,6 +117,9 @@ namespace Cryptforge.Arena
                 ArenaTelemetryField.Of("fingerprint", ArenaHash.Hex(m.Fingerprint))
             };
         }
+
+        public static string OfferId(ArenaOfferKind kind) =>
+            kind == ArenaOfferKind.Below ? "below" : kind == ArenaOfferKind.Above ? "above" : "level";
 
         private static string Join(IReadOnlyList<ArenaSkill> skills)
         {

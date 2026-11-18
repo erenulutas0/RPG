@@ -8,7 +8,9 @@ namespace Cryptforge.Arena
     // The arena save's JSON (camelCase keys, a fixed key order, invariant numbers), written and read here so the round trip
     // is pure C# - tested on .NET and in the Editor alike - and the Unity side only moves text to and from a file
     // (ArenaSaveStore). Reading is forgiving: unknown keys are ignored, missing ones keep their defaults, wrong types are
-    // skipped; a save of a newer version than this build knows is refused (null), never guessed at.
+    // skipped; a save of a newer version than this build knows is refused (null), never guessed at. Version 1 (before the
+    // training rivals) is migrated: the ranked ladder becomes the training ladder and its generated rivals take their rung
+    // and the handicap the rules give it (ArenaLadder.Restamp).
     public static class ArenaSaveJson
     {
         public static string Write(ArenaSaveData save)
@@ -38,7 +40,7 @@ namespace Cryptforge.Arena
 
         // The save the text holds, upgraded to the current version; null for text that is not a JSON object, or for a save
         // of a version this build does not know.
-        public static ArenaSaveData Read(string json)
+        public static ArenaSaveData Read(string json, ArenaRules rules = null)
         {
             if (string.IsNullOrWhiteSpace(json))
                 return null;
@@ -74,13 +76,35 @@ namespace Cryptforge.Arena
                 if (snapshot != null && save.pastSnapshots.Count < ArenaSaveData.MaxPastSnapshots)
                     save.pastSnapshots.Add(snapshot);
             }
+            if (version == 1)
+                MigrateFromOne(save, rules ?? ArenaRules.Current);
             return save;
+        }
+
+        // Version 1 had no training rivals: the ranked ladder becomes the training ladder, and each generated rival takes
+        // the rung its id names ("ranked-07") and the handicap the rules give that rung. The rating stands; from here on it
+        // is a training rating.
+        private static void MigrateFromOne(ArenaSaveData save, ArenaRules rules)
+        {
+            save.ranked.training = true;
+            for (int i = 0; i < save.ranked.rivals.Count; i++)
+            {
+                ArenaRivalData rival = save.ranked.rivals[i];
+                if (rival.pastSelf)
+                    continue;
+                rival.rung = rival.id != null && rival.id.StartsWith("ranked-", StringComparison.Ordinal) &&
+                             int.TryParse(rival.id.Substring(7), NumberStyles.None, CultureInfo.InvariantCulture, out int rung)
+                    ? rung
+                    : i;
+            }
+            ArenaLadder.Restamp(save, rules);
         }
 
         private static void Ladder(Writer w, ArenaLadderData ladder)
         {
             ladder = ladder ?? new ArenaLadderData();
             w.Begin();
+            w.Field("training", ladder.training);
             w.Field("rating", ladder.rating);
             w.Field("wins", ladder.wins);
             w.Field("losses", ladder.losses);
@@ -94,6 +118,7 @@ namespace Cryptforge.Arena
                 w.Field("rating", r.rating);
                 w.Field("wins", r.wins);
                 w.Field("losses", r.losses);
+                w.Field("rung", r.rung);
                 w.Field("pastSelf", r.pastSelf);
                 w.Key("build");
                 Snapshot(w, r.build);
@@ -113,6 +138,11 @@ namespace Cryptforge.Arena
                 w.Field("roundsLost", m.roundsLost);
                 w.Field("ratingDelta", m.ratingDelta);
                 w.Field("fingerprint", m.fingerprint);
+                w.Key("rivalBuild");
+                Snapshot(w, m.rivalBuild);
+                w.Field("playerPower", m.playerPower);
+                w.Field("rivalPower", m.rivalPower);
+                w.Field("expected", m.expected);
                 w.End();
             });
             w.End();
@@ -150,6 +180,7 @@ namespace Cryptforge.Arena
                 });
                 w.End();
             });
+            w.Field("handicap", s.handicap);
             w.Field("rulesVersion", s.rulesVersion);
             w.Field("hash", s.hash);
             w.Field("rating", s.rating);
@@ -162,6 +193,7 @@ namespace Cryptforge.Arena
             var ladder = new ArenaLadderData();
             if (o == null)
                 return ladder;
+            ladder.training = Bool(o, "training");
             ladder.rating = Int(o, "rating", ArenaLadder.StartRating);
             ladder.wins = Math.Max(0, Int(o, "wins", 0));
             ladder.losses = Math.Max(0, Int(o, "losses", 0));
@@ -181,6 +213,7 @@ namespace Cryptforge.Arena
                     rating = Int(r, "rating", ArenaLadder.StartRating),
                     wins = Math.Max(0, Int(r, "wins", 0)),
                     losses = Math.Max(0, Int(r, "losses", 0)),
+                    rung = Math.Max(-1, Int(r, "rung", -1)),
                     pastSelf = Bool(r, "pastSelf"),
                     build = build
                 });
@@ -200,7 +233,11 @@ namespace Cryptforge.Arena
                     roundsWon = Int(m, "roundsWon", 0),
                     roundsLost = Int(m, "roundsLost", 0),
                     ratingDelta = Int(m, "ratingDelta", 0),
-                    fingerprint = Str(m, "fingerprint")
+                    fingerprint = Str(m, "fingerprint"),
+                    rivalBuild = ReadSnapshot(Obj(m, "rivalBuild")),
+                    playerPower = Int(m, "playerPower", 0),
+                    rivalPower = Int(m, "rivalPower", 0),
+                    expected = Math.Max(0, Math.Min(1000, Int(m, "expected", 0)))
                 });
             }
             while (ladder.history.Count > ArenaSaveData.MaxHistory)
@@ -218,6 +255,7 @@ namespace Cryptforge.Arena
                 heroId = Str(o, "heroId"),
                 weaponId = Str(o, "weaponId") ?? string.Empty,
                 policy = Str(o, "policy") == "bold" ? "bold" : "careful",
+                handicap = Int(o, "handicap", ArenaBuild.NoHandicap),
                 rulesVersion = Int(o, "rulesVersion", 0),
                 hash = Str(o, "hash"),
                 rating = Int(o, "rating", 0),

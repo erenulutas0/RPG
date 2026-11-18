@@ -11,7 +11,9 @@ namespace Cryptforge.Arena
     [Serializable]
     public sealed class ArenaSaveData
     {
-        public const int CurrentVersion = 1;
+        // 1: P0's core. 2: training rivals (a rung and a stamped handicap a ranked rival, the ranked ladder's training
+        // flag) and the open offers' history (docs/55 section 10.10); ArenaSaveJson migrates 1.
+        public const int CurrentVersion = 2;
         public const int MaxHistory = 20;
         public const int MaxPastSnapshots = 5;
 
@@ -39,6 +41,9 @@ namespace Cryptforge.Arena
     [Serializable]
     public sealed class ArenaLadderData
     {
+        // True while the ladder's rivals are training rivals (generated, handicapped by rung): the rating earned here is a
+        // training rating and does not carry into an online ladder (docs/55 section 10.10). The ranked ladder sets it.
+        public bool training;
         public int rating = ArenaLadder.StartRating;
         public int wins;
         public int losses;
@@ -56,6 +61,8 @@ namespace Cryptforge.Arena
         public int rating;
         public int wins;
         public int losses;
+        // The rival's rung in the generated ladder, 0 the bottom; -1 for a past hero.
+        public int rung = -1;
         // True for one of the player's own past heroes standing in the ladder.
         public bool pastSelf;
         public ArenaSnapshotData build;
@@ -73,6 +80,8 @@ namespace Cryptforge.Arena
         public string policy;
         public List<string> lineIds = new List<string>();
         public List<ArenaGearPieceData> gear = new List<ArenaGearPieceData>();
+        // A training rival's handicap per mille (1000 none), stamped under rulesVersion.
+        public int handicap = ArenaBuild.NoHandicap;
         public int rulesVersion;
         public string hash;
         public int rating;
@@ -110,6 +119,12 @@ namespace Cryptforge.Arena
         public int roundsLost;
         public int ratingDelta;
         public string fingerprint;
+        // An open offer's: the rival as it fought (its build is generated per offer, not kept in the ladder), both powers
+        // and the expected chance the card showed, per mille. Null and zeros for a ladder rival.
+        public ArenaSnapshotData rivalBuild;
+        public int playerPower;
+        public int rivalPower;
+        public int expected;
     }
 
     // Between a stored snapshot and a build: names, not enum numbers, so a reordered enum cannot move a save.
@@ -130,6 +145,7 @@ namespace Cryptforge.Arena
                 skillIds = new List<string>(build.SkillIds),
                 policy = PolicyId(build.Policy),
                 rulesVersion = build.RulesVersion,
+                handicap = build.HandicapPermille,
                 hash = ArenaHash.Hex(build.Hash),
                 rating = rating,
                 fight = fight
@@ -177,7 +193,8 @@ namespace Cryptforge.Arena
                         pieces.Add(new ArenaGearPiece(p.slot, Math.Max(0, Math.Min(ArenaGearTable.MaxLevel, p.level)), lines));
                     }
                 }
-                return ArenaBuild.Open(data.heroId, data.weaponId, data.skillIds, policy, pieces, data.rulesVersion);
+                return ArenaBuild.Open(data.heroId, data.weaponId, data.skillIds, policy, pieces, data.rulesVersion)
+                    .WithHandicap(Handicap(data.handicap), data.rulesVersion);
             }
             var types = new List<ArenaStat>();
             if (data.lineIds != null)
@@ -188,7 +205,12 @@ namespace Cryptforge.Arena
                         types.Add(stat);
                 }
             }
-            return ArenaBuild.Ranked(data.heroId, data.weaponId, data.skillIds, policy, types, data.rulesVersion);
+            return ArenaBuild.Ranked(data.heroId, data.weaponId, data.skillIds, policy, types, data.rulesVersion)
+                .WithHandicap(Handicap(data.handicap), data.rulesVersion);
         }
+
+        // A stored handicap repaired into its range; 0 (a field a save never wrote) is none.
+        private static int Handicap(int stored) =>
+            stored <= 0 ? ArenaBuild.NoHandicap : Math.Max(ArenaBuild.MinHandicap, Math.Min(ArenaBuild.NoHandicap, stored));
     }
 }

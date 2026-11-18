@@ -19,6 +19,8 @@ namespace Cryptforge.Arena
         public ArenaHero Hero { get; }
         public ArenaWeapon Weapon { get; }
         public ArenaPolicy Policy => Build.Policy;
+        // A training rival's handicap on its damage, per mille (1000 none): the build's, stamped by the ladder.
+        public int HandicapPermille => Build.HandicapPermille;
         public IReadOnlyList<ArenaSkill> Skills => _skills;
         // Ranked: the line types it fights with, after the resolver's repair (distinct, in the pool, exactly RankedLines).
         public IReadOnlyList<ArenaStat> LineTypes { get; }
