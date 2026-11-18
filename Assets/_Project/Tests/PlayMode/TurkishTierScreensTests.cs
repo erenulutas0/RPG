@@ -255,7 +255,9 @@ namespace Cryptforge.Tests
                 Assert.That(setup.SceneLanguage, Is.EqualTo(Language.Turkish));
                 int tempered = SlotOf(view, DifficultyTier.Tempered);
                 int abyssal = SlotOf(view, DifficultyTier.Abyssal);
-                Assert.That(view.LanguageToggle.Button.interactable, Is.False, "Not before the panel's input delay.");
+                // The scene's first frame can outlast the delay in a batch run, so it is judged only while the delay lasts.
+                if (Time.unscaledTime < view.InputEnabledAt)
+                    Assert.That(view.LanguageToggle.Button.interactable, Is.False, "Not before the panel's input delay.");
                 yield return AfterTheInputDelay();
                 Assert.That(view.LanguageToggle.Button.interactable, Is.True);
 

@@ -189,6 +189,7 @@ namespace Cryptforge.UI
         public DifficultyTier SelectedTier { get; private set; }
         // The language toggle in the title's band (docs/60), for tests and captures.
         public LanguageToggleView LanguageToggle => _language;
+        public float InputEnabledAt => _inputEnabledAt;
 
         public void Initialize(CombatSetup setup, HeroMovementInput movement)
         {
