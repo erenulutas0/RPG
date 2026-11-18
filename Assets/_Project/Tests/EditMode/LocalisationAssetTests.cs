@@ -62,7 +62,7 @@ namespace Cryptforge.Tests
             {
                 FieldInfo[] fields = typeof(PrototypeTextDefinition).GetFields(BindingFlags.Instance | BindingFlags.NonPublic)
                     .Where(f => f.FieldType == typeof(string) && f.GetCustomAttribute<SerializeField>() != null).ToArray();
-                PropertyInfo[] properties = typeof(PrototypeTextDefinition).GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                PropertyInfo[] properties = typeof(PrototypeTextDefinition).GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)
                     .Where(p => p.PropertyType == typeof(string)).ToArray();
                 Assert.That(properties.Length, Is.EqualTo(fields.Length), "One getter for every field.");
                 foreach (FieldInfo field in fields)
@@ -89,7 +89,7 @@ namespace Cryptforge.Tests
             LocTable table = RealTable();
             Loc.Override = Language.English;
             var problems = new List<string>();
-            foreach (PropertyInfo property in typeof(PrototypeTextDefinition).GetProperties(BindingFlags.Instance | BindingFlags.Public)
+            foreach (PropertyInfo property in typeof(PrototypeTextDefinition).GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)
                          .Where(p => p.PropertyType == typeof(string)))
                 Expect(table, PrototypeKey(property.Name), (string)property.GetValue(text), problems);
             Assert.That(problems, Is.Empty, string.Join("\n", problems));
