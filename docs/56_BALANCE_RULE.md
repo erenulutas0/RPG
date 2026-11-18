@@ -189,3 +189,15 @@ machine: every CSV, `foundry-gate.md`, `foundry-cohorts.md` and `foundry-finale.
    candidate go once to a fresh 1,200-seed block.
 5. **The Wraith's pollen stays unbuilt** (docs/52's decision); `PollinatingWraith` remains a research lever, off.
 
+## 10. Blocks used
+
+Each confirmatory read records here the block it spent, so that no block is read twice (decision 1). A block is spent
+once any option on it has been read, whatever the verdict; the next confirmation starts at the next fresh seed.
+
+| Seeds | Spent by | Date | What was read | Verdict |
+|---|---|---|---|---|
+| 1-800 | the tuning of floors 2 and 3 (docs/50, docs/52) | 2026-11-12..16 | every shipped creature's choice | tuning seeds |
+| 801-2000 | this rule's study (sections 2-4) | 2026-11-17 | the A/A probes, the shipped creatures against what they replaced, three Thornlings | the study's verdicts |
+| 2001-5200 | the Glass Regent's round (docs/50 "The Regent's bite for the standing hero") | 2026-11-17/18 | `regent-feet` against `f2-warden`, beside `shipped` and `aa-f2`; careful, standing, first-card, clumsy; both heroes, typical hands | `regent-feet` passes (standing -1.12, clumsy -0.25, careful +1.06, first-card +1.34 points against the Warden); one candidate read |
+
+The next fresh block starts at seed **5201**.
