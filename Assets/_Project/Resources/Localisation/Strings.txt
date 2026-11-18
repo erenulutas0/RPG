@@ -396,7 +396,8 @@ arena.offer.level	Level with you	Seninle denk	Open offer card.
 arena.offer.powers	Your gear +{mine}%  Theirs +{theirs}%	Senin ekipmanın +%{mine}  Onunki +%{theirs}	Open offer card: both gear powers.
 arena.offer.chance	Chance to win {chance}%	Kazanma şansı %{chance}	Open offer card: the card's expected chance.
 arena.round	Round {round}	Tur {round}	Playback header and the round's banner.
-arena.round_to	Round to {name}	Turu {name} aldı	Banner after a round. {name} "You" or the rival's name.
+arena.round_to	Round to {name}	Turu {name} aldı	Banner after a round the rival took. {name} the rival's name.
+arena.round_you	Your round	Tur senin	Banner after a round the player took.
 arena.round_drawn	Round drawn	Tur berabere	Banner after a drawn round.
 arena.skip	Skip	Geç	Playback button: to the result at once.
 arena.dazed	Dazed	Sersem	Call-out over a hero dazed by a Shield Rush.

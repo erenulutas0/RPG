@@ -101,6 +101,10 @@ namespace Cryptforge.Tests
             Assert.That(clock.Speed, Is.EqualTo(DuelPlaybackClock.Normal));
             clock.Advance(1.0);
             Assert.That(clock.Ticks, Is.EqualTo(180.0).Within(1e-9));
+            clock.ToggleSpeed();
+            Assert.That(clock.AdvanceTicks(30), Is.EqualTo(30.0), "A capture's ticks are the time line's, whatever the speed.");
+            clock.ToggleSpeed();
+            Assert.That(clock.Ticks, Is.EqualTo(210.0).Within(1e-9));
             Assert.That(clock.Advance(0), Is.EqualTo(0.0));
             Assert.That(clock.Advance(-1), Is.EqualTo(0.0), "Time never runs back.");
             clock.Advance(1e6);

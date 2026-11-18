@@ -130,6 +130,16 @@ namespace Cryptforge.UI
             return Ticks - before;
         }
 
+        // Playback ticks straight on, whatever the speed (a capture's or a test's frame).
+        public double AdvanceTicks(double ticks)
+        {
+            if (!(ticks > 0) || Finished)
+                return 0;
+            double before = Ticks;
+            Ticks = Math.Min(TotalTicks, Ticks + ticks);
+            return Ticks - before;
+        }
+
         public void ToggleSpeed() => Speed = Speed == Fast ? Normal : Fast;
 
         public void Skip()

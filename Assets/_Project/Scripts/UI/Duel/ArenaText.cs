@@ -148,6 +148,7 @@ namespace Cryptforge.UI
 
         public static string Round(int round) => Loc.Format("arena.round", "Round {round}", ("round", round));
         public static string RoundTo(string name) => Loc.Format("arena.round_to", "Round to {name}", ("name", name));
+        public static string RoundToYou => Loc.Text("arena.round_you", "Your round");
         public static string RoundDrawn => Loc.Text("arena.round_drawn", "Round drawn");
         public static string Skip => Loc.Text("arena.skip", "Skip");
         public static string Dazed => Loc.Text("arena.dazed", "Dazed");
