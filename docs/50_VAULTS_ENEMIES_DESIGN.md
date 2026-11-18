@@ -1317,8 +1317,20 @@ against 3,071 / 3,067, standing 2,683 / 2,703 against 2,740 / 2,719, first-card 
 clumsy 979 / 1,680 against 996 / 1,694. The careful-minus-standing gap in floor-2 clears, both heroes, grows from 679 to 825
 of about 6,300 (section 7's skill-separation row: +2.3 points, short of its proposed 5).
 
-**Beside it** (the rule's A/A probe `aa-f2` against `shipped`, and the Regent before the round against the Warden on this
-block): being read - the two runs were cut by the machine's shutdown on the night of 2026-11-17 and restarted on 2026-11-18, at the same code (`5f880696`) on the same block. They read no candidate.
+**Beside it**, on the same block and the same code (`5f880696`; these two runs were cut by the machine's shutdown on the
+night of 2026-11-17 and run again whole on 2026-11-18 - they read no candidate):
+
+| Comparison | Clumsy | Careful | First-card | Standing |
+|---|---|---|---|---|
+| A/A `aa-f2` (the Regent before the round, one unread draw from floor 2) against `shipped` | +0.12 (-0.45 to +0.70) | -0.17 (-0.50 to +0.16) | +0.56 (+0.00 to +1.12) | -0.31 (-0.73 to +0.11) |
+| The Regent before the round (`shipped` then) against the Warden | -0.12 (-0.56 to +0.31) | +1.09 (+0.80 to +1.39) | +1.39 (+0.86 to +1.94) | **+5.33** (+4.78 to +5.88) |
+| The candidate against the Regent before the round | -0.12 (-0.20 to -0.06) | -0.03 (-0.08 to +0.00) | -0.05 (-0.11 to +0.02) | **-6.45** (-7.02 to -5.91) |
+
+The block reproduces docs/56's finding (the Regent eased the standing cohort 5.33 points against the Warden here, 5.58 on
+801-2000), and the candidate takes 6.45 points from the standing cohort alone: the other cohorts move by 0.03-0.12 points,
+inside the A/A probe's band (a reshuffle of the same game moves them 0.12-0.56). The careful and first-card easings against
+the Warden are the Regent's, not the round's. The flipped simulation's `regent-before` reproduces this block's `shipped`
+row for row (seeds 2001-2015, 60 rows).
 
 **The fight and the Descent.** The careful gate fight with typical hands (seeds 1-200, `RegentRoundResearch`, P10 / P50 /
 P90): Vanguard 39 / 50 / 60 s, Ilya 37 / 46 / 57 s, 63 % and 54 % of fights in 45-65 s - the same as the Regent before the
@@ -1333,8 +1345,8 @@ first-card 14.3 / 14.1, clumsy 14.3 / 14.4 - inside 13-16 and within 0.1 of the 
 
 **Pass.** Clumsy, careful and first-card are inside the harm bar with room (their lower bounds -0.69, +0.77, +0.81 against
 -1.5), and the standing cohort completes 1.1 points fewer Descents than with the Forge Warden where the Regent before the
-round gave it 5.6 more (801-2000; 4.6 on 1-800). The careful cohort's +1.06 is an easing against the Warden (its CI wholly
-above 0), as the Regent before the round was (+0.62 on 801-2000): the candidate leaves the careful hero's fight as it was
+round gave it 5.3 more on this block (5.6 on 801-2000, 4.6 on 1-800). The careful cohort's +1.06 is an easing against the Warden (its CI wholly
+above 0), as the Regent before the round was (+1.09 on this block, +0.62 on 801-2000): the candidate leaves the careful hero's fight as it was
 (4.1 % of its health to the rod either way), so this is the Regent's, not the round's - reported to the lead under rule 3.
 One candidate was read; the round's other designs failed on the spent seeds (section 2) and none was read on the block.
 
