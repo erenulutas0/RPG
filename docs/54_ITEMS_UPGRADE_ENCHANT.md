@@ -1203,6 +1203,19 @@ chooses nothing).
 - **Per-kill gold rounding.** A tier's gold is rounded at each kill: a 3-gold grunt pays 4 on Tempered (x1.33), a 5-gold
   one 6 (x1.2); over a run the reward lands near x1.25-1.3, x1.5 and x2 (the research's banked gold, above).
 
+### The lead's decisions (2026-11-19)
+
+1. **A walk-out from a deeper start completes the tier, as built.** A tier's deeper start opens only after that tier
+   reached the floor, so its floors 1-2 have been walked on it once. Asking for a whole Descent again would only lengthen
+   the grind.
+2. **The easings are accepted.** A player in the matched gear finds a tier a point or two easier than an ungeared player
+   finds Forged. That is the reward for the gear, and the tier's rewards pay for the time. The damage multipliers stay;
+   phase 7's device week reads who plays which tier with what.
+3. **The standing and auto-farmer cohorts** are read when the skills go live (docs/57 13.8), on the same fresh block as
+   that read, so the two whole-Descent changes are seen together.
+4. **The tier row's layout** is judged on the capture (`Run-TierUiProof.ps1`) after the merge, and with the Turkish
+   strings of localisation pass 2.
+
 ### The regression line
 
 Against main 408f95fa (its sources exported to a clean folder and run there), `FOUNDRY_SEEDS=200 FOUNDRY_LEVERS=0
