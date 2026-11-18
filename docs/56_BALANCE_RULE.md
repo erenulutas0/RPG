@@ -189,3 +189,24 @@ machine: every CSV, `foundry-gate.md`, `foundry-cohorts.md` and `foundry-finale.
    candidate go once to a fresh 1,200-seed block.
 5. **The Wraith's pollen stays unbuilt** (docs/52's decision); `PollinatingWraith` remains a research lever, off.
 
+## 10. Blocks used
+
+Each confirmatory read records its block here (section 9, decision 1), so no block is read twice; a block once read is a
+tuning block from then on. Blocks are assigned before the read; a read that stopped early still spends its block.
+
+| Seeds | Seeds a hero | Read by | Read on | Status |
+|---|---|---|---|---|
+| 1-800 | 800 | The old relative rule's reads (floors 2 and 3 and their creatures, tuned and accepted on them) | 2026-11-12 | tuning |
+| 801-2000 | 1,200 | This study's calibration: the A/A probes, the shipped creatures, three Thornling variants (section 3) | 2026-11-17 | tuning |
+| 5201-8400 | 3,200 | docs/54 phase 6, the difficulty tiers: Tempered, Inferno and Abyssal, each with its matched geared cohort against the cohort ungeared on Forged; one candidate a tier, read once (docs/54 section 21): all three pass, seven of nine cells an easing | 2026-11-18/19 | tuning |
+
+The tiers' read was begun on 2026-11-17 and stopped by a shutdown in its last tier (Abyssal); it was read again whole on
+the same code on 2026-11-18/19, and the rows the first read had written came back byte for byte (the simulation is
+deterministic), so the block was read once in substance. A difficulty tier changes the whole Descent from floor 1, and
+its gear every crit and offer: its paired change's SD per 400 seeds is about 13 completions for the clumsy cohort, 10
+for first-card and 6 for careful (a floor-2 creature's: 6-8, section 2), so at 3,200 seeds a tier's SE is about 0.60 /
+0.44 / 0.27 points, and a tier that changes nothing fails the -1.5 lower bound about one time in five for the clumsy
+cohort. A whole-Descent change wants its candidate set a little inside the bar on the exploration seeds.
+
+The next fresh block starts at seed 8401 (2001-5200 was assigned in parallel to another read, recorded in its own row).
+
