@@ -52,6 +52,9 @@ namespace Cryptforge.Combat
         // (WeaponRuntime.EliteShare, EliteRule: the Daggers' 2). Set once on the hero's attacker by CombatSetup; null on
         // every enemy's.
         public IReadOnlyList<IDamageable> Elites { get; set; }
+        // docs/57's daze on this attacker (SlowStatus.On sets it on the enemy's first touch): while dazed its weapon's clock
+        // runs and it swings at nothing, as the simulation's EnemyAttack holds it. Null on every body no skill has touched.
+        internal SlowStatus Slow { get; set; }
         public event Action Attacked;
         // The target of each successful attack, right after Attacked, so views can place a strike effect at it.
         public event Action<Health> Struck;
@@ -136,6 +139,8 @@ namespace Cryptforge.Combat
         {
             weapon.Tick(deltaTime);
             if (!weapon.IsReady)
+                return;
+            if (Slow != null && Slow.IsDazed)
                 return;
 
             Health target = _targeting.Acquire(weapon.Range);

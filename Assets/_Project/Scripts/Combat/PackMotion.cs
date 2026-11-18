@@ -65,6 +65,10 @@ namespace Cryptforge.Combat
         // its march range from the hero, then fights at its own speed. 1 for every other enemy.
         private readonly float[] _march = new float[PackLayout.MaxPackSize];
         private readonly float[] _marchRange = new float[PackLayout.MaxPackSize];
+        // docs/57's slow (SlowState: Flame Sigil's glyph, Shield Rush's daze): the share of an enemy's step taken away, 0 for
+        // none. A slow never moves an enemy anywhere it would not walk - it only shortens the step toward the same point -
+        // so the spacing invariant above holds as it stands (lead decision 4: slow, never knockback).
+        private readonly float[] _slow = new float[PackLayout.MaxPackSize];
         private readonly int[] _order = new int[PackLayout.MaxPackSize];
         private readonly bool[] _stalled = new bool[PackLayout.MaxPackSize];
 
@@ -166,6 +170,20 @@ namespace Cryptforge.Combat
             _speed[index] = speed;
         }
 
+        // Enemy index's step from its next one is this share shorter (SlowState.Current: the glyph's slow, 1 for a daze); 0
+        // walks it at its own speed again. A fresh enemy in the place (Replace) walks unslowed.
+        public void SetSlow(int index, float slow)
+        {
+            if (index < 0 || index >= Count)
+                throw new ArgumentOutOfRangeException(nameof(index));
+            if (float.IsNaN(slow) || slow < 0f || slow > 1f)
+                throw new ArgumentOutOfRangeException(nameof(slow));
+            _slow[index] = slow;
+        }
+
+        // The share of enemy index's step its slow takes away (SetSlow), for tests and the simulation's report.
+        public float SlowOf(int index) => _slow[index];
+
         public void Replace(int index, IDamageable body, EntryPlacement placement, float speed, float reach)
         {
             if (index < 0 || index >= Count)
@@ -212,6 +230,7 @@ namespace Cryptforge.Combat
             _speed[index] = speed;
             _march[index] = 1f;
             _marchRange[index] = 0f;
+            _slow[index] = 0f;
         }
 
         // The body the place holds, null once vacated: for tests.
@@ -317,6 +336,8 @@ namespace Cryptforge.Combat
             float stride = _speed[i] * deltaTime;
             if (_march[i] > 1f && DistanceToHeroSquared(i) > _marchRange[i] * _marchRange[i])
                 stride *= _march[i];
+            if (_slow[i] > 0f)
+                stride = SkillRule.Slowed(stride, _slow[i]);
             if (remaining <= 0f || stride <= 0f)
                 return Walk.Stood;
 

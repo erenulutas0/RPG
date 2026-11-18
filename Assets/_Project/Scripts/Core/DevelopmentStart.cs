@@ -76,6 +76,18 @@ namespace Cryptforge.Core
                 System.Globalization.CultureInfo.InvariantCulture, out float seconds) && seconds > 0f ? seconds : 0f;
         }
 
+        // docs/57's skills 2 and 3 before phase 4 opens them: "2" in it gives a run the hero's skill 2 beside its first, "3"
+        // its skills 2 and 3 - the Editor's measurement with the skills on (HordePacingMeasurement, the parity table), and a
+        // device session's. Only the Editor and a development build look; anything else, or no file, is skill 1 alone, as
+        // every release build plays until the first clear and the Forge open them.
+        public static string SkillsPath => Path.Combine(ProfileLocation.Resolve(), FolderName, "skills.txt");
+        public static int SkillSlots()
+        {
+            if (!Application.isEditor && !Debug.isDebugBuild)
+                return 1;
+            return int.TryParse(ReadFirstLine(SkillsPath), out int slots) && slots >= 2 && slots <= 3 ? slots : 1;
+        }
+
         // A hero id in it plays that hero whatever the profile chose (docs/45). Nothing without the file.
         public static string HeroPath => Path.Combine(ProfileLocation.Resolve(), FolderName, "hero.txt");
         public static string HeroId() => Application.isEditor || Debug.isDebugBuild ? ReadFirstLine(HeroPath) : null;

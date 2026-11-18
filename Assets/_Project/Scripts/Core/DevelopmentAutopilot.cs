@@ -87,12 +87,22 @@ namespace Cryptforge.Core
             _linger = System.Array.IndexOf(words, "linger") >= 0;
             _idle = System.Array.IndexOf(words, "idle") >= 0;
             _cohort = AutopilotCohort.FromSwitch(mode);
+            // docs/57's skills read the blows the hero takes (SkillFootwork's moments).
+            if (_heroHealth != null)
+                _heroHealth.Damaged += OnHeroHit;
             Debug.Log("[Autopilot] driving the hero as the " + _cohort.Name + " cohort (development/autopilot.txt" +
                       (mode.Length > 0 ? ": " + mode : string.Empty) + ")");
         }
 
+        private void OnDestroy()
+        {
+            if (_heroHealth != null)
+                _heroHealth.Damaged -= OnHeroHit;
+        }
+
         private void Update()
         {
+            _clock += Time.deltaTime;
             if (_movement == null || _setup.Run == null || _setup.Run.HasEnded)
             {
                 _movement?.Release();
@@ -118,6 +128,9 @@ namespace Cryptforge.Core
             }
             if (_cohort.UsesTheAbility)
                 TryAbility();
+            // docs/57's skills 2 and 3, where the run carries them (DevelopmentStart.SkillSlots).
+            if (_cohort.UsesTheAbility && _ability != null && (_ability.SkillAt(2) != null || _ability.SkillAt(3) != null))
+                TrySkills();
             float x = _hero.position.x, y = ArenaFloor.FloorY(_hero.position.y);
             if (Goal(x, y, out float gx, out float gy, out float stop))
                 Steer(x, y, gx, gy, stop);
@@ -147,6 +160,194 @@ namespace Cryptforge.Core
             bool boss = _setup.Warden != null && _setup.Warden.Boss != null && _setup.Warden.Boss.IsAlive;
             if (count >= AbilityCrowd || (boss && count > 0))
                 _ability.TryUse();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+        // docs/57's skills 2 and 3: SkillFootwork's moments, as the foundry simulation's pilot reads them (PilotSkills)
+        // ---------------------------------------------------------------------------------------------------------------
+
+        // Scaled seconds since the autopilot began, the blows' clock; the last blow the hero took and the one that opened
+        // its fight.
+        private float _clock;
+        private float _lastBlowAt = float.NegativeInfinity;
+        private float _fightOpenedAt = float.NegativeInfinity;
+
+        private void OnHeroHit(DamageContext hit)
+        {
+            if (hit.Amount <= 0f)
+                return;
+            if (_clock - _lastBlowAt > SkillFootwork.FightGap)
+                _fightOpenedAt = _clock;
+            _lastBlowAt = _clock;
+        }
+
+        private void TrySkills()
+        {
+            if (_ability.IsHeld || _heroHealth == null || !_heroHealth.IsAlive)
+                return;
+            for (int slot = 2; slot <= AbilityController.SlotCount; slot++)
+            {
+                AbilityRuntime skill = _ability.SkillAt(slot);
+                if (skill == null || !skill.IsReady || (skill.Kind == AbilityKind.Rush && _ability.Dash != null && _ability.Dash.IsDashing))
+                    continue;
+                float hx = 0f, hy = 0f;
+                bool press = _cohort.TimesTheSkills ? Timed(skill, out hx, out hy) : OnCooldown(skill, out hx, out hy);
+                if (press)
+                    _ability.TryUse(slot, new Vector2(hx, hy));
+            }
+        }
+
+        private bool Timed(AbilityRuntime skill, out float hx, out float hy)
+        {
+            hx = hy = 0f;
+            float x = _hero.position.x, y = ArenaFloor.FloorY(_hero.position.y);
+            float health = _heroHealth.Current, maximum = _heroHealth.Maximum;
+            bool blow = _clock - _lastBlowAt <= SkillFootwork.BlowMemory;
+            EncounterController encounter = _setup.Encounters;
+            switch (skill.Kind)
+            {
+                case AbilityKind.Guard:
+                    return BlowComing(x, y, skill.Duration) ||
+                           (blow && SkillFootwork.GuardsTheBlow(_clock - _fightOpenedAt <= SkillFootwork.BlowMemory,
+                               CountWithin(x, y, SkillFootwork.CrowdReach), health, maximum));
+                case AbilityKind.Ward:
+                    return BlowComing(x, y, skill.Duration) ||
+                           (encounter.GateBoss == null && blow && SkillFootwork.WardsTheBlow(health, maximum));
+                case AbilityKind.Sigil:
+                {
+                    Health gate = encounter.GateBoss;
+                    bool beside = gate != null && encounter.TryFloorPositionOf(gate, out float gx, out float gy) &&
+                                  SkillRule.Within(gx, gy, x, y, skill.Radius);
+                    return SkillFootwork.DrawsTheSigil(CountWithin(x, y, skill.Radius), beside);
+                }
+                case AbilityKind.Rush:
+                    return RushEscape(x, y, skill, out hx, out hy) || RushEngage(x, y, skill, out hx, out hy);
+                default:
+                    return false;
+            }
+        }
+
+        // The gate boss's blow on its way to the hero and due within window: its mark (or the Regent's lanes) round the hero.
+        private bool BlowComing(float x, float y, float window)
+        {
+            WardenSlamService warden = _setup.Warden;
+            if (warden == null || !warden.IsFighting || !warden.Clock.IsMarked ||
+                !SkillFootwork.BlowDueWithin(warden.Clock.TelegraphProgress, warden.Clock.Telegraph, window, Time.deltaTime))
+                return false;
+            return warden.MarksLanes
+                ? warden.Lanes.Holds(x, y, 0f)
+                : SkillRule.Within(x, y, warden.MarkX, warden.MarkY, WardenRule.SlamRadius);
+        }
+
+        private bool RushEscape(float x, float y, AbilityRuntime skill, out float hx, out float hy)
+        {
+            hx = hy = 0f;
+            if (!SkillFootwork.Surrounded(CountWithin(x, y, SkillFootwork.EscapeReach), _heroHealth.Current, _heroHealth.Maximum))
+                return false;
+            bool glowing = _setup.Pit != null && _setup.Pit.IsActive && _setup.Pit.IsRunning && _setup.Pit.Clock.IsWarning;
+            if (!Threat(x, y, out float tx, out float ty))
+                return false;
+            if (_cohort.Kite(x, y, tx, ty, KiteTurn, KiteStride, glowing, out float gx, out float gy))
+            {
+                hx = gx - x;
+                hy = gy - y;
+            }
+            else
+            {
+                hx = tx;
+                hy = ty;
+            }
+            float length = Mathf.Sqrt(hx * hx + hy * hy);
+            if (length <= 1e-3f)
+                return false;
+            hx /= length;
+            hy /= length;
+            return !(_cohort.Guards(glowing) && FootworkRule.StepsIntoBand(x, y, x + hx * skill.Amount, y + hy * skill.Amount));
+        }
+
+        private bool RushEngage(float x, float y, AbilityRuntime skill, out float hx, out float hy)
+        {
+            hx = hy = 0f;
+            EncounterController encounter = _setup.Encounters;
+            WardenSlamService warden = _setup.Warden;
+            Health target = encounter.GateBoss != null && warden != null && warden.IsFighting && !warden.Clock.IsMarked &&
+                            warden.Clock.HoldsWeapon
+                ? encounter.GateBoss
+                : encounter.EliteLeader;
+            if (target == null || !target.IsAlive || !encounter.TryFloorPositionOf(target, out float tx, out float ty))
+                return false;
+            float distance = Mathf.Sqrt(ArenaFloor.FloorDistanceSquared(tx, ty, x, y));
+            WeaponRuntime first = _setup.Weapon;
+            if (!SkillFootwork.WorthTheRush(distance, first != null ? first.Range : 0f, skill.Amount))
+                return false;
+            for (int i = 0; i < encounter.EnemyCount; i++)
+            {
+                Health other = encounter.EnemyAt(i);
+                if (other == null || ReferenceEquals(other, target) || !other.IsAlive ||
+                    !encounter.TryFloorPositionOf(other, out float ox, out float oy))
+                    continue;
+                if (SkillRule.Within(ox, oy, x, y, SkillFootwork.LoneClear))
+                    return false;
+            }
+            hx = tx - x;
+            hy = ty - y;
+            return true;
+        }
+
+        // The clumsy cohort: on cooldown whenever an enemy stands within the skill's reach; the Rush toward the nearest.
+        private bool OnCooldown(AbilityRuntime skill, out float hx, out float hy)
+        {
+            hx = hy = 0f;
+            float x = _hero.position.x, y = ArenaFloor.FloorY(_hero.position.y);
+            float reach = SkillFootwork.ReachOf(skill);
+            if (!SkillFootwork.PressesOnCooldown(CountWithin(x, y, reach)))
+                return false;
+            if (skill.Kind != AbilityKind.Rush)
+                return true;
+            Health nearest = _targeting != null ? _targeting.Acquire(reach) : null;
+            if (nearest == null)
+                return false;
+            hx = nearest.transform.position.x - x;
+            hy = ArenaFloor.FloorY(nearest.transform.position.y) - y;
+            return true;
+        }
+
+        private bool SigilLure(float x, float y, out float gx, out float gy)
+        {
+            gx = x;
+            gy = y;
+            SigilZone glyph = _ability != null ? _ability.Sigil : null;
+            if (glyph == null || !glyph.IsLive || !_cohort.TimesTheSkills || !_cohort.Lures)
+                return false;
+            EncounterController encounter = _setup.Encounters;
+            float cx = 0f, cy = 0f;
+            int crowd = 0;
+            for (int i = 0; i < encounter.EnemyCount; i++)
+            {
+                Health enemy = encounter.EnemyAt(i);
+                if (enemy == null || !enemy.IsAlive || !encounter.TryFloorPositionOf(enemy, out float ex, out float ey) ||
+                    !SkillRule.Within(ex, ey, x, y, SkillFootwork.LureReach))
+                    continue;
+                cx += ex;
+                cy += ey;
+                crowd++;
+            }
+            return crowd > 0 && SkillFootwork.AcrossTheGlyph(glyph.X, glyph.Y, glyph.Radius, cx / crowd, cy / crowd, out gx, out gy) &&
+                   FoundryMap.Contains(gx, gy, HeroMotion.EdgeMargin);
+        }
+
+        private int CountWithin(float x, float y, float radius)
+        {
+            EncounterController encounter = _setup.Encounters;
+            int count = 0;
+            for (int i = 0; i < encounter.EnemyCount; i++)
+            {
+                Health enemy = encounter.EnemyAt(i);
+                if (enemy != null && enemy.IsAlive && encounter.TryFloorPositionOf(enemy, out float ex, out float ey) &&
+                    SkillRule.Within(ex, ey, x, y, radius))
+                    count++;
+            }
+            return count;
         }
 
         private int ChoiceSlot()
@@ -249,6 +450,10 @@ namespace Cryptforge.Core
             // waits out of it. The horde alone is fought wherever the hero is going. Never in a swarm room, where the pit
             // does not run (PitEruptionService.IsRunning): the careful pilot spent about 44 s of the finale dragging the
             // swarm to a rim that never spills (the review of 2026-11-11).
+            // docs/57's glyph (a run with Flame Sigil): while it lives a node fight is held across it, as the simulation's pilot
+            // holds it (SkillFootwork.AcrossTheGlyph).
+            if (fighting && !guarded && SigilLure(x, y, out gx, out gy))
+                return true;
             if (fighting && pit && _setup.Pit.IsRunning)
             {
                 if (guarded || !_cohort.Lures)

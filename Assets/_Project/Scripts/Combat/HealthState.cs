@@ -35,6 +35,15 @@ namespace Cryptforge.Combat
             DamageContext landed = DamageReduction > 0f
                 ? new DamageContext(context.Amount * (1f - DamageReduction), context.Source, context.IsCritical)
                 : context;
+            // A ward (docs/57's Cinder Ward) takes what armour let through, until it is spent: what it took never lands, and
+            // the hit is reported to WardAbsorbed - the striker catches fire there. No ward, nothing changes.
+            if (Ward > 0f && landed.Amount > 0f)
+            {
+                float absorbed = Math.Min(Ward, landed.Amount);
+                Ward -= absorbed;
+                landed = new DamageContext(landed.Amount - absorbed, landed.Source, landed.IsCritical, landed.IsTick);
+                WardAbsorbed?.Invoke(context, absorbed);
+            }
             if (landed.Amount == 0f)
                 return;
 
@@ -61,6 +70,25 @@ namespace Cryptforge.Combat
             Current = Math.Min(maximum, Current + gained);
             Changed?.Invoke();
         }
+
+        // docs/57's Cinder Ward: a pool laid over the health that every landing after armour spends first (ApplyDamage), for
+        // as long as whoever raised it keeps it (the skill's Duration; ClearWard ends it). 0 without one: every enemy's, and
+        // the hero's between wards. Its size is read off the hero's own maximum health (SkillRule.WardOf).
+        public float Ward { get; private set; }
+
+        // A landing the ward took (some or all of it): the hit as it came, and how much the ward absorbed.
+        public event Action<DamageContext, float> WardAbsorbed;
+
+        // A ward of amount: the larger of it and what is left of the last.
+        public void RaiseWard(float amount)
+        {
+            if (float.IsNaN(amount) || float.IsInfinity(amount) || amount < 0f)
+                throw new ArgumentOutOfRangeException(nameof(amount));
+            if (amount > Ward)
+                Ward = amount;
+        }
+
+        public void ClearWard() => Ward = 0f;
 
         // The share of every hit armor takes away, in [0, 1).
         public void SetDamageReduction(float reduction)

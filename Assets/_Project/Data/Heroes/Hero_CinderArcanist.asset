@@ -20,6 +20,8 @@ MonoBehaviour:
   _startingWeapon: {fileID: 11400000, guid: 1000000000000000000000000000001b, type: 2}
   _startsWithItsOwnWeaponOnly: 1
   _ability: {fileID: 11400000, guid: 4cac5c47d43e43d3b089d40ab6664eb6, type: 2}
+  _secondAbility: {fileID: 11400000, guid: 48c092eba4be49ac83caa7160c7d8a2b, type: 2}
+  _thirdAbility: {fileID: 11400000, guid: ff07ed4de3204590a89788c1ec568e35, type: 2}
   _passive: 1
   _unlockedFromStart: 0
   _unlockWeapon: {fileID: 11400000, guid: 1000000000000000000000000000001b, type: 2}

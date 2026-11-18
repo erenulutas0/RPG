@@ -35,8 +35,33 @@ namespace Cryptforge.Progression
         // 1 until an evolution is taken; it never falls below 1, because the floor of the stat says so.
         public float Difficulty => _difficulty.Value;
 
-        // The share of a hit armor takes away, in [0, 1).
-        public float DamageReduction => _armor.Value / (_armor.Value + ArmorSoftness);
+        // The share of a hit armor takes away, in [0, 1): the cards' and the gear's armour, and the guard's while it holds.
+        public float DamageReduction =>
+            _guard > 0f ? Reduction(Guarded(_armor.Value, _guard)) : _armor.Value / (_armor.Value + ArmorSoftness);
+
+        // docs/57's Iron Resolve: armour laid on the pool for the guard's seconds (SetGuardArmor), a timed layer on top of the
+        // cards' and the gear's, so the pool's diminishing return holds it short of immunity (+100 on a bare hero is half of
+        // every hit; on 40 armour it lifts 29 % to 58 %). 0 without a guard, when the reduction is the armour's to the bit.
+        public float GuardArmor => _guard;
+        private float _guard;
+
+        // The guard's armour: amount while it holds, 0 as it ends. Pushed through HeroStatsBinding as every card is.
+        public void SetGuardArmor(float amount)
+        {
+            if (float.IsNaN(amount) || float.IsInfinity(amount) || amount < 0f)
+                throw new ArgumentOutOfRangeException(nameof(amount));
+            if (amount == _guard)
+                return;
+            _guard = amount;
+            Changed?.Invoke();
+        }
+
+        // One body each, never inlined, for the scene's assembly and the simulation's.
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+        private static float Guarded(float armor, float guard) => armor + guard;
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+        private static float Reduction(float armor) => armor / (armor + ArmorSoftness);
 
         public event Action Changed;
 

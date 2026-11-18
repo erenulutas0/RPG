@@ -468,7 +468,7 @@ namespace Cryptforge.Tests
             // reflection it owes (capped by its budget). The landing as it was anywhere else.
             private DamageContext SentryGuard(Foe foe, DamageContext context, DamageSource source)
             {
-                if (foe.Guard == null || (source != DamageSource.Weapon && source != DamageSource.Ability))
+                if (foe.Guard == null || (source != DamageSource.Weapon && source != DamageSource.Ability && source != DamageSource.Skill))
                     return context;
                 float dealt = foe.Guard.Land(context.Amount, foe.X, foe.Y, HeroX, HeroY, out bool front, out float reflected);
                 if (source == DamageSource.Weapon)

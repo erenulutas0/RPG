@@ -27,6 +27,11 @@ namespace Cryptforge.Content
         [SerializeField] private bool _startsWithItsOwnWeaponOnly;
         // The active ability the hero fires by touch.
         [SerializeField] private AbilityDefinition _ability;
+        // docs/57's skills 2 and 3 (the owner's answers 2026-11-18): the Vanguard's Iron Resolve and Shield Rush, Ilya's
+        // Flame Sigil and Cinder Ward. Phase 4 opens them (the first clear of floors 2 and 3, then the Forge); until then a
+        // run carries them only where a development file asks (DevelopmentStart.SkillSlots). Empty for a hero without.
+        [SerializeField] private AbilityDefinition _secondAbility;
+        [SerializeField] private AbilityDefinition _thirdAbility;
         [SerializeField] private HeroPassive _passive = HeroPassive.None;
         // Open from the first run (the Vanguard), or unlocked by clearing The Foundry carrying _unlockWeapon.
         [SerializeField] private bool _unlockedFromStart = true;
@@ -51,6 +56,9 @@ namespace Cryptforge.Content
         public WeaponDefinition StartingWeapon => _startingWeapon;
         public bool StartsWithItsOwnWeaponOnly => _startsWithItsOwnWeaponOnly;
         public AbilityDefinition Ability => _ability;
+        // The hero's skill in slot 1 (Ability), 2 or 3; null for an empty slot or any other number.
+        public AbilityDefinition SkillAt(int slot) =>
+            slot == 1 ? _ability : slot == 2 ? _secondAbility : slot == 3 ? _thirdAbility : null;
         public HeroPassive Passive => _passive;
         public bool UnlockedFromStart => _unlockedFromStart;
         public WeaponDefinition UnlockWeapon => _unlockWeapon;

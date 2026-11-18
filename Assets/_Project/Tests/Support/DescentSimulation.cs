@@ -121,8 +121,16 @@ namespace Cryptforge.Tests
             public float Radius = 2.5f;
             public float Cooldown = 8f;
             public AbilityKind Kind = AbilityKind.Burst;
+            // docs/57's skills 2 and 3 (AbilityRuntime.Skill): how long the effect holds and its size. 0 for the Burst and the
+            // Vent, which act at once.
+            public float Duration;
+            public float Amount;
 
-            public AbilityRuntime CreateRuntime() => new AbilityRuntime(Damage, Radius, Cooldown, Kind);
+            public AbilityRuntime CreateRuntime() => Kind == AbilityKind.Burst || Kind == AbilityKind.Vent
+                ? new AbilityRuntime(Damage, Radius, Cooldown, Kind)
+                : AbilityRuntime.Skill(Kind, Damage, Radius, Cooldown, Duration, Amount);
+
+            public HeroAbility Copy() => (HeroAbility)MemberwiseClone();
         }
 
         internal struct Result
