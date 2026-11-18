@@ -1073,6 +1073,19 @@ with gear:
    fights too?
 5. *Owner*: the Turkish words of 11.6, for the docs/60 glossary.
 
+### 11.10 The lead's answers (2026-11-19)
+
+1. **The arena opens at x2.** x1 stays one tap away and the choice is kept (commit "tune: the arena plays at x2
+   first"). The owner's P0 verdict decides it for good.
+2. **The painted frames stay for P0.** The cut-out puppet in the lane is worth building only if the owner's verdict says
+   watching is fun.
+3. **An early first Rush waits for the next arena calibration round.** That round takes a rules version bump and a
+   re-measure anyway. Until then the view draws a Rush as a hop.
+4. **The past-hero rule stands as built.** The build being replaced is kept at the rating it reached, but only if it
+   fought since it was set. No every-N-fights copies.
+5. **One Turkish name for Cinder Ward: "Kül Siperi".** "Kalkan" is the Vanguard's shield (Kalkan Hücumu), so the hero
+   skills' row follows the arena's. The rest of 11.6's words go to the owner's docs/60 review.
+
 ## How to re-run
 
     dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~ArenaDuelTests"
