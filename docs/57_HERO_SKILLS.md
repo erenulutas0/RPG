@@ -6,6 +6,15 @@ skills per hero: a second opens at floor 2's first clear, a third at floor 3's, 
 thumb"); docs/55 built an integer duel core whose "dealt skills" stood in for the second and third. This document
 designs them.
 
+**Status 2026-11-18: phases 1 and 2 are built and measured (section 13).** The skills are in the core, the scene and the
+simulation, off by default; measured with every playing cohort, three of section 3's details changed on the spent seeds
+(the Rush stops on impact, the timing pilot leaves the Warden to its weapons, a gate boss takes half the glyph's heat),
+and confirmed once on the fresh block 8401-11600 under docs/56's rule: every cohort gains (four-floor completion: clumsy
+**+15.0** points, 90 % CI +14.0 to +16.0; careful **+1.5**, +1.1 to +1.8; first-card **+3.9**, +3.3 to +4.5; standing
++4.3), the careful pilots' gate fights stay in 45-65 s and the Descent at 14.3-14.5 minutes. The rest of this paragraph
+and sections 0-12 are the proposal of 2026-11-17, with the measured numbers marked where phase 2 replaced the modelled
+ones.
+
 Nothing in the game is built: no code under `Assets/`, no asset, scene, setting or package changed. One research file
 is added and the duel core grows: `Tools/CombatChecks/HeroSkillsResearch.cs` (the six skills as numbers, a cheap pinned
 test in every plain `dotnet test`, and two reports run by name) and six skill kinds, Ember Memory's burn, a bold policy
@@ -26,7 +35,7 @@ simulation to measure, not a decision.
 | Ranks | later, after the skills are measured: **five ranks, +6 % of the skill's own number each, gold and floor materials, no failure**; cooldowns only from docs/54's efsun line (capped at 10 %) | about 6,750 gold a hero for all three to rank V; **+2-4 %** on the hero's PvE power index (modelled) |
 | Input | **three buttons in an arc on the right thumb**: skill 1 stays the 234-unit corner button (14 mm on the S23), skills 2 and 3 at 176 units (10.5 mm) on its arc; a locked slot is hidden | rejected: one cycling button (fires the guard as an attack), a smart button (removes the decision), gestures (unreadable under pressure) |
 | PvP | the hero's own three replace docs/55's five stand-in skills; Archero 2's variety comes from **dealt boons**, not more buttons; ranked plays **all three at a fixed rank, no cooldown line** | each new skill alone wins **70-93 %** of a mirror; the -10 % cooldown line **83 %** of a Vanguard mirror; with Ember Memory's burn (which docs/55's Ilya lacked) **Ilya beats the Vanguard 98-100 %**: an arena coefficient near **x0.8** on Ilya's damage evens it |
-| Balance | the cohorts measure every skill; **skills off, the default batch stays byte-identical**; skills on, the Descent stays inside the relative ship rule (docs/56's study of that rule is pending) | section 6 |
+| Balance | the cohorts measure every skill; **skills off, the default batch stays byte-identical**; skills on, the Descent stays inside the relative ship rule (docs/56's study of that rule is pending) | section 6; **measured (section 13)**: skills on, clumsy +15.0 / careful +1.5 / first-card +3.9 points of four-floor completion, 90 % CIs wholly above 0, on the fresh block 8401-11600; the careful bosses in 45-65 s, the Descent's P50 within 0.03 minutes |
 | Build | phases 1-5: **12-14 days** (core and simulation 5, measurement 2-3, HUD and art 3, unlock and Forge 2, device 1); ranks +2-3 later; the arena's share inside docs/55's P0 | section 8 |
 
 **The recommendation in one paragraph.** Give each hero two more one-tap skills that need no aim: the Vanguard an
@@ -131,7 +140,8 @@ Three things follow, and they shape every number in section 3:
 - **The new damage scales with the build**: a skill's damage is its base x the hero's first weapon's damage over that
   weapon's base (what the Force tome and the damage lines have added), read at the press - the duel core already scales
   skills this way (`Scaled`). Burn stays flat, as `BurnRule` has it.
-- **Gate bosses are not dazed and are slowed by half the slow**: the Warden's and the Regent's telegraphs stay the
+- **Gate bosses are not dazed, are slowed by half the slow and take half the glyph's heat** (the heat since phase 2,
+  section 13.2): the Warden's and the Regent's telegraphs stay the
   bosses' clocks (docs/41 step 4, docs/50).
 - **Cooldowns are the skill's own**, shortened only by docs/54's efsun line (`GearStat.AbilityCooldown`, capped at 10 %).
 - **A skill that reads maximum health reads the hero's own**, also in the arena, whose x8 health is the arena's knob
@@ -188,7 +198,9 @@ Three things follow, and they shape every number in section 3:
   way onto a Captain or into the Warden's open window. Engage and escape in one button.
 - **Numbers (proposal):** **4 units in 0.3 s along the stick's heading** (no finger down: toward the nearest enemy within
   6; none: the facing). **15 (scaled) to every enemy within 0.8 of the path, and a 0.5 s daze** (no daze on a gate boss;
-  elites are dazed). Walls slide or stop it as they do the walk. **No guard**: the Riftblade's Phase Dash turns hits
+  elites are dazed). Walls slide or stop it as they do the walk. **Phase 2 (section 13.2): it stops on impact** - 0.6
+  short of the first enemy ahead on its path, striking up to it - where carried through it ended past its target, in the
+  pit's band and the Warden's reach. **No guard**: the Riftblade's Phase Dash turns hits
   away (docs/46); the Rush plows and is hit while it does. **Every 12 s.**
 - **One body with the Riftblade's dash.** docs/46's Phase Dash is a measured travel rule (`PhaseDashRule`, 3 units in
   0.2 s, in the simulation's `RiftbladeRules`); the Rush is the same travel with other numbers and a strike, so the scene
@@ -199,7 +211,8 @@ Three things follow, and they shape every number in section 3:
 - **The autopilot:**
   - careful: **escape** - five or more enemies within 1.5 and its health under 60 %, along the kite's heading when the
     path is clear of the glowing band (`FootworkRule.Kite` and `Guards`); **engage** - a lone Captain beyond the Sword's
-    reach with no other enemy within 3, or the Warden in its vulnerability window beyond reach;
+    reach with no other enemy within 3 (the Warden in its vulnerability window was dropped in phase 2: rushing it cost
+    every timing cohort's Vanguard at the boss, section 13.2);
   - clumsy: on cooldown, toward the nearest enemy - into the crowd, which is how a human misuses a charge, and which the
     relative rule must show does not cost it completions;
   - auto-farmer: never.
@@ -308,13 +321,20 @@ the lead may prefer it (lead question 10).
 | Ilya | Cinder Ward | floor 3 | ward | 20 s | absorbs 20 % of maximum health 2 s; strikers catch 2 stacks | 69.5 % / 80.1 % |
 | (Ilya) | (Backdraft, considered) | - | ring | 16 s | 6 and 2 stacks within 2.5, slow 50 % 2.5 s | 60.1 % / 67.4 % |
 
-**Modelled run value** (section 2's measured inputs; phase 2 measures it). The new damage is small at these numbers, as
-the shipped skills' is: the Rush's 15 to the one or two enemies a 4-unit path crosses (its capsule is 0.43 of the Burst's
-circle), about twice a minute, is about 1 % of the Vanguard's floor-1 damage, and with build scaling it stays near that
-on floor 3 instead of falling to a third; the Sigil's doubled burn, on the share of the crowd inside the glyph for 5 s
-of every 20, adds a few tenths of a per cent to Ilya's 2-3 % of burn. **The run value is in the guards, the escape and
-the slow**: section 6.3's replay puts each guard at **+4-5 % of effective health** for the careful pilot (+9-12 % pressed
-on cooldown); the Rush's escape and the Sigil's slow need the simulation (phase 1) to be read at all.
+**Measured run value (phase 2, section 13):** the guards carry it, as section 6.3 modelled. Iron Resolve keeps 4-5 % of
+the careful Vanguard's damage taken off (11 % of the clumsy one's on floor 1); Cinder Ward absorbs 7-9 % of careful
+Ilya's (10-12 % of the clumsy one's); the glyph's heat adds 0.2-0.5 % to careful Ilya's damage and slows 1.2-1.4 enemies
+a tick; the Rush deals 1.0-1.9 % of the clumsy Vanguard's damage, and the careful pilot presses it about once in four
+runs. In the run: careful +1.5 points of completion, first-card +3.9, standing +4.3, clumsy +15.0 (section 13.3).
+
+**Modelled run value** (section 2's measured inputs; phase 2 measures it; kept for the record). The new damage is small
+at these numbers, as the shipped skills' is: the Rush's 15 to the one or two enemies a 4-unit path crosses (its capsule
+is 0.43 of the Burst's circle), about twice a minute, is about 1 % of the Vanguard's floor-1 damage, and with build
+scaling it stays near that on floor 3 instead of falling to a third; the Sigil's doubled burn, on the share of the crowd
+inside the glyph for 5 s of every 20, adds a few tenths of a per cent to Ilya's 2-3 % of burn. **The run value is in the
+guards, the escape and the slow**: section 6.3's replay puts each guard at **+4-5 % of effective health** for the
+careful pilot (+9-12 % pressed on cooldown); the Rush's escape and the Sigil's slow need the simulation (phase 1) to be
+read at all.
 
 ## 4. Unlock and progression
 
@@ -443,6 +463,9 @@ The S23 session reads these against the autopilot's numbers, as docs/46 asked fo
 
 ### 6.2 The rows a skill must pass
 
+Measured in phase 2: section 13.4. The relative ship rule's row is docs/56's rule since 2026-11-17 (lead decision 3 of
+docs/56 and of this document).
+
 | Row | Target | Reading |
 |---|---|---|
 | **Skills off: byte-identical** | the default batch (`FOUNDRY_SEEDS=200 FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_REALISM=typical`, `FOUNDRY_FLOORS=4` and `2`): every file byte-identical but `foundry-batch.md`'s clock and wall seconds, as docs/52 read the Wraith | no new `RunRandom` purpose drawn, no trace line, no result field printed while `Skills` is 1 |
@@ -550,8 +573,8 @@ Vitality), not more buttons. P2b's tapped skills are these three buttons, laid o
 | Phase | Work | Days | Done when |
 |---|---|---|---|
 | 0 (this branch) | The design, the duel's six skills, the Descent read | - | this document |
-| 1. Core and simulation | `AbilityKind` gains Guard, Rush, Sigil, Ward; `HeroDefinition` three abilities, `AbilityController` three slots; `HeroDash` (one body with docs/46's dash), `SlowStatus` (read by `PackMotion`), `SigilZone` (on `BurnRule`'s clock), the guard as a timed armour modifier, the ward as a pool in `HealthState`, build scaling; the assets; `FoundryLevers.Skills`, the pilot's rules and `TimesTheSkills`; EditMode and parity tests | **5** | skills off: the default batch byte-identical, every test green; the parity table for skills on |
-| 2. Measurement | section 6.2's rows for each skill and for all three, both heroes, seeds 1-400, both hands; tuning; this document's numbers replaced by measured ones | **2-3** | the rows pass, or the lead chooses which bind |
+| 1. Core and simulation (**done 2026-11-18**, section 13.1) | `AbilityKind` gains Guard, Rush, Sigil, Ward; `HeroDefinition` three abilities, `AbilityController` three slots; `HeroDash` (one body with docs/46's dash), `SlowStatus` (read by `PackMotion`), `SigilZone` (on `BurnRule`'s clock), the guard as a timed armour modifier, the ward as a pool in `HealthState`, build scaling; the assets; `FoundryLevers.Skills`, the pilot's rules and `TimesTheSkills`; EditMode and parity tests | **5** | skills off: the default batch byte-identical, every test green; the parity table for skills on |
+| 2. Measurement (**done 2026-11-18**, sections 13.2-13.4) | section 6.2's rows for each skill and for all three, both heroes, seeds 1-400, both hands; tuning; this document's numbers replaced by measured ones | **2-3** | the rows pass, or the lead chooses which bind |
 | 3. HUD, art, telemetry | three `AbilityButtonView` slots (section 5.2), the reveal's hold over all three, four icons (`build_ability_icons.py`'s family), four effect strips (`build_skill_vfx.py`), the Rush's puppet clip; section 5.3's events | **3** | a PlayMode flow fires each slot; telemetry in the log |
 | 4. Unlock and the Forge | save version 5 (opened and forged skills per hero, migration adds empties), the first-clear opening, the Forge's skills tab with the 300 / 500 prices, the result screen's unlock line | **2** | a profile opens and forges skill 2 after a floor-2 clear; `ProfileStoreTests` round-trip and migrate |
 | 5. Device | the owner plays both heroes with three skills on the S23: mis-taps, frame time, and whether it is more fun | **1** + the owner | the owner's verdict, telemetry read |
@@ -645,6 +668,205 @@ The build starts with phases 1-2 (core, simulation, measurement; skills off by d
 untouched). Save version: docs/54 phase 6 (the tiers) takes version 5, so phase 4 here writes **version 6**. Phases 3-4
 ship the skills into the game; docs/27 decision 12 still puts the V0.1 gate's device row first.
 
+## 13. Phases 1 and 2, built and measured (2026-11-18)
+
+The owner's answers (section 12) started phases 1 and 2. Both are done on this branch: the skills are in the core, the
+scene and the simulation, **off by default** (no build, scene test or report plays more than skill 1), and they are
+measured with every playing cohort, tuned on the spent seeds 1-400 and confirmed once on the fresh block 8401-11600
+under docs/56's rule. Nothing of phases 3-4 is built: no button, icon, effect strip, telemetry event, save field, unlock
+or Forge tab.
+
+### 13.1 What phase 1 built
+
+| Where | What |
+|---|---|
+| `Scripts/Combat/AbilityRuntime.cs` | `AbilityKind` gains `Guard`, `Rush`, `Sigil`, `Ward` (appended; the assets store the number); `AbilityRuntime.Skill` makes one with its `Duration` and `Amount`; `ActiveLeft` / `IsActive` keep its effect's clock from each use. The Burst and the Vent are untouched |
+| `Scripts/Combat/SkillRule.cs` | what the skills of a kind share, each product one never-inlined body and every squared radius cast to float: the build scaling (`Scaled`: base x the first weapon's damage over its base), the gate boss's half slow and half heat, the slowed step, the ward's size, the Rush's capsule, its impact (`Along`, `ImpactTravel`) and the glyph's circle; the daze (0.5 s), the glyph's heat (x2) and stack, the ward's 2 stacks |
+| `Scripts/Combat/HeroDash.cs` | one dash body (length, travel, heading; `StepOf`, `TravelFor`, `Move` through `HeroMotion`, walls sliding it as they do the walk): the Rush now, docs/46's Phase Dash when the Riftblade is built (lead decision 5) |
+| `Scripts/Combat/SlowState.cs`, `SlowStatus.cs` | an enemy's slow, daze and heat: plain state, and the scene's component on a touched enemy; `PackMotion.SetSlow` shortens its step toward the same point (lead decision 4), `EncounterController` hands each slow to the pack before it steps, the enemy's `AttackController` holds its swing while dazed, its `BurnStatus` ticks at the heat |
+| `Scripts/Combat/SigilZone.cs` | the glyph: a stationary zone on `BurnRule.TickSeconds`, ten ticks in its 5 s, each slowing and heating what stands inside until the next and lighting the unburnt |
+| `Scripts/Combat/HealthState.cs` | the ward: a pool after armour (`RaiseWard`, `ClearWard`; `WardAbsorbed` names the striker, which catches 2 direct stacks) |
+| `Scripts/Progression/HeroStats.cs` | the guard: a timed armour layer (`SetGuardArmor`) on the pool, pushed through `HeroStatsBinding` as every card; at 0 the reduction is the armour's to the bit |
+| `Scripts/Combat/AbilityController.cs` | three slots (`SkillAt`, `TryUse(slot)`, `TryUse(slot, heading)`, `InitializeSkills`, `SkillUsed`); slot 1 is the shipped ability, its `Used` event and button unchanged |
+| `Scripts/Content/*`, `Data/Abilities/*`, `Data/Heroes/*` | `AbilityDefinition` gains duration and amount, `HeroDefinition` skills 2 and 3; `Ability_IronResolve`, `Ability_ShieldRush`, `Ability_FlameSigil`, `Ability_CinderWard` (no icons yet: phase 3) on both heroes |
+| `Scripts/Core/SkillFootwork.cs`, `AutopilotCohort.cs` | the autopilot's moments (section 3), one body for `DevelopmentAutopilot` and the simulation; `Habit.TimesTheSkills` (careful, standing, first-card; not the clumsy cohort; outside `All`, so no cohort report's list of dropped habits moves) |
+| `Scripts/Core/CombatSetup.cs`, `DevelopmentStart.cs`, `DevelopmentAutopilot.cs`, `UI/HeroMovementInput.cs`, `Combat/Targeting.cs` | the scene's wiring, live only where `<profile>/development/skills.txt` says `2` or `3` (the Editor and development builds): the guard onto the sheet, the stick and the dash, the gate boss, the glyph's and the ward's burns, the autopilot's presses |
+| `Tests/Support/DescentSimulation.HeroSkills.cs` | `FoundryLevers.Skills` (1, the default), `SkillTwoOff`, `TuneSkill` and the phase-2 levers; the run's skills through the same bodies, the pilot's presses a reaction after their moment (`PilotRealism`), never in a lapse or the boss's reveal |
+| `Tools/CombatChecks/HeroSkillsDescentResearch.cs` | phase 2's harness (`TheSkillsInTheDescent`, `TheEditorSeedsWithTheSkills`); `Tools/BalanceRule/paired_bootstrap.py` reads its CSV, with the first-card cohort now read |
+
+Tests: `HeroSkillRuleTests` (the pure bodies, 13) and `FoundrySkillsTests` (the simulation off and on, 4) run in every
+plain `dotnet test`; `FoundrySimulationSceneValueTests.TheFoundryHeroesAreTheAssets` holds the four assets to the
+simulation's copies and `HeroSkillsFlowTests` (PlayMode, 3) plays each slot in the scene - both Unity-only, for the lead.
+
+**Skills off, the default batch.** `FOUNDRY_SEEDS=200 FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_REALISM=typical`,
+`FOUNDRY_FLOORS=4` and `2`, against main's own (f8f31c99) on this machine: every CSV, `foundry-gate.md`,
+`foundry-cohorts.md` and `foundry-finale.md` byte-identical; in `foundry-batch.md` only the clock in its header and the
+wall-seconds column differ. No `RunRandom` purpose is drawn, no trace line written and no reported field moves while
+`Skills` is 1. CombatChecks 934 green (`Başarılı`; 917 before), the Unity compile check green.
+
+### 13.2 How phase 2 read the skills
+
+`HeroSkillsDescentResearch.TheSkillsInTheDescent` plays the whole Descent (floors 1-3 and the finale) for both heroes
+and the four playing cohorts with typical hands (`PilotRealism.Typical`), the skills on from the first frame, against
+the shipped kit on the same seeds; the auto-farmer presses no skill, so its runs are the shipped ones. Exploration and
+tuning on the spent seeds 1-400 (docs/56: 1-2000 are tuning seeds), slow hands on the careful pilot there too; the one
+confirmatory read on the fresh block 8401-11600 (13.3). Each skill was read alone beside skill 1 (`s2`, `s3`) and all
+three together (`s23`), as section 3 wrote them; then the candidate.
+
+**Round 1: section 3 as written** (seeds 1-400; completion change against `shipped`, both heroes, in points; the
+Vanguard's and Ilya's own changes in completions of 400):
+
+| Option | Careful | Standing | First-card | Clumsy |
+|---|---|---|---|---|
+| `s2` (Iron Resolve, Flame Sigil) | +0.75 (V +9, I -3) | +2.50 (V +11, I +9) | +3.38 (V +18, I +9) | +8.00 (V +21, I +43) |
+| `s3` (Shield Rush, Cinder Ward) | 0.00 (V -5, I +5) | +1.25 (V -13, I +23) | +0.25 (V -14, I +16) | +8.25 (V -6, I +72) |
+| `s23` (all three) | +1.62 (V +6, I +7) | +3.62 (V +7, I +22) | +3.38 (V +6, I +21) | +12.75 (V +16, I +86) |
+
+Shipped on these seeds: careful 96 %, standing 88 %, first-card 85 %, clumsy 39 % of 800 completed. What round 1 found:
+1. **Three of the four skills help every cohort; the Rush hurts the Vanguard in every one.** The Vanguard's deaths at
+   the boss rose with it (careful 12 to 19, standing 39 to 50, first-card 31 to 41, clumsy 65 to 85), and with them the
+   pit's (clumsy 80 to 97): carried its whole 4 units through what it met, the charge took the hero past the Warden into
+   the pit's glowing band and the Warden's reach; the timing pilots' engage on the Warden "in its window" put them
+   there on purpose. The careful pilot never once escaped a surround with it (0 of 2,482 presses: five enemies within
+   1.5 and the hero under 60 % is a moment a kiting pilot does not meet).
+2. **The glyph's heat on the gate boss shortened its fight to the band's edge**: careful Ilya's floor-1 Warden from
+   46.8 to 45.2 s at P50 (the Regent 46.3 to 45.5).
+3. **The guards carry the run value, as section 6.3's replay said**: Iron Resolve keeps 4-5 % of the careful Vanguard's
+   damage taken off (11 % of the clumsy one's on floor 1), Cinder Ward absorbs 7-9 % of careful Ilya's (10-15 % of the
+   clumsy one's); the clumsy Ilya's deaths at the boss fall from 142 to 98 of 400.
+
+**Round 2: the Rush and the heat** (the Vanguard alone with `s3`; completions of 400 against `shipped`, boss deaths in
+brackets, shipped 12 / 39 / 31 / 65):
+
+| Rush | Careful | Standing | First-card | Clumsy |
+|---|---|---|---|---|
+| section 3 (through, the Warden rushed) | -5 (19) | -13 (50) | -14 (41) | -6 (85) |
+| stops on impact | +1 (12) | -7 (46) | -6 (37) | +6 (83) |
+| leaves the Warden to the weapons | -1 (13) | -9 (45) | -1 (31) | -6 (85) |
+| both (the candidate's) | 0 (12) | -9 (47) | 0 (32) | +6 (83) |
+
+The gate boss at half the glyph's heat (careful Ilya, all three, seeds 1-400): the floor-1 Warden 47.1 s, the Regent
+46.0, floor 3's Warden 57.3, against 46.8 / 46.3 / 57.0 shipped.
+
+**The candidate, `c1`, and its reasons** (written before its confirmatory read): section 3's numbers with three changes,
+each read above on the spent seeds, now the shipped defaults (`SkillRule.RushStopsOnImpact`,
+`SkillFootwork.RushesTheGateBoss`, `SkillRule.GateBossHeatShare`):
+- **The Rush stops on impact**: 0.6 short of the first enemy ahead on its path, striking up to it (what stands beside the
+  hero as it sets off is struck in passing). A shield charge stops at the first body it strikes; carried through, it
+  ended past its target, in the pit's band and the Warden's reach.
+- **The timing pilot rushes only the lone Captain**, never the Warden in its window: that window is the weapons', at
+  their reach, and rushing into it cost every timing cohort's Vanguard at the boss.
+- **A gate boss takes half the glyph's heat** (its burn x1.5 inside), as it takes half its slow (section 3.0): the
+  Warden's fight stays docs/41 step 4's.
+- With them, the glyph's lure is built as section 3.2 says (a live glyph holds a node fight across it, the Lures habit's
+  body with the glyph as the rim; `SkillFootwork.AcrossTheGlyph`), which round 1 had not yet.
+
+**`c1` on seeds 1-400** (bootstrap 90 % CI, 10,000 resamples of seeds): careful **+2.12** points (+1.12 to +3.25; V +10,
+I +7), first-card **+3.25** (+1.62 to +4.88; V +15, I +11), clumsy **+14.50** (+11.75 to +17.25; V +31, I +85), standing
++2.50 (+0.62 to +4.50; V -3, I +23). The careful bosses: the Vanguard's 51.3 / 49.2 / 61.1 s, Ilya's 47.1 / 46.0 / 57.3;
+the Descent's P50 14.5 / 14.3 minutes, as shipped. With slow hands (careful, seeds 1-400): the Vanguard completes 335 of
+400 against 303, Ilya 358 against 312; Ilya's bosses already sit under 45 s as shipped with those hands (44.0 / 44.6 on
+floors 1 and 2) and the skills move them 0.3 / 0.6 s (43.7 / 44.0); the Vanguard's 48.4 to 48.0.
+
+### 13.3 The confirmation (docs/56's rule, seeds 8401-11600)
+
+Read once, `c1` against `shipped` on the same code (`shipped`'s runs are byte-identical to main's), seeds 8401-11600 -
+3,200 seeds, the floor-2 count of docs/56's rule 1, since the skills are on from floor 1 - both heroes, typical hands, the
+four playing cohorts; beside it the A/A probe from floor 1 (`aa-f1`: the shipped game, one unread draw of the pilot's dice
+as floor 1 begins) for the clumsy cohort. One candidate read. `Tools/BalanceRule/paired_bootstrap.py <folder> 8401 11600`:
+
+| Cohort | Shipped completed | `c1` completed | Change, points (90 % CI) | Vanguard / Ilya (completions of 3,200) | SD per 400 seeds | Verdict |
+|---|---|---|---|---|---|---|
+| Clumsy | 38.5 % | 53.5 % | **+15.00** (+14.02 to +15.98) | +302 / +658 | 13.5 | passes, an easing |
+| Careful | 96.3 % | 97.8 % | **+1.45** (+1.08 to +1.83) | +49 / +44 | 5.2 | passes, an easing |
+| First-card | 82.7 % | 86.6 % | **+3.88** (+3.27 to +4.48) | +146 / +102 | 8.4 | passes, an easing |
+| Standing | 87.2 % | 91.5 % | +4.33 (+3.69 to +4.97) | +120 / +157 | 9.0 | reported |
+| A/A `aa-f1`, clumsy | 38.5 % | 39.3 % | +0.77 (-0.19 to +1.73) | | 13.0 | the noise of a reshuffle from floor 1 |
+
+**`c1` passes docs/56's rule**: for clumsy, careful and first-card the point change is far above -1.0 and the CI's lower
+bound far above -1.5 - every CI lies wholly above 0, so under rule 3 it passes as an easing and is reported to the lead.
+The easing is an order of magnitude past the A/A's band.
+
+The rest of the read on the same runs:
+- **The bosses** (careful P50, share of fights in 45-65 s; none felled within 5 s in any cohort): the Vanguard's floor-1
+  Warden 51.1 s (71 %), the Regent 49.0 (66 %), floor 3's Warden 60.1 (62 %), as shipped (51.1 / 49.0 / 60.4); Ilya's 45.8
+  (54 %), **45.4** (52 %), 56.5 (75 %), against 45.8 / 46.4 / 57.4 shipped. Every careful band holds; Ilya's Regent stands
+  0.4 s inside its edge, a second under shipped.
+- **The Descent**: every completed run of every cohort within 13-16 minutes; the careful P50 14.50 / 14.28 minutes against
+  14.50 / 14.31 shipped, the clumsy Vanguard's 14.23 against 14.36.
+- **Deaths, where section 6.3 aimed the guards** (of 3,200 runs): the careful Vanguard's at the boss 102 to 54, careful
+  Ilya's 103 to 63; the clumsy Vanguard's in the halls' waves 1,456 to 1,210; the clumsy Ilya's at the boss 1,106 to 736.
+
+### 13.4 Section 6.2's rows, measured
+
+| Row | Target | Measured (`c1`) | Verdict |
+|---|---|---|---|
+| Skills off: byte-identical | the default batch, `FOUNDRY_FLOORS=4` and `2` | every file byte-identical but `foundry-batch.md`'s clock and wall seconds (13.1) | **passes** |
+| The ship rule (docs/56, replacing the relative rule) | clumsy, careful, first-card: point change >= -1.0, lower bound >= -1.5 | +15.00 (+14.02), +1.45 (+1.08), +3.88 (+3.27) on 8401-11600 | **passes**, an easing reported to the lead |
+| The bosses' bands | careful P50 45-65 s for the Warden (floors 1 and 3) and the Regent, either hands; none felled within 5 s | typical (fresh block): the Vanguard 51.1 / 49.0 / 60.1, Ilya 45.8 / 45.4 / 56.5; none under 5 s. Slow hands (seeds 1-400): the Vanguard 48.0 / 47.3 / 58.1, Ilya 43.7 / 44.0 / 53.7 against 44.0 / 44.6 / 54.9 shipped | **passes with typical hands**; with slow hands Ilya's floors 1-2 sit under 45 s as shipped, and the skills move them 0.3-0.6 s |
+| The Descent's length | completed runs in 13-16 minutes; P50 within 1 minute of skills off | all in 13-16; the P50 moves 0.03 minutes for the careful pilots, 0.13 at most | **passes** |
+| Each new damage skill | its share holds from floor 1 to floor 3 and stays under 8 % | the Rush: 1.9 / 1.4 / 1.0 % of the clumsy Vanguard's damage, about 0 for the careful pilot, who presses it about once in four runs; the glyph's heat 0.5 / 0.3 / 0.2 % of careful Ilya's (seeds 1-400) | under 8 %; **does not hold**: it scales by the first weapon, and the build adds weapons it does not read (13.7) |
+| The defensive skills | deaths by floor and phase against skills off | the careful Vanguard's at the boss 102 to 54, careful Ilya's 103 to 63; the clumsy Vanguard's in the halls 1,456 to 1,210, the clumsy Ilya's at the boss 1,106 to 736 (of 3,200) | as section 6.3 expected: the guard reaches the crowd, the ward the boss |
+| Skill dependence | the careful cohort's gain larger for Ilya than for the Vanguard | typical: +49 / +44 completions (a tie near the ceiling); slow hands (1-400): +32 / +46 | **not met with typical hands**, met with slow ones (13.7) |
+| Parity | the Editor's six seeds as close as for the shipped kits | the simulation's side in 13.5; the Editor's rows with the skills on are the lead's to measure | pending (Unity) |
+| Device | p95 at most 20 ms with 30-40 alive, a glyph and three buttons | phase 5 | not measured |
+
+### 13.5 The parity table with the skills on (the simulation's side)
+
+`HeroSkillsDescentResearch.TheEditorSeedsWithTheSkills` plays the Editor's six seeds (11-66, the pacing files of
+2026-11-11) with the careful pilot frame-perfect, as the Editor's autopilot plays, skill 1 alone and all three. Floor 1:
+the floor's seconds and the Warden's fight, and with all three the presses of skills 1 / 2 / 3:
+
+| Seed | Vanguard, skill 1 | Vanguard, all three | Ilya, skill 1 | Ilya, all three |
+|---|---|---|---|---|
+| 11 | 285, 57 | 285, 57 (17 / 4 / 0) | 282, 55 | 282, 56 (10 / 9 / 3) |
+| 22 | 298, 67 | 297, 72 (16 / 5 / 1) | 280, 56 | 291, 63 (6 / 5 / 3) |
+| 33 | 272, 46 | 277, 51 (16 / 4 / 2) | 266, 41 | 270, 45 (5 / 4 / 2) |
+| 44 | 278, 52 | 279, 51 (16 / 5 / 1) | 268, 44 | 265, 40 (6 / 5 / 2) |
+| 55 | 301, 69 | 301, 69 (14 / 3 / 2) | 283, 55 | 296, 64 (7 / 6 / 3) |
+| 66 | 284, 54 | 281, 53 (15 / 5 / 1) | 275, 48 | 285, 58 (7 / 6 / 3) |
+
+Every run clears floor 1 and walks out of the finale either way. The Editor's own rows with the skills off are the pacing
+files' (the careful Vanguard's floor 274-308 s and its Warden 45-66 s, Ilya's 274-303 s and 40-59 s); its rows with them
+on are the lead's to measure: `<profile>/development/skills.txt` holding `3` beside `autopilot.txt` gives the Editor's
+run the hero's three skills and the autopilot's presses through the same `SkillFootwork` (HordePacingMeasurement, as for
+the shipped kits). The simulation's own spread over the skills is in 13.2-13.4; this table is what the Editor's six seeds
+are read against.
+
+### 13.6 What only Unity can check (for the lead, after the merge)
+
+- **EditMode**: `FoundrySimulationSceneValueTests.TheFoundryHeroesAreTheAssets` (the four skill assets against the
+  simulation's copies, each description formatting), `AutopilotCohortTests` (the careful pilot now `All |
+  TimesTheSkills`), and the two new files the CombatChecks run already passes outside Unity (`HeroSkillRuleTests`,
+  `FoundrySkillsTests`).
+- **PlayMode**: `HeroSkillsFlowTests` (new, three tests): without `development/skills.txt` a run carries skill 1 alone;
+  with `3`, the Vanguard's guard halves its damage for 4 s and its Rush strikes, dazes and halts short of what it struck,
+  Ilya's glyph slows, heats and lights and its ward takes a blow and lights its striker. Every existing ability and burn
+  flow (`AbilityFlowTests`, `CinderArcanistTests`, `BurnEffectsTests`, `RevealSkipTests`) should be untouched: slot 1 is the
+  same runtime, button and `Used` event.
+- **Imports**: four new assets (`Data/Abilities/Ability_IronResolve`, `_ShieldRush`, `_FlameSigil`, `_CinderWard`, no
+  icons) referenced from both hero assets by hand-written GUIDs; new scripts with fresh `.meta` files, among them
+  `SlowStatus`, a component added at run time (its file name is its class's).
+- **The Editor's parity with the skills on** (13.5): HordePacingMeasurement with `skills.txt` `3` on seeds 11-66.
+
+### 13.7 Open questions
+
+1. **How much easing the lead accepts.** Within the interim bound (lead decision 3) the skills pass everything, but they
+   ease the game a great deal for the weaker players: the clumsy Ilya completes 70 % of its Descents on the fresh block (2,244 of 3,200) against 50 % as shipped, and the clumsy cohort as a whole 53.5 % against 38.5 %. docs/56's rule reports an
+   easing and does not bound it; docs/40's Forged band (40-60 %) is where the clumsy cohort now lands. If the lead wants
+   it smaller, the measured levers are the ward's size and window and the glyph's slow (the clumsy Ilya presses both on
+   cooldown, and they carry its gain), each a new candidate for a fresh block.
+2. **The careful pilots barely use the Rush** (about one press in four runs: 110 in 400 careful Vanguards): its escape
+   needs a surround a kiting pilot never meets, and its engage is now the lone Captain alone. It does no harm and helps the clumsy Vanguard; whether the
+   owner finds a use for it on the device is phase 5's question.
+3. **Skill dependence** (section 6.2): not met with typical hands: the careful pilots gain alike (the Vanguard +49 and Ilya +44 completions of 3,200 on the fresh block, deaths -49 and -44), both near their 96 % ceiling, and the boss seconds separate nothing. With slow hands Ilya gains more (+46 against +32 of 400 on seeds 1-400), as docs/40's order says; a device session reads it on people.
+4. **The new damage skill's share falls with the floors** (the Rush's 1.9 / 1.4 / 1.0 % of the clumsy Vanguard's damage):
+   it scales by the first weapon, as section 3.0 says, while the build adds a second and a third weapon it does not read.
+   Scaling by the whole loadout is a lever for later.
+5. **The standing Vanguard's Rush** still cost it a little on the spent seeds (-9 completions of 400 alone beside skill
+   1, -3 with all three); on the fresh block the standing Vanguard gains +120 of 3,200 with all three. Standing is read
+   against its own target (docs/56), and its gate fights already sit under the band as shipped.
+
 ## How to re-run
 
     dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~HeroSkillDuelTests"
@@ -656,6 +878,17 @@ ship the skills into the game; docs/27 decision 12 still puts the V0.1 gate's de
       # that seed's trace; writes TestResults/hero-skills-descent.md
     dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~ArenaDuelResearch"
       # docs/55's report: byte-identical to main's but its clocks
+    dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~HeroSkillRuleTests|FullyQualifiedName~FoundrySkillsTests"
+      # in every plain run: the skills' pure bodies, and the simulation with the skills off (the shipped run, field for
+      # field) and on (each skill pressed and at work, a seed replaying line for line)
+    FOUNDRY_SEEDS=400 SKILLS_OPTIONS=shipped,s2,s3,s23,c1 dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~HeroSkillsDescentResearch.TheSkillsInTheDescent"
+      # phase 2's read: FOUNDRY_FIRST_SEED (1), FOUNDRY_PARALLEL, FOUNDRY_REALISM (typical; slow), SKILLS_COHORTS (careful,
+      # standing, first-card, clumsy), SKILLS_HEROES (Vanguard,Ilya); writes hero-skills-rule.md and .csv
+    FOUNDRY_FIRST_SEED=8401 FOUNDRY_SEEDS=3200 SKILLS_OPTIONS=shipped FOUNDRY_OUT=<folder>/shipped ...   # then c1 into <folder>/c1
+    python Tools/BalanceRule/paired_bootstrap.py <folder> 8401 11600
+      # the confirmation (section 13.3): every cohort's change and its seed-level 90 % CI
+    dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~HeroSkillsDescentResearch.TheEditorSeedsWithTheSkills"
+      # the parity table's simulation side (section 13.5): hero-skills-parity.md
 
 The limits. The duel is docs/55's one lane: the Rush's escape and the Sigil's lure have no crowd to show in, and its
 autopilot is two hand-written policies. The Descent's numbers are the shipped game's; the guards are a first-order

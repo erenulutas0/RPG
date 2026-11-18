@@ -90,6 +90,10 @@ namespace Cryptforge.Combat
             float damage = State.Tick(Time.deltaTime, _hold != null && _hold());
             if (damage <= 0f)
                 return;
+            // docs/57's Flame Sigil: inside the glyph the burn deals SkillRule.SigilHeat (SlowStatus' heat), through the
+            // burn's own scaling body; nothing to ask while no skill has touched an enemy.
+            if (SlowStatus.AnyLive && TryGetComponent(out SlowStatus slow) && slow.State.IsHeated)
+                damage = BurnRule.Scaled(damage, slow.CurrentHeat);
             // A tick, not a landing: the Mirror Sentry's guard lets it through (MirrorGuardRule), as the simulation's does.
             _health.ApplyDamage(new DamageContext(damage, _source, isTick: true));
             Burned?.Invoke(_health, damage);

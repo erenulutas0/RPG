@@ -703,6 +703,20 @@ namespace Cryptforge.Tests
             Assert.That(asset.Ability.Radius, Is.EqualTo(hero.Ability.Radius), path);
             Assert.That(asset.Ability.Cooldown, Is.EqualTo(hero.Ability.Cooldown), path);
             Assert.That(asset.Ability.Kind, Is.EqualTo(hero.Ability.Kind), path);
+            Assert.That(asset.SkillAt(1), Is.SameAs(asset.Ability), path);
+            // docs/57's skills 2 and 3: the simulation's copies (DescentSimulation.SkillsOf) are the assets' numbers.
+            DescentSimulation.HeroAbility[] skills = DescentSimulation.SkillsOf(hero);
+            for (int slot = 2; slot <= 3; slot++)
+            {
+                AbilityDefinition skill = asset.SkillAt(slot);
+                DescentSimulation.HeroAbility copy = skills[slot - 2];
+                string where = $"{path} skill {slot}";
+                Assert.That(skill, Is.Not.Null, where);
+                Assert.That((skill.Kind, skill.Damage, skill.Radius, skill.Cooldown, skill.Duration, skill.Amount),
+                    Is.EqualTo((copy.Kind, copy.Damage, copy.Radius, copy.Cooldown, copy.Duration, copy.Amount)), where);
+                Assert.That(skill.CreateRuntime().Kind, Is.EqualTo(copy.Kind), where);
+                Assert.That(skill.Description, Does.Not.Contain("{"), where);
+            }
             Assert.That(asset.Passive, Is.EqualTo(passive), path);
             Assert.That(hero.EmberMemory, Is.EqualTo(passive == HeroPassive.EmberMemory), path);
         }

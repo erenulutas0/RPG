@@ -27,7 +27,7 @@ namespace Cryptforge.Tests
         [Test]
         public void EachCohortIsTheCarefulPilotLessTheHabitsItSaysItDrops()
         {
-            Assert.That(AutopilotCohort.Careful.Habits, Is.EqualTo(AutopilotCohort.Habit.All));
+            Assert.That(AutopilotCohort.Careful.Habits, Is.EqualTo(AutopilotCohort.Habit.All | AutopilotCohort.Habit.TimesTheSkills));
             Assert.That(AutopilotCohort.Cohorts[0], Is.SameAs(AutopilotCohort.Careful), "the careful pilot first, the default");
             Assert.That(AutopilotCohort.Cohorts.Select(c => c.Name).Distinct().Count(), Is.EqualTo(AutopilotCohort.Cohorts.Count));
             Assert.That(Dropped(AutopilotCohort.Standing), Is.EqualTo(AutopilotCohort.Habit.Kites | AutopilotCohort.Habit.StepsIn));

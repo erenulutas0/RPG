@@ -61,6 +61,35 @@ namespace Cryptforge.Combat
             }
         }
 
+        // Fills results with the living candidates within radius of a floor point, nearest first (earlier on ties): docs/57's
+        // glyph, which stands where it was drawn, and the Rush's path, read round its middle.
+        public void CollectWithin(float floorX, float floorY, float radius, List<IDamageable> results)
+        {
+            results.Clear();
+            if (_candidates == null)
+                return;
+            float radiusSquared = radius * radius;
+            for (int i = 0; i < _candidates.Length; i++)
+            {
+                Health candidate = _candidates[i];
+                if (!IsValid(candidate))
+                    continue;
+                Vector3 position = candidate.transform.position;
+                float distanceSquared = ArenaFloor.FloorDistanceSquared(position.x, ArenaFloor.FloorY(position.y), floorX, floorY);
+                if (distanceSquared > radiusSquared)
+                    continue;
+                int insertAt = results.Count;
+                while (insertAt > 0)
+                {
+                    Vector3 before = ((Health)results[insertAt - 1]).transform.position;
+                    if (ArenaFloor.FloorDistanceSquared(before.x, ArenaFloor.FloorY(before.y), floorX, floorY) <= distanceSquared)
+                        break;
+                    insertAt--;
+                }
+                results.Insert(insertAt, candidate);
+            }
+        }
+
         private bool IsValid(Health candidate) =>
             candidate != null && candidate.transform != transform && candidate.isActiveAndEnabled && candidate.IsAlive;
 

@@ -239,6 +239,7 @@ namespace Cryptforge.Core
             Gear = new GearLoadout(Profile.Gear.EquippedPieces(HeroWeapon.Id));
             GearStats.Apply(Gear, HeroStats, loadout, Weapon, _hero.State, Ability, Drops);
             _burnFactor = GearStats.BurnFactor(Gear);
+            StartSkills(movement);
             // The map this run starts on (MapChoiceView): the one chosen before this load, if any - the scene reloads to
             // start deeper - or, with none chosen, the choice itself, which holds the first wave and the run's telemetry
             // until the player taps a map.
@@ -429,6 +430,46 @@ namespace Cryptforge.Core
         }
 
         // A failed write keeps the in-memory profile; the next change tries again.
+        // docs/57's skills 2 and 3: before phase 4 opens them (the first clears, the Forge), a run carries them only where a
+        // development file asks (DevelopmentStart.SkillSlots: the Editor's measurement with the skills on, a device session).
+        // Their cooldowns take the gear's line as the first's did (GearStats.Apply), and what they reach is handed over: the
+        // guard's armour onto the hero's sheet, the first weapon the Rush's damage scales by, the stick and the dash, the
+        // gate boss, the burns the glyph and the ward's strikers catch - as the simulation's run wires them.
+        private void StartSkills(HeroMovementInput movement)
+        {
+            int slots = DevelopmentStart.SkillSlots();
+            if (slots <= 1)
+                return;
+            AbilityRuntime second = Hero.SkillAt(2) != null ? Hero.SkillAt(2).CreateRuntime() : null;
+            AbilityRuntime third = slots >= 3 && Hero.SkillAt(3) != null ? Hero.SkillAt(3).CreateRuntime() : null;
+            if (second == null && third == null)
+                return;
+            float cooldown = GearStats.Factor(Gear, GearStat.AbilityCooldown);
+            if (cooldown != 1f)
+            {
+                second?.ShortenCooldown(cooldown);
+                third?.ShortenCooldown(cooldown);
+            }
+            _ability.InitializeSkills(second, third);
+            _ability.GuardArmor = armour => HeroStats.SetGuardArmor(armour);
+            _ability.FirstWeapon = () => Weapon;
+            _ability.IsGateBoss = enemy => enemy != null && ReferenceEquals(_encounters.GateBoss, enemy);
+            if (movement != null)
+            {
+                _ability.Heading = () => movement.Steer;
+                movement.Dash = _ability.Dash;
+            }
+            _burnNeighbourhood ??= new TargetingNeighbourhood(_hero.GetComponent<Targeting>());
+            _ability.Ignite = (enemy, stacks) =>
+                BurnStatus.On(enemy)?.Ignite(stacks, false, _hero, _burnNeighbourhood, _encounters.FightHold, _burnFactor);
+            _hero.State.WardAbsorbed += (context, absorbed) =>
+            {
+                if (context.Source is Health striker && striker.IsAlive)
+                    _ability.Ignite(striker, SkillRule.WardStacks);
+            };
+            Debug.Log($"[Skills] the run carries skills 1-{slots} (development/skills.txt)");
+        }
+
         private void ApplyHeroStats()
         {
             using (PerformanceMarkers.PickHeroStats.Auto())

@@ -46,6 +46,9 @@ namespace Cryptforge.Combat
         private float _eliteShare = 1f;
 
         public float Damage => _damage.Value;
+        // The damage the runtime was made with, before any card, tome or gear: what docs/57's skills scale their damage by
+        // the build against (SkillRule.Scaled).
+        public float BaseDamage => _damage.Base;
         public float Interval => _baseInterval / _attackSpeed.Value;
         public float Range => _range.Value;
         // The chance, in [0, 1], that an attack crits on top of the pattern's fixed rhythm.

@@ -534,6 +534,8 @@ namespace Cryptforge.Tests
             public const string KilledByPit = "pit";
             // The Riftblade's bleed (research 2026-11-11): its damage is its weapon's work, its kills read the bleed.
             public const string KilledByBleed = "bleed";
+            // docs/57's skills 2 and 3: the Rush's strike.
+            public const string KilledBySkill = "skill";
 
             public readonly string Kind;
             public readonly bool Horde;
@@ -1135,7 +1137,9 @@ namespace Cryptforge.Tests
             Ability,
             Pit,
             // The Riftblade's wounds' ticks (research 2026-11-11).
-            Bleed
+            Bleed,
+            // docs/57's skills 2 and 3: the Rush's strike (DescentSimulation.HeroSkills.cs).
+            Skill
         }
 
         // A hazard's mark on the floor (FoundryLevers' echo, slag and stomp; research 2026-11-04): where it lands, how wide,
@@ -1506,6 +1510,8 @@ namespace Cryptforge.Tests
                 GearStats.Apply(hero.Gear, _heroStats, _loadout, weapon, _heroHealth, _ability, _drops);
                 _burnFactor = GearStats.BurnFactor(hero.Gear);
                 _rift = hero.Rift;
+                // docs/57's skills 2 and 3 (FoundryLevers.Skills; DescentSimulation.HeroSkills.cs): none at the default.
+                BuildSkills();
                 if (_rift != null)
                 {
                     _stride = new MomentumState();
@@ -1660,7 +1666,11 @@ namespace Cryptforge.Tests
                 if (!_revealHold && _heroHealth.IsAlive)
                 {
                     if (_rift == null)
-                        _heroMotion.Move(_steerX, _steerY, Step * _stamina.SpeedFactor, Map);
+                    {
+                        // docs/57's Shield Rush, travelling, has the walk step (RushWalk); never at the default levers.
+                        if (_rush == null || !RushWalk())
+                            _heroMotion.Move(_steerX, _steerY, Step * _stamina.SpeedFactor, Map);
+                    }
                     else
                         RiftWalk();
                 }
@@ -1683,6 +1693,9 @@ namespace Cryptforge.Tests
                         _ability.Tick(Step);
                     else
                         _active?.Tick(Step);
+                    // docs/57's skills 2 and 3 (null at the default levers).
+                    if (_skills != null)
+                        TickSkills();
                 }
                 if (!_revealHold)
                     EnemyAttacks();
@@ -2794,6 +2807,9 @@ namespace Cryptforge.Tests
                         if (foe.GateBoss)
                             _result.WardenFromAbility += dealt;
                         break;
+                    case DamageSource.Skill:
+                        SkillDealt(foe, dealt);
+                        break;
                     default:
                         _result.DealtByPit += dealt;
                         if (foe.GateBoss)
@@ -3023,6 +3039,8 @@ namespace Cryptforge.Tests
                         return FoundryKill.KilledByAbility;
                     case DamageSource.Bleed:
                         return FoundryKill.KilledByBleed;
+                    case DamageSource.Skill:
+                        return FoundryKill.KilledBySkill;
                     default:
                         return FoundryKill.KilledByPit;
                 }
@@ -3140,6 +3158,8 @@ namespace Cryptforge.Tests
                 float taken = before - _heroHealth.Current;
                 if (taken <= 0f)
                     return;
+                if (_skills != null)
+                    SkillsTookABlow(context);
                 _lastHeroHit = _seconds;
                 if (VaultsOn || _sentryFloor)
                     VaultsTaken(context, taken);
@@ -3445,6 +3465,9 @@ namespace Cryptforge.Tests
                 // FoundryLevers.SwordKnockbackUnits (research): knocked back, it cannot reach the hero yet.
                 if (_seconds < foe.StaggeredUntil)
                     return;
+                // docs/57's Shield Rush: dazed, it swings at nothing yet (no Slow at the default levers).
+                if (foe.Slow != null && Dazed(foe))
+                    return;
                 float reach = foe.Weapon.Range;
                 bool inReach = ArenaFloor.FloorDistanceSquared(HeroX, HeroY, foe.X, foe.Y) <= reach * reach;
                 // docs/52's Cinder Bloom with a maul windup (research, FoundryLevers.BloomWindup): the swing lands its windup
@@ -3483,6 +3506,9 @@ namespace Cryptforge.Tests
                     float damage = foe.Burn.Tick(Step, _revealHold);
                     if (damage <= 0f)
                         continue;
+                    // docs/57's Flame Sigil: inside the glyph the burn deals x2 (no Slow at the default levers).
+                    if (foe.Slow != null)
+                        damage = Heated(foe, damage);
                     _source = DamageSource.Burn;
                     foe.ApplyDamage(new DamageContext(damage, _hero));
                 }
@@ -3772,6 +3798,9 @@ namespace Cryptforge.Tests
                     PilotCallsGate();
                 if (_levers.Cohort.UsesTheAbility)
                     PilotAbility();
+                // docs/57's skills 2 and 3 (null at the default levers): pressed by SkillFootwork's moments.
+                if (_skills != null && _levers.Cohort.UsesTheAbility)
+                    PilotSkills();
                 float x = HeroX;
                 float y = HeroY;
                 if (PilotGoal(x, y, out float gx, out float gy, out float stop))
@@ -4046,6 +4075,9 @@ namespace Cryptforge.Tests
                 if (fighting)
                 {
                     _doing = PilotDoing.Fight;
+                    // docs/57's glyph, held across while it lives (no glyph at the default levers).
+                    if (_sigil != null && !guarded && SigilLure(cohort, x, y, out gx, out gy))
+                        return true;
                     if (guarded || !cohort.Lures || !_pitRunning)
                         return false;
                     FootworkRule.RimSpot(x, y, PilotLureDepth, out gx, out gy);

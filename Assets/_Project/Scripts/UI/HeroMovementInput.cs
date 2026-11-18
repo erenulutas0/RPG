@@ -40,6 +40,9 @@ namespace Cryptforge.UI
         public Vector2 Steer => _steer;
         public bool IsMoving { get; private set; }
         public bool IsDragging => _dragging;
+        // docs/57's Shield Rush (AbilityController.Dash, handed over by CombatSetup): while it travels it moves the hero in
+        // the stick's place. Null for a hero without the Rush.
+        public HeroDash Dash { get; set; }
 
         // Holds a steer without any touch, until cleared; tests and later an auto-battle option drive the hero this way.
         public void Hold(Vector2 floorSteer) => _heldSteer = floorSteer;
@@ -90,7 +93,11 @@ namespace Cryptforge.UI
             // simulation only steps frames while a wave is alive, and a frame that spends nothing still refills, so a
             // scene frame the simulation does not have would otherwise hand the hero a little more bar than it earned.
             bool fighting = _setup.Encounters != null && _setup.Encounters.AliveEnemyCount > 0;
-            IsMoving = _motion.Move(_steer.x, _steer.y, Time.deltaTime * Stamina.SpeedFactor, _arena.Geometry);
+            // docs/57's Shield Rush, travelling, has the walk step (HeroDash.Move, the simulation's one body); the stick
+            // waits. Null for a hero without the Rush.
+            IsMoving = Dash != null && Dash.IsDashing
+                ? Dash.Move(_motion, _arena.Geometry, Time.deltaTime)
+                : _motion.Move(_steer.x, _steer.y, Time.deltaTime * Stamina.SpeedFactor, _arena.Geometry);
             Stamina.Step(Time.deltaTime, fighting && IsMoving);
             if (IsMoving)
                 transform.position = new Vector3(_motion.X, ArenaFloor.WorldY(_motion.Y), transform.position.z);

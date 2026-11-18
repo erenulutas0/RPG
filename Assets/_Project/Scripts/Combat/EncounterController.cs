@@ -1594,12 +1594,29 @@ namespace Cryptforge.Combat
                 return;
 
             _motion.Held = PackHeld;
+            // docs/57's slows (SlowStatus), handed to the pack before it steps; nothing while no skill has touched an enemy.
+            if (SlowStatus.AnyLive)
+                PushSlows(_motion, _wave);
             _motion.Step(deltaTime, HeroFloorX, HeroFloorY);
             for (int i = 0; i < _wave.Count; i++)
             {
                 Health enemy = _wave[i].Health;
                 if (!_wave[i].Defeated && enemy != null)
                     enemy.transform.position = WorldPosition(_motion.XOf(i), _motion.YOf(i));
+            }
+        }
+
+        // Each standing enemy's slow, daze or none (SlowStatus.Current) onto its place in the pack, as the simulation's
+        // TickSkills hands it: PackMotion shortens the step toward the same point, never moving it anywhere else.
+        private static void PushSlows(PackMotion motion, List<SpawnedEnemy> enemies)
+        {
+            for (int i = 0; i < enemies.Count; i++)
+            {
+                SpawnedEnemy enemy = enemies[i];
+                if (enemy == null || enemy.Defeated || enemy.Health == null || enemy.Slot >= motion.Count ||
+                    !ReferenceEquals(motion.BodyAt(enemy.Slot), enemy.Health))
+                    continue;
+                motion.SetSlow(enemy.Slot, enemy.Health.TryGetComponent(out SlowStatus slow) ? slow.Current : 0f);
             }
         }
 
@@ -1721,6 +1738,8 @@ namespace Cryptforge.Combat
 
             _hordeSeconds += deltaTime;
             _hordeMotion.Held = PackHeld;
+            if (SlowStatus.AnyLive)
+                PushSlows(_hordeMotion, _hordeEnemies);
             _hordeMotion.Step(deltaTime, HeroFloorX, HeroFloorY);
             for (int i = 0; i < _hordeEnemies.Count; i++)
             {

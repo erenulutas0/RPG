@@ -1,8 +1,9 @@
 """The balance rule's read (docs/56): a paired, seed-level bootstrap of four-floor completion changes.
 
 usage: python Tools/BalanceRule/paired_bootstrap.py <folder> [first-seed last-seed]
-<folder> holds GloamEnemiesResearch outputs, one run each in a subfolder (FOUNDRY_OUT=<folder>/<name>), every one with
-`shipped` or paired against a `shipped` run of the same seeds elsewhere in <folder>. Typical hands only. For each
+<folder> holds GloamEnemiesResearch outputs (gloam-enemies.csv) or HeroSkillsDescentResearch outputs (hero-skills-rule.csv,
+docs/57's skills), one run each in a subfolder (FOUNDRY_OUT=<folder>/<name>), every one with `shipped` or paired against a
+`shipped` run of the same seeds elsewhere in <folder>. Typical hands only. For each
 comparison below and each cohort it prints, over the seeds asked (1-800 by default): the change in completions (two
 heroes a seed), in completion-rate points, the bootstrap 90 % CI (10,000 resamples of seeds, both heroes of a seed
 together, a fixed generator seed so the table repeats), the SD of the paired change per 400 seeds, and the change on
@@ -20,7 +21,7 @@ from collections import defaultdict
 
 root = sys.argv[1] if len(sys.argv) > 1 else os.path.dirname(os.path.abspath(__file__))
 runs = {}
-for path in glob.glob(os.path.join(root, '*', 'gloam-enemies.csv')):
+for path in glob.glob(os.path.join(root, '*', 'gloam-enemies.csv')) + glob.glob(os.path.join(root, '*', 'hero-skills-rule.csv')):
     with open(path, newline='') as f:
         for r in csv.DictReader(f):
             if r['realism'] != 'typical human':
@@ -47,6 +48,13 @@ COMPARISONS = [
     # Forge Warden (the read the lead's decision asks for) and against the Regent before the round (`shipped` then).
     ('Regent round: the rod at its feet (`regent-feet`) vs the Forge Warden', 'regent-feet', False, 'f2-warden'),
     ('Regent round: the rod at its feet (`regent-feet`) vs the Regent before it', 'regent-feet', False),
+    # docs/57's skills (HeroSkillsDescentResearch): the A/A from floor 1, each skill beside skill 1, all three, the candidates.
+    ('A/A: one unread draw from floor 1 (aa-f1)', 'aa-f1', False),
+    ('docs/57: skill 2 beside skill 1 (s2)', 's2', False),
+    ('docs/57: skill 3 beside skill 1 (s3)', 's3', False),
+    ('docs/57: all three skills (s23)', 's23', False),
+    ('docs/57: candidate 1 (c1)', 'c1', False),
+    ('docs/57: candidate 2 (c2)', 'c2', False),
 ]
 COHORTS = ['clumsy', 'careful', 'first-card', 'standing']
 HEROES = ['Vanguard', 'Ilya']

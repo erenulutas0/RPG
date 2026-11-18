@@ -60,6 +60,11 @@
     <Compile Include="../../Assets/_Project/Scripts/Combat/HallSurgeRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/AltarRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/PitEruptionRule.cs" />
+    <!-- docs/57's skills 2 and 3 (phase 1, 2026-11-18): their shared arithmetic, the dash, the slow and the glyph. -->
+    <Compile Include="../../Assets/_Project/Scripts/Combat/SkillRule.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Combat/HeroDash.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Combat/SlowState.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Combat/SigilZone.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/RunOutcome.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/RunState.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/RunSeeds.cs" />
@@ -75,6 +80,8 @@
     <Compile Include="../../Assets/_Project/Scripts/Core/FootworkRule.cs" />
     <!-- Who the development autopilot plays as (docs/41 step 5's cohorts), one body for the scene's and the simulation's. -->
     <Compile Include="../../Assets/_Project/Scripts/Core/AutopilotCohort.cs" />
+    <!-- When the autopilot presses docs/57's skills 2 and 3, one body for the scene's autopilot and the simulation's. -->
+    <Compile Include="../../Assets/_Project/Scripts/Core/SkillFootwork.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Economy/RewardService.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Economy/GroundDrops.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Economy/RunBank.cs" />
@@ -138,6 +145,8 @@
     <Compile Include="../../Assets/_Project/Tests/Support/DescentSimulation.Vaults.cs" />
     <!-- The Gloam Gardens' own enemies (docs/52, research 2026-11-12): the Cinder Bloom as a research lever on floor 3. -->
     <Compile Include="../../Assets/_Project/Tests/Support/DescentSimulation.Gloam.cs" />
+    <!-- docs/57's skills 2 and 3 in the foundry simulation (phase 1, 2026-11-18): FoundryLevers.Skills, off by default. -->
+    <Compile Include="../../Assets/_Project/Tests/Support/DescentSimulation.HeroSkills.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryHordeTuning.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryBatch.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryBatch.FloorTwo.cs" />
@@ -213,6 +222,9 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/ArenaBuildTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/ArenaLadderTests.cs" />
     <Compile Include="ArenaBalanceResearch.cs" />
+    <!-- docs/57 phase 2 (2026-11-18): the skills in the Descent with every playing cohort, against the shipped kit, on demand;
+         its CSV is what Tools/BalanceRule/paired_bootstrap.py reads for docs/56's rule. -->
+    <Compile Include="HeroSkillsDescentResearch.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackMotionTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackSpacingTests.cs" />
@@ -269,5 +281,8 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/GearApplyTests.cs" />
     <!-- A run started on a deeper map (Scripts/Progression/DescentStart.cs, compiled above with Progression). -->
     <Compile Include="../../Assets/_Project/Tests/EditMode/DescentCatchUpTests.cs" />
+    <!-- docs/57's skills 2 and 3 (phase 1): their pure bodies, and the simulation's skills off and on. -->
+    <Compile Include="../../Assets/_Project/Tests/EditMode/HeroSkillRuleTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/FoundrySkillsTests.cs" />
   </ItemGroup>
 </Project>

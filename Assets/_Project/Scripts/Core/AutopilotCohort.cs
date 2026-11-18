@@ -59,7 +59,14 @@ namespace Cryptforge.Core
             // Research, outside All - no cohort has it unless built with it: the step-in against the gate boss too. It takes
             // the Warden's fight under docs/41 step 4's 45 s (docs/41, status 2026-11-10 night).
             StepsInOnTheGateBoss = 1 << 12,
-            Known = (1 << 13) - 1
+            // docs/57's skills 2 and 3 (section 6.1, lead decision 2): it times them as section 3 says - the guard at a
+            // fight's first blow or a low one, the Rush out of a surround or onto a lone target, the glyph at a crowd, the ward
+            // at the boss's due blow (SkillFootwork). Without it it presses them on cooldown whenever something is in reach,
+            // as docs/40 9.4's Casual misuses a button. Skill 1 keeps its own rule for every cohort, so no shipped run moves.
+            // Outside All, as the research habit above is, so the cohort reports' lists of dropped habits stay as they were;
+            // the careful, standing and first-card pilots are built with it.
+            TimesTheSkills = 1 << 13,
+            Known = (1 << 14) - 1
         }
 
         // What 2026-11-04's four fixes taught the pilot (the survival research): the careful pilot without them is the
@@ -70,15 +77,17 @@ namespace Cryptforge.Core
         // The careful pilot, the default: every habit. docs/40 9.4's Skilled bot "reads telegraphs and manages its route",
         // as this one reads the Warden's mark and the pit's glow, kites with room, steps in on an elite with its short
         // weapon and builds by the CardPicker order.
-        public static readonly AutopilotCohort Careful = new AutopilotCohort("careful", Habit.All);
+        public static readonly AutopilotCohort Careful = new AutopilotCohort("careful", Habit.All | Habit.TimesTheSkills);
 
         // docs/41 step 5's standing policy: no kiting, and no step-in - it stands where the fight finds it. Everything else
         // is the careful pilot's - it still leaves the Warden's mark, shelters from a spill and waits out the glow, and
         // draws node fights to the rim.
-        public static readonly AutopilotCohort Standing = new AutopilotCohort("standing", Habit.All & ~(Habit.Kites | Habit.StepsIn));
+        public static readonly AutopilotCohort Standing =
+            new AutopilotCohort("standing", Habit.All & ~(Habit.Kites | Habit.StepsIn) | Habit.TimesTheSkills);
 
         // docs/41 step 5's first-card picker with the careful pilot's footwork: every offer's first card.
-        public static readonly AutopilotCohort FirstCard = new AutopilotCohort("first-card", Habit.All & ~Habit.ScoresCards);
+        public static readonly AutopilotCohort FirstCard =
+            new AutopilotCohort("first-card", Habit.All & ~Habit.ScoresCards | Habit.TimesTheSkills);
 
         // The pilot before 2026-11-04's fixes, each undone, and without the step-in that came after them. docs/40 9.4's
         // Casual in shape: it gathers the drops, dodges simply - kites straight on at one reach, leaves the mark by the
@@ -115,6 +124,7 @@ namespace Cryptforge.Core
         public bool Lures => Has(Habit.Lures);
         public bool UsesTheAbility => Has(Habit.UsesTheAbility);
         public bool StepsIn => Has(Habit.StepsIn);
+        public bool TimesTheSkills => Has(Habit.TimesTheSkills);
         public bool StepsInOnTheGateBoss => Has(Habit.StepsIn | Habit.StepsInOnTheGateBoss);
         // Against the Glass Regent's lanes, a sidestep across them (FootworkRule.Sidestep): the escape away from the Warden's
         // habit, read for a lane.

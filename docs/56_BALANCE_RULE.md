@@ -199,5 +199,10 @@ once any option on it has been read, whatever the verdict; the next confirmation
 | 1-800 | the tuning of floors 2 and 3 (docs/50, docs/52) | 2026-11-12..16 | every shipped creature's choice | tuning seeds |
 | 801-2000 | this rule's study (sections 2-4) | 2026-11-17 | the A/A probes, the shipped creatures against what they replaced, three Thornlings | the study's verdicts |
 | 2001-5200 | the Glass Regent's round (docs/50 "The Regent's bite for the standing hero") | 2026-11-17/18 | `regent-feet` against `f2-warden`, beside `shipped` and `aa-f2`; careful, standing, first-card, clumsy; both heroes, typical hands | `regent-feet` passes (standing -1.12, clumsy -0.25, careful +1.06, first-card +1.34 points against the Warden; the A/A probe within -0.31 to +0.56); one candidate read |
+| 8401-11600 | docs/57's hero skills, phases 1-2 (docs/57 section 13.3) | 2026-11-18/19 | `c1` (the three skills a hero as phase 2 chose them) against `shipped`; careful, standing, first-card, clumsy; both heroes, typical hands; the A/A `aa-f1` (one unread draw as floor 1 begins) for the clumsy cohort | `c1` passes as an easing (clumsy +15.00, CI +14.02 to +15.98; careful +1.45, +1.08 to +1.83; first-card +3.88, +3.27 to +4.48; standing +4.33); one candidate read; `aa-f1` +0.77 (-0.19 to +1.73), SD 13.0 completions per 400 seeds |
 
-The next fresh block starts at seed **5201**.
+The block 5201-8400 was allotted on 2026-11-18 to the difficulty tiers' round, which ran beside docs/57's; its row is
+theirs. A change that is on from floor 1 (docs/57's skills) reads the floor-2 count,
+3,200 seeds, and nudges floor 1 for its A/A (`HeroSkillsDescentResearch`'s `aa-f1`), whose SD per 400 seeds (13.0 for the
+clumsy cohort) is wider than `aa-f2`'s 8.1: the divergence runs over four floors. The next fresh block after these starts
+at seed **11601**.
