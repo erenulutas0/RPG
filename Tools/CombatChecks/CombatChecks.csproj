@@ -221,6 +221,7 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/DuelCoreTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/ArenaBuildTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/ArenaLadderTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/ArenaTrainingTests.cs" />
     <Compile Include="ArenaBalanceResearch.cs" />
     <!-- docs/57 phase 2 (2026-11-18): the skills in the Descent with every playing cohort, against the shipped kit, on demand;
          its CSV is what Tools/BalanceRule/paired_bootstrap.py reads for docs/56's rule. -->
