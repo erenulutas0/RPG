@@ -350,3 +350,11 @@ ability_forge_burst.name	Forge Burst	Ocak Patlaması	The Vanguard's ability; not
 ability_forge_burst.description	{0:0} damage to every enemy within {1:0.#} units, ready every {2:0}s	{1:0.#} birim içindeki her düşmana {0:0} hasar, her {2:0} sn'de hazır	Not on screen yet.
 ability_crucible_vent.name	Crucible Vent	Pota Ağzı	The Arcanist's ability; not on screen yet.
 ability_crucible_vent.description	Every burning enemy within {1:0.#} units erupts for {0:0} damage per Burn stack, ready every {2:0}s	{1:0.#} birim içinde yanan her düşman, Yanma yığını başına {0:0} hasarla patlar; her {2:0} sn'de hazır	Not on screen yet.
+ability_iron_resolve.name	Iron Resolve	Demir İrade	The Vanguard's skill 2 (docs/57); not on screen yet (hero skills phase 3).
+ability_iron_resolve.description	+{4:0} armour for {3:0}s: half of every blow on a bare hero, ready every {2:0}s	{3:0} sn boyunca +{4:0} zırh: zırhsız bir kahramana gelen her darbeyi yarıya indirir, her {2:0} sn'de hazır	{4} armour, {3} seconds, {2} cooldown. Not on screen yet.
+ability_shield_rush.name	Shield Rush	Kalkan Hücumu	The Vanguard's skill 3 (docs/57); not on screen yet.
+ability_shield_rush.description	Charge {4:0} units along the stick, {0:0} damage to every enemy in the way and a short daze, ready every {2:0}s	Kolun yönünde {4:0} birim hücum: yoldaki her düşmana {0:0} hasar ve kısa bir sersemlik, her {2:0} sn'de hazır	{4} distance, {0} damage, {2} cooldown; the stick is the movement joystick. Not on screen yet.
+ability_flame_sigil.name	Flame Sigil	Alev Mührü	The Arcanist's skill 2 (docs/57); not on screen yet.
+ability_flame_sigil.description	A glyph of {1:0.#} units for {3:0}s: enemies inside walk {4:0%} slower and burn double, ready every {2:0}s	{3:0} sn boyunca {1:0.#} birimlik bir mühür: içindeki düşmanlar {4:%0} daha yavaş yürür ve iki kat yanar, her {2:0} sn'de hazır	{1} radius, {3} seconds, {4} slow, {2} cooldown. Not on screen yet.
+ability_cinder_ward.name	Cinder Ward	Kül Kalkanı	The Arcanist's skill 3 (docs/57); not on screen yet.
+ability_cinder_ward.description	A ward of {4:0%} of your health for {3:0}s; whoever strikes it catches fire, ready every {2:0}s	{3:0} sn boyunca canının {4:%0} kadar bir kalkan; ona vuran alev alır, her {2:0} sn'de hazır	{4} of the hero's health, {3} seconds, {2} cooldown. Not on screen yet.
