@@ -48,6 +48,9 @@ Monetisation itself is docs/58; the arena's release order is docs/55 section 9.
    - the store listing in Turkish. The screenshots show real vertical combat, then "your item never breaks", then the efsun choice. Note: the report's draft line says "one-handed", but the game is two-handed (docs/57 section 12).
    - the reviewer's path to the reward offer.
 
+   **Drafted 2026-11-19 in `docs/store/`** (its README lists the placeholders the owner fills, the open legal
+   questions and what the build must settle first).
+
 ## 4. The owner's tasks, in order (from the report's section 6, timed to "near the end")
 
 | When | Task |
