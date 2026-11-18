@@ -420,7 +420,8 @@ namespace Cryptforge.UI
         {
             _goldLabel.text = HudText.Format(_text.GoldFormat, _setup.Run.Gold, _setup.Run.UnsecuredGold);
             if (_compactGold != null)
-                _compactGold.text = GearText.Gold(_setup.Run.Gold);
+                // Ungrouped: the compact count's width is the top panel's, and English stays as it was ("999999").
+                _compactGold.text = _setup.Run.Gold.ToString(Loc.Numbers);
         }
 
         private void RefreshWeapon()
