@@ -211,6 +211,10 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/ArenaBuildTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/ArenaLadderTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/ArenaTrainingTests.cs" />
+    <!-- docs/55 section 11, P0's arena view: its pure playback (the time line, the clock and its x2 and skip, the log
+         played to a moment) with its EditMode tests; the screen itself is Unity's. -->
+    <Compile Include="../../Assets/_Project/Scripts/UI/Duel/DuelPlayback.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/DuelPlaybackTests.cs" />
     <Compile Include="ArenaBalanceResearch.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackMotionTests.cs" />
