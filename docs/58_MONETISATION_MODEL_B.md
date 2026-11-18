@@ -69,6 +69,19 @@ is never sold.
   without our own server, because the ad SDK processes data.
 - The tax side of receiving store and ad income in Turkey (see the second research brief).
 
+## 5a. The network and the counters (2026-11-18, from the owner's second report; docs/59)
+
+- **AdMob alone at first** (one rewarded unit, Google's UMP; ads requested only when `CanRequestAds()`), mediation
+  only after our own Turkish numbers argue for it. AdMob pays from 200 TL (TRY reporting), around the 21st.
+- **Counters kept apart** (the report's section 3): requests, matches (match rate = matched / eligible requests), shows
+  (show rate = shows / matches), rewards, and confirmed revenue; and the player-side availability = voluntary watch
+  attempts with an ad ready / all voluntary watch attempts. A player who says "No" with an ad ready is not missing demand.
+  Owners of the skip product are left out of the fill counts.
+- **The offer needs a ready ad.** With none ready, the button says so plainly and the run's normal reward stands; the
+  run always completes without ads (and offline).
+- There is **no verified Turkish rewarded-video eCPM**; the first report's 50 TL was an example. The first 2-4 weeks
+  measure it.
+
 ## 6. Order
 
 1. The abstractions, the result-screen offer and the save-before-video flow, behind an offline fake (now; no packages).
