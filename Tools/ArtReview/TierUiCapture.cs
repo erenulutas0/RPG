@@ -5,8 +5,9 @@
 // profile (Forged lit, the three tiers above it locked with their hints); a geared profile that walked out of Forged's
 // Descent (Tempered open), then Tempered chosen (the deeper maps locked on Tempered, the line on the tier with the hero's
 // gear); the run it starts (the HUD's floor line naming Tempered) and its result (the title naming it); a profile with every
-// tier open and Abyssal chosen. frames.txt lists each frame and what it shows. No scene or asset is saved; nothing here
-// ships.
+// tier open and Abyssal chosen. frames.txt lists each frame and what it shows. The map choice's language toggle stands in
+// its title's band; with -Language tr the game speaks Turkish (docs/60 pass 2) and the frames land in tier-ui-01-tr. No
+// scene or asset is saved; nothing here ships.
 using System.Collections;
 using System.Globalization;
 using System.IO;
@@ -14,6 +15,7 @@ using System.Text;
 using System.Threading;
 using Cryptforge.Combat;
 using Cryptforge.Core;
+using Cryptforge.Localisation;
 using Cryptforge.Progression;
 using Cryptforge.UI;
 using NUnit.Framework;
@@ -27,7 +29,11 @@ namespace Cryptforge.Tests
 {
     public sealed class TierUiCapture
     {
-        private const string Output = "ArtDirection/2026-11-17/tier-ui-01/";
+        // The capture's language (Run-TierUiProof.ps1 -Language tr sets CRYPTFORGE_LANGUAGE): English frames in tier-ui-01,
+        // Turkish ones beside them in tier-ui-01-tr (docs/60 pass 2).
+        private static Language CaptureLanguage => LocalisationRuntime.CaptureLanguage(out Language language) ? language : Language.English;
+        private static string Output => CaptureLanguage == Language.Turkish ? "ArtDirection/2026-11-17/tier-ui-01-tr/" : "ArtDirection/2026-11-17/tier-ui-01/";
+        private Language? _language;
         private const string ScenePath = "Assets/_Project/Scenes/Gameplay/Gameplay.unity";
         private const int Width = 1080;
         private const int Height = 2340;
@@ -39,13 +45,21 @@ namespace Cryptforge.Tests
         private CultureInfo _culture;
         private readonly StringBuilder _frames = new StringBuilder();
 
+        [SetUp]
+        public void SpeakTheCaptureLanguage()
+        {
+            _language = Loc.Override;
+            Loc.Override = CaptureLanguage;
+        }
+
         [UnityTest, Timeout(600000)]
         public IEnumerator CaptureTheTierChoice()
         {
             _culture = Thread.CurrentThread.CurrentCulture;
             Thread.CurrentThread.CurrentCulture = new CultureInfo("tr-TR");
             Directory.CreateDirectory(Output);
-            _frames.Clear().Append("Each frame, at 1080x2340 on a tr-TR culture.\n");
+            _frames.Clear().Append("Each frame, at 1080x2340 on a tr-TR culture, the game in ")
+                .Append(LanguageCodes.Code(CaptureLanguage)).Append(".\n");
 
             // A fresh profile: Forged lit, Tempered, Inferno and Abyssal locked.
             yield return Load(new PlayerProfile());
@@ -263,6 +277,7 @@ namespace Cryptforge.Tests
         [UnityTearDown]
         public IEnumerator Cleanup()
         {
+            Loc.Override = _language;
             if (_culture != null)
                 Thread.CurrentThread.CurrentCulture = _culture;
             Time.timeScale = 1;

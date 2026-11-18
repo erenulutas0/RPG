@@ -11,8 +11,8 @@ namespace Cryptforge.UI
     // scene made in the old language follows on the next load (the next run).
     //
     // Built in code like the hero chooser, on the forge's secondary painted plate (ScreenArtSet; a plain colour without the
-    // set), its words in the style of a label it is given. PauseView places one under Resume; the map choice's screen is
-    // its other home once the difficulty tiers' rewrite of MapChoiceView has landed (docs/60 section 7, pass 2).
+    // set), its words in the style of a label it is given. PauseView places one under Resume, and MapChoiceView one in its
+    // title's band at the game's start (docs/60 pass 2).
     public sealed class LanguageToggleView : MonoBehaviour
     {
         public const string ObjectName = "Language Toggle";

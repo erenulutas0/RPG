@@ -1,15 +1,17 @@
-using System.Globalization;
 using Cryptforge.Art;
 using Cryptforge.Combat;
 using Cryptforge.Content;
 using Cryptforge.Core;
+using Cryptforge.Localisation;
 using Cryptforge.Progression;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Cryptforge.UI
 {
-    // Read-only battle HUD. Text is formatted on state events, never per frame.
+    // Read-only battle HUD. Text is formatted on state events, never per frame, in the language the game speaks (docs/60):
+    // its numbers in the language's format, the hero's name through HeroText, and every line written again when the
+    // language changes (the pause overlay's toggle).
     public sealed class RunHud : MonoBehaviour
     {
         [SerializeField] private CombatSetup _setup;
@@ -94,7 +96,7 @@ namespace Cryptforge.UI
             }
 
             // The run's title on the pause screen's readout names a difficulty tier above Forged (docs/54 section 21).
-            _titleLabel.text = TierText.AfterTitle(_text.Title, _setup.Tier);
+            LocalisedLabel.Bind(_titleLabel, () => TierText.AfterTitle(_text.Title, _setup.Tier));
             _hero.Changed += RefreshHero;
             _encounters.ProgressChanged += RefreshEncounter;
             // A swarm's ladder moves on its clock, with or without a spawn or a hit to report it.
@@ -106,6 +108,7 @@ namespace Cryptforge.UI
             _setup.Pause.Changed += RefreshDetails;
             if (_setup.Relic != null)
                 _setup.Relic.Triggered += RefreshRelic;
+            Loc.Changed += OnLanguageChanged;
             _subscribed = true;
             // The danger readout sits on the compact top panel, so it needs the compact gold count to style itself on.
             if (_compactGold != null)
@@ -142,6 +145,21 @@ namespace Cryptforge.UI
             prewarm.Add(_weaponLabel, TextPrewarm.Characters(_text.WeaponFormat, _setup.HeroWeapon != null
                 ? _setup.HeroWeapon.DisplayName : string.Empty, TextPrewarm.Digits, ".,"));
             prewarm.Add(_experienceLabel, TextPrewarm.Characters(_text.ExperienceFormat, TextPrewarm.Digits));
+        }
+
+        // The language changed (the pause overlay's toggle, docs/60): every line is written again in it at once, the
+        // encounter's past what it was last formatted from. The title follows by itself (LocalisedLabel).
+        private void OnLanguageChanged()
+        {
+            _floorText = null;
+            _enemyText = null;
+            _statusText = null;
+            RefreshHero();
+            RefreshEncounter();
+            RefreshWeapon();
+            RefreshExperience();
+            RefreshGold();
+            RefreshRelic();
         }
 
         private void RefreshDetails()
@@ -191,9 +209,9 @@ namespace Cryptforge.UI
             if (relic == null)
                 _relicLabel.text = string.Empty;
             else if (relic.Triggers == 0)
-                _relicLabel.text = string.Format(CultureInfo.InvariantCulture, _text.RelicFormat, relic.Relic.DisplayName);
+                _relicLabel.text = string.Format(Loc.Numbers, _text.RelicFormat, relic.Relic.DisplayName);
             else
-                _relicLabel.text = string.Format(CultureInfo.InvariantCulture, _text.RelicTriggeredFormat, relic.Relic.DisplayName, relic.Triggers);
+                _relicLabel.text = string.Format(Loc.Numbers, _text.RelicTriggeredFormat, relic.Relic.DisplayName, relic.Triggers);
             if (_relicBadge != null)
             {
                 _relicBadge.SetActive(relic != null);
@@ -209,8 +227,8 @@ namespace Cryptforge.UI
 
         private void RefreshHero()
         {
-            string name = _setup.Hero != null ? _setup.Hero.DisplayName : _heroDefinition.DisplayName;
-            _heroLabel.text = string.Format(CultureInfo.InvariantCulture, _text.HealthFormat, name, _hero.Current, _hero.Maximum);
+            string name = HeroText.Name(_setup.Hero != null ? _setup.Hero : _heroDefinition);
+            _heroLabel.text = string.Format(Loc.Numbers, _text.HealthFormat, name, _hero.Current, _hero.Maximum);
             _heroBar.fillAmount = Fraction(_hero.Current, _hero.Maximum);
         }
 
@@ -226,7 +244,7 @@ namespace Cryptforge.UI
             {
                 // A run on a tier above Forged says which before its floor (docs/54 section 21); Forged's line is as it was.
                 _floorLabel.text = TierText.BeforeFloor(_setup.Tier,
-                    string.Format(CultureInfo.InvariantCulture, _text.FloorProgressFormat, floorNumber, roomNumber, rooms, roomName));
+                    string.Format(Loc.Numbers, _text.FloorProgressFormat, floorNumber, roomNumber, rooms, roomName));
                 // Read back: the label keeps its old string when the new one has the same characters.
                 _floorText = _floorLabel.text;
                 _floorNumber = floorNumber;
@@ -299,8 +317,8 @@ namespace Cryptforge.UI
                 maximum != _enemyMaximum || !string.Equals(name, _enemyName, System.StringComparison.Ordinal))
             {
                 _enemyLabel.text = othersAlive > 0
-                    ? string.Format(CultureInfo.InvariantCulture, _text.PackHealthFormat, name, current, maximum, othersAlive)
-                    : string.Format(CultureInfo.InvariantCulture, _text.HealthFormat, name, current, maximum);
+                    ? string.Format(Loc.Numbers, _text.PackHealthFormat, name, current, maximum, othersAlive)
+                    : string.Format(Loc.Numbers, _text.HealthFormat, name, current, maximum);
                 _enemyText = _enemyLabel.text;
                 _enemyName = name;
                 _enemyCurrent = current;
@@ -383,10 +401,10 @@ namespace Cryptforge.UI
                 second == _statusSecond && seconds == _statusSeconds &&
                 string.Equals(name, _statusName, System.StringComparison.Ordinal))
                 return;
-            _statusLabel.text = kind == 1 ? string.Format(CultureInfo.InvariantCulture, _text.PackVictoryFormat, first, second, seconds)
-                : kind == 2 ? string.Format(CultureInfo.InvariantCulture, _text.VictoryFormat, name, second, seconds)
-                : kind == 3 ? string.Format(CultureInfo.InvariantCulture, _text.EnragedFormat, name)
-                : string.Format(CultureInfo.InvariantCulture, _text.WaveFormat, first, second);
+            _statusLabel.text = kind == 1 ? string.Format(Loc.Numbers, _text.PackVictoryFormat, first, second, seconds)
+                : kind == 2 ? string.Format(Loc.Numbers, _text.VictoryFormat, name, second, seconds)
+                : kind == 3 ? string.Format(Loc.Numbers, _text.EnragedFormat, name)
+                : string.Format(Loc.Numbers, _text.WaveFormat, first, second);
             _statusText = _statusLabel.text;
             _statusKind = kind;
             _statusFirst = first;
@@ -396,19 +414,20 @@ namespace Cryptforge.UI
         }
 
         // The gold and experience lines change with every drop picked up, so they are made without string.Format's boxing
-        // (HudText), as the same text.
+        // (HudText), as the same text. The compact count is grouped in the language's format, as the forge's gold is
+        // (GearText.Gold): "1,250" in English, "1.250" in Turkish.
         private void RefreshGold()
         {
             _goldLabel.text = HudText.Format(_text.GoldFormat, _setup.Run.Gold, _setup.Run.UnsecuredGold);
             if (_compactGold != null)
-                _compactGold.text = _setup.Run.Gold.ToString();
+                _compactGold.text = GearText.Gold(_setup.Run.Gold);
         }
 
         private void RefreshWeapon()
         {
             using (PerformanceMarkers.PickHud.Auto())
             {
-                _weaponLabel.text = string.Format(CultureInfo.InvariantCulture, _text.WeaponFormat, _setup.HeroWeapon.DisplayName,
+                _weaponLabel.text = string.Format(Loc.Numbers, _text.WeaponFormat, _setup.HeroWeapon.DisplayName,
                     _setup.Weapon.Damage, _setup.Weapon.Interval);
                 if (_weaponName != null)
                     _weaponName.text = _setup.HeroWeapon.DisplayName;
@@ -454,6 +473,7 @@ namespace Cryptforge.UI
             _setup.Pause.Changed -= RefreshDetails;
             if (_setup.Relic != null)
                 _setup.Relic.Triggered -= RefreshRelic;
+            Loc.Changed -= OnLanguageChanged;
         }
     }
 }

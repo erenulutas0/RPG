@@ -450,3 +450,31 @@ arena.why.move_speed_gear	Move speed from gear	Ekipmandan gelen hareket hızı	S
 arena.why.move_speed_lines	Move speed lines	Hareket hızı efsunları	Summary line, ranked (not in the ranked pool today).
 arena.why.ability_cooldown	Shorter cooldowns added {amount}	Kısa bekleme süreleri {amount} ekledi	Summary line, open arena: the cooldown line.
 arena.why.boon	Boons added {amount}	Lütuflar {amount} ekledi	Summary line: the rounds' dealt boons.
+
+# ---- Localisation pass 2 (docs/60 section 7): the difficulty tiers (TierText), the map choice (MapChoiceView), the HUD (RunHud) and the result (RunResultView)
+tier.forged	Forged	Dövülmüş	Difficulty tier 1 (docs/54 section 21): the tier row, the HUD's floor line, the pause and result titles, the unlock hints. Forged metal, as "dövmek" (docs/60 pass 2).
+tier.tempered	Tempered	Su Verilmiş	Tier 2. Tempered steel is "su verilmiş çelik", the step after forging; "Tavlanmış" was avoided: "tavlamak" is also slang for conning someone (docs/60 pass 2).
+tier.inferno	Inferno	Cehennem	Tier 3.
+tier.abyssal	Abyssal	Uçurum	Tier 4, the deepest. The abyss, as "aralarında uçurum var".
+tier.unlock_hint	Complete the Descent on {0}	İniş'i {0} zorluğunda tamamla	A locked tier's card, after "Kilitli: ". {0} the tier below it (tier.*).
+tier.reward	x{0:0.##}	x{0:0.##}	A tier's reward multiplier (gold, floor materials, boosters): x1, x1.25, x1.5, x2. The same pattern in both; the decimal comma comes from the numbers.
+tier.card_reward	Rewards {0}	Ödül {0}	Map choice, a tier card under its name. {0} the multiplier (tier.reward).
+tier.detail_forged	{0}: the Descent as it was first forged; rewards x1\nBuilt for no gear. Your gear: {1:+0.#}%	{0}: İniş ilk dövüldüğü gibi; ödül x1\nEkipman gerekmez. Ekipmanın: +%{1:0.#}	Map choice, the line under the tier row with Forged chosen. {0} Forged's name (tier.forged), {1} the chosen hero's gear power in percent; the sign goes before the number: "+%14,7".
+tier.detail	{0}: foes {1:+0.#}% health, {2:+0.#}% damage; rewards {3}; item luck +{4:0}\nBuilt for gear {5:+0}% ({6}). Your gear: {7:+0.#}%	{0}: düşman canı +%{1:0.#}, hasarı +%{2:0.#}; ödül {3}; eşya şansı +{4:0}\nÖnerilen ekipman +%{5:0} ({6}). Ekipmanın: +%{7:0.#}	Map choice, the line under the tier row. {0} the tier, {1} and {2} the enemies' extra health and damage in percent, {3} its reward (tier.reward), {4} its item luck, {5} the gear power it is built for in percent, {6} that gear (tier.set_*), {7} the chosen hero's gear power.
+tier.set_tempered	a +5 set	+5 set	The gear a tier is built for, in tier.detail's brackets: every piece at +5.
+tier.set_inferno	a +9 set	+9 set	Every piece at +9.
+tier.set_abyssal	+9 with good efsun	iyi efsunlu +9	Every piece at +9 with good efsun lines.
+map.title	Choose your map	Haritanı seç	Map choice title with one hero in the roster.
+map.title_with_heroes	Choose your hero and map	Kahramanını ve haritanı seç	Map choice title above the hero row.
+map.selected	Selected	Seçildi	Map choice: the chosen hero's or tier's card.
+map.tap_to_choose	Tap to choose	Seçmek için dokun	Map choice: an open hero's or tier's card.
+map.locked	Locked	Kilitli	Map choice: a locked hero, tier or map, before its hint ("Kilitli: ...").
+map.hero_weapon	Weapon: {0}	Silah: {0}	Map choice hero card. {0} the hero's weapon.
+map.hero_name	{0}\n<size=26>{1}</size>	{0}\n<size=26>{1}</size>	Map choice hero card: {0} the hero, {1} the character's own name. The same in both.
+map.flavour_1	Lava-lit halls where every Descent begins. The Forge Warden keeps the gate.	Her İniş'in başladığı, lavla aydınlanan salonlar. Kapıyı Ocak Bekçisi tutar.	Map card, floor 1 (Dökümhane).
+map.flavour_2	Frozen vaults of quicksilver. Mirror Sentries turn your blows back on you.	Donmuş cıva mahzenleri. Ayna Nöbetçileri darbelerini sana geri çevirir.	Map card, floor 2 (Cıva Mahzenleri).
+map.flavour_3	A dusk garden grown over the ash. The last floor before the Final Swarm.	Küllerin üstünde büyümüş bir alacakaranlık bahçesi. Son Sürü'den önceki son kat.	Map card, floor 3 (Loş Bahçeler).
+map.start_catch_up	Floor {0}. Start at level {1}: choose {1} level-ups first.	Kat {0}. {1}. seviyeden başla: önce {1} seviye seç.	Map card, a deeper start. {0} floor, {1} the level the hero starts at; "31." is the Turkish ordinal; "seviye seç" as the catch-up's button says it.
+map.start_fresh	Floor {0}. A fresh hero, the whole Descent ahead.	Kat {0}. Taze bir kahraman, önünde koca bir İniş.	Map card, floor 1. {0} floor.
+result.loot_nothing	nothing	hiçbir şey	Result loot line: what was banked when the run banked nothing but lost loot ("Ganimet: hiçbir şey  |  kayıp: ...").
+result.loot_pieces	{0} pieces (see the Bag)	{0} eşya (Çanta'ya bak)	Result loot line when the full line would not fit. {0} the count of items and materials; no plural after a number.

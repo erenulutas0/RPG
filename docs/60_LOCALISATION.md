@@ -1,9 +1,9 @@
-# 60 - Localisation: Turkish and English (pass 1, 2026-11-18)
+# 60 - Localisation: Turkish and English (pass 1, 2026-11-18; pass 2, 2026-11-19)
 
 The owner decided on 2026-11-18 that the game ships in Turkish and English (docs/59 decision 1): the game opens in the
 phone's language and the language can be changed in the settings. This document is the guide: how the localisation
 works, the glossary the owner reviews, the Turkish style rules, how to add a string, the culture rules for data, and
-what pass 2 does once the difficulty tiers have merged.
+what pass 2 did once the difficulty tiers had merged (section 7).
 
 ## 1. How it works
 
@@ -27,18 +27,22 @@ what pass 2 does once the difficulty tiers have merged.
   `tr`), apart from the profile save, whose version is untouched. In the Editor the system language is not asked (the
   Editor starts in English unless a choice was stored), and a batch run (the test runner, the captures) always starts
   in English; a capture names its language with `-Language tr`. The test suites pin English for their run.
-- **The toggle** (`LanguageToggleView`) stands on the pause overlay under Resume: "Language: English" / "Dil: Türkçe";
-  a tap switches and stores the choice. The open views write their words again at once (`Loc.Changed`:
-  `LocalisedLabel` for fixed words; the forge, the Anvil, the hero chooser, the danger readout, the floor clock and the
-  catch-up button refresh themselves). Text a scene made as it loaded - the level-up cards' names, the forge's cards,
-  the views not yet converted (section 7) - follows on the next load, which is the next run.
+- **The toggle** (`LanguageToggleView`) stands on the pause overlay under Resume and, since pass 2, in the map choice's
+  title band at the game's start: "Language: English" / "Dil: Türkçe"; a tap switches and stores the choice. The open
+  views write their words again at once (`Loc.Changed`: `LocalisedLabel` for fixed words; the forge, the Anvil, the hero
+  chooser, the danger readout, the floor clock, the catch-up button, the map choice and the HUD refresh themselves).
+  Text a scene made as it loaded - the level-up cards' names, the forge's cards - follows on the next load, which is the
+  next run. A run started from the map choice after a switch loads the scene again first (`CombatSetup.SceneLanguage`),
+  so the whole run speaks the language chosen.
 - **Numbers shown to the player** are written in the chosen language's format on purpose: `Loc.Numbers` is the
   invariant culture for English ("12,345", "2.5") and a fixed Turkish format for Turkish ("12.345", "2,5"), built in
   code, never read from the phone. **Upper case for display** goes through `Loc.Upper`, which dots the Turkish capital
   i ("İSTİLA") and keeps rich-text tags.
 - **Code:** the pure core is `Assets/_Project/Scripts/Localisation/` (`Loc`, `LocTable`, `LocFormat`, `LocText`,
   `RichText`, `ContentKeys`, `Language`); the Unity layer is its `Unity/` folder (`LocalisationRuntime`: boot, culture,
-  table, choice; `LocalisedLabel`). Heroes are read through `Content/HeroText` (HeroDefinition keeps its fields).
+  table, choice; `LocalisedLabel`). Heroes are read through `Content/HeroText` (HeroDefinition keeps its fields), the
+  difficulty tiers through `UI/TierText` (DifficultyTiers keeps the English the save, telemetry and the simulation's
+  reports write; `TierTextTests` hold the two equal in English).
 
 ## 2. Keys
 
@@ -50,6 +54,8 @@ what pass 2 does once the difficulty tiers have merged.
 | A hero's | `<id>.name`, `.subtitle`, `.role`, `.unlock_hint` | `hero_cinder_arcanist.unlock_hint` |
 | A room (authored inline in its floor, no id) | `room.<English name as snake_case>.name` | "Captain's Post" is `room.captains_post.name` |
 | The gear's and the loot's words | `gear.*`, `loot.*` | `gear.stat.crit_chance`, `loot.items` |
+| A difficulty tier's name (its save id) and the tiers' words | `tier.<id>`, `tier.*` | `tier.tempered`, `tier.unlock_hint`, `tier.detail` |
+| The map choice's and the result's own words | `map.*`, `result.*` | `map.flavour_2`, `result.loot_pieces` |
 
 Development copies (`Data/Development`) and the enemies' own weapons are on no screen and have no rows; they fall back
 to English.
@@ -72,7 +78,7 @@ to English.
 | Relic / Relic Forge | Kalıntı / Kalıntı Ocağı | The common RPG translation of "relic" |
 | to forge (buy) a relic or weapon | dövmek ("60 altına döv") | Metal is forged: "dövülmeye hazır" |
 | run (one Descent) | sefer | "Sefere çık", "seferi bitir"; "koşu" reads as jogging |
-| Descent | İniş (pass 2, the map choice) | |
+| Descent | İniş | A proper noun in the game, so a suffix takes an apostrophe: "İniş'i tamamla", "Her İniş'in başladığı" |
 | Extract / Climb (the checkpoint) | Çık / Tırman | Two short verbs; the title names both: "Durak: Çık ya da Tırman" |
 | checkpoint | durak | |
 | floor / room / wave | kat / oda / dalga | |
@@ -96,6 +102,20 @@ to English.
 | Forge Seal / Master's Hammer / Efsun Scroll / Binding Rune | Ocak Mührü / Usta Çekici / Efsun Parşömeni / Bağlama Rünü | |
 | pts (crit and armour points) | puan | |
 | s (seconds) | sn | "4,5 sn", "her 0,80 sn'de" |
+| difficulty tier ("on Forged") | zorluk ("Dövülmüş zorluğunda") | Pass 2. The suffix goes on "zorluk", never on the tier's name |
+| Forged (tier 1) | **Dövülmüş** | Pass 2. Forged metal, as the glossary's "dövmek"; the tier line keeps the pun: "İniş ilk dövüldüğü gibi" |
+| Tempered (tier 2) | **Su Verilmiş** | Pass 2. Tempered steel is "su verilmiş çelik", the smith's step after forging. Not "Tavlanmış": "tavlamak" also means to con or sweet-talk someone, and "tavlama" is annealing, which softens the metal |
+| Inferno (tier 3) | **Cehennem** | Pass 2 |
+| Abyssal (tier 4) | **Uçurum** | Pass 2. The abyss ("aralarında uçurum var"), a noun beside Cehennem; "Dipsiz" (bottomless) is the alternative |
+| Rewards x1.25 (a tier's) | Ödül x1,25 | Pass 2. Singular and short on the card |
+| item luck | eşya şansı | Pass 2 |
+| gear (a hero's gear power) | ekipman ("Ekipmanın: +%14,7") | Pass 2 |
+| built for (the gear a tier is built for) | önerilen ("Önerilen ekipman +%15") | Pass 2. The "recommended power" of Turkish games |
+| a +5 set / a +9 set | +5 set / +9 set | Pass 2. Turkish players say "set" |
+| map (a starting floor) | harita ("Haritanı seç") | Pass 2 |
+| Selected / Tap to choose / Locked | Seçildi / Seçmek için dokun / Kilitli | Pass 2 |
+| choose N level-ups (a deeper start) | N seviye seç | Pass 2, as the catch-up's own button says it ("{count} seviyeyi otomatik seç") |
+| pieces (the result's bare loot count) | eşya ("12 eşya (Çanta'ya bak)") | Pass 2 |
 
 **Proper names stay as they are:** Cryptforge, Ilya Kest, Vanguard (the lead, 2026-11-18). **Cinder Arcanist is kept
 as a proper name in pass 1** for symmetry with Vanguard; if the owner prefers it translated, "Kül Büyücüsü" goes in its
@@ -116,7 +136,9 @@ Ocak Patlaması, Crucible Vent → Pota Ağzı).
    or use a postposition or the passive: "{2} içinde bir {1} karşısında düştü", "{1} yenildi". A suffix on a fixed word
    is fine ("+3'e kadar", "sn'de").
 3. **The percent sign goes before the number:** "%25", "+%2,5". A format that multiplies by 100 moves its sign too:
-   English `{0:0%}` is Turkish `{0:%0}`. The placeholder itself (its index or name) never changes.
+   English `{0:0%}` is Turkish `{0:%0}`. A signed number keeps its sign in the template so the percent can stand between
+   them: English `{1:+0.#}%` is Turkish `+%{1:0.#}` ("+%14,7", pass 2's tier line). The placeholder itself (its index or
+   name) never changes.
 4. **Never type a separator.** Decimal commas and thousands dots come from `Loc.Numbers`; a format keeps its pattern
    (`{1:0.0}`, `#,0`).
 5. **No plural after a number:** "3 oda", "2 eşya". Where English needs one and another form, the code has two keys
@@ -166,33 +188,63 @@ log lines are data and must read the same on every phone:
 - Upper and lower case for data use `ToUpperInvariant`/`ToLowerInvariant` (all of them already do); for display,
   `Loc.Upper`.
 
-## 7. Pass 2 (after the difficulty tiers merge)
+## 7. Pass 2 (done 2026-11-19)
 
-Pass 1 left `MapChoiceView`, `RunHud`, `RunResultView` and `TierText` untouched (the tiers branch rewrites them), and
-`CombatSetup`. Their words that come from PrototypeTextDefinition and from the content are already Turkish; their own
-literals, their hero words and their number formats are pass 2's:
+Pass 1 left `MapChoiceView`, `RunHud`, `RunResultView` and `TierText` untouched (the tiers branch rewrote them), and
+`CombatSetup`'s checkpoint numbers. Pass 2 converted them once the tiers had merged; English is byte for byte as before
+(one deliberate exception below), and the 26 new rows sit in one block at the table's end ("Localisation pass 2").
 
-| File | English | Proposed Turkish |
-|---|---|---|
-| MapChoiceView | Choose your map | Haritanı seç |
-| | Choose your hero and map | Kahramanını ve haritanı seç |
-| | Selected | Seçildi |
-| | Tap to choose | Seçmek için dokun |
-| | Locked | Kilitli |
-| | Weapon: {0} | Silah: {0} |
-| | {0}\n<size=26>{1}</size> | (the same) |
-| | Lava-lit halls where every Descent begins. The Forge Warden keeps the gate. | Her inişin başladığı, lavla aydınlanan salonlar. Kapıyı Ocak Bekçisi tutar. |
-| | Frozen vaults of quicksilver. Mirror Sentries turn your blows back on you. | Donmuş cıva mahzenleri. Ayna Nöbetçileri darbelerini sana geri çevirir. |
-| | A dusk garden grown over the ash. The last floor before the Final Swarm. | Küllerin üstünde büyümüş bir alacakaranlık bahçesi. Son Sürü'den önceki son kat. |
-| | Floor {0}. Start at level {1}: choose {1} level-ups first. | Kat {0}. {1}. seviyeden başla: önce {1} seviye seç. |
-| | Floor {0}. A fresh hero, the whole Descent ahead. | Kat {0}. Taze bir kahraman, önünde koca bir İniş. |
-| RunResultView | nothing (the loot line beside a loss) | hiçbir şey |
-| | {0} pieces (see the Bag) | {0} eşya (Çanta'ya bak) |
+**What moved into the table:**
 
-Also in pass 2: the hero's words in these views through `HeroText` (name, subtitle, role, unlock hint); their
-`string.Format(CultureInfo.InvariantCulture, ...)` calls to `Loc.Numbers`; `RunHud`'s compact gold to a grouped number;
-`LocalisedLabel` on `RunResultView`'s two buttons; the language toggle on the map choice's screen (the game's start);
-and every string `TierText` and the tiers add.
+| Where | Keys | English | Turkish |
+|---|---|---|---|
+| TierText (the tier row, the HUD's floor line, the pause and result titles) | `tier.forged` ... `tier.abyssal` | Forged, Tempered, Inferno, Abyssal | Dövülmüş, Su Verilmiş, Cehennem, Uçurum |
+| | `tier.unlock_hint` | Complete the Descent on {0} | İniş'i {0} zorluğunda tamamla |
+| | `tier.reward` | x{0:0.##} | x{0:0.##} ("x1,25") |
+| MapChoiceView, the tier row | `tier.card_reward` | Rewards {0} | Ödül {0} |
+| | `tier.detail_forged` | {0}: the Descent as it was first forged; rewards x1\nBuilt for no gear. Your gear: {1:+0.#}% | {0}: İniş ilk dövüldüğü gibi; ödül x1\nEkipman gerekmez. Ekipmanın: +%{1:0.#} |
+| | `tier.detail` | {0}: foes {1:+0.#}% health, {2:+0.#}% damage; rewards {3}; item luck +{4:0}\nBuilt for gear {5:+0}% ({6}). Your gear: {7:+0.#}% | {0}: düşman canı +%{1:0.#}, hasarı +%{2:0.#}; ödül {3}; eşya şansı +{4:0}\nÖnerilen ekipman +%{5:0} ({6}). Ekipmanın: +%{7:0.#} |
+| | `tier.set_tempered`, `_inferno`, `_abyssal` | a +5 set, a +9 set, +9 with good efsun | +5 set, +9 set, iyi efsunlu +9 |
+| MapChoiceView | `map.title`, `map.title_with_heroes` | Choose your map / Choose your hero and map | Haritanı seç / Kahramanını ve haritanı seç |
+| | `map.selected`, `map.tap_to_choose`, `map.locked` | Selected / Tap to choose / Locked | Seçildi / Seçmek için dokun / Kilitli |
+| | `map.hero_weapon`, `map.hero_name` | Weapon: {0} / {0}\n<size=26>{1}</size> | Silah: {0} / (the same) |
+| | `map.flavour_1` ... `_3` | the three maps' lines | Her İniş'in başladığı, lavla aydınlanan salonlar. Kapıyı Ocak Bekçisi tutar. / Donmuş cıva mahzenleri. Ayna Nöbetçileri darbelerini sana geri çevirir. / Küllerin üstünde büyümüş bir alacakaranlık bahçesi. Son Sürü'den önceki son kat. |
+| | `map.start_catch_up`, `map.start_fresh` | Floor {0}. Start at level {1}: choose {1} level-ups first. / Floor {0}. A fresh hero, the whole Descent ahead. | Kat {0}. {1}. seviyeden başla: önce {1} seviye seç. / Kat {0}. Taze bir kahraman, önünde koca bir İniş. |
+| RunResultView, the loot line | `result.loot_nothing`, `result.loot_pieces` | nothing / {0} pieces (see the Bag) | hiçbir şey / {0} eşya (Çanta'ya bak) |
+
+The tiers added no content asset (no new `<id>` rows); the four hero skills' rows came with the skills (3f45838b).
+
+**And beside the rows:**
+
+- **Hero words** in the map choice (name, subtitle, role, unlock hint), the HUD's health line and the result's cause
+  line go through `HeroText`.
+- **Numbers:** every `string.Format(CultureInfo.InvariantCulture, ...)` of these views, and `CombatSetup.CheckpointOptions`'
+  (Extract and Climb), now formats with `Loc.Numbers`. The tier line's numbers moved from pre-formatted strings into the
+  template's own formats, so the Turkish can put the percent sign between the sign and the number ("+%8", "+%14,7").
+- **The HUD's compact gold** is grouped in the language's format, as the forge's gold is (`GearText.Gold`): "1,250" in
+  English, "1.250" in Turkish. **The one English change of pass 2**: a run's gold of 1,000 or more now reads "1,250"
+  where it read "1250"; below 1,000 it is as before (no English test or capture reaches 1,000).
+- **Labels that follow a switch:** the result's two buttons and the pause readout's title (with its tier) are bound with
+  `LocalisedLabel`; the HUD writes its lines again on `Loc.Changed` (the pause toggle shows the readout); the map choice
+  writes every card again.
+- **The language toggle on the map choice** (the lead's decision: both homes). It stands in the title's band at its right
+  (260 x 84), the title taking the band's left, so the panel keeps its 1900 units and its 99 % fit on a 16:9 phone. It
+  waits out the panel's input delay and goes grey once a map is tapped. A map tapped after a switch reloads the scene
+  (`CombatSetup.SceneLanguage`, `StartOnMap`), as another hero or tier does, so the level-up cards and the forge made as
+  the scene loaded speak the chosen language too; switching back before the tap changes nothing.
+- **Captures:** `Run-TierUiProof.ps1 -Language tr` draws the tier row, the HUD's floor line and the result's title in
+  Turkish into `tier-ui-01-tr`.
+
+**Tests:** `TierTextTests` (EditMode: TierText's English equals DifficultyTiers'; the tiers', the tier line's and the map
+lines' English byte for byte as the tiers branch wrote them; the Turkish with "+%14,7", "x1,25" and no fallback);
+`TurkishTierScreensTests` (PlayMode: the map choice with every tier, Abyssal locked, a locked hero and locked maps; the
+HUD, pause and result of an Inferno run; every label fitting at its smallest best-fit size on the 1760 and 2232 safe
+areas; the toggle on the map choice switching at once, storing the choice and reloading for the run); the table's own
+checks cover the new keys.
+
+**Noticed, not changed:** the stamina bar's word "HAREKET" (pass 1, `hud.stamina_label`) is wider than its 94-unit label
+at 22 (Arial measures it about 104) and has no best fit; the bar is off today (`HeroStamina.CurrentRulesEnabled`), so
+nothing shows it, but when it turns on the word wants a shorter Turkish ("ADIM"?) or a wider label.
 
 ## 8. Fonts
 
@@ -211,3 +263,14 @@ the Turkish fits measured in the Editor want a look on the S23 too.
 3. "Sefer" for a run ("Sefere çık", "seferi bitir")?
 4. "Kalıntı" for relic, "Tılsım" for amulet, "Ocak" for forge?
 5. The percent sign before the number ("%25") everywhere, including the Anvil's big chance?
+
+Pass 2's (2026-11-19):
+
+6. The tiers: Dövülmüş, **Su Verilmiş** (rather than the suggested Tavlanmış, whose "tavlamak" also means to con someone),
+   Cehennem, **Uçurum** - or "Dipsiz" (bottomless) for the deepest?
+7. "{0} zorluğunda" for "on Forged" ("İniş'i Dövülmüş zorluğunda tamamla"), or "kademe" ("Dövülmüş kademesinde")?
+8. The tier line: "Önerilen ekipman +%15 (+5 set). Ekipmanın: +%14,7" - "önerilen" for "built for", "set" for a set of
+   gear?
+9. "Ödül x1,25" on the tier card: singular "Ödül", the multiplier's "x" and the decimal comma?
+10. A deeper start says "önce 31 seviye seç", as the catch-up's button says "seviyeyi otomatik seç"; "güçlendirme seç"
+    (the level-up card's own word) is the alternative for both.

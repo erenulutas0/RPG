@@ -4,6 +4,7 @@ using System.Globalization;
 using Cryptforge.Art;
 using Cryptforge.Content;
 using Cryptforge.Core;
+using Cryptforge.Localisation;
 using Cryptforge.Progression;
 using UnityEngine;
 using UnityEngine.UI;
@@ -31,6 +32,9 @@ namespace Cryptforge.UI
     // built for beside the chosen hero's own. A tier card chooses the tier and the profile remembers it as it remembers the
     // hero; the map cards follow it, since each tier opens its deeper starts once a run on that tier has reached them. A
     // tier other than the scene's reloads the scene with the map, as another hero does.
+    // Every word is the language's (docs/60 pass 2), a hero's through HeroText and a tier's through TierText, and the
+    // language toggle stands in the title's band (the game's start; the pause overlay has the other): a tap writes the
+    // panel's words again at once, and the run then starts in a scene loaded in that language (CombatSetup.StartOnMap).
     public sealed class MapChoiceView : MonoBehaviour
     {
         public const string CanvasName = "Map Choice";
@@ -68,26 +72,30 @@ namespace Cryptforge.UI
         private const float PreviewHeight = 236f;
         private const float TextLeft = 350f;
         private const float FitMargin = 16f;
+        // The language toggle (docs/60 pass 2; the pause overlay has the other): in the title's band at its right, so the
+        // panel keeps its 1900 units, the title taking the band's left beside it.
+        private const float LanguageWidth = 260f;
+        private const float LanguageHeight = 84f;
+        private const float LanguageGap = 20f;
+        private const int LanguageFontSize = 32;
 
-        public const string MapTitle = "Choose your map";
-        public const string HeroAndMapTitle = "Choose your hero and map";
-        public const string SelectedText = "Selected";
-        public const string ChooseText = "Tap to choose";
-        public const string LockedWord = "Locked";
-        private const string TierRewardFormat = "Rewards {0}";
-        private const string PercentFormat = "+0.#";
-        private const string WeaponFormat = "Weapon: {0}";
-        private const string SubtitleFormat = "{0}\n<size=26>{1}</size>";
+        // The panel's words, in the language the game speaks (docs/60).
+        public static string MapTitle => Loc.Text("map.title", "Choose your map");
+        public static string HeroAndMapTitle => Loc.Text("map.title_with_heroes", "Choose your hero and map");
+        public static string SelectedText => Loc.Text("map.selected", "Selected");
+        public static string ChooseText => Loc.Text("map.tap_to_choose", "Tap to choose");
+        public static string LockedWord => Loc.Text("map.locked", "Locked");
         private static readonly Color SelectedColour = new Color32(238, 191, 108, 255);
         private static readonly Color IdleColour = new Color32(190, 194, 208, 255);
         private static readonly Color LockedColour = new Color32(163, 167, 183, 255);
 
         // A line about each map, by floor number.
-        private static readonly string[] Flavours =
+        private static string Flavour(int floorNumber) => floorNumber switch
         {
-            "Lava-lit halls where every Descent begins. The Forge Warden keeps the gate.",
-            "Frozen vaults of quicksilver. Mirror Sentries turn your blows back on you.",
-            "A dusk garden grown over the ash. The last floor before the Final Swarm."
+            1 => Loc.Text("map.flavour_1", "Lava-lit halls where every Descent begins. The Forge Warden keeps the gate."),
+            2 => Loc.Text("map.flavour_2", "Frozen vaults of quicksilver. Mirror Sentries turn your blows back on you."),
+            3 => Loc.Text("map.flavour_3", "A dusk garden grown over the ash. The last floor before the Final Swarm."),
+            _ => string.Empty
         };
 
         private CombatSetup _setup;
@@ -97,6 +105,7 @@ namespace Cryptforge.UI
         private ChoiceCardPainter _painter;
         private readonly List<Button> _cards = new List<Button>(3);
         private readonly List<int> _floors = new List<int>(3);
+        private readonly List<FloorDefinition> _floorDefinitions = new List<FloorDefinition>(3);
         private readonly List<Text> _names = new List<Text>(3);
         private readonly List<Text> _mapStates = new List<Text>(3);
         private readonly List<bool> _mapOpen = new List<bool>(3);
@@ -106,6 +115,8 @@ namespace Cryptforge.UI
         private readonly List<Image> _previews = new List<Image>(3);
         private readonly List<TierCard> _tierCards = new List<TierCard>(DifficultyTiers.Count);
         private Text _tierDetail;
+        private LanguageToggleView _language;
+        private bool _listening;
         private ChoiceCardArtSet _art;
         private Text _title;
         private RectTransform _safe;
@@ -176,6 +187,8 @@ namespace Cryptforge.UI
         public string TierDetailText => _tierDetail != null ? _tierDetail.text : string.Empty;
         // The tier a map card starts the run on: the scene's own until a tier card is tapped.
         public DifficultyTier SelectedTier { get; private set; }
+        // The language toggle in the title's band (docs/60), for tests and captures.
+        public LanguageToggleView LanguageToggle => _language;
 
         public void Initialize(CombatSetup setup, HeroMovementInput movement)
         {
@@ -247,18 +260,22 @@ namespace Cryptforge.UI
             surface.color = new Color(.09f, .08f, .11f, .97f);
             surface.raycastTarget = true;
 
+            // The title in the band's left, the language toggle at its right (docs/60).
             Text title = Label(surface.transform, "Map Choice Title", titleSource, fallback, 56, TextAnchor.MiddleCenter);
             RectTransform titleRect = title.rectTransform;
             titleRect.anchorMin = new Vector2(0f, 1f);
             titleRect.anchorMax = new Vector2(1f, 1f);
             titleRect.pivot = new Vector2(.5f, 1f);
-            titleRect.offsetMin = new Vector2(120f, -(TitleTop + TitleHeight));
-            titleRect.offsetMax = new Vector2(-120f, -TitleTop);
-            title.text = heroRow ? HeroAndMapTitle : MapTitle;
+            titleRect.offsetMin = new Vector2(CardInset, -(TitleTop + TitleHeight));
+            titleRect.offsetMax = new Vector2(-(CardInset + LanguageWidth + LanguageGap), -TitleTop);
+            LocalisedLabel.Bind(title, () => heroRow ? HeroAndMapTitle : MapTitle);
             _title = title;
 
             if (art != null)
                 _painter = new ChoiceCardPainter(art, backdrop, surface, title);
+            _language = LanguageToggleView.Create(surfaceRect, descriptionSource, LanguageFontSize, Vector2.one, Vector2.one,
+                Vector2.one, new Vector2(-CardInset, -(TitleTop + (TitleHeight - LanguageHeight) / 2f)),
+                new Vector2(LanguageWidth, LanguageHeight));
 
             FloorDefinition floor = _setup.Encounters != null ? _setup.Encounters.Floor : null;
             for (int number = DescentStart.FirstFloor; number <= DescentStart.DeepestStart && floor != null; number++)
@@ -283,6 +300,18 @@ namespace Cryptforge.UI
             SetInteractable(false);
             RefreshHeroCards();
             RefreshTierCards();
+            Loc.Changed += OnLanguageChanged;
+            _listening = true;
+        }
+
+        // The language changed (the toggle here, docs/60): every card's words are written again in it at once.
+        private void OnLanguageChanged()
+        {
+            if (_canvas == null)
+                return;
+            RefreshHeroCards();
+            RefreshTierCards();
+            RefreshMapCards();
         }
 
         // A tier's card in the row: its name, its reward and its state, the row's cards sharing the surface's inner width.
@@ -305,13 +334,12 @@ namespace Cryptforge.UI
             button.targetGraphic = frame;
             button.onClick.AddListener(() => ChooseTier(slot));
 
+            // The name and the reward are written by RefreshTierCards, in the language the game speaks.
             Text name = Label(rect, "Tier Name", nameSource, fallback, 36, TextAnchor.MiddleCenter);
             Place(name.rectTransform, 14f, 46f, 14f);
-            name.text = DifficultyTiers.Name(tier);
 
             Text reward = Label(rect, "Tier Reward", descriptionSource, fallback, 22, TextAnchor.MiddleCenter);
             Place(reward.rectTransform, 60f, 30f, 12f);
-            reward.text = string.Format(CultureInfo.InvariantCulture, TierRewardFormat, DifficultyTiers.RewardText(tier));
 
             Text state = Label(rect, "Tier State", descriptionSource, fallback, 22, TextAnchor.MiddleCenter);
             Place(state.rectTransform, 94f, 84f, 10f);
@@ -319,8 +347,9 @@ namespace Cryptforge.UI
             _tierCards.Add(new TierCard { Tier = tier, Button = button, Frame = frame, Name = name, Reward = reward, State = state });
         }
 
-        // Each tier card as the choice stands: the chosen one lit in its own tier's card and saying so, an open one inviting
-        // a tap on the neutral card, a locked one shaded and saying how it opens; then the line on the chosen tier.
+        // Each tier card as the choice stands: its name and reward, the chosen one lit in its own tier's card and saying so,
+        // an open one inviting a tap on the neutral card, a locked one shaded and saying how it opens; then the line on the
+        // chosen tier.
         private void RefreshTierCards()
         {
             PrototypeTextDefinition text = _setup.Text;
@@ -329,11 +358,13 @@ namespace Cryptforge.UI
                 TierCard card = _tierCards[i];
                 bool open = _setup.IsTierOpen(card.Tier);
                 bool selected = card.Tier == SelectedTier;
+                card.Name.text = TierText.Name(card.Tier);
+                card.Reward.text = Loc.Format("tier.card_reward", "Rewards {0}", TierText.Reward(card.Tier));
                 if (!open)
                 {
-                    string hint = DifficultyTiers.UnlockHint(card.Tier);
+                    string hint = TierText.UnlockHint(card.Tier);
                     card.State.text = text != null
-                        ? string.Format(CultureInfo.InvariantCulture, text.HeroLockedFormat, LockedWord, hint)
+                        ? string.Format(Loc.Numbers, text.HeroLockedFormat, LockedWord, hint)
                         : LockedWord + ": " + hint;
                     card.State.color = LockedColour;
                 }
@@ -371,29 +402,29 @@ namespace Cryptforge.UI
         };
 
         // The two lines under the tier row: what the chosen tier does to the foes and pays (gold, materials and boosters, and
-        // the items' luck), then the gear it is built for beside the chosen hero's own. Numbers in the invariant culture.
+        // the items' luck), then the gear it is built for beside the chosen hero's own. In the language the game speaks,
+        // its numbers too: the formats sit in the templates, so Turkish puts the percent sign before the number ("+%14,7").
         public static string DescribeTier(DifficultyTier tier, int gearPower)
         {
-            string yours = (gearPower / 100.0).ToString(PercentFormat, CultureInfo.InvariantCulture);
+            double yours = gearPower / 100.0;
             if (tier == DifficultyTier.Forged)
-                return string.Format(CultureInfo.InvariantCulture,
-                    "Forged: the Descent as it was first forged; rewards x1\nBuilt for no gear. Your gear: {0}%", yours);
-            string health = ((DifficultyTiers.EnemyHealth(tier) - 1.0) * 100.0).ToString(PercentFormat, CultureInfo.InvariantCulture);
-            string damage = ((DifficultyTiers.EnemyDamage(tier) - 1.0) * 100.0).ToString(PercentFormat, CultureInfo.InvariantCulture);
-            string built = (DifficultyTiers.MatchedGearPower(tier) / 100.0).ToString("+0", CultureInfo.InvariantCulture);
-            return string.Format(CultureInfo.InvariantCulture,
-                "{0}: foes {1}% health, {2}% damage; rewards {3}; item luck +{4}\nBuilt for gear {5}% ({6}). Your gear: {7}%",
-                DifficultyTiers.Name(tier), health, damage, DifficultyTiers.RewardText(tier),
-                DifficultyTiers.ItemLuck(tier).ToString("0", CultureInfo.InvariantCulture), built, MatchedSet(tier), yours);
+                return Loc.Format("tier.detail_forged",
+                    "{0}: the Descent as it was first forged; rewards x1\nBuilt for no gear. Your gear: {1:+0.#}%",
+                    TierText.Name(tier), yours);
+            return Loc.Format("tier.detail",
+                "{0}: foes {1:+0.#}% health, {2:+0.#}% damage; rewards {3}; item luck +{4:0}\nBuilt for gear {5:+0}% ({6}). Your gear: {7:+0.#}%",
+                TierText.Name(tier), (DifficultyTiers.EnemyHealth(tier) - 1.0) * 100.0,
+                (DifficultyTiers.EnemyDamage(tier) - 1.0) * 100.0, TierText.Reward(tier), DifficultyTiers.ItemLuck(tier),
+                DifficultyTiers.MatchedGearPower(tier) / 100.0, MatchedSet(tier), yours);
         }
 
-        // The set docs/54 section 7.2 models at the tier's gear power.
+        // The set docs/54 section 7.2 models at the tier's gear power. Forged's line names none.
         private static string MatchedSet(DifficultyTier tier) => tier switch
         {
-            DifficultyTier.Tempered => "a +5 set",
-            DifficultyTier.Inferno => "a +9 set",
-            DifficultyTier.Abyssal => "+9 with good efsun",
-            _ => "none"
+            DifficultyTier.Tempered => Loc.Text("tier.set_tempered", "a +5 set"),
+            DifficultyTier.Inferno => Loc.Text("tier.set_inferno", "a +9 set"),
+            DifficultyTier.Abyssal => Loc.Text("tier.set_abyssal", "+9 with good efsun"),
+            _ => string.Empty
         };
 
         // A hero's card in the row: the portrait in the card's well at the top, then its name (and the character's own
@@ -423,16 +454,13 @@ namespace Cryptforge.UI
             portrait.sprite = hero.Portrait;
             portrait.enabled = hero.Portrait != null;
 
+            // The name, role, weapon and state are written by RefreshHeroCards, in the language the game speaks.
             Text name = Label(rect, "Hero Name", nameSource, fallback, 38, TextAnchor.MiddleCenter);
             Place(name.rectTransform, 196f, 66f, 20f);
             name.supportRichText = true;
-            name.text = hero.Subtitle.Length > 0
-                ? string.Format(CultureInfo.InvariantCulture, SubtitleFormat, hero.DisplayName, hero.Subtitle)
-                : hero.DisplayName;
 
             Text role = Label(rect, "Hero Role", descriptionSource, fallback, 26, TextAnchor.MiddleCenter);
             Place(role.rectTransform, 270f, 64f, 24f);
-            role.text = hero.Role;
 
             Text weapon = Label(rect, "Hero Weapon", descriptionSource, fallback, 26, TextAnchor.MiddleCenter);
             Place(weapon.rectTransform, 336f, 32f, 20f);
@@ -447,9 +475,10 @@ namespace Cryptforge.UI
             });
         }
 
-        // Each hero card as the choice stands: the chosen one lit (the gold tier's treatment, or a warm frame unpainted)
-        // and saying so, a playable one inviting a tap, a locked one shaded and saying how to unlock it
-        // (PrototypeTextDefinition.HeroLockedFormat with the hero's UnlockHint, as the forge's chooser says it).
+        // Each hero card as the choice stands: its name (with the character's own under it), role and weapon, the chosen one
+        // lit (the gold tier's treatment, or a warm frame unpainted) and saying so, a playable one inviting a tap, a locked
+        // one shaded and saying how to unlock it (PrototypeTextDefinition.HeroLockedFormat with the hero's unlock hint, as
+        // the forge's chooser says it). A hero's words through HeroText.
         private void RefreshHeroCards()
         {
             PrototypeTextDefinition text = _setup.Text;
@@ -458,14 +487,18 @@ namespace Cryptforge.UI
                 HeroCard card = _heroCards[i];
                 bool playable = _isPlayable(card.Hero);
                 bool selected = card.Hero == SelectedHero;
+                string subtitle = HeroText.Subtitle(card.Hero);
+                card.Name.text = subtitle.Length > 0
+                    ? Loc.Format("map.hero_name", "{0}\n<size=26>{1}</size>", HeroText.Name(card.Hero), subtitle)
+                    : HeroText.Name(card.Hero);
+                card.Role.text = HeroText.Role(card.Hero);
                 WeaponDefinition weapon = _setup.WeaponFor(card.Hero);
-                card.Weapon.text = weapon != null
-                    ? string.Format(CultureInfo.InvariantCulture, WeaponFormat, weapon.DisplayName) : string.Empty;
+                card.Weapon.text = weapon != null ? Loc.Format("map.hero_weapon", "Weapon: {0}", weapon.DisplayName) : string.Empty;
                 if (!playable)
                 {
-                    string hint = card.Hero.UnlockHint;
+                    string hint = HeroText.UnlockHint(card.Hero);
                     card.State.text = hint.Length > 0 && text != null
-                        ? string.Format(CultureInfo.InvariantCulture, text.HeroLockedFormat, LockedWord, hint) : LockedWord;
+                        ? string.Format(Loc.Numbers, text.HeroLockedFormat, LockedWord, hint) : LockedWord;
                     card.State.color = LockedColour;
                 }
                 else
@@ -542,14 +575,13 @@ namespace Cryptforge.UI
             nameRect.pivot = new Vector2(.5f, 1f);
             nameRect.offsetMin = new Vector2(TextLeft, -100f);
             nameRect.offsetMax = new Vector2(-CardInset, -28f);
-            name.text = floor.DisplayName;
 
+            // The name and the description are written by RefreshMapCard, in the language the game speaks.
             Text description = Label(rect, "Map Description", descriptionSource, fallback, 30, TextAnchor.UpperLeft);
             RectTransform descriptionRect = description.rectTransform;
             descriptionRect.anchorMin = Vector2.zero;
             descriptionRect.anchorMax = Vector2.one;
             descriptionRect.offsetMax = new Vector2(-CardInset, -112f);
-            description.text = Describe(number);
 
             // The locked line, worded as a locked hero's (PrototypeTextDefinition.HeroLockedFormat); empty while open.
             Text state = Label(rect, "Map State", descriptionSource, fallback, 28, TextAnchor.MiddleLeft);
@@ -563,6 +595,7 @@ namespace Cryptforge.UI
 
             _cards.Add(button);
             _floors.Add(number);
+            _floorDefinitions.Add(floor);
             _names.Add(name);
             _mapStates.Add(state);
             _mapOpen.Add(false);
@@ -577,34 +610,36 @@ namespace Cryptforge.UI
                 RefreshMapCard(i);
         }
 
-        // A map card as the chosen tier stands: open, or shaded with its hint (the description giving up its bottom 44
-        // units to that line), interactable only while open and the panel takes taps.
+        // A map card as the chosen tier stands: its name and description, open, or shaded with its hint (the description
+        // giving up its bottom 44 units to that line), interactable only while open and the panel takes taps.
         private void RefreshMapCard(int slot)
         {
             int number = _floors[slot];
             bool open = _setup.IsMapOpen(number, SelectedTier);
             _mapOpen[slot] = open;
+            _names[slot].text = _floorDefinitions[slot].DisplayName;
+            _descriptions[slot].text = Describe(number);
             _cards[slot].GetComponent<Image>().color = open ? new Color(.2f, .17f, .22f, 1f) : new Color(.12f, .11f, .13f, 1f);
             RectTransform descriptionRect = _descriptions[slot].rectTransform;
             descriptionRect.offsetMin = new Vector2(TextLeft, open ? 26f : 70f);
             PrototypeTextDefinition text = _setup.Text;
             string hint = MapUnlock.Hint(number);
             _mapStates[slot].text = open ? string.Empty
-                : text != null ? string.Format(CultureInfo.InvariantCulture, text.HeroLockedFormat, LockedWord, hint) : LockedWord;
+                : text != null ? string.Format(Loc.Numbers, text.HeroLockedFormat, LockedWord, hint) : LockedWord;
             _cards[slot].interactable = open && !_chosen && Time.unscaledTime >= _inputEnabledAt;
             if (_painter != null)
                 _painter.Paint(slot, _cards[slot], _names[slot], _descriptions[slot], _previews[slot],
                     number == DescentStart.FirstFloor || !open ? _art.Neutral : _art.Climb);
         }
 
-        // A card's text: the map's line, then what a hero starting there begins with. Numbers in the invariant culture.
+        // A card's text: the map's line, then what a hero starting there begins with, in the language the game speaks.
         public static string Describe(int floorNumber)
         {
-            string flavour = floorNumber >= 1 && floorNumber <= Flavours.Length ? Flavours[floorNumber - 1] : string.Empty;
+            string flavour = Flavour(floorNumber);
             int level = DescentStart.CatchUpLevel(floorNumber);
             string start = level > 0
-                ? string.Format(CultureInfo.InvariantCulture, "Floor {0}. Start at level {1}: choose {1} level-ups first.", floorNumber, level)
-                : string.Format(CultureInfo.InvariantCulture, "Floor {0}. A fresh hero, the whole Descent ahead.", floorNumber);
+                ? Loc.Format("map.start_catch_up", "Floor {0}. Start at level {1}: choose {1} level-ups first.", floorNumber, level)
+                : Loc.Format("map.start_fresh", "Floor {0}. A fresh hero, the whole Descent ahead.", floorNumber);
             return flavour + "\n" + start;
         }
 
@@ -680,6 +715,8 @@ namespace Cryptforge.UI
                 _heroCards[i].Button.interactable = interactable && _isPlayable(_heroCards[i].Hero);
             for (int i = 0; i < _tierCards.Count; i++)
                 _tierCards[i].Button.interactable = interactable && _setup.IsTierOpen(_tierCards[i].Tier);
+            if (_language != null)
+                _language.Button.interactable = interactable;
         }
 
         // A hero card tapped, after the input delay: a playable hero becomes the run's, and the profile remembers it as the
@@ -715,8 +752,9 @@ namespace Cryptforge.UI
         }
 
         // A map card tapped: once, after the input delay, and only a map the profile has reached on the chosen tier. The
-        // Foundry with the scene's own hero and tier closes the panel and the run begins; a deeper map, another hero or
-        // another tier reloads the scene with the choice, the panel standing until it goes.
+        // Foundry with the scene's own hero, tier and language closes the panel and the run begins; a deeper map, another
+        // hero, another tier or another language (the toggle) reloads the scene with the choice, the panel standing until
+        // it goes.
         public void Choose(int slot)
         {
             if (_chosen || !IsOpen || slot < 0 || slot >= _cards.Count || Time.unscaledTime < _inputEnabledAt || !_mapOpen[slot])
@@ -727,7 +765,7 @@ namespace Cryptforge.UI
             HeroDefinition hero = SelectedHero;
             bool otherHero = hero != null && hero != _setup.Hero && _setup.IsHeroPlayable(hero);
             bool otherTier = SelectedTier != _setup.Tier;
-            if (floor == DescentStart.FirstFloor && !otherHero && !otherTier)
+            if (floor == DescentStart.FirstFloor && !otherHero && !otherTier && !_setup.LanguageChangedSinceLoad)
                 Close();
             _setup.StartOnMap(floor, otherHero ? hero : null, SelectedTier);
         }
@@ -745,6 +783,9 @@ namespace Cryptforge.UI
 
         private void OnDestroy()
         {
+            if (_listening)
+                Loc.Changed -= OnLanguageChanged;
+            _listening = false;
             for (int i = 0; i < _made.Count; i++)
                 if (_made[i] != null)
                     Destroy(_made[i]);
