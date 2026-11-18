@@ -53,12 +53,245 @@ server-owned inventory is needed.
 ## 4. What the first month measures (the owner's report, section "Son tavsiye")
 
 1. **Runs to +6 and +9 for a player who never watches.** The free player must progress at a natural pace.
-   `gear_economy.py` models it with and without the x1.5 bonus before release, on the tiers' payouts.
+   `gear_economy.py` models it with and without the x1.5 bonus before release, on the tiers' payouts (section 4a).
 2. **The return rate:** the share of videos followed by a new run.
 3. **The purchase rate** of the skip.
 
 If the free player progresses and returns, the next thing sold is content: a new region or a gameplay expansion. Power
 is never sold.
+
+## 4a. Modelled (2026-11-19)
+
+Item 1 before release: docs/54's economy model with the video's bonus and the difficulty tiers' payouts.
+
+    python Tools/Economy/gear_economy.py --video
+      # --watch-rates 0,30,60,100 --multiplier 150 --min-gold 10 --from-run 2 --video-seconds 30
+      # --policies forged,matched --cohorts careful,first-card,clumsy --multipliers 125,150,175,200
+      # seed 58, 2,000 players a cell; 2 min 14 s for every table below
+
+The script's default output (docs/54's tables) is unchanged, byte for byte.
+
+### Method
+
+- **Income.** Each run is one of the player type's 200 measured runs (`income-2026-11-16.csv`: `GearEconomyResearch`,
+  seeds 1-100 a hero, both heroes, typical hands). Its banked gold, floors cleared, elites and bosses give the loot under
+  the gold's rule (docs/54 section 9). Its measured minutes give the hours.
+- **Spending.** docs/54's expected habit, the one behind its headline table. Boosters are used as in docs/54 section 5,
+  a quarter of all gold (the bonus included) is set aside for efsun, and four items are worked one at a time to +9 after
+  every run.
+- **The bonus.** It follows `RewardOfferRule` exactly:
+  - the run's banked gold x 50 / 100, rounded up to whole gold;
+  - from the second run;
+  - only when the run banked at least 10;
+  - gold only: never materials, boosters or items.
+
+  A player with a watch rate of w % takes each offered video with chance w, run by run. 100 % also stands for the skip
+  owner, who gets the same gold. Each video taken adds 30 s to the hours, so a skip owner's hours are the 100 % row's
+  less half a minute a video.
+- **Tier policies.**
+  - **Stays on Forged.**
+  - **Moves up when matched.** After a run, the player moves up one tier when both hold:
+    - this profile has walked out of the Descent on its current tier (the unlock chain, docs/54 section 21);
+    - its gear power has reached the next tier's matched set: Tempered +14.7 % (a +5 set), Inferno +30.9 % (+9),
+      Abyssal +41.9 % (+9 with good efsun).
+- **A tier's run** is the player type's measured run with the tier's rewards (`TIER_GOLD`, `TIER_REWARD`):
+  - gold x1.25 / x1.53 / x2.00, the measured ratio of a careful run's banked gold (498 / 620.5 / 760.5 / 998, seeds
+    5201-8400);
+  - materials and booster chances x1.25 / x1.5 / x2, a fraction made whole by one draw, as `LootRule` does;
+  - items at Forged's chance.
+- **Paired.** Each player has its own seeded streams: the runs drawn, their loot, the Anvil and the watch. So the watch
+  rates and policies play the same runs and strikes, and a difference between two rows is the bonus's, not noise.
+- **Player types.** Careful, typical and clumsy at their measured completion: 96.5 %, 87.5 % and 32.5 % of the
+  income file's runs. Their runs last 14.1, 13.3 and 7.2 minutes. "Typical" is the **first-card** cohort. The income file
+  has no cohort named "typical", since in this project the word names the hands every cohort plays with. First-card
+  kites and steps in as careful does but takes the first card offered (docs/52 2.3). docs/56's bar gates it beside
+  careful and clumsy.
+
+### Assumptions, stated plainly
+
+1. **Gear never feeds back into income** (docs/54 section 9). A geared clumsy player completes more runs (docs/54
+   section 20), so its rows are pessimistic, for the free player and the watcher alike.
+2. **A tier's run is the Forged run with the tier's rewards.** docs/54 section 21 measured the matched set's
+   completion on its tier 0.3 to 2.9 points above the ungeared cohort's on Forged, and its length within 0.1 minute.
+3. **Gear power counts main stats only.** The model rolls no efsun lines.
+   - Worked weapon first, the +14.7 % for Tempered is reached at weapon +9 with armour +5. Real lines would move a
+     player up a little sooner.
+   - Inferno's +30.9 % is the +9 set itself, and Abyssal's needs good efsun. So on the road to a +9 set the matched
+     player plays Forged, then Tempered.
+4. **A player moves up only when matched.** A player who moves up with less gear is not modelled: its completion on an
+   unmatched tier was never measured.
+5. **The watch rate is fixed** and independent from run to run. A real player's rate may drift.
+6. **Hours count only the runs' own minutes**, plus 30 s a video. Menus, the Anvil and loading are not counted, and they
+   cost the clumsy player more, since it plays twice as many runs.
+7. **A calendar** is read at an hour of play a day: about 4 careful runs, 8 clumsy runs.
+
+### What a run pays (mean; the video's bonus is what a taken video adds)
+
+| Type | Completed | Minutes | Gold: Forged / Tempered / Inferno / Abyssal | Video bonus: F / T / I / A | Spores, Forged / Abyssal |
+|---|---|---|---|---|---|
+| careful | 96.5 % | 14.1 | 496 / 621 / 759 / 992 | +249 / +310 / +380 / +497 | 2.89 / 5.78 |
+| typical (first-card) | 87.5 % | 13.3 | 473 / 592 / 722 / 945 | +236 / +295 / +361 / +472 | 2.63 / 5.30 |
+| clumsy | 32.5 % | 7.2 | 224 / 280 / 346 / 448 | +112 / +140 / +172 / +224 | 0.97 / 1.97 |
+
+A careful Forged run pays 35 gold a minute of play. Its video pays 249 in half a minute: about 14 times the run's rate.
+For the clumsy player it is 7 times.
+
+### Runs and hours to +6 and +9, one item, then the full set
+
+P50 runs (hours of play, videos included).
+
+| Type | Tiers | Watch | One +6 | One +9 | Set +6 | Set +9 | Set +9, P90 | First Tempered run | Videos to set +9 |
+|---|---|---|---|---|---|---|---|---|---|
+| careful | stays on Forged | 0 % | 4 (0.9 h) | **32 (7.5 h)** | 103 (24.2 h) | **135 (31.7 h)** | 176 | - | 0 |
+| careful | stays on Forged | 30 % | 3 (0.7 h) | 28 (6.7 h) | 90 (21.3 h) | 118 (27.9 h) | 154 | - | 35 |
+| careful | stays on Forged | 60 % | 3 (0.7 h) | 25 (6.0 h) | 80 (19.2 h) | 104 (25.1 h) | 137 | - | 62 |
+| careful | stays on Forged | 100 % | 3 (0.7 h) | 22 (5.4 h) | 70 (16.9 h) | 91 (22.1 h) | 118 | - | 90 |
+| careful | moves up when matched | 0 % | 4 (0.9 h) | **32 (7.5 h)** | 90 (21.1 h) | **115 (27.0 h)** | 151 | 35 | 0 |
+| careful | moves up when matched | 30 % | 3 (0.7 h) | 28 (6.7 h) | 78 (18.5 h) | 100 (23.8 h) | 132 | 31 | 30 |
+| careful | moves up when matched | 60 % | 3 (0.7 h) | 25 (6.0 h) | 70 (16.7 h) | 89 (21.4 h) | 117 | 28 | 53 |
+| careful | moves up when matched | 100 % | 3 (0.7 h) | 22 (5.4 h) | 61 (14.8 h) | 78 (18.9 h) | 102 | 24 | 77 |
+| typical | stays on Forged | 0 % | 4 (0.9 h) | **34 (7.5 h)** | 108 (24.0 h) | **143 (31.6 h)** | 186 | - | 0 |
+| typical | stays on Forged | 30 % | 4 (0.8 h) | 30 (6.7 h) | 95 (21.2 h) | 124 (27.8 h) | 162 | - | 36 |
+| typical | stays on Forged | 60 % | 3 (0.7 h) | 27 (6.0 h) | 84 (19.0 h) | 110 (24.9 h) | 144 | - | 65 |
+| typical | stays on Forged | 100 % | 3 (0.7 h) | 23 (5.3 h) | 73 (16.8 h) | 96 (22.0 h) | 124 | - | 94 |
+| typical | moves up when matched | 0 % | 4 (0.9 h) | **34 (7.5 h)** | 95 (21.0 h) | **122 (26.8 h)** | 160 | 37 | 0 |
+| typical | moves up when matched | 30 % | 4 (0.8 h) | 30 (6.7 h) | 82 (18.5 h) | 106 (23.7 h) | 139 | 33 | 31 |
+| typical | moves up when matched | 60 % | 3 (0.7 h) | 27 (6.0 h) | 73 (16.6 h) | 94 (21.3 h) | 123 | 29 | 56 |
+| typical | moves up when matched | 100 % | 3 (0.7 h) | 23 (5.3 h) | 64 (14.7 h) | 82 (18.8 h) | 106 | 26 | 81 |
+| clumsy | stays on Forged | 0 % | 8 (1.0 h) | **71 (8.4 h)** | 229 (27.5 h) | **300 (36.0 h)** | 396 | - | 0 |
+| clumsy | stays on Forged | 30 % | 8 (0.9 h) | 62 (7.6 h) | 200 (24.5 h) | 262 (32.0 h) | 348 | - | 77 |
+| clumsy | stays on Forged | 60 % | 7 (0.9 h) | 55 (6.9 h) | 177 (22.1 h) | 231 (28.9 h) | 308 | - | 137 |
+| clumsy | stays on Forged | 100 % | 6 (0.8 h) | 48 (6.2 h) | 155 (19.7 h) | 201 (25.7 h) | 269 | - | 199 |
+| clumsy | moves up when matched | 0 % | 8 (1.0 h) | **71 (8.4 h)** | 199 (23.9 h) | **256 (30.7 h)** | 340 | 76 | 0 |
+| clumsy | moves up when matched | 30 % | 8 (0.9 h) | 62 (7.6 h) | 175 (21.3 h) | 223 (27.3 h) | 298 | 67 | 66 |
+| clumsy | moves up when matched | 60 % | 7 (0.9 h) | 55 (6.9 h) | 155 (19.3 h) | 198 (24.6 h) | 265 | 60 | 117 |
+| clumsy | moves up when matched | 100 % | 6 (0.8 h) | 48 (6.2 h) | 134 (17.2 h) | 172 (22.0 h) | 229 | 53 | 171 |
+
+- **The free careful player on Forged lands on docs/54 section 9 exactly:** one +9 in 32 runs, the set in 135. The
+  streams here are different, so this is a check of the model.
+- **Every matched player reaches Tempered**: all 2,000 of each type do, on every watch rate.
+- **Moving up when matched** saves the free player about 15 % of the road to a set: 135 -> 115 runs careful, 300 -> 256
+  clumsy. Nothing before one +9 changes, because the move comes after it.
+- **In hours, the three types are close.** A free player needs about 7.5-8.4 h for one +9 and 27-36 h for the set. The
+  clumsy player plays twice the runs, but each is half as long. Menus between runs are not counted (assumption 6).
+
+### How much sooner than the free player
+
+The free player is the 0 % row. Each cell is the share of P50 runs saved (runs, hours) on the same tier policy.
+One +6 shows only the runs, since its P50 is 3-8 runs.
+
+| Type | Tiers | Watch | One +6 | One +9 | Set +6 | Set +9 |
+|---|---|---|---|---|---|---|
+| careful | stays on Forged | 30 % | 1 run (0.2 h) | 12 % (4 runs, 0.8 h) | 13 % (13 runs, 2.9 h) | 13 % (17 runs, 3.8 h) |
+| careful | stays on Forged | 60 % | 1 run (0.2 h) | 22 % (7 runs, 1.5 h) | 22 % (23 runs, 5.1 h) | 23 % (31 runs, 6.6 h) |
+| careful | stays on Forged | 100 % | 1 run (0.2 h) | **31 % (10 runs, 2.2 h)** | 32 % (33 runs, 7.3 h) | **33 % (44 runs, 9.6 h)** |
+| careful | moves up when matched | 30 % | 1 run (0.2 h) | 12 % (4 runs, 0.8 h) | 13 % (12 runs, 2.6 h) | 13 % (15 runs, 3.2 h) |
+| careful | moves up when matched | 60 % | 1 run (0.2 h) | 22 % (7 runs, 1.5 h) | 22 % (20 runs, 4.4 h) | 23 % (26 runs, 5.6 h) |
+| careful | moves up when matched | 100 % | 1 run (0.2 h) | **31 % (10 runs, 2.2 h)** | 32 % (29 runs, 6.3 h) | **32 % (37 runs, 8.1 h)** |
+| typical | stays on Forged | 30 % | 0 (0.1 h) | 12 % (4 runs, 0.8 h) | 12 % (13 runs, 2.8 h) | 13 % (19 runs, 3.8 h) |
+| typical | stays on Forged | 60 % | 1 run (0.2 h) | 21 % (7 runs, 1.5 h) | 22 % (24 runs, 5.0 h) | 23 % (33 runs, 6.7 h) |
+| typical | stays on Forged | 100 % | 1 run (0.2 h) | **32 % (11 runs, 2.1 h)** | 32 % (35 runs, 7.2 h) | **33 % (47 runs, 9.6 h)** |
+| typical | moves up when matched | 30 % | 0 (0.1 h) | 12 % (4 runs, 0.8 h) | 14 % (13 runs, 2.4 h) | 13 % (16 runs, 3.1 h) |
+| typical | moves up when matched | 60 % | 1 run (0.2 h) | 21 % (7 runs, 1.5 h) | 23 % (22 runs, 4.4 h) | 23 % (28 runs, 5.6 h) |
+| typical | moves up when matched | 100 % | 1 run (0.2 h) | **32 % (11 runs, 2.1 h)** | 33 % (31 runs, 6.3 h) | **33 % (40 runs, 8.1 h)** |
+| clumsy | stays on Forged | 30 % | 0 (0.1 h) | 13 % (9 runs, 0.8 h) | 13 % (29 runs, 3.0 h) | 13 % (38 runs, 4.0 h) |
+| clumsy | stays on Forged | 60 % | 1 run (0.1 h) | 23 % (16 runs, 1.5 h) | 23 % (52 runs, 5.4 h) | 23 % (69 runs, 7.1 h) |
+| clumsy | stays on Forged | 100 % | 2 runs (0.2 h) | **32 % (23 runs, 2.2 h)** | 32 % (74 runs, 7.8 h) | **33 % (99 runs, 10.2 h)** |
+| clumsy | moves up when matched | 30 % | 0 (0.1 h) | 13 % (9 runs, 0.8 h) | 12 % (24 runs, 2.6 h) | 13 % (33 runs, 3.4 h) |
+| clumsy | moves up when matched | 60 % | 1 run (0.1 h) | 23 % (16 runs, 1.5 h) | 22 % (44 runs, 4.7 h) | 23 % (58 runs, 6.1 h) |
+| clumsy | moves up when matched | 100 % | 2 runs (0.2 h) | **32 % (23 runs, 2.2 h)** | 33 % (65 runs, 6.7 h) | **33 % (84 runs, 8.7 h)** |
+
+- **The watcher's lead is the multiplier's arithmetic.** A 100 % watcher gets 1.5 times the gold, so it needs 1/1.5 of
+  the runs: a third fewer, from one +9 on, for every type and on both policies.
+- **Gold sets the pace, and the video buys only gold.** No floor material ever binds: even the clumsy watcher's Spores
+  keep up.
+- **The lead is linear in the watch rate:** about 13 % at 30 % and 23 % at 60 %.
+- **Before one +6 it is a run or two at most**, because the first rungs are cheap (docs/54: +1..+3 cost 250 gold in all).
+
+### The longest stretch between two levels gained
+
+On the road to a +9 set: runs, P50 / P90 (hours, P50).
+
+| Type | Tiers | 0 % | 30 % | 60 % | 100 % |
+|---|---|---|---|---|---|
+| careful | stays on Forged | 32 / 53 (7.6 h) | 28 / 47 (6.7 h) | 25 / 42 (6.0 h) | 21 / 36 (5.2 h) |
+| careful | moves up when matched | 27 / 47 (6.2 h) | 24 / 41 (5.6 h) | 21 / 36 (5.0 h) | 18 / 31 (4.3 h) |
+| typical | stays on Forged | 34 / 57 (7.6 h) | 30 / 49 (6.7 h) | 26 / 44 (5.9 h) | 23 / 38 (5.2 h) |
+| typical | moves up when matched | 29 / 49 (6.2 h) | 26 / 43 (5.6 h) | 23 / 38 (5.0 h) | 19 / 33 (4.3 h) |
+| clumsy | stays on Forged | 73 / 122 (8.6 h) | 63 / 107 (7.6 h) | 56 / 95 (6.9 h) | 48 / 82 (6.1 h) |
+| clumsy | moves up when matched | 62 / 106 (7.1 h) | 55 / 92 (6.4 h) | 48 / 81 (5.8 h) | 41 / 71 (5.1 h) |
+
+The longest stretch is always a +9 climb.
+- **It is docs/54's +9 price, not the video's.** A 2,400-gold strike is 6.5 free careful runs of basma gold (372 a run
+  after efsun's quarter), and 4.3 runs for a full watcher.
+- **The free player meets it with or without the video.** The video shortens it by the same third.
+- **Strikes keep coming during it, so it is not a wall:** about one every 6.5 careful runs, each with the memory bar
+  rising. It is, though, the longest the free player goes without a "+1", about a week at an hour a day. The first
+  month should read it (below).
+
+### Other multipliers
+
+The matched policy, P50 runs, and how much sooner than the free player.
+
+| Multiplier | careful 100 %: set +9 (weeks at an hour a day) | careful, sooner at 30 % / 100 % | clumsy, sooner at 30 % / 100 % | Free player's pace against a full watcher's |
+|---|---|---|---|---|
+| none (the free player) | 115 (3.9) | - | - | - |
+| x1.25 | 92 (3.2) | 7 % / 20 % | 7 % / 20 % | 0.80 |
+| **x1.5** | **78 (2.7)** | **13 % / 32 %** | **13 % / 33 %** | **0.68** |
+| x1.75 | 67 (2.3) | 17 % / 42 % | 18 % / 42 % | 0.58 |
+| x2 | 59 (2.0) | 23 % / 49 % | 22 % / 49 % | 0.51 |
+
+Typical tracks careful within two points at every multiplier. At 100 % the share saved stays close to 1 - 1/multiplier up to
+x2, so materials stay out of the way there too. At x2 the clumsy watcher's Spores (1.0-1.2 a run against about 141 for
+the set) are near binding.
+
+### Judgement and recommendation
+
+**Keep x1.5 for the first release, unchanged.**
+
+1. **The free player has no wall.** The 0 % rows are docs/54's road unchanged, because the video adds and takes
+   nothing away.
+   - **Careful and typical:** one +6 in 4 runs (under an hour), one +9 in 32-34 runs (7.5 h, about a week at an hour a
+     day), the set in 115-143 runs (27-32 h, about 4-4.5 weeks).
+   - **Clumsy:** one +9 in 71 runs (8.4 h), the set in 256-300 runs (31-36 h, 4.5-5 weeks), pessimistically
+     (assumption 1).
+   - **The tiers help the free player** as much as anyone: 15 % off the set.
+   - **Nothing is gated by the video.** Materials gate depth, and the tiers open by play. The video cannot buy +7 for a
+     player who has not reached the Vaults.
+2. **The video is worth it.** It pays half a run's gold for 30 s, 7-14 times the run's own rate a minute. A player who
+   always takes it reaches one +9 and the set a third sooner (8-10 h of play saved on the set). A player who takes one
+   in three gains 13 %.
+3. **It is not mandatory.** At x1.5 the free player moves at two thirds of a full watcher's pace. The full watcher's set
+   still takes 2.7-3.2 weeks at an hour a day, so docs/54's "weeks" holds for the most engaged players.
+4. **Why not x2.** It puts the free player at half pace: skipping the video then costs as much play as the video gives,
+   which is when a video starts to feel required. It also halves the long road the sink was built for (59 careful runs,
+   2 weeks). And the skip product grants every bonus, so the multiplier is also the speed the product sells: x2 would
+   make the one purchase a double-speed purchase, which leans on "power is never sold".
+5. **Why not x1.25.** At x1.25 the video is still clearly worth its 30 s (7 times the run's rate), but the full watcher
+   saves only a fifth. The free player gains nothing from a lower multiplier: its road is the same at every value.
+
+### What the first month's real numbers should check
+
+1. **The income.** `run_end`'s banked gold and completion by tier against the income table above (careful 496 / 621 /
+   759 / 992), and the mix of players: how many play like careful, typical and clumsy.
+2. **The watch rate.** Per offer (`reward_result` `watched` / `reward_offer`), and per profile: the spread of profiles'
+   rates against the model's 0 / 30 / 60 / 100 %, and the skip's purchase rate.
+3. **The never-watchers' pace.** Their runs to the first +6 and +9 (`anvil_attempt`'s `success` with `from_level` 5 and
+   8, counted in runs) against the 0 % rows: P50 4 and 32 careful. If one +9 lands later than docs/54's P90 (56 careful
+   runs, 122 clumsy), the free road is slower than modelled.
+4. **The +9 stretch.** The share of never-watchers who stop playing during a +8 or +9 climb, against watchers at the
+   same level and against earlier stretches. A drop there is the wall the model cannot see. Its knob is docs/54's
+   `GOLD` at +8 and +9 (for everyone), not the video.
+5. **The return rate** (item 2): new runs after a watched video against after a "No". If watchers return less, the
+   video interrupts the session.
+6. **The tier moves.** `run_start`'s `tier` and `gear_power`: do players move up at the matched power (the model:
+   Tempered at run 35 for a free careful player), earlier with less gear (not modelled), or never?
+7. **The habits the model assumes.** The share of gold spent on efsun (the model's quarter) and unspent gold, and runs
+   and hours a day (the calendar's hour).
+
+A different multiplier needs these numbers first. If never-watchers progress (items 3 and 4) and return at the
+watchers' rate, x1.5 stands. If watchers take nearly every offer and never-watchers fall behind the model, look at the
+road's prices before the bonus.
 
 ## 5. Owner's tasks (accounts, money and law are the owner's)
 
@@ -86,7 +319,7 @@ is never sold.
 
 1. The abstractions, the result-screen offer and the save-before-video flow, behind an offline fake (now; no packages).
    Built as a scaffold: section 7.
-2. `gear_economy.py` with the tiers' payouts and the x1.5 bonus.
+2. `gear_economy.py` with the tiers' payouts and the x1.5 bonus. Modelled: section 4a (x1.5 kept).
 3. SDK integration, when the owner's accounts exist.
 4. The closed test on Play, then the Turkish release.
 
