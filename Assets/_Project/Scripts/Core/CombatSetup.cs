@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using Cryptforge.Analytics;
 using Cryptforge.Art;
@@ -737,16 +736,17 @@ namespace Cryptforge.Core
                 _text.DescendDescriptionFormat, Run.Gold, next.DisplayName, modifier));
         }
 
-        // Extract and Descend with the run's gold and the next floor in their text. The game's text is English, so its
-        // numbers are written in the invariant culture, never the phone's: a Turkish phone wrote "0,45" (CultureTextTests).
+        // Extract and Descend with the run's gold and the next floor in their text. Their numbers are written in the
+        // language the game speaks (Loc.Numbers, docs/60), never the phone's: a Turkish phone wrote "0,45" in English
+        // (CultureTextTests).
         public static CheckpointOption[] CheckpointOptions(string extractName, string extractFormat, string descendName,
             string descendFormat, int gold, string nextFloorName, string modifier) =>
             new[]
             {
                 new CheckpointOption(CheckpointKind.Extract, extractName,
-                    string.Format(CultureInfo.InvariantCulture, extractFormat, gold)),
+                    string.Format(Loc.Numbers, extractFormat, gold)),
                 new CheckpointOption(CheckpointKind.Descend, descendName,
-                    string.Format(CultureInfo.InvariantCulture, descendFormat, gold, nextFloorName, modifier))
+                    string.Format(Loc.Numbers, descendFormat, gold, nextFloorName, modifier))
             };
 
         private void OnCheckpointChosen(CheckpointKind kind)

@@ -384,3 +384,5 @@ map.flavour_2	Frozen vaults of quicksilver. Mirror Sentries turn your blows back
 map.flavour_3	A dusk garden grown over the ash. The last floor before the Final Swarm.	Küllerin üstünde büyümüş bir alacakaranlık bahçesi. Son Sürü'den önceki son kat.	Map card, floor 3 (Loş Bahçeler).
 map.start_catch_up	Floor {0}. Start at level {1}: choose {1} level-ups first.	Kat {0}. {1}. seviyeden başla: önce {1} seviye seç.	Map card, a deeper start. {0} floor, {1} the level the hero starts at; "31." is the Turkish ordinal; "seviye seç" as the catch-up's button says it.
 map.start_fresh	Floor {0}. A fresh hero, the whole Descent ahead.	Kat {0}. Taze bir kahraman, önünde koca bir İniş.	Map card, floor 1. {0} floor.
+result.loot_nothing	nothing	hiçbir şey	Result loot line: what was banked when the run banked nothing but lost loot ("Ganimet: hiçbir şey  |  kayıp: ...").
+result.loot_pieces	{0} pieces (see the Bag)	{0} eşya (Çanta'ya bak)	Result loot line when the full line would not fit. {0} the count of items and materials; no plural after a number.
