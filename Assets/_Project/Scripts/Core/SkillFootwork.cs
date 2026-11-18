@@ -25,6 +25,11 @@ namespace Cryptforge.Core
         public const float EscapeReach = 1.5f;
         public const float EscapeHealth = .6f;
         public const float LoneClear = 3f;
+        // Whether the engage takes the gate boss in the window after its blow as well as an elite room's lone Captain. Phase
+        // 2 (2026-11-18, seeds 1-400): rushing the Warden cost every timing cohort's Vanguard at the boss (careful 12 to 19
+        // deaths, standing 39 to 50, first-card 31 to 41); its window is the weapons', at their reach, and the engage keeps
+        // to the lone Captain.
+        public const bool RushesTheGateBoss = false;
         // Flame Sigil: SigilCrowd or more within the glyph's radius, or the gate boss within it.
         public const int SigilCrowd = 4;
 

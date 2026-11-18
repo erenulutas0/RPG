@@ -191,17 +191,51 @@ namespace Cryptforge.Combat
                     ? new Vector2(nearest.transform.position.x - x, ArenaFloor.FloorY(nearest.transform.position.y) - y)
                     : _facing;
             }
-            Dash.Begin(heading.x, heading.y);
-            float toX = x + Dash.HeadingX * skill.Amount, toY = y + Dash.HeadingY * skill.Amount;
+            // The heading as the dash will take it (HeroDash.Begin normalises it the same way).
+            float length = heading.magnitude;
+            float hx = length > 1e-5f ? heading.x / length : 0f, hy = length > 1e-5f ? heading.y / length : -1f;
+            float toX = x + hx * skill.Amount, toY = y + hy * skill.Amount;
             WeaponRuntime first = FirstWeapon?.Invoke();
             float damage = first != null ? SkillRule.Scaled(skill.Damage, first.Damage, first.BaseDamage) : skill.Damage;
             _targeting.CollectWithin((x + toX) * .5f, (y + toY) * .5f, skill.Amount * .5f + skill.Radius, _targets);
-            for (int i = 0; i < _targets.Count; i++)
+            // Every enemy on the path; with SkillRule.RushStopsOnImpact the first ahead halts the dash short of it, and the
+            // strike reaches no farther than it (the simulation's Rush, through the same bodies).
+            float impact = float.PositiveInfinity;
+            for (int i = _targets.Count - 1; i >= 0; i--)
             {
                 if (!(_targets[i] is Health enemy) || !enemy.IsAlive)
+                {
+                    _targets.RemoveAt(i);
                     continue;
+                }
                 Vector3 at = enemy.transform.position;
-                if (!SkillRule.OnPath(at.x, ArenaFloor.FloorY(at.y), x, y, toX, toY, skill.Radius))
+                float ex = at.x, ey = ArenaFloor.FloorY(at.y);
+                if (!SkillRule.OnPath(ex, ey, x, y, toX, toY, skill.Radius))
+                {
+                    _targets.RemoveAt(i);
+                    continue;
+                }
+                float along = SkillRule.Along(ex, ey, x, y, hx, hy);
+                if (along > 0f)
+                    impact = Math.Min(impact, along);
+            }
+            float travel = skill.Amount;
+            if (SkillRule.RushStopsOnImpact && !float.IsPositiveInfinity(impact))
+            {
+                travel = SkillRule.ImpactTravel(impact, skill.Amount);
+                float reachX = x + hx * impact, reachY = y + hy * impact;
+                for (int i = _targets.Count - 1; i >= 0; i--)
+                {
+                    Vector3 at = ((Health)_targets[i]).transform.position;
+                    if (!SkillRule.OnPath(at.x, ArenaFloor.FloorY(at.y), x, y, reachX, reachY, skill.Radius))
+                        _targets.RemoveAt(i);
+                }
+            }
+            Dash.Begin(hx, hy, travel);
+            for (int i = 0; i < _targets.Count; i++)
+            {
+                var enemy = (Health)_targets[i];
+                if (!enemy.IsAlive)
                     continue;
                 enemy.ApplyDamage(new DamageContext(damage, _owner));
                 if (enemy.IsAlive && (IsGateBoss == null || !IsGateBoss(enemy)))
@@ -225,8 +259,9 @@ namespace Cryptforge.Combat
                 SlowStatus slow = SlowStatus.On(enemy);
                 if (slow == null)
                     continue;
-                slow.State.ApplySlow(SkillRule.SlowOn(Sigil.Slow, IsGateBoss != null && IsGateBoss(enemy)), SigilZone.HoldSeconds);
-                slow.State.ApplyHeat(SkillRule.SigilHeat, SigilZone.HoldSeconds);
+                bool boss = IsGateBoss != null && IsGateBoss(enemy);
+                slow.State.ApplySlow(SkillRule.SlowOn(Sigil.Slow, boss), SigilZone.HoldSeconds);
+                slow.State.ApplyHeat(SkillRule.HeatOn(SkillRule.SigilHeat, boss, SkillRule.GateBossHeatShare), SigilZone.HoldSeconds);
                 if (!enemy.TryGetComponent(out BurnStatus burn) || !burn.IsBurning)
                     Ignite?.Invoke(enemy, SkillRule.SigilStacks);
             }

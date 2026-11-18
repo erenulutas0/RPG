@@ -33,8 +33,14 @@ namespace Cryptforge.Combat
         }
 
         // The press, along a heading (normalised here; straight down the floor for none).
-        public void Begin(float headingX, float headingY)
+        public void Begin(float headingX, float headingY) => Begin(headingX, headingY, Length);
+
+        // A press that travels only units of the dash's length (a Rush stopped on impact, SkillRule.ImpactTravel), at the
+        // dash's own speed.
+        public void Begin(float headingX, float headingY, float units)
         {
+            if (float.IsNaN(units) || units < 0f)
+                throw new ArgumentOutOfRangeException(nameof(units));
             float length = (float)Math.Sqrt(headingX * headingX + headingY * headingY);
             if (float.IsNaN(length) || float.IsInfinity(length))
                 throw new ArgumentOutOfRangeException(nameof(headingX));
@@ -48,9 +54,13 @@ namespace Cryptforge.Combat
                 HeadingX = 0f;
                 HeadingY = -1f;
             }
-            TravelLeft = TravelSeconds;
+            TravelLeft = units >= Length ? TravelSeconds : TravelFor(units, Length, TravelSeconds);
             Dashes++;
         }
+
+        // The seconds units take at length over travelSeconds. One body, never inlined.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static float TravelFor(float units, float length, float travelSeconds) => travelSeconds * (units / length);
 
         // The dash's units on a step of deltaTime with travelLeft seconds of its travel to go: its length over its travel a
         // second, for the part of the step it still travels. One body, never inlined.

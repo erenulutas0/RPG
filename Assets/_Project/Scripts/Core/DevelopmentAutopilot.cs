@@ -270,8 +270,8 @@ namespace Cryptforge.Core
             hx = hy = 0f;
             EncounterController encounter = _setup.Encounters;
             WardenSlamService warden = _setup.Warden;
-            Health target = encounter.GateBoss != null && warden != null && warden.IsFighting && !warden.Clock.IsMarked &&
-                            warden.Clock.HoldsWeapon
+            Health target = SkillFootwork.RushesTheGateBoss && encounter.GateBoss != null && warden != null && warden.IsFighting &&
+                            !warden.Clock.IsMarked && warden.Clock.HoldsWeapon
                 ? encounter.GateBoss
                 : encounter.EliteLeader;
             if (target == null || !target.IsAlive || !encounter.TryFloorPositionOf(target, out float tx, out float ty))

@@ -17,6 +17,13 @@ namespace Cryptforge.Combat
         public const float DazeSeconds = .5f;
         // With no finger down the Rush heads for the nearest enemy within this; with none, the hero's facing.
         public const float RushSeek = 6f;
+        // Whether the Rush stops on impact (ImpactTravel): RushImpactGap short of the first enemy ahead on its path, its
+        // strike reaching no farther; otherwise it carries the hero its whole length through what it meets. Phase 2
+        // (2026-11-18, seeds 1-400): carried through, the Rush took the Vanguard past its target into the pit's band and the
+        // Warden's reach, and its boss deaths rose in every cohort (careful 12 to 19, clumsy 65 to 85, the pit's 80 to 97);
+        // a shield charge that stops at the first body it strikes ends in front of what it charged.
+        public const bool RushStopsOnImpact = true;
+        public const float RushImpactGap = .6f;
         // Flame Sigil (section 3.2): what a burn inside the glyph deals (x2), and the direct stacks an unburnt enemy inside
         // catches at each of the glyph's ticks (BurnRule.TickSeconds).
         public const float SigilHeat = 2f;
@@ -26,6 +33,10 @@ namespace Cryptforge.Combat
         // Gate bosses are slowed by half the slow and never dazed (section 3.0): the Warden's and the Regent's telegraphs
         // stay the bosses' clocks.
         public const float GateBossSlowShare = .5f;
+        // The share of the glyph's heat a gate boss takes: its burn inside deals 1 + (SigilHeat - 1) x this - half, as it
+        // takes half the slow. Phase 2 (2026-11-18, seeds 1-400): the full heat took careful Ilya's floor-1 Warden from
+        // 46.8 s to 45.2 s at P50, the band's edge; half of it reads 47.1 s.
+        public const float GateBossHeatShare = .5f;
 
         // A skill's damage at the press (section 3.0): its base times the hero's first weapon's damage over that weapon's
         // base - what the Force tome and the damage lines have added. A weapon with no base deals the base. Burn is flat.
@@ -36,6 +47,10 @@ namespace Cryptforge.Combat
         // The slow a glyph puts on an enemy: its whole share, or half of it on a gate boss.
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static float SlowOn(float slow, bool gateBoss) => gateBoss ? slow * GateBossSlowShare : slow;
+
+        // The glyph's heat on an enemy: all of it, or share of what it adds on a gate boss (GateBossHeatShare).
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static float HeatOn(float heat, bool gateBoss, float share) => gateBoss ? 1f + (heat - 1f) * share : heat;
 
         // An enemy's step under a slow (PackMotion's stride): the share of it the slow keeps. A daze is a slow of 1.
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -63,6 +78,17 @@ namespace Cryptforge.Combat
             float nearestY = fromY + py * t;
             return ArenaFloor.FloorDistanceSquared(x, y, nearestX, nearestY) <= (float)(radius * radius);
         }
+
+        // How far along a heading (a unit vector) from (fromX, fromY) a floor point lies: the Rush's order of impact.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static float Along(float x, float y, float fromX, float fromY, float headingX, float headingY) =>
+            (x - fromX) * headingX + (y - fromY) * headingY;
+
+        // The travel of a Rush that stops on impact: its length, or RushImpactGap short of the first enemy on its path (at
+        // firstAlong; +infinity for none), never back.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static float ImpactTravel(float firstAlong, float length) =>
+            Math.Max(0f, Math.Min(length, firstAlong - RushImpactGap));
 
         // Whether a floor point lies within radius of a centre: the glyph's and the crowd counts' circle.
         [MethodImpl(MethodImplOptions.NoInlining)]

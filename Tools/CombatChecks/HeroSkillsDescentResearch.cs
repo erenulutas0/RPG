@@ -52,9 +52,29 @@ namespace Cryptforge.Tests
         {
             yield return new Option { Key = "shipped", What = "the shipped kit: skill 1 alone (FoundryLevers.Skills 1)" };
             yield return new Option { Key = "aa-f1", What = "A/A: the shipped game, one unread draw of the pilot's dice on entering floor 1", Set = l => l.NudgeFloor = 1 };
-            yield return new Option { Key = "s2", What = "skill 2 beside skill 1 at section 3's numbers: Iron Resolve (+100 armour 4 s, 20 s) / Flame Sigil (2.5 glyph 5 s, slow 40 %, burn x2, 20 s)", Set = l => l.Skills = 2 };
-            yield return new Option { Key = "s3", What = "skill 3 beside skill 1 at section 3's numbers: Shield Rush (4 units in 0.3 s, 15 scaled within 0.8, daze 0.5 s, 12 s) / Cinder Ward (20 % of the maximum 2 s, 2 stacks a blow, 20 s)", Set = l => { l.Skills = 3; l.SkillTwoOff = true; } };
-            yield return new Option { Key = "s23", What = "all three at section 3's numbers", Set = l => l.Skills = 3 };
+            // Round 1 read section 3 as written (the Rush carried through, the careful pilot rushing the Warden too, the full heat
+            // on the gate boss): Designed puts those back on the shipped defaults.
+            yield return new Option { Key = "s2", What = "skill 2 beside skill 1 at section 3's numbers: Iron Resolve (+100 armour 4 s, 20 s) / Flame Sigil (2.5 glyph 5 s, slow 40 %, burn x2, 20 s)", Set = l => { l.Skills = 2; Designed(l); } };
+            yield return new Option { Key = "s3", What = "skill 3 beside skill 1 at section 3's numbers: Shield Rush (4 units in 0.3 s, 15 scaled within 0.8, daze 0.5 s, 12 s) / Cinder Ward (20 % of the maximum 2 s, 2 stacks a blow, 20 s)", Set = l => { l.Skills = 3; l.SkillTwoOff = true; Designed(l); } };
+            yield return new Option { Key = "s23", What = "all three at section 3's numbers", Set = l => { l.Skills = 3; Designed(l); } };
+            // The candidate for the confirmation (phase 2, round 3): all three at the shipped defaults - section 3's numbers,
+            // the Rush stopping on impact, the careful pilot leaving the Warden to its weapons, the gate boss taking half the
+            // glyph's heat (SkillRule.RushStopsOnImpact, SkillFootwork.RushesTheGateBoss, SkillRule.GateBossHeatShare).
+            yield return new Option { Key = "c1", What = "all three as phase 2 chose them: section 3's numbers, the Rush stopping on impact (0.6 short of the first enemy ahead, striking up to it), the careful pilot never rushing the gate boss, the gate boss taking half the glyph's heat", Set = l => l.Skills = 3 };
+            // Round 2 (the Rush, after round 1 on seeds 1-400 found the Vanguard's boss deaths up in every cohort with it).
+            yield return new Option { Key = "s3-impact", What = "skill 3 beside skill 1, the Rush stopping on impact (0.6 short of the first enemy on its path, striking up to it)", Set = l => { l.Skills = 3; l.SkillTwoOff = true; Designed(l); l.RushStopsOnImpact = true; } };
+            yield return new Option { Key = "s3-noboss", What = "skill 3 beside skill 1, the careful pilot never rushing the gate boss", Set = l => { l.Skills = 3; l.SkillTwoOff = true; Designed(l); l.RushEngagesTheGateBoss = false; } };
+            // The glyph's heat on the gate boss (after round 1 put careful Ilya's floor-1 Warden at 45.2 s, the band's edge).
+            yield return new Option { Key = "s23-heat5", What = "all three, the gate boss taking half the glyph's heat (its burn x1.5 inside)", Set = l => { l.Skills = 3; Designed(l); l.SkillBossHeatShare = .5f; } };
+            yield return new Option { Key = "s3-both", What = "skill 3 beside skill 1, the Rush stopping on impact and the careful pilot never rushing the gate boss", Set = l => { l.Skills = 3; l.SkillTwoOff = true; l.RushStopsOnImpact = true; l.RushEngagesTheGateBoss = false; } };
+        }
+
+        // Section 3 as written, before phase 2's three changes.
+        private static void Designed(DescentSimulation.FoundryLevers levers)
+        {
+            levers.RushStopsOnImpact = false;
+            levers.RushEngagesTheGateBoss = true;
+            levers.SkillBossHeatShare = 1f;
         }
 
         // One run as the report reads it: the Descent's outcome, its bosses and, floor by floor, what the skills did.
@@ -114,7 +134,9 @@ namespace Cryptforge.Tests
             string pilot = Environment.GetEnvironmentVariable("FOUNDRY_REALISM") ?? "typical";
             PilotRealism realism = pilot == "frame-perfect" ? null : PilotRealism.Named(pilot);
             string hands = realism != null ? realism.Name : "frame-perfect";
-            var heroes = new[] { DescentSimulation.Vanguard(), DescentSimulation.CinderArcanist() };
+            string[] heroNames = List("SKILLS_HEROES", "Vanguard,Ilya");
+            var heroes = new[] { DescentSimulation.Vanguard(), DescentSimulation.CinderArcanist() }
+                .Where(h => heroNames.Contains(h.Name)).ToArray();
 
             var reads = new List<RunRead>();
             foreach (Option option in options)
@@ -133,8 +155,8 @@ namespace Cryptforge.Tests
                     reads.AddRange(cell);
                 }
                 TestContext.Progress.WriteLine($"{option.Key}: {watch.Elapsed.TotalSeconds:0} s");
-                File.WriteAllText(Path.Combine(output, "hero-skills-rule.md"), Report(reads, options, first, count, hands));
                 File.WriteAllText(Path.Combine(output, "hero-skills-rule.csv"), Csv(reads, hands));
+                File.WriteAllText(Path.Combine(output, "hero-skills-rule.md"), Report(reads, options, first, count, hands));
             }
             TestContext.WriteLine(Report(reads, options, first, count, hands));
             Assert.That(reads.Count, Is.EqualTo(options.Length * cohorts.Length * heroes.Length * count), "every seed ran");
@@ -260,7 +282,7 @@ namespace Cryptforge.Tests
                     }
                 }
                 int Three(string hero) => mine.Count(r => r.Hero == hero && r.FloorsCleared >= 3);
-                md.AppendLine($"| `{option.Key}` | {cohort} | {Done(heroes[0])} | {Done(heroes[1])} | {both} ({Pct(both, mine.Length)}) | {change} | {points} | {Three(heroes[0])} / {Three(heroes[1])} |");
+                md.AppendLine($"| `{option.Key}` | {cohort} | {Done("Vanguard")} | {Done("Ilya")} | {both} ({Pct(both, mine.Length)}) | {change} | {points} | {Three("Vanguard")} / {Three("Ilya")} |");
             }
             md.AppendLine();
 

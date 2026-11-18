@@ -79,12 +79,12 @@ namespace Cryptforge.Tests
         }
 
         [UnityTest]
-        public IEnumerator TheVanguardsGuardHoldsItsSecondsAndItsRushStrikesDazesAndCarriesIt()
+        public IEnumerator TheVanguardsGuardHoldsItsSecondsAndItsRushStrikesDazesAndStopsOnImpact()
         {
             yield return Load(null, "3");
             Assert.That(_ability.SkillAt(2).Kind, Is.EqualTo(AbilityKind.Guard));
             Assert.That(_ability.SkillAt(3).Kind, Is.EqualTo(AbilityKind.Rush));
-            Health[] dummies = Dummies(new Vector2(1.5f, 0f), new Vector2(3f, .5f), new Vector2(2f, 2f));
+            Health[] dummies = Dummies(new Vector2(2.5f, .3f), new Vector2(3.5f, 0f), new Vector2(2f, 2f));
 
             Assert.That(_hero.State.DamageReduction, Is.EqualTo(0f));
             Assert.That(_ability.TryUse(2), Is.True);
@@ -93,15 +93,17 @@ namespace Cryptforge.Tests
                 yield return null;
             Assert.That(_hero.State.DamageReduction, Is.EqualTo(0f), "the guard ends after its 4 s");
 
+            // The Rush stops on impact (SkillRule.RushStopsOnImpact): 0.6 short of the first enemy ahead, striking up to it.
             float startX = _hero.transform.position.x;
             Assert.That(_ability.TryUse(3, Vector2.right), Is.True);
-            Assert.That(dummies[0].Current, Is.EqualTo(1000f - 15f).Within(1e-3f), "on the path: struck");
-            Assert.That(dummies[1].Current, Is.EqualTo(1000f - 15f).Within(1e-3f), "within 0.8 of the path");
+            Assert.That(dummies[0].Current, Is.EqualTo(1000f - 15f).Within(1e-3f), "the first on the path: struck");
+            Assert.That(dummies[1].Current, Is.EqualTo(1000f), "beyond the impact: spared");
             Assert.That(dummies[2].Current, Is.EqualTo(1000f), "off the path");
             Assert.That(dummies[0].GetComponent<SlowStatus>().IsDazed, Is.True);
             for (int frame = 0; frame < 30; frame++)
                 yield return null;
-            Assert.That(_hero.transform.position.x - startX, Is.EqualTo(4f).Within(.05f), "the Rush carries the hero its 4 units");
+            Assert.That(_hero.transform.position.x - startX, Is.EqualTo(2.5f - SkillRule.RushImpactGap).Within(.05f),
+                "the Rush halts 0.6 short of what it struck");
             Assert.That(dummies[0].GetComponent<SlowStatus>().IsDazed, Is.False, "the daze lasts 0.5 s");
             Assert.That(_ability.TryUse(3, Vector2.right), Is.False, "cooling down");
         }

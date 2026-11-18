@@ -68,6 +68,13 @@ namespace Cryptforge.Tests
             // Research (phase 2's tuning): each skill's numbers as the run makes it, from its asset's (the delegate gets a
             // copy); null keeps the assets'.
             public Action<HeroAbility> TuneSkill;
+            // Research: the share of the glyph's heat a gate boss takes (SkillRule.GateBossHeatShare, the scene's).
+            public float SkillBossHeatShare = SkillRule.GateBossHeatShare;
+            // Research (phase 2): the Rush stops on impact - RushImpactGap short of the first enemy on its path, striking up to
+            // it (SkillRule.ImpactTravel) - rather than carrying the hero its whole length through what it meets; and the
+            // careful pilot's engage on the gate boss in its window (SkillFootwork), on as section 3 has it.
+            public bool RushStopsOnImpact = SkillRule.RushStopsOnImpact;
+            public bool RushEngagesTheGateBoss = SkillFootwork.RushesTheGateBoss;
         }
 
         internal sealed partial class FoundryResult
@@ -112,6 +119,7 @@ namespace Cryptforge.Tests
             // every enemy a skill has slowed, dazed or heated; the slot whose damage is being applied (Skill).
             private HeroDash _rush;
             private bool _rushPressed;
+            private float _rushUnits;
             private float _rushX;
             private float _rushY;
             private SigilZone _sigil;
@@ -162,7 +170,7 @@ namespace Cryptforge.Tests
                 if (_rushPressed)
                 {
                     _rushPressed = false;
-                    _rush.Begin(_rushX, _rushY);
+                    _rush.Begin(_rushX, _rushY, _rushUnits);
                 }
                 if (!_rush.IsDashing)
                     return false;
@@ -234,7 +242,8 @@ namespace Cryptforge.Tests
                         continue;
                     SlowState slow = Touch(foe);
                     slow.ApplySlow(SkillRule.SlowOn(_sigil.Slow, foe.GateBoss), SigilZone.HoldSeconds);
-                    slow.ApplyHeat(SkillRule.SigilHeat, SigilZone.HoldSeconds);
+                    slow.ApplyHeat(SkillRule.HeatOn(SkillRule.SigilHeat, foe.GateBoss, _runLevers.SkillBossHeatShare),
+                        SigilZone.HoldSeconds);
                     _result.SigilSlowed++;
                     if (foe.Burn == null || !foe.Burn.IsBurning)
                     {
@@ -412,7 +421,8 @@ namespace Cryptforge.Tests
                 hx = hy = 0f;
                 Foe target = null;
                 Foe gate = GateBoss;
-                if (gate != null && IsValid(gate) && !_slam.IsMarked && _slam.HoldsWeaponFor(_levers.WardenRecoverySeconds))
+                if (gate != null && IsValid(gate) && _runLevers.RushEngagesTheGateBoss && !_slam.IsMarked &&
+                    _slam.HoldsWeaponFor(_levers.WardenRecoverySeconds))
                     target = gate;
                 else if (_eliteWave && _elites.Count > 0 && IsValid(_elites[0]))
                     target = _elites[0];
@@ -511,16 +521,35 @@ namespace Cryptforge.Tests
                 _rushPressed = true;
                 _rushX = hx;
                 _rushY = hy;
+                _rushUnits = skill.Amount;
                 float x = HeroX, y = HeroY;
                 float toX = x + hx * skill.Amount, toY = y + hy * skill.Amount;
                 WeaponRuntime first = _loadout.Primary;
                 float damage = first != null ? SkillRule.Scaled(skill.Damage, first.Damage, first.BaseDamage) : skill.Damage;
                 _abilityTargets.Clear();
+                float impact = float.PositiveInfinity;
                 for (int i = 0; i < TargetCount; i++)
                 {
                     Foe foe = TargetAt(i);
-                    if (IsValid(foe) && SkillRule.OnPath(foe.X, foe.Y, x, y, toX, toY, skill.Radius))
-                        _abilityTargets.Add(foe);
+                    if (!IsValid(foe) || !SkillRule.OnPath(foe.X, foe.Y, x, y, toX, toY, skill.Radius))
+                        continue;
+                    _abilityTargets.Add(foe);
+                    // Only what stands ahead stops it; what stands beside the hero as it sets off is struck in passing.
+                    float along = SkillRule.Along(foe.X, foe.Y, x, y, hx, hy);
+                    if (along > 0f)
+                        impact = Math.Min(impact, along);
+                }
+                // On impact (research): the dash halts short of the first enemy on its path and strikes only up to it.
+                if (_runLevers.RushStopsOnImpact && !float.IsPositiveInfinity(impact))
+                {
+                    _rushUnits = SkillRule.ImpactTravel(impact, skill.Amount);
+                    float reachX = x + hx * Math.Max(0f, impact), reachY = y + hy * Math.Max(0f, impact);
+                    for (int i = _abilityTargets.Count - 1; i >= 0; i--)
+                    {
+                        var foe = (Foe)_abilityTargets[i];
+                        if (!SkillRule.OnPath(foe.X, foe.Y, x, y, reachX, reachY, skill.Radius))
+                            _abilityTargets.RemoveAt(i);
+                    }
                 }
                 _source = DamageSource.Skill;
                 _skillSlot = index;
