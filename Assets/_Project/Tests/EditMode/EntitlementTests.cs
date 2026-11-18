@@ -190,5 +190,49 @@ namespace Cryptforge.Tests
             Assert.Throws<ArgumentNullException>(() => new EntitlementService(null, null));
             Assert.Throws<ArgumentException>(() => service.Purchase(""));
         }
+
+        // The review of 2026-11-19: a query sent before a purchase, answered after it, must not take the skip away.
+        [Test]
+        public void AQueryAnsweredAfterAPurchaseKeepsWhatThePurchaseGranted()
+        {
+            var store = new HeldStore();
+            var service = new EntitlementService(store, new EntitlementCache(_root), null, () => Now);
+            service.Refresh();
+            service.Purchase(StoreProducts.SkipRewardVideos);
+            store.PurchaseAnswer(StorePurchaseResult.Purchased);
+            Assert.That(service.OwnsSkip, Is.True);
+            store.QueryAnswer(StoreQueryResult.Of(new OwnedProduct[0]));
+            Assert.That(service.OwnsSkip, Is.True, "The query's list was taken before the purchase.");
+            Assert.That(new EntitlementCache(_root).Load().Owns(StoreProducts.SkipRewardVideos), Is.True);
+
+            service.Refresh();
+            store.QueryAnswer(StoreQueryResult.Of(new OwnedProduct[0]));
+            Assert.That(service.OwnsSkip, Is.False, "A later query without it is the store's truth again (a refund).");
+        }
+
+        // A store whose answers the test hands over in any order.
+        private sealed class HeldStore : IStoreEntitlements
+        {
+            private Action<StoreQueryResult> _query;
+            private Action<StorePurchaseResult> _purchase;
+
+            public void QueryOwned(Action<StoreQueryResult> onResult) => _query = onResult;
+            public void Purchase(string productId, Action<StorePurchaseResult> onResult) => _purchase = onResult;
+            public void Acknowledge(string productId, Action<bool> onAcknowledged) => onAcknowledged(true);
+
+            public void QueryAnswer(StoreQueryResult result)
+            {
+                Action<StoreQueryResult> answer = _query;
+                _query = null;
+                answer(result);
+            }
+
+            public void PurchaseAnswer(StorePurchaseResult result)
+            {
+                Action<StorePurchaseResult> answer = _purchase;
+                _purchase = null;
+                answer(result);
+            }
+        }
     }
 }

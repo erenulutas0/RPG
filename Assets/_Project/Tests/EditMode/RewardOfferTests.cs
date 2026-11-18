@@ -359,6 +359,27 @@ namespace Cryptforge.Tests
             Assert.That(rig.Video.IsReady, Is.True, "The video stays for the next run.");
         }
 
+        // The review of 2026-11-19: a run whose screen closed is over, opened again or not.
+        [Test]
+        public void ARunOpenedAgainAfterItsScreenClosedIsNotOfferedOrCountedAgain()
+        {
+            var rig = new Rig();
+            rig.OpenSecond(40);
+            rig.Offer.Close();
+            int completed = rig.Ledger.CompletedRuns;
+            Assert.That(rig.Open("s-2", 40), Is.EqualTo(RewardOfferState.Resolved), "Declined once is over.");
+            Assert.That(rig.Offer.Take(), Is.EqualTo(RewardTakeResult.NotOffered));
+            rig.Offer.Close();
+            Assert.That(rig.Open("s-3", 40), Is.EqualTo(RewardOfferState.Video));
+            rig.Offer.Close();
+            Assert.That(rig.Open("s-2", 40), Is.EqualTo(RewardOfferState.Resolved), "A, B, A: still over.");
+            rig.Offer.Close();
+            Assert.That(rig.Ledger.CompletedRuns, Is.EqualTo(completed + 1), "Only s-3 was a new run.");
+            Assert.That(rig.Analytics.Named("reward_offer").Count, Is.EqualTo(2), "One reward_offer a run.");
+            Assert.That(rig.Analytics.Named("reward_result").Count, Is.EqualTo(2), "One reward_result a run.");
+            Assert.That(rig.Gold, Is.EqualTo(0));
+        }
+
         [Test]
         public void ABackgroundTripToTheVideoKeepsTheSessionAndAKilledAppCostsAtMostTheBonus()
         {

@@ -1237,6 +1237,8 @@ removed).
       # FOUNDRY_SEEDS=100 (default), FOUNDRY_REALISM=typical; writes TestResults/gear-economy.md and .csv
     python Tools/Economy/gear_economy.py --players 2000
       # reads Tools/Economy/income-2026-11-16.csv (the run of 2026-11-16, seeds 1-100 a hero, copied from TestResults)
+    python Tools/Economy/gear_economy.py --video
+      # docs/58 section 4a: the result screen's gold video (watch rates, multipliers) on the tiers' payouts
     dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~GearedCohortsResearch"
       # section 20's geared cohorts: FOUNDRY_GEAR (all), FOUNDRY_SEEDS=200, FOUNDRY_REALISM=typical, FOUNDRY_PARALLEL;
       # writes TestResults/gear-cohorts.md and .csv (phase 5b's run of 2026-11-17, eight geared cohorts and the three

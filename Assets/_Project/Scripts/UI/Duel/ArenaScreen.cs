@@ -206,7 +206,9 @@ namespace Cryptforge.UI
             RestoreBuild();
             Loc.Changed += OnLanguageChanged;
             _subscribed = true;
-            Show(_save.rankedBuild == null ? Page.Build : Page.Ladder);
+            // A stored build the profile can no longer field (its hero or weapon gone, its lines out of the pool) opens the
+            // build page: the ladder never fights with a build the save does not hold (the review of 2026-11-19).
+            Show(_save.rankedBuild == null || !_restoredAsStored ? Page.Build : Page.Ladder);
         }
 
         // ---- The save ----
@@ -241,6 +243,9 @@ namespace Cryptforge.UI
 
         // ---- The build ----
 
+        // Whether RestoreBuild brought back the stored build exactly.
+        private bool _restoredAsStored;
+
         private void RestoreBuild()
         {
             _heroIds.Clear();
@@ -263,6 +268,8 @@ namespace Cryptforge.UI
                         _lines.Add(stat);
                 }
             }
+            bool linesAsStored = _lines.Count == ArenaRules.Current.RankedLines && stored != null && stored.lineIds != null &&
+                stored.lineIds.Count == _lines.Count;
             if (_lines.Count != ArenaRules.Current.RankedLines)
             {
                 _lines.Clear();
@@ -272,6 +279,10 @@ namespace Cryptforge.UI
                         _lines.Add(stat);
                 }
             }
+            _restoredAsStored = stored != null && linesAsStored &&
+                string.Equals(stored.heroId, _heroId, StringComparison.Ordinal) &&
+                string.Equals(stored.weaponId, _weaponId, StringComparison.Ordinal) &&
+                (stored.policy == "bold") == (_policy == ArenaPolicy.Bold);
         }
 
         private HeroDefinition Definition(string heroId)
