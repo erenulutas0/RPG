@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading;
 using Cryptforge.Combat;
 using Cryptforge.Core;
+using Cryptforge.Localisation;
 using Cryptforge.Progression;
 using Cryptforge.UI;
 using NUnit.Framework;
@@ -26,7 +27,11 @@ namespace Cryptforge.Tests
 {
     public sealed class AnvilUiCapture
     {
-        private const string Output = "ArtDirection/2026-11-17/anvil-ui-01/";
+        // The capture's language (Run-AnvilUiProof.ps1 -Language tr sets CRYPTFORGE_LANGUAGE): English frames in
+        // anvil-ui-01, Turkish ones beside them in anvil-ui-01-tr (docs/60).
+        private static Language CaptureLanguage => LocalisationRuntime.CaptureLanguage(out Language language) ? language : Language.English;
+        private static string Output => CaptureLanguage == Language.Turkish ? "ArtDirection/2026-11-17/anvil-ui-01-tr/" : "ArtDirection/2026-11-17/anvil-ui-01/";
+        private Language? _language;
         private const string ScenePath = "Assets/_Project/Scenes/Gameplay/Gameplay.unity";
         private const int Width = 1080;
         private const int Height = 2340;
@@ -41,6 +46,13 @@ namespace Cryptforge.Tests
         private AnvilView _anvil;
         private CultureInfo _culture;
         private readonly StringBuilder _frames = new StringBuilder();
+
+        [SetUp]
+        public void SpeakTheCaptureLanguage()
+        {
+            _language = Loc.Override;
+            Loc.Override = CaptureLanguage;
+        }
 
         [UnityTest, Timeout(600000)]
         public IEnumerator CaptureTheAnvilsTabs()
@@ -63,7 +75,8 @@ namespace Cryptforge.Tests
             Object.FindFirstObjectByType<HeroMovementInput>().enabled = false;
             _camera = Camera.main;
             Directory.CreateDirectory(Output);
-            _frames.Clear().Append("Each frame, at 1080x2340 on a tr-TR culture.\n");
+            _frames.Clear().Append("Each frame, at 1080x2340 on a tr-TR culture, the game in ")
+                .Append(LanguageCodes.Code(CaptureLanguage)).Append(".\n");
 
             // A run's loot, then the end: the result's loot line.
             _setup.Loot.EliteFelled(1);
@@ -273,6 +286,7 @@ namespace Cryptforge.Tests
         [UnityTearDown]
         public IEnumerator Cleanup()
         {
+            Loc.Override = _language;
             if (_culture != null)
                 Thread.CurrentThread.CurrentCulture = _culture;
             Time.timeScale = 1;

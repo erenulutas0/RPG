@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Cryptforge.Core;
+using Cryptforge.Localisation;
 using UnityEngine;
 
 namespace Cryptforge.UI
@@ -134,7 +135,8 @@ namespace Cryptforge.UI
                 _hintStyle.normal.textColor = new Color(.88f,.77f,.58f);
             }
             _hintStyle.fontSize = Mathf.RoundToInt(18 * Screen.width / 540f);
-            GUI.Label(new Rect(0, Screen.height * .86f, Screen.width, Screen.height * .06f), "Tap to continue", _hintStyle);
+            GUI.Label(new Rect(0, Screen.height * .86f, Screen.width, Screen.height * .06f),
+                Loc.Text("hud.tap_to_continue", "Tap to continue"), _hintStyle);
         }
     }
 }

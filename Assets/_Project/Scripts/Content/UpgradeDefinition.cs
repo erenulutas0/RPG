@@ -1,3 +1,4 @@
+using Cryptforge.Localisation;
 using Cryptforge.Progression;
 using UnityEngine;
 
@@ -28,8 +29,10 @@ namespace Cryptforge.Content
         [SerializeField] private UpgradeDefinition _evolvesFrom;
 
         public string Id => _id;
-        public string DisplayName => _displayName;
-        public string DescriptionFormat => _descriptionFormat;
+        public string DisplayName => Loc.Text(_nameKey ??= ContentKeys.Key(_id, ContentKeys.Name), _displayName);
+        public string DescriptionFormat => Loc.Text(_descriptionKey ??= ContentKeys.Key(_id, ContentKeys.Description), _descriptionFormat);
+        [System.NonSerialized] private string _nameKey;
+        [System.NonSerialized] private string _descriptionKey;
         public UpgradeStat Stat => _stat;
         public ModifierOperation Operation => _operation;
         public float Amount => _amount;
@@ -43,7 +46,7 @@ namespace Cryptforge.Content
         public float GoldAmount => _goldAmount != 0f ? _goldAmount : EpicAmount;
 
         public UpgradeOption CreateOption() =>
-            new UpgradeOption(_id, _displayName, _descriptionFormat, _stat,
+            new UpgradeOption(_id, DisplayName, DescriptionFormat, _stat,
                 new StatModifier(_operation, _amount),
                 new StatModifier(_operation, RareAmount),
                 new StatModifier(_operation, EpicAmount),

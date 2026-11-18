@@ -62,7 +62,8 @@ namespace Cryptforge.Core
         {
             if (!Application.isEditor && !Debug.isDebugBuild)
                 return 0;
-            return int.TryParse(ReadFirstLine(HordeProbePath), out int count) && count > 0 ? count : 0;
+            return int.TryParse(ReadFirstLine(HordeProbePath), System.Globalization.NumberStyles.Integer,
+                System.Globalization.CultureInfo.InvariantCulture, out int count) && count > 0 ? count : 0;
         }
 
         // A number of seconds in it starts each foundry floor's clock that far on (HordeClock): a look at the last minute

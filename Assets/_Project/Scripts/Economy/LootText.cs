@@ -1,22 +1,18 @@
 using System.Collections.Generic;
-using System.Globalization;
 using System.Text;
 using Cryptforge.Core;
+using Cryptforge.Localisation;
 using Cryptforge.Progression;
 
 namespace Cryptforge.Economy
 {
     // The result screen's loot line as plain text (docs/54 phase 3; the Anvil's own screen is phase 4): what the run
-    // banked - materials and boosters by count, items by name and rarity - and what a death took. Numbers in the invariant
-    // culture, as all of the game's text (CultureTextTests).
+    // banked - materials and boosters by count, items by name and rarity - and what a death took. In the language the game
+    // speaks (Loc, docs/60; the names are GearText's), never the phone's culture (CultureTextTests).
     public static class LootText
     {
-        private static readonly string[] MaterialNames = { "Ember Shard", "Quicksilver Bead", "Gloam Spore" };
-        private static readonly string[] BoosterNames = { "Forge Seal", "Master's Hammer", "Efsun Scroll", "Binding Rune" };
-        private static readonly string[] RarityNames = { "Common", "Rare", "Epic", "Gold" };
-
-        public static string Name(MaterialKind kind) => MaterialNames[(int)kind];
-        public static string Name(BoosterKind kind) => BoosterNames[(int)kind];
+        public static string Name(MaterialKind kind) => GearText.MaterialName(kind);
+        public static string Name(BoosterKind kind) => GearText.BoosterName(kind);
 
         // "Ember Shard x4, Forge Seal x1, Cinder Ring (Rare)" for what was banked, and "Gloam Spore x1" for what was lost;
         // empty strings for none. An item a full bag melted reads "(Rare, melted)".
@@ -32,23 +28,25 @@ namespace Cryptforge.Economy
             for (int i = 0; i < GearCurrency.MaterialCount; i++)
             {
                 int count = loot.SecuredMaterial((MaterialKind)i) + (settlement != null ? settlement.MaterialsKept[i] : loot.UnsecuredMaterial((MaterialKind)i));
-                Count(kept, MaterialNames[i], count);
+                Count(kept, GearText.MaterialName((MaterialKind)i), count);
                 if (settlement != null)
-                    Count(gone, MaterialNames[i], settlement.MaterialsLost[i]);
+                    Count(gone, GearText.MaterialName((MaterialKind)i), settlement.MaterialsLost[i]);
             }
             for (int i = 0; i < GearCurrency.BoosterCount; i++)
             {
                 int count = loot.SecuredBooster((BoosterKind)i) + (settlement != null ? settlement.BoostersKept[i] : loot.UnsecuredBooster((BoosterKind)i));
-                Count(kept, BoosterNames[i], count);
+                Count(kept, GearText.BoosterName((BoosterKind)i), count);
                 if (settlement != null)
-                    Count(gone, BoosterNames[i], settlement.BoostersLost[i]);
+                    Count(gone, GearText.BoosterName((BoosterKind)i), settlement.BoostersLost[i]);
             }
             IReadOnlyList<ItemDrop> items = loot.Items;
             for (int i = 0; i < items.Count; i++)
             {
                 bool melted = itemDeposits != null && itemDeposits.Melted.Contains(items[i]);
-                Separate(kept).Append(string.Format(CultureInfo.InvariantCulture, melted ? "{0} ({1}, melted)" : "{0} ({1})",
-                    items[i].DisplayName, RarityNames[(int)items[i].Rarity]));
+                string rarity = GearText.RarityName(items[i].Rarity);
+                Separate(kept).Append(melted
+                    ? Loc.Format("loot.item_melted", "{name} ({rarity}, melted)", ("name", items[i].DisplayName), ("rarity", rarity))
+                    : Loc.Format("loot.item", "{name} ({rarity})", ("name", items[i].DisplayName), ("rarity", rarity)));
             }
             banked = kept.ToString();
             lost = gone.ToString();
@@ -81,10 +79,12 @@ namespace Cryptforge.Economy
             }
             int melted = itemDeposits != null ? itemDeposits.Melted.Count : 0;
             int stored = loot.Items.Count - melted;
+            // Two keys rather than a plural rule: Turkish counts without one ("1 eşya", "2 eşya").
             if (stored > 0)
-                Separate(kept).Append(stored == 1 ? "1 item" : stored.ToString(CultureInfo.InvariantCulture) + " items");
+                Separate(kept).Append(stored == 1 ? Loc.Text("loot.one_item", "1 item")
+                    : Loc.Format("loot.items", "{count} items", ("count", stored)));
             if (melted > 0)
-                Separate(kept).Append(melted.ToString(CultureInfo.InvariantCulture)).Append(" melted");
+                Separate(kept).Append(Loc.Format("loot.melted", "{count} melted", ("count", melted)));
             banked = kept.ToString();
             lost = gone.ToString();
         }
@@ -92,13 +92,13 @@ namespace Cryptforge.Economy
         private static void Short(StringBuilder text, string name, int count)
         {
             if (count > 0)
-                Separate(text).Append(name).Append(' ').Append(count.ToString(CultureInfo.InvariantCulture));
+                Separate(text).Append(Loc.Format("loot.short_count", "{name} {count}", ("name", name), ("count", count)));
         }
 
         private static void Count(StringBuilder text, string name, int count)
         {
             if (count > 0)
-                Separate(text).Append(string.Format(CultureInfo.InvariantCulture, "{0} x{1}", name, count));
+                Separate(text).Append(Loc.Format("loot.count", "{name} x{count}", ("name", name), ("count", count)));
         }
 
         private static StringBuilder Separate(StringBuilder text) => text.Length > 0 ? text.Append(", ") : text;

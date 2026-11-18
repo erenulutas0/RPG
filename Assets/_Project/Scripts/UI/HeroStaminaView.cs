@@ -1,4 +1,5 @@
 using Cryptforge.Combat;
+using Cryptforge.Localisation;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -49,6 +50,9 @@ namespace Cryptforge.UI
                 return;
             }
             _fillColor = _fill.color;
+            // The bar's word ("MOVE" in the scene) in the language the game speaks.
+            if (_label != null && _label.TryGetComponent(out Text word))
+                LocalisedLabel.Bind(word, () => Loc.Text("hud.stamina_label", "MOVE"));
             _stamina.Changed += Refresh;
             Refresh();
         }

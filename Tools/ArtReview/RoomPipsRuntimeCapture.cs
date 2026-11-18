@@ -18,6 +18,7 @@ using System.Text;
 using Cryptforge.Art;
 using Cryptforge.Combat;
 using Cryptforge.Core;
+using Cryptforge.Localisation;
 using Cryptforge.Progression;
 using Cryptforge.UI;
 using NUnit.Framework;
@@ -30,7 +31,19 @@ namespace Cryptforge.Tests
 {
     public sealed class RoomPipsRuntimeCapture
     {
-        private const string Output = "ArtDirection/2026-11-04/room-pips-runtime-01/";
+        // The capture's language (Run-RoomPipsRuntimeProof.ps1 -Language tr sets CRYPTFORGE_LANGUAGE): English frames in
+        // room-pips-runtime-01, Turkish ones beside them in room-pips-runtime-01-tr (docs/60).
+        private static Language CaptureLanguage => LocalisationRuntime.CaptureLanguage(out Language language) ? language : Language.English;
+        private static string Output => CaptureLanguage == Language.Turkish
+            ? "ArtDirection/2026-11-04/room-pips-runtime-01-tr/" : "ArtDirection/2026-11-04/room-pips-runtime-01/";
+        private Language? _language;
+
+        [SetUp]
+        public void SpeakTheCaptureLanguage()
+        {
+            _language = Loc.Override;
+            Loc.Override = CaptureLanguage;
+        }
         private const string ScenePath = "Assets/_Project/Scenes/Gameplay/Gameplay.unity";
         private const float Step = 1f / 60f;
         // Past floor 1's gate time (FoundryGateNotBeforeSeconds, 210 s), so the cleared room 6 goes straight on to the
@@ -494,6 +507,7 @@ namespace Cryptforge.Tests
         [UnityTearDown]
         public IEnumerator Cleanup()
         {
+            Loc.Override = _language;
             Time.timeScale = 1;
             Time.captureDeltaTime = 0;
             if (_scene.IsValid() && _scene.isLoaded)

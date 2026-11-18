@@ -4,13 +4,18 @@
 # import, scene save, APK or device operation. Frames land in ArtDirection/2026-11-04/room-pips-runtime-01 as PNG, with
 # pip-rects.txt beside them.
 #   pwsh -File Tools/ArtReview/Run-RoomPipsRuntimeProof.ps1
-param([string]$UnityEditor = 'E:/Unity/Editors/6000.0.65f1/Editor/Unity.exe')
+# -Language tr draws the HUD in Turkish (docs/60) into room-pips-runtime-01-tr beside the English frames:
+#   pwsh -File Tools/ArtReview/Run-RoomPipsRuntimeProof.ps1 -Language tr
+param([string]$UnityEditor = 'E:/Unity/Editors/6000.0.65f1/Editor/Unity.exe', [ValidateSet('en', 'tr')][string]$Language = 'en')
 $ErrorActionPreference = 'Stop'
 $proofRoot = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $proofTarget = Join-Path $proofRoot 'Assets/_Project/Tests/PlayMode/RoomPipsRuntimeCapture.cs'
 $proofMeta = "$proofTarget.meta"
 $proofResults = Join-Path $proofRoot 'TestResults/room-pips-runtime.xml'
-$proofFrames = Join-Path $proofRoot 'ArtDirection/2026-11-04/room-pips-runtime-01'
+$proofFrames = Join-Path $proofRoot ('ArtDirection/2026-11-04/room-pips-runtime-01' + $(if ($Language -eq 'tr') { '-tr' } else { '' }))
+# The capture reads its language from the Unity process's environment (LocalisationRuntime.CaptureLanguageVariable).
+$proofLanguageBefore = $env:CRYPTFORGE_LANGUAGE
+$env:CRYPTFORGE_LANGUAGE = $Language
 if ((Get-Process Unity -ErrorAction SilentlyContinue) -or (Test-Path (Join-Path $proofRoot 'Temp/UnityLockfile'))) { throw 'Unity is in use; coordinate before capturing.' }
 if ((Test-Path $proofTarget) -or (Test-Path $proofMeta)) { throw 'Temporary proof files already exist; inspect before retrying.' }
 Push-Location $proofRoot
@@ -48,5 +53,6 @@ try {
     # Only these exact temporary files belong to this runner.
     if (Test-Path $proofTarget) { Remove-Item -LiteralPath $proofTarget }
     if (Test-Path $proofMeta) { Remove-Item -LiteralPath $proofMeta }
+    $env:CRYPTFORGE_LANGUAGE = $proofLanguageBefore
     Pop-Location
 }

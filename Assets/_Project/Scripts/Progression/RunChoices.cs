@@ -1,5 +1,5 @@
 using System;
-using System.Globalization;
+using Cryptforge.Localisation;
 
 namespace Cryptforge.Progression
 {
@@ -69,7 +69,7 @@ namespace Cryptforge.Progression
                 UpgradeOption option = offer.Choices[i];
                 UpgradeRarity rarity = offer.RarityAt(i);
                 cards[i] = new ChoiceCard(option.DisplayName,
-                    string.Format(CultureInfo.InvariantCulture, option.DescriptionFormat, option.DescriptionValueFor(rarity)), rarity);
+                    string.Format(Loc.Numbers, option.DescriptionFormat, option.DescriptionValueFor(rarity)), rarity);
             }
             return new ChoicePrompt(ChoiceKind.Upgrade, cards);
         }
@@ -80,7 +80,7 @@ namespace Cryptforge.Progression
             for (int i = 0; i < cards.Length; i++)
             {
                 ForgeOption option = offer.Choices[i];
-                cards[i] = new ChoiceCard(option.DisplayName, string.Format(CultureInfo.InvariantCulture, option.DescriptionFormat, option.DescriptionValue));
+                cards[i] = new ChoiceCard(option.DisplayName, string.Format(Loc.Numbers, option.DescriptionFormat, option.DescriptionValue));
             }
             return new ChoicePrompt(ChoiceKind.Forge, cards);
         }

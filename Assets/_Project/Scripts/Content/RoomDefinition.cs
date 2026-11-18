@@ -1,5 +1,6 @@
 using System;
 using Cryptforge.Combat;
+using Cryptforge.Localisation;
 using UnityEngine;
 
 namespace Cryptforge.Content
@@ -14,7 +15,10 @@ namespace Cryptforge.Content
         [SerializeField] private WaveDefinition[] _waves;
         [SerializeField] private ForgeOptionDefinition[] _forgeOptions;
 
-        public string DisplayName => _displayName;
+        // A room has no id (it is authored inline in its floor): its localisation key is made from its English name,
+        // "room.captains_post.name" (ContentKeys.Room). The field is the English.
+        public string DisplayName => Loc.Text(_nameKey ??= ContentKeys.Room(_displayName), _displayName);
+        [NonSerialized] private string _nameKey;
         public RoomKind Kind => _kind;
         public int WaveCount => _waves?.Length ?? 0;
         public int ForgeOptionCount => _forgeOptions?.Length ?? 0;

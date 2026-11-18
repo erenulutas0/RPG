@@ -1,7 +1,7 @@
-using System.Globalization;
 using Cryptforge.Art;
 using Cryptforge.Content;
 using Cryptforge.Core;
+using Cryptforge.Localisation;
 using Cryptforge.Progression;
 using UnityEngine;
 using UnityEngine.UI;
@@ -570,7 +570,7 @@ namespace Cryptforge.UI
                     case OfferCategory.WeaponUpgrade:
                     case OfferCategory.TomeUpgrade:
                         int level = _setup.Upgrades.StacksOf(option);
-                        kind = string.Format(CultureInfo.InvariantCulture, _text.CardLevelUpFormat, level, level + 1);
+                        kind = string.Format(Loc.Numbers, _text.CardLevelUpFormat, level, level + 1);
                         break;
                 }
             }

@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using System.Globalization;
 using Cryptforge.Art;
 using Cryptforge.Combat;
 using Cryptforge.Content;
 using Cryptforge.Core;
+using Cryptforge.Localisation;
 using Cryptforge.Progression;
 using UnityEngine;
 using UnityEngine.UI;
@@ -371,8 +371,8 @@ namespace Cryptforge.UI
                 return;
 
             string name = _shortNames.TryGetValue(id, out string shortName) ? shortName : id;
-            badge.Name.text = evolved ? string.Format(CultureInfo.InvariantCulture, _text.LoadoutEvolvedFormat, name) : name;
-            badge.Level.text = level >= 0 && level < Digits.Length ? Digits[level] : level.ToString();
+            badge.Name.text = evolved ? string.Format(Loc.Numbers, _text.LoadoutEvolvedFormat, name) : name;
+            badge.Level.text = level >= 0 && level < Digits.Length ? Digits[level] : level.ToString(Loc.Numbers);
             badge.Name.color = badge.Level.color = evolved ? EvolvedInk : Ink;
             badge.Plate.color = badge.PlateColour;
             badge.Accent.color = evolved ? EvolvedInk : badge.AccentColour;

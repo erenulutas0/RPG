@@ -1,3 +1,4 @@
+using Cryptforge.Localisation;
 using UnityEngine;
 
 namespace Cryptforge.Content
@@ -15,8 +16,10 @@ namespace Cryptforge.Content
         [SerializeField, Min(-0.9f)] private float _goldPercent;
 
         public string Id => _id;
-        public string DisplayName => _displayName;
-        public string Description => _description;
+        public string DisplayName => Loc.Text(_nameKey ??= ContentKeys.Key(_id, ContentKeys.Name), _displayName);
+        public string Description => Loc.Text(_descriptionKey ??= ContentKeys.Key(_id, ContentKeys.Description), _description);
+        [System.NonSerialized] private string _nameKey;
+        [System.NonSerialized] private string _descriptionKey;
         public float EnemyHealthPercent => _enemyHealthPercent;
         public float EnemyDamagePercent => _enemyDamagePercent;
         public float GoldPercent => _goldPercent;

@@ -1,7 +1,7 @@
-using System.Globalization;
 using Cryptforge.Combat;
 using Cryptforge.Content;
 using Cryptforge.Core;
+using Cryptforge.Localisation;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -78,8 +78,18 @@ namespace Cryptforge.UI
             _outline.effectColor = new Color(0f, 0f, 0f, .85f);
             _outline.effectDistance = new Vector2(2f, -2f);
             labelObject.SetActive(false);
+            Loc.Changed += Rewrite;
             Refresh();
         }
+
+        // The language changed: the next Update writes the same second in the new words (no beat: -2 is no second shown).
+        private void Rewrite()
+        {
+            if (_shownSecond >= 0)
+                _shownSecond = -2;
+        }
+
+        private void OnDestroy() => Loc.Changed -= Rewrite;
 
         private void Update()
         {
@@ -122,7 +132,7 @@ namespace Cryptforge.UI
                 _shownGate = true;
                 _beatStart = -1f;
                 _label.rectTransform.localScale = Vector3.one;
-                _label.text = string.Format(CultureInfo.InvariantCulture, _text.GateOpensFormat, second / 60, second % 60);
+                _label.text = string.Format(Loc.Numbers, _text.GateOpensFormat, second / 60, second % 60);
                 _label.color = Ember;
                 return;
             }
@@ -136,7 +146,7 @@ namespace Cryptforge.UI
                 _beatStart = Time.unscaledTime;
             _shownSecond = second;
             _shownOverrun = overrun;
-            _label.text = string.Format(CultureInfo.InvariantCulture, overrun ? _text.OverrunFormat : _text.FloorClockFormat, second / 60, second % 60);
+            _label.text = string.Format(Loc.Numbers, overrun ? _text.OverrunFormat : _text.FloorClockFormat, second / 60, second % 60);
             if (_beatStart < 0f)
                 _label.color = Rest(overrun, lastMinute);
         }

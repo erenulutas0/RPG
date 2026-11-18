@@ -1,5 +1,5 @@
-using System.Globalization;
 using Cryptforge.Combat;
+using Cryptforge.Localisation;
 using Cryptforge.Progression;
 using UnityEngine;
 
@@ -45,7 +45,11 @@ namespace Cryptforge.Content
         [SerializeField, Min(0f)] private float _categoryInterval;
 
         public string Id => _id;
-        public string DisplayName => _displayName;
+        // Localisation keys <id>.name and <id>.description (the forge's description format); the fields are the English.
+        public string DisplayName => Loc.Text(_nameKey ??= ContentKeys.Key(_id, ContentKeys.Name), _displayName);
+        public string ForgeDescriptionFormat => Loc.Text(_descriptionKey ??= ContentKeys.Key(_id, ContentKeys.Description), _forgeDescriptionFormat);
+        [System.NonSerialized] private string _nameKey;
+        [System.NonSerialized] private string _descriptionKey;
         public float Damage => _damage;
         public float Interval => _interval;
         public float Range => _range;
@@ -75,8 +79,8 @@ namespace Cryptforge.Content
                 new AttackPattern(_behavior, _splashRadius, _splashFraction, _critEvery, _critMultiplier));
 
         public WeaponOption CreateForgeOption() =>
-            new WeaponOption(_id, _displayName,
-                string.Format(CultureInfo.InvariantCulture, _forgeDescriptionFormat ?? string.Empty, _damage, _interval, _splashFraction * 100f,
+            new WeaponOption(_id, DisplayName,
+                string.Format(Loc.Numbers, ForgeDescriptionFormat ?? string.Empty, _damage, _interval, _splashFraction * 100f,
                     _critMultiplier * 100f, _critEvery),
                 _forgePrice);
 
@@ -91,7 +95,7 @@ namespace Cryptforge.Content
                     throw new System.InvalidOperationException($"Weapon {_id} has an empty level-up line at {i}.");
                 lines[i] = _levelUps[i].CreateOption();
             }
-            return new WeaponCard(_id, _displayName, CreateForgeOption().Description, CreateCategoryRuntime, lines,
+            return new WeaponCard(_id, DisplayName, CreateForgeOption().Description, CreateCategoryRuntime, lines,
                 _evolution != null ? _evolution.CreateOption() : null, EvolvesWithTome);
         }
     }

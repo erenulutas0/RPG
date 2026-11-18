@@ -17,6 +17,7 @@ using System.Reflection;
 using System.Text;
 using Cryptforge.Art;
 using Cryptforge.Core;
+using Cryptforge.Localisation;
 using Cryptforge.Progression;
 using Cryptforge.UI;
 using NUnit.Framework;
@@ -29,7 +30,19 @@ namespace Cryptforge.Tests
 {
     public sealed class ChoiceRarityRuntimeCapture
     {
-        private const string Output = "ArtDirection/2026-11-12/choice-rarity-01/runtime/";
+        // The capture's language (Run-ChoiceRarityProof.ps1 -Language tr sets CRYPTFORGE_LANGUAGE): English frames in
+        // runtime, Turkish ones beside them in runtime-tr (docs/60).
+        private static Language CaptureLanguage => LocalisationRuntime.CaptureLanguage(out Language language) ? language : Language.English;
+        private static string Output => CaptureLanguage == Language.Turkish
+            ? "ArtDirection/2026-11-12/choice-rarity-01/runtime-tr/" : "ArtDirection/2026-11-12/choice-rarity-01/runtime/";
+        private Language? _language;
+
+        [SetUp]
+        public void SpeakTheCaptureLanguage()
+        {
+            _language = Loc.Override;
+            Loc.Override = CaptureLanguage;
+        }
         private const string ScenePath = "Assets/_Project/Scenes/Gameplay/Gameplay.unity";
         private const string Seed = "260";
         private const int Width = 1080;
@@ -393,6 +406,7 @@ namespace Cryptforge.Tests
         [UnityTearDown]
         public IEnumerator Cleanup()
         {
+            Loc.Override = _language;
             Time.timeScale = 1;
             if (_scene.IsValid() && _scene.isLoaded)
             {

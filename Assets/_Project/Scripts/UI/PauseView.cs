@@ -1,14 +1,21 @@
 using Cryptforge.Content;
 using Cryptforge.Core;
+using Cryptforge.Localisation;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Cryptforge.UI
 {
     // The HUD pause button and the pause overlay. The button shows only while the player can pause (a live run with no
-    // choice open); the overlay follows RunPause, so leaving the app also shows it on return.
+    // choice open); the overlay follows RunPause, so leaving the app also shows it on return. The overlay is the game's
+    // settings for now: the language toggle stands between Resume and the hint (docs/60).
     public sealed class PauseView : MonoBehaviour
     {
+        // The toggle under Resume: this far above its top edge, this tall, this much narrower on each side.
+        private const float LanguageGap = 64f;
+        private const float LanguageHeight = 140f;
+        private const float LanguageInset = 160f;
+        private const int LanguageFontSize = 48;
         [SerializeField] private CombatSetup _setup;
         [SerializeField] private PrototypeTextDefinition _text;
         [SerializeField] private Button _pauseButton;
@@ -22,8 +29,11 @@ namespace Cryptforge.UI
         private float _inputEnabledAt;
         private bool _awaitingInputDelay;
         private bool _subscribed;
+        private LanguageToggleView _language;
 
         public bool IsOpen => _panel != null && _panel.activeSelf;
+        // The language toggle on the overlay, for tests and captures.
+        public LanguageToggleView LanguageToggle => _language;
 
         private void Start()
         {
@@ -36,10 +46,11 @@ namespace Cryptforge.UI
                 return;
             }
 
-            _pauseButtonLabel.text = _text.PauseButtonLabel;
-            _titleLabel.text = _text.PauseTitle;
-            _hintLabel.text = _text.PauseHint;
-            _resumeLabel.text = _text.ResumeLabel;
+            LocalisedLabel.Bind(_pauseButtonLabel, () => _text.PauseButtonLabel);
+            LocalisedLabel.Bind(_titleLabel, () => _text.PauseTitle);
+            LocalisedLabel.Bind(_hintLabel, () => _text.PauseHint);
+            LocalisedLabel.Bind(_resumeLabel, () => _text.ResumeLabel);
+            BuildLanguageToggle();
             _panel.SetActive(false);
             _pauseButton.onClick.AddListener(OnPause);
             _resumeButton.onClick.AddListener(OnResume);
@@ -47,6 +58,19 @@ namespace Cryptforge.UI
             _setup.Run.Ended += Refresh;
             _subscribed = true;
             Refresh();
+        }
+
+        // Under Resume, in the resume button's parent and frame (bottom-anchored on the overlay's safe area), narrower and
+        // lower-key, so Resume stays the overlay's first answer.
+        private void BuildLanguageToggle()
+        {
+            var resume = (RectTransform)_resumeButton.transform;
+            if (resume.parent is not RectTransform parent)
+                return;
+            _language = LanguageToggleView.Create(parent, _resumeLabel, LanguageFontSize, resume.anchorMin, resume.anchorMax,
+                resume.pivot,
+                new Vector2(resume.anchoredPosition.x, resume.anchoredPosition.y + resume.sizeDelta.y + LanguageGap),
+                new Vector2(resume.sizeDelta.x - 2f * LanguageInset, LanguageHeight));
         }
 
         private void Refresh()
@@ -57,6 +81,8 @@ namespace Cryptforge.UI
                 _panel.SetActive(paused);
                 // A tap that lands as the overlay appears, for example on returning to the app, cannot resume at once.
                 _resumeButton.interactable = false;
+                if (_language != null)
+                    _language.Button.interactable = false;
                 _inputEnabledAt = Time.unscaledTime + _inputDelay;
                 _awaitingInputDelay = paused;
             }
@@ -70,6 +96,8 @@ namespace Cryptforge.UI
 
             _awaitingInputDelay = false;
             _resumeButton.interactable = true;
+            if (_language != null)
+                _language.Button.interactable = true;
         }
 
         private void OnPause() => _setup.Pause.TryPause();

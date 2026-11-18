@@ -1,3 +1,4 @@
+using Cryptforge.Localisation;
 using Cryptforge.Progression;
 using UnityEngine;
 
@@ -19,11 +20,13 @@ namespace Cryptforge.Content
         [SerializeField] private Sprite _icon;
 
         public string Id => _id;
-        public string DisplayName => _displayName;
+        // Localisation key <id>.name (ContentKeys); the field is the English.
+        public string DisplayName => Loc.Text(_nameKey ??= ContentKeys.Key(_id, ContentKeys.Name), _displayName);
+        [System.NonSerialized] private string _nameKey;
         public GearSlot Slot => _slot;
         public int Floor => _floor;
         public Sprite Icon => _icon;
 
-        public ItemTemplate CreateTemplate() => new ItemTemplate(_id, _displayName, _slot, _floor);
+        public ItemTemplate CreateTemplate() => new ItemTemplate(_id, DisplayName, _slot, _floor);
     }
 }

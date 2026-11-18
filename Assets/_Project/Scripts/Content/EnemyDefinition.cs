@@ -1,4 +1,5 @@
 using Cryptforge.Combat;
+using Cryptforge.Localisation;
 using UnityEngine;
 
 namespace Cryptforge.Content
@@ -21,7 +22,9 @@ namespace Cryptforge.Content
         [SerializeField, Min(0f)] private float _moveSpeed;
 
         public string Id => _id;
-        public string DisplayName => _displayName;
+        // Localisation key <id>.name (ContentKeys); the field is the English.
+        public string DisplayName => Loc.Text(_nameKey ??= ContentKeys.Key(_id, ContentKeys.Name), _displayName);
+        [System.NonSerialized] private string _nameKey;
         public float MaximumHealth => _maximumHealth;
         public WeaponDefinition Weapon => _weapon;
         public Health Prefab => _prefab;
