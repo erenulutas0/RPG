@@ -630,6 +630,21 @@ The lead takes section 10's recommendations:
 
 Section 9's four owner questions are open; the build (section 8) starts once the owner answers 1, 2 and 4 (3 is later).
 
+## 12. The owner's answers 2026-11-18
+
+1. **The skills: yes**, as section 3 has them - Iron Resolve and Shield Rush for the Vanguard, Flame Sigil and Cinder
+   Ward for Ilya; the numbers are tuned with the test pilots.
+2. **The unlock: the first clear and the Forge** - clearing floor 2 for the first time opens skill 2 and the Forge forges
+   it for 300 gold; floor 3 and 500 gold for skill 3.
+3. **Ranks: later**, as recommended (the owner did not object; phase 6 stays "later").
+4. **Three buttons**, the first big in the corner and two smaller beside it, each appearing when it opens. The owner
+   plays **with two hands** (left thumb moves, right thumb presses), so automatic skills 2-3 are not built (decision
+   7 holds them back until a device session shows one-hand play stalling).
+
+The build starts with phases 1-2 (core, simulation, measurement; skills off by default, so the shipped game is
+untouched). Save version: docs/54 phase 6 (the tiers) takes version 5, so phase 4 here writes **version 6**. Phases 3-4
+ship the skills into the game; docs/27 decision 12 still puts the V0.1 gate's device row first.
+
 ## How to re-run
 
     dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~HeroSkillDuelTests"
