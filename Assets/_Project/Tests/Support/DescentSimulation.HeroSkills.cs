@@ -70,9 +70,10 @@ namespace Cryptforge.Tests
             public Action<HeroAbility> TuneSkill;
             // Research: the share of the glyph's heat a gate boss takes (SkillRule.GateBossHeatShare, the scene's).
             public float SkillBossHeatShare = SkillRule.GateBossHeatShare;
-            // Research (phase 2): the Rush stops on impact - RushImpactGap short of the first enemy on its path, striking up to
-            // it (SkillRule.ImpactTravel) - rather than carrying the hero its whole length through what it meets; and the
-            // careful pilot's engage on the gate boss in its window (SkillFootwork), on as section 3 has it.
+            // Research (phase 2), each default the scene's: the Rush stops on impact - RushImpactGap short of the first enemy
+            // ahead on its path, striking up to it (SkillRule.ImpactTravel) - where section 3 carried the hero its whole length
+            // through what it met; and the timing pilot's engage on the gate boss in the window after its blow, which section 3
+            // had and phase 2 dropped (SkillFootwork.RushesTheGateBoss).
             public bool RushStopsOnImpact = SkillRule.RushStopsOnImpact;
             public bool RushEngagesTheGateBoss = SkillFootwork.RushesTheGateBoss;
         }
