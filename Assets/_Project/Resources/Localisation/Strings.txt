@@ -358,3 +358,11 @@ ability_flame_sigil.name	Flame Sigil	Alev Mührü	The Arcanist's skill 2 (docs/5
 ability_flame_sigil.description	A glyph of {1:0.#} units for {3:0}s: enemies inside walk {4:0%} slower and burn double, ready every {2:0}s	{3:0} sn boyunca {1:0.#} birimlik bir mühür: içindeki düşmanlar {4:%0} daha yavaş yürür ve iki kat yanar, her {2:0} sn'de hazır	{1} radius, {3} seconds, {4} slow, {2} cooldown. Not on screen yet.
 ability_cinder_ward.name	Cinder Ward	Kül Kalkanı	The Arcanist's skill 3 (docs/57); not on screen yet.
 ability_cinder_ward.description	A ward of {4:0%} of your health for {3:0}s; whoever strikes it catches fire, ready every {2:0}s	{3:0} sn boyunca canının {4:%0} kadar bir kalkan; ona vuran alev alır, her {2:0} sn'de hazır	{4} of the hero's health, {3} seconds, {2} cooldown. Not on screen yet.
+
+# ---- Localisation pass 2 (docs/60 section 7): the difficulty tiers (TierText), the map choice (MapChoiceView), the HUD (RunHud) and the result (RunResultView)
+tier.forged	Forged	Dövülmüş	Difficulty tier 1 (docs/54 section 21): the tier row, the HUD's floor line, the pause and result titles, the unlock hints. Forged metal, as "dövmek" (docs/60 pass 2).
+tier.tempered	Tempered	Su Verilmiş	Tier 2. Tempered steel is "su verilmiş çelik", the step after forging; "Tavlanmış" was avoided: "tavlamak" is also slang for conning someone (docs/60 pass 2).
+tier.inferno	Inferno	Cehennem	Tier 3.
+tier.abyssal	Abyssal	Uçurum	Tier 4, the deepest. The abyss, as "aralarında uçurum var".
+tier.unlock_hint	Complete the Descent on {0}	İniş'i {0} zorluğunda tamamla	A locked tier's card, after "Kilitli: ". {0} the tier below it (tier.*).
+tier.reward	x{0:0.##}	x{0:0.##}	A tier's reward multiplier (gold, floor materials, boosters): x1, x1.25, x1.5, x2. The same pattern in both; the decimal comma comes from the numbers.
