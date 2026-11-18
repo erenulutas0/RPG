@@ -165,6 +165,43 @@ namespace Cryptforge.Tests
             // a cohort that leaves the Warden's mark away from it (AutopilotCohort.Sidesteps: careful, standing, first-card).
             // Off (research), those cohorts leave a lane's mark as they leave the Warden's, away from the Regent: along it.
             public bool SidestepsTheRegent = true;
+            // The Regent's round of 2026-11-17 (docs/50 "The Regent's bite for the standing hero"), research, off by default:
+            // a hero that has STOOD - whose spot as a mark goes down lies within RegentStoodWalk of the spot where the last
+            // blow found it (none on a fight's first beat), or, with RegentNearReach above 0 instead, that stands within it of
+            // the Regent as the mark goes down - draws RegentStoodLanes more lanes through the mark, cast from the Regent's
+            // spot turned RegentStoodTurn degrees either way round it (the next pair twice as far), and the beat's blow takes
+            // RegentStoodShare of its maximum in place of the lane's share (0: the lane's share).
+            public float RegentStoodWalk;
+            public float RegentNearReach;
+            public int RegentStoodLanes;
+            public float RegentStoodTurn = 120f;
+            public float RegentStoodShare;
+            // ...and the Regent's rod free through its telegraph (research): held only while the shards are in the floor
+            // (the recovery after the blow), not from the mark - the lane is cast by its mirror, not its hands.
+            public bool RegentRodInTelegraph;
+            // ...or free through the telegraph only on a beat whose mark went down with the hero within RegentRodNearReach of
+            // the Regent (0: off); and its hold after the blow, RegentRodRecovery seconds in place of the Warden's 1.5 (below
+            // zero: the Warden's) - the shards run down the lane, no hammer stands in the floor.
+            public float RegentRodNearReach;
+            public float RegentRodRecovery = -1f;
+            // ...or, with RegentRodNearReach, the rod held through that beat's telegraph as ever but not after its blow.
+            public bool RegentRodNearAfterBlow;
+            // ...or no hold after a blow that found the hero within RegentRodBlowReach of the Regent (0: off).
+            public float RegentRodBlowReach;
+            // ...only where the hero was within it as the mark went down too: it stayed at the Regent's side through the cast.
+            public bool RegentRodBlowStayed;
+            // The rod at its feet (RegentRule.FeetReach, AtItsFeet, HoldsRod; shipped since the round of 2026-11-17, docs/50
+            // "The Regent's bite for the standing hero"): the Regent holds its rod through its cast and the shards' run only
+            // for a hero beyond RegentFeetReach of it as each mark goes down, as WardenSlamService holds it; 0 is the Regent
+            // before the round (research, for a comparison on the same seeds). RegentFeetEveryFrame (research, the round's
+            // exploration) reads the hero's feet every frame of the hold instead of at the mark.
+            public float RegentFeetReach = RegentRule.FeetReach;
+            public bool RegentFeetEveryFrame;
+            // The rod's streak (research): a strike on a hero that has stayed within the rod's reach since the Regent's last
+            // strike adds RegentRodStreakShare of the rod's damage for each strike of the streak before it, at most
+            // RegentRodStreakMost of them (0: off).
+            public float RegentRodStreakShare;
+            public int RegentRodStreakMost = 2;
 
             public bool Vaults => VaultsWisps || VaultsClerks;
 
@@ -192,6 +229,31 @@ namespace Cryptforge.Tests
             public int RegentLaneHits;
             public int RegentCopiesShattered;
             public float RegentPhaseTwoAt = -1f;
+            // The gate boss's fight as the hero stood in it (accounting only, docs/50's Regent round of 2026-11-17): seconds
+            // of the fight while it runs (not held), of those the seconds the hero walked under GateStillSpeed and the
+            // seconds it stood within the boss's own weapon's reach; and over the beats, the hero's walk from where the
+            // last blow found it to where the next mark went down, and its distance from the boss at the mark.
+            // The Regent's beats on a hero that had stood (FoundryLevers.RegentStoodWalk or RegentNearReach), and of those the
+            // ones whose blow caught it.
+            public int RegentStoodBeats;
+            public int RegentStoodHits;
+            // The beats on which the rod stayed free through the telegraph or after the blow (FoundryLevers.RegentRodNearReach,
+            // RegentRodBlowReach), and the marks that went down with the hero at the Regent's feet (FoundryLevers.RegentFeetReach).
+            public int RegentRodNearBeats;
+            public int RegentFeetBeats;
+            // The rod's strikes that came in a streak (FoundryLevers.RegentRodStreakShare).
+            public int RegentStreakStrikes;
+            public float GateWatchSeconds;
+            public float GateStillSeconds;
+            public float GateInBossReachSeconds;
+            // ...of those, the seconds the boss's weapon was not held (it could swing).
+            public float GateThreatSeconds;
+            public int GateBeatsWatched;
+            public float GateBeatWalkSum;
+            public float GateMarkDistanceSum;
+            // The marks that went down with the hero within each of GateMarkReaches of the boss (accounting only).
+            public static readonly float[] GateMarkReaches = { 1.0f, 1.2f, 1.4f, 1.5f, 1.6f, 1.7f, 1.8f, 2.0f };
+            public int[] GateMarkWithin = new int[GateMarkReaches.Length];
         }
 
         private sealed partial class Foe
@@ -213,6 +275,22 @@ namespace Cryptforge.Tests
             // The lanes of the Regent's beat standing now (RegentLanes, as WardenSlamService holds them): each body's spot as
             // the mark went down, through the mark.
             private RegentLanes _regentLanes;
+            // Where the Regent's last blow found the hero (NaN before a fight's first blow), and whether the beat down is on a
+            // hero that had stood (FoundryLevers.RegentStoodWalk, research).
+            private float _regentFromX = float.NaN;
+            private float _regentFromY;
+            private bool _regentStood;
+            // Whether the beat down went down with the hero within FoundryLevers.RegentRodNearReach of the Regent (research).
+            private bool _regentRodNear;
+            // Whether the last blow found the hero within FoundryLevers.RegentRodBlowReach of the Regent (research).
+            private bool _regentBlowNear;
+            private bool _regentMarkNear;
+            // Whether the hero stands at the Regent's feet (FoundryLevers.RegentFeetReach): as the beat's mark went down, or this
+            // frame (RegentFeetEveryFrame).
+            private bool _regentAtFeet;
+            // The rod's streak (research): strikes in a row on a hero that stayed within its reach, and whether it has.
+            private int _rodStreak;
+            private bool _rodKept;
             private readonly Foe[] _glassCopies = new Foe[2];
             // Reflection owed to the hero by a Sentry, paid on the next running frame (MirrorReflectionDue, as
             // MirrorGuardService pays it: never inside the hero's own strike, never while the fight holds).
@@ -230,6 +308,13 @@ namespace Cryptforge.Tests
             private readonly System.Collections.Generic.List<HazardMark> _silentCopies = new System.Collections.Generic.List<HazardMark>(2);
 
             private bool VaultsOn => _levers.Vaults && _floor.FloorNumber >= 2;
+
+            // The gate fight's watch (accounting only): the hero's spot last frame and at the last blow (NaN before).
+            private const float GateStillSpeed = 1f;
+            private float _gateWatchX = float.NaN;
+            private float _gateWatchY;
+            private float _gateBlowX = float.NaN;
+            private float _gateBlowY;
 
             private static bool IsRegent(Foe foe) => foe != null && ReferenceEquals(foe.Definition, GlassRegent);
 
@@ -283,6 +368,7 @@ namespace Cryptforge.Tests
             {
                 if (_run.HasEnded)
                     return;
+                WatchGate();
                 if (_sentryFloor)
                     StepSentries();
                 // The Regent fallen: its copies shatter with it.
@@ -330,6 +416,57 @@ namespace Cryptforge.Tests
                         }
                     }
                 }
+            }
+
+            // The gate fight's watch: accounting only, nothing reads it.
+            private void WatchGate()
+            {
+                Foe boss = _slamBoss != null && _slamBoss.IsAlive ? _slamBoss : null;
+                if (boss == null || _choices.IsOpen || _revealHold || !_heroHealth.IsAlive)
+                {
+                    _gateWatchX = float.NaN;
+                    if (boss == null)
+                        _gateBlowX = float.NaN;
+                    return;
+                }
+                float x = HeroX, y = HeroY;
+                _result.GateWatchSeconds += Step;
+                if (!float.IsNaN(_gateWatchX) &&
+                    ArenaFloor.FloorDistanceSquared(x, y, _gateWatchX, _gateWatchY) < GateStillSpeed * Step * GateStillSpeed * Step)
+                    _result.GateStillSeconds += Step;
+                _gateWatchX = x;
+                _gateWatchY = y;
+                float reach = boss.Weapon.Range;
+                bool inReach = ArenaFloor.FloorDistanceSquared(x, y, boss.X, boss.Y) <= reach * reach;
+                if (!inReach)
+                    _rodKept = false;
+                if (inReach)
+                {
+                    _result.GateInBossReachSeconds += Step;
+                    if (!GateBossHeld(boss))
+                        _result.GateThreatSeconds += Step;
+                }
+            }
+
+            // The watch at a mark and at a blow.
+            private void WatchMark(Foe boss)
+            {
+                float near = ArenaFloor.FloorDistanceSquared(_markX, _markY, boss.X, boss.Y);
+                for (int i = 0; i < FoundryResult.GateMarkReaches.Length; i++)
+                    if (near <= FoundryResult.GateMarkReaches[i] * FoundryResult.GateMarkReaches[i])
+                        _result.GateMarkWithin[i]++;
+                if (!float.IsNaN(_gateBlowX))
+                {
+                    _result.GateBeatsWatched++;
+                    _result.GateBeatWalkSum += (float)Math.Sqrt(ArenaFloor.FloorDistanceSquared(_markX, _markY, _gateBlowX, _gateBlowY));
+                    _result.GateMarkDistanceSum += (float)Math.Sqrt(ArenaFloor.FloorDistanceSquared(_markX, _markY, boss.X, boss.Y));
+                }
+            }
+
+            private void WatchBlow()
+            {
+                _gateBlowX = HeroX;
+                _gateBlowY = HeroY;
             }
 
             // MirrorGuardService.Update: while the fight runs, the reflection banked since the last running frame paid as one
@@ -524,6 +661,14 @@ namespace Cryptforge.Tests
                 }
             }
 
+            // WardenSlamService.Update for the Regent, every running frame of its fight before the clock steps (candidate B,
+            // FoundryLevers.RegentFeetEveryFrame): whether the hero stands at its feet now.
+            private void RegentFeet(Foe boss)
+            {
+                if (_levers.RegentFeetReach > 0f && _levers.RegentFeetEveryFrame)
+                    _regentAtFeet = RegentRule.AtItsFeet(HeroX, HeroY, boss.X, boss.Y, _levers.RegentFeetReach);
+            }
+
             // WardenSlamService.Marked for the Regent: a lane from its body - and each standing copy's - through the mark.
             private void RegentMarked(Foe boss)
             {
@@ -531,6 +676,34 @@ namespace Cryptforge.Tests
                 _regentLanes ??= new RegentLanes(_levers.RegentLaneWidth, _levers.RegentLaneLength, _levers.RegentLanePast);
                 _regentLanes.Mark(_markX, _markY);
                 _regentLanes.Add(boss.X, boss.Y);
+                if (_levers.RegentFeetReach > 0f && !_levers.RegentFeetEveryFrame)
+                {
+                    _regentAtFeet = _regentLanes.AtItsFeet(_levers.RegentFeetReach);
+                    if (_regentAtFeet)
+                        _result.RegentFeetBeats++;
+                }
+                else if (_levers.RegentFeetReach > 0f && _regentLanes.AtItsFeet(_levers.RegentFeetReach))
+                    _result.RegentFeetBeats++;
+                _regentMarkNear = _levers.RegentRodBlowReach > 0f &&
+                                  RegentRule.Stood(_markX, _markY, boss.X, boss.Y, _levers.RegentRodBlowReach);
+                _regentRodNear = _levers.RegentRodNearReach > 0f &&
+                                 RegentRule.Stood(_markX, _markY, boss.X, boss.Y, _levers.RegentRodNearReach);
+                if (_regentRodNear)
+                    _result.RegentRodNearBeats++;
+                _regentStood = _levers.RegentNearReach > 0f
+                    ? RegentRule.Stood(_markX, _markY, boss.X, boss.Y, _levers.RegentNearReach)
+                    : _levers.RegentStoodWalk > 0f && !float.IsNaN(_regentFromX) &&
+                      RegentRule.Stood(_markX, _markY, _regentFromX, _regentFromY, _levers.RegentStoodWalk);
+                if (_regentStood)
+                {
+                    _result.RegentStoodBeats++;
+                    for (int k = 0; k < _levers.RegentStoodLanes; k++)
+                    {
+                        float turn = _levers.RegentStoodTurn * (k / 2 + 1) * (k % 2 == 0 ? 1f : -1f);
+                        RegentRule.TurnedRound(boss.X, boss.Y, _markX, _markY, turn, out float cx, out float cy);
+                        _regentLanes.Add(cx, cy);
+                    }
+                }
                 for (int c = 0; c < _glassCopies.Length; c++)
                 {
                     Foe copy = _glassCopies[c];
@@ -546,16 +719,68 @@ namespace Cryptforge.Tests
             {
                 bool hit = _heroHealth.IsAlive && _regentLanes != null && _regentLanes.Holds(HeroX, HeroY, 0f);
                 if (hit)
+                {
                     _result.RegentLaneHits++;
+                    if (_regentStood)
+                        _result.RegentStoodHits++;
+                }
                 _regentLanes?.Clear();
+                _regentFromX = HeroX;
+                _regentFromY = HeroY;
+                _regentBlowNear = _levers.RegentRodBlowReach > 0f && _slamBoss != null &&
+                                  RegentRule.Stood(HeroX, HeroY, _slamBoss.X, _slamBoss.Y, _levers.RegentRodBlowReach) &&
+                                  (!_levers.RegentRodBlowStayed || _regentMarkNear);
+                if (_regentBlowNear)
+                    _result.RegentRodNearBeats++;
                 return hit;
             }
+
+            // Whether the gate boss's weapon is held now (WardenSlamService.Hold): the clock's hold, or for a Regent with its rod
+            // free through the telegraph (research) the recovery's alone.
+            private bool GateBossHeld(Foe foe)
+            {
+                if (!IsRegent(foe))
+                    return _slam.HoldsWeaponFor(_levers.WardenRecoverySeconds);
+                float recovery = _levers.RegentRodRecovery >= 0f ? _levers.RegentRodRecovery : _levers.WardenRecoverySeconds;
+                bool holds = _slam.HoldsWeaponFor(recovery);
+                // The research levers' holds (the round's exploration).
+                if (holds && _slam.IsMarked && (_levers.RegentRodInTelegraph || (_regentRodNear && !_levers.RegentRodNearAfterBlow)))
+                    holds = false;
+                if (holds && !_slam.IsMarked && ((_regentRodNear && _levers.RegentRodNearAfterBlow) || _regentBlowNear))
+                    holds = false;
+                return RegentRule.HoldsRod(holds, _regentAtFeet);
+            }
+
+            // The rod's streak (research): the strike just landed, and the shards it adds on a hero that stayed at its side.
+            private void RegentRodStruck(Foe boss)
+            {
+                _rodStreak = _rodKept ? _rodStreak + 1 : 1;
+                _rodKept = true;
+                int before = Math.Min(_rodStreak - 1, _levers.RegentRodStreakMost);
+                if (before <= 0 || !_heroHealth.IsAlive)
+                    return;
+                _result.RegentStreakStrikes++;
+                _harmIsSlam = false;
+                _hero.ApplyDamage(new DamageContext(boss.Weapon.Damage * _levers.RegentRodStreakShare * before, boss));
+            }
+
+            // The share of the hero's maximum the Regent's blow takes: the lane's, or a stood hero's (research).
+            private float RegentBlowShare() =>
+                _regentStood && _levers.RegentStoodShare > 0f ? _levers.RegentStoodShare : _levers.RegentLaneShare;
 
             // A new gate boss (StepWarden): the clock keeps the Regent's beat for a Regent, the Warden's otherwise, and no
             // lane is down.
             private void RegentTune(Foe gate)
             {
                 _regentLanes?.Clear();
+                _regentFromX = float.NaN;
+                _regentStood = false;
+                _regentRodNear = false;
+                _regentBlowNear = false;
+                _regentMarkNear = false;
+                _regentAtFeet = false;
+                _rodStreak = 0;
+                _rodKept = false;
                 if (gate != null && IsRegent(gate))
                     _slam.Tune(_levers.RegentEvery, _levers.RegentEveryPhaseTwo, _levers.RegentTelegraph);
                 else

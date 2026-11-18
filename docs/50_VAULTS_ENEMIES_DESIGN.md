@@ -12,6 +12,13 @@ re-tune"): under the lead's relative rule the clumsy cohort completes 309 of 800
 1.7 s telegraph is above the 0.8-1.2 s phone guide: the owner's play on the S23 is to judge it. Stage 2 (the copies) is not
 built.
 
+**Status 2026-11-17/18 (the Regent's round):** the standing hero's bite is back. The Regent eased the standing cohort 5.6
+points against the Forge Warden because the Warden's clock held its rod 3.2 s of every beat, so a hero at its side was
+safe for most of the fight. It now holds its rod through a beat only for a hero beyond its feet (1.5) as the lane goes
+down. Read once on the fresh seeds 2001-5200 against the Warden, it passes docs/56's rule: standing -1.12 points, clumsy
+-0.25, careful +1.06, first-card +1.34. It ships on branch `regent-standing-bite`; see "The Regent's bite for the standing
+hero" at the end.
+
 A proposal for the owner's decision. Nothing here is built: no code, asset, scene or setting changed. Numbers cited as
 "measured" name their source in docs/41, docs/47 or docs/48. Every other number is a starting value for the simulation
 to measure, not a decision.
@@ -1188,3 +1195,206 @@ auto-farmer, Vanguard / Ilya.
   the Warden's 42 / 52 / 64 and 38 / 49 / 59, at 4,704 health against 4,080 [39 / 48 / 62 and 35 / 46 / 57] (38 / 49 / 61 and
   35 / 45 / 57). That pilot is never caught by a lane (0.00 hits in 9.4 / 8.2 beats a fight); the Vanguard fells the Regent
   in 198 of its 200 gate fights (horde Grunts killed it in two) [199] (200), Ilya in all 200, as both fell the Warden.
+
+## The Regent's bite for the standing hero (round of 2026-11-17)
+
+**Status: the candidate passed and ships.** One candidate, "the rod at its feet" (`regent-feet`), was read once on the
+fresh seeds 2001-5200 against the Forge Warden: standing -1.12 points (90 % CI -1.66 to -0.59), clumsy -0.25 (-0.69 to
++0.19), careful +1.06 (+0.77 to +1.36), first-card +1.34 (+0.81 to +1.89). Built in the scene and the simulation on
+branch `regent-standing-bite`; the Unity gate is the lead's.
+
+The lead's decision 3 of 2026-11-17 (docs/56 section 9): the Regent stays shipped and is reopened as a design miss. Built
+to separate the careful player from the standing one ("mechanics that a careful player reads and a standing one does
+not", section 1), it moved the standing cohort the wrong way: +5.58 points of four-floor completion against the Forge
+Warden it replaced on the fresh seeds 801-2000 (90 % CI +4.71 to +6.50), careful +0.62, clumsy -0.54. This round gives
+the standing hero back the bite the Warden had, under docs/56's rule: diagnose on the spent seeds 1-2000, at most two
+candidates with a written design reason, each read once on a fresh 3,200-seed block (2001-5200), against the Warden. Pass:
+clumsy, careful and first-card at least -1.0 point with a CI lower bound at least -1.5; standing no better than the
+Warden (point change at most 0).
+
+Tools: `RegentRoundResearch` (explicit; the Descent as GloamEnemiesResearch plays it, floor 2's gate fight as the hero
+stood in it, and "rr:" lever strings for exploration), FoundryResult's gate-fight watch (accounting only), the round's
+research levers (all off), GloamEnemiesResearch's `regent-feet`, and `paired_bootstrap.py` reading a comparison against
+`f2-warden`. Typical hands, both heroes, every reading paired by seed.
+
+### 1. Diagnosis: the Regent's rod is held for most of the fight
+
+Seeds 1-400 (spent), 800 runs a cohort; the gate fight's numbers are means over the floor 2s whose gate boss walked out,
+health as a share of the hero's maximum.
+
+| | Forge Warden (`f2-warden`) | Glass Regent (shipped) |
+|---|---|---|
+| Standing: completed | 671 (83.9 %) | 705 (88.1 %) |
+| Standing: runs ended at floor 2's gate boss / on floor 3 | 45 / 31 | 14 / 28 |
+| Standing: killers at the gate | hammer 21, slam 13, horde 9, pit 2 | rod 5, pit 4, lane 3, horde 2 |
+| Standing: blows landed a fight | 0.59 (20 % each) | 0.21 (10 % each) |
+| Standing: taken a fight from the blows / the boss's own weapon / the horde | 7.0 / 22.4 / 2.8 % | 1.3 / 13.0 / 2.3 % |
+| Standing: fight P50; health leaving floor 2 | 38.9 s; 57 % | 36.4 s; 67 % |
+| Share of the fight within the boss's weapon's reach: standing / careful / first-card / clumsy | 26 / 3 / 3 / 10 % | 46 / 4 / 4 / 11 % |
+| Completed: careful / first-card / clumsy | 766 / 659 / 309 | 770 / 678 / 309 |
+
+- **The easing is the gate itself.** The standing cohort's 34 extra completions are 31 fewer deaths at floor 2's gate
+  boss; floor 3 and the finale lose what they lost before.
+- **The boss's own weapon is most of it.** A standing hero lets the boss walk up to it and stands in its reach (the
+  Regent's 46 % of the fight): what the boss's weapon takes is set by how long it may swing. Both bosses keep the Warden's
+  clock, which holds the weapon from the mark until 1.5 s after the blow - the Warden's hammer raised and then in the
+  floor, the window a hero that read the mark strikes back in. With the Regent's 1.7 s telegraph that hold is 3.2 s of
+  every 6 s beat and of every 4 s phase-two beat (the Warden's 2.6 s), so the rod may swing 2.8 s a beat and then 0.8 s
+  (the hammer 3.4 and 1.4), at 5 against the hammer's 6: about 58 % of the hammer's rate over a fight, and measured
+  13.0 % against 22.4 %. Against a hero at its side the Regent spends most of the fight unable to touch it.
+- **The lane is easy to read for a sidestepper.** The standing pilot reads marks as the careful one does (it lacks only
+  the kite and the step-in): a lane asks a step of about a unit across with 1.7 s to make it, where the Warden's 2.2
+  circle asked 3.2 units with 1.1 s. 0.21 lanes a fight at 10 % against 0.59 slams at 20 %.
+- **The careful cohort never stood there.** It keeps 2.0 from a gate boss (the kite), so neither boss's weapon reaches
+  it (3-4 % of the fight); clumsy's cost only moved, from the hammer and the slam to the lane (1.32 lanes a fight, which it
+  leaves by the nearest of eight points, often along it).
+- **The Regent with one of the Warden's parts back** (seeds 1-400 against the shipped Regent, points): the 1.1 s telegraph
+  (a shorter hold too) standing -2.00, clumsy -2.00, careful -0.12; the lane at 20 % standing -0.38, clumsy -2.88; both
+  standing -2.25, clumsy -4.00; the Warden's share 6.07 standing +0.25, clumsy -0.38. The lane's numbers cost the clumsy
+  cohort first; only the hold's length reaches the standing one.
+
+### 2. What was tried (exploration, spent seeds)
+
+Change in four-floor completion against the Regent before the round, points (90 % CI), paired by seed; standing /
+first-card / clumsy (careful where read).
+
+| Option (`rr:` lever string) | Seeds | Standing | First-card | Clumsy | Careful | Why it was dropped |
+|---|---|---|---|---|---|---|
+| Two more lanes, turned 120 degrees round the mark, on a hero that stood since the last blow (`walk=1:lanes=2`) | 1-400 | -0.38 | +0.50 | -0.62 | +0.12 | no bite: the sidestep reads three lanes at 1.7 s as one (0.25 hits on 3.1 such beats a fight) |
+| ...and that beat's blow at 20 % (`walk=1:lanes=2:share=0.2`) | 1-400 | -0.88 | +0.12 | -1.62 | -0.38 | charges clumsy (0.47 hits on 2.2 such beats) more than standing |
+| The rod free through every telegraph (`rod=1`) | 1-400 | -5.62 | -4.50 | -3.00 | -0.75 | every sidestepper stops its kite through the telegraph; the Regent walks up and strikes |
+| The rod free after every blow (`rec=0`) | 1-400 | -5.12 | -3.50 | -2.75 | -0.75 | the same, at the blow |
+| The rod free through the telegraph of a beat whose mark found the hero within 1.7 (`rodnear=1.7`) | 1-400 | -3.88 | -0.12 | -1.25 | +0.00 | 1.7 (the rod's reach) also catches the kite's edge |
+| ...through the whole beat (`feet=1.7`) | 1-800 | -10.88 | -0.25 | -1.12 | - | as above |
+| ...after the blow only (`rodnear=1.7:nearafter=1`) | 1-800 | -2.81 | +0.00 | -0.44 | - | little bite, the clumsy cost stays |
+| No hold after a blow that found the hero within 1.7 (`blownear=1.7`) | 1-800 | -3.44 | -1.00 | -0.44 | - | the Regent walks up to a sidestepper through the telegraph |
+| The rod's streak: +50 % a strike while the hero stays in reach (`streak=0.5`) | 401-800 | -0.50 | +0.00 | -0.12 | - | no bite: the hold leaves the rod too few strikes to stack |
+| The rod never held for a hero within 1.5, read every frame (`feet=1.5:frame=1`; explored with the reach read at the enemy's strike, the committed lever reads it where the clock steps - not re-run) | 1-800 | -7.31 | -3.81 | -1.56 | - | the Regent walks into sidesteppers' 1.5 through the hold |
+| **The rod at its feet: a beat whose mark finds the hero within 1.5 holds no rod (`feet=1.5`, `regent-feet`)** | 1-800 | **-5.94** | **-0.19** | **-0.19** | - | the candidate |
+| the same | 801-2000 | **-6.12** | - | **-0.17** | **-0.08** | |
+
+(The exploration's `rodnear=1.7:nearbeat=1` and `rodnear=1.5:nearbeat=1` are today's `feet=1.7` and `feet=1.5`, run for
+run.) The mark-shaped answers - more lanes, a deeper blow - fail as docs/41's Warden echo did: every cohort that reads a
+mark reads them. The rod separates, because the standing hero is the one at its side; the question is only how to tell
+"at its side" from the kite's edge. Where the hero stands as each mark goes down (seeds 1-100, shipped): within 1.5 of the
+Regent at 37 % of the standing cohort's marks, within 1.7 at 62 %; the clumsy cohort's straight kite stands 1.5-1.7 at
+13 % of its marks and within 1.5 at 3 %; careful and first-card within 1.5 at 2 % and 1 %.
+
+### 3. The candidate and its reason (written before its read)
+
+**The rod at its feet** (`regent-feet`, RegentRule.FeetReach 1.5): as each lane goes down the Regent reads where the hero
+stands. Beyond its feet it raises its mirror and holds its rod from the mark until the shards' recovery, as the Warden
+raises its hammer - the window to strike back that a hero who reads the mark earns. At its feet (the mark within 1.5 of
+the lane's root, the Regent's spot) it casts with the mirror alone and keeps its rod on that hero through the whole beat.
+The reason: the hold was the Warden's, inherited with its clock, and with the Regent's long telegraph it made a hero at its
+side safe for most of the fight - the diagnosis's whole easing. docs/50's intent asks the careful player to read and step:
+the careful player keeps off its feet as the lane goes down (its kite already holds 2.0) and keeps the window; the standing
+hero, against its body, loses it. 1.5 lies a fifth of a unit inside the Glass Rod's 1.7 reach, because the rod's whole
+reach also took a hero kiting at its edge (above). For the phone: a faint violet ring round the Regent's feet while it is
+fought (violet never hurts, docs/49 rule 4), pulsing through a beat that found the hero inside it, when the Regent raises
+no windup and keeps swinging; a hero outside sees the Regent raise its mirror and hold, as the Warden raises its hammer.
+
+One candidate went to the confirmatory read; the round's other designs were dropped on the spent seeds (section 2).
+
+### 4. The confirmation (seeds 2001-5200, read once)
+
+Seeds 2001-5200, 3,200 seeds, both heroes a seed (6,400 runs a cohort), typical hands; GloamEnemiesResearch at
+`5f880696` (the candidate as a lever, off by default), `paired_bootstrap.py <folder> 2001 5200`. Each option was run once,
+in its own folder; the candidate was read once.
+
+**The read the rule asks** (the candidate against the Forge Warden at floor 2's gate, `f2-warden`):
+
+| Cohort | Change (of 6,400) | Points | 90 % CI | SD per 400 seeds | First / second half | Bar | Met |
+|---|---|---|---|---|---|---|---|
+| Clumsy | -16 | **-0.25** | -0.69 to +0.19 | 6.0 | -12 / -4 | at least -1.0, lower bound at least -1.5 | yes |
+| Careful | +68 | **+1.06** | +0.77 to +1.36 | 4.1 | +27 / +41 | the same | yes (CI wholly above 0: an easing, reported) |
+| First-card | +86 | **+1.34** | +0.81 to +1.89 | 7.4 | +61 / +25 | the same | yes |
+| Standing | -72 | **-1.12** | -1.66 to -0.59 | 7.3 | -31 / -41 | at most 0 (no better than the Warden) | yes |
+
+Completions of 6,400: careful 6,134 against the Warden's 6,066, standing 5,127 against 5,199, first-card 5,239 against
+5,153, clumsy 2,438 against 2,454. Floor-2 clears of the runs that went down (Vanguard / Ilya): careful 3,107 / 3,104
+against 3,071 / 3,067, standing 2,683 / 2,703 against 2,740 / 2,719, first-card 2,623 / 3,018 against 2,584 / 2,970,
+clumsy 979 / 1,680 against 996 / 1,694. The careful-minus-standing gap in floor-2 clears, both heroes, grows from 679 to 825
+of about 6,300 (section 7's skill-separation row: +2.3 points, short of its proposed 5).
+
+**Beside it**, on the same block and the same code (`5f880696`; these two runs were cut by the machine's shutdown on the
+night of 2026-11-17 and run again whole on 2026-11-18 - they read no candidate):
+
+| Comparison | Clumsy | Careful | First-card | Standing |
+|---|---|---|---|---|
+| A/A `aa-f2` (the Regent before the round, one unread draw from floor 2) against `shipped` | +0.12 (-0.45 to +0.70) | -0.17 (-0.50 to +0.16) | +0.56 (+0.00 to +1.12) | -0.31 (-0.73 to +0.11) |
+| The Regent before the round (`shipped` then) against the Warden | -0.12 (-0.56 to +0.31) | +1.09 (+0.80 to +1.39) | +1.39 (+0.86 to +1.94) | **+5.33** (+4.78 to +5.88) |
+| The candidate against the Regent before the round | -0.12 (-0.20 to -0.06) | -0.03 (-0.08 to +0.00) | -0.05 (-0.11 to +0.02) | **-6.45** (-7.02 to -5.91) |
+
+The block reproduces docs/56's finding (the Regent eased the standing cohort 5.33 points against the Warden here, 5.58 on
+801-2000), and the candidate takes 6.45 points from the standing cohort alone: the other cohorts move by 0.03-0.12 points,
+inside the A/A probe's band (a reshuffle of the same game moves them 0.12-0.56). The careful and first-card easings against
+the Warden are the Regent's, not the round's. The flipped simulation's `regent-before` reproduces this block's `shipped`
+row for row (seeds 2001-2015, 60 rows).
+
+**The fight and the Descent.** The careful gate fight with typical hands (seeds 1-200, `RegentRoundResearch`, P10 / P50 /
+P90): Vanguard 39 / 50 / 60 s, Ilya 37 / 46 / 57 s, 63 % and 54 % of fights in 45-65 s - the same as the Regent before the
+round (the rod changes what the Regent deals, not what it takes). Standing 37 / 36 s, first-card 47 / 46 s, clumsy 46 / 49 s.
+What the rod takes from a standing hero a fight: 29.1 / 26.9 % of its maximum (13.9 / 13.0 % before; the Warden's hammer
+22.4 %); careful 4.1 % either way; first-card 5.6 / 4.8 % either way; clumsy 4.9 / 5.5 % (4.3 / 5.1 % before). Beats at its
+feet a fight: standing 2.3 / 2.1, careful 0.11 / 0.15, first-card 0.11 / 0.07, clumsy 0.26 / 0.27. The Descent on the
+confirmation block (P50 of completed runs, minutes, Vanguard / Ilya): careful 14.5 / 14.3, standing 14.0 / 13.9,
+first-card 14.3 / 14.1, clumsy 14.3 / 14.4 - inside 13-16 and within 0.1 of the Warden's.
+
+### 5. Verdict and what ships
+
+**Pass.** Clumsy, careful and first-card are inside the harm bar with room (their lower bounds -0.69, +0.77, +0.81 against
+-1.5), and the standing cohort completes 1.1 points fewer Descents than with the Forge Warden where the Regent before the
+round gave it 5.3 more on this block (5.6 on 801-2000, 4.6 on 1-800). The careful cohort's +1.06 is an easing against the Warden (its CI wholly
+above 0), as the Regent before the round was (+1.09 on this block, +0.62 on 801-2000): the candidate leaves the careful hero's fight as it was
+(4.1 % of its health to the rod either way), so this is the Regent's, not the round's - reported to the lead under rule 3.
+One candidate was read; the round's other designs failed on the spent seeds (section 2) and none was read on the block.
+
+**In the game** (`d3d793ad`):
+- `RegentRule.FeetReach` 1.5, `AtItsFeet` (the squares cast to float, as `PollenRule.Near`), `HoldsRod`, and
+  `RegentLanes.AtItsFeet` (the beat's own mark against its first lane's root): one body for the scene and the simulation.
+- `WardenSlamService` reads `RodAtItsFeet` as each Regent lane goes down and holds the rod by `RegentRule.HoldsRod` (the
+  Warden's hold, never for a hero at its feet); the Warden's own hold is unchanged.
+- `WardenSlamView`: a faint violet ring of 1.5 round the Regent's feet while it is fought, pulsing through a beat that
+  found the hero inside it; on that beat the Regent raises no windup, so its rod's strike poses show.
+- The simulation ships it (`FoundryLevers.RegentFeetReach` = `RegentRule.FeetReach`); `regent-before`
+  (GloamEnemiesResearch, RegentRoundResearch) is the Regent the confirmation read as `shipped`. The flipped `shipped`
+  reproduces the confirmation's `regent-feet` row for row (seeds 2001-2015, 60 rows, every column). The exploration's
+  `rr:` strings ran at `5f880696`, where the default was the Regent before the round: on later code add `feet=0`.
+- Tests: `RegentRuleTests` (the feet's boundary inclusive, the hold over a beat, 1.5 pinned inside the rod's 1.7 and the
+  gate kite's 2.0), `FoundrySimulationSceneValueTests.TheGlassRegentIsTheSimulations` (the shipped levers are the rule's;
+  the Glass Rod's asset reach beyond the feet), `GlassRegentFlowTests.TheRegentKeepsItsRodForAHeroAtItsFeet` (a lane that
+  goes down with the hero 0.8 from the Regent: no rod held through the cast and the shards' run, the rod striking, no
+  windup, the ring pulsing; the next lane, the hero 4 units off: the rod held from the mark).
+
+**The default batch** (`FOUNDRY_SEEDS=200 FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_REALISM=typical
+FOUNDRY_PARALLEL=4`, `FOUNDRY_FLOORS=4` and `2`), main `408f95fa` against `d3d793ad`, each built in a clean folder of its
+own sources (`git archive` of Assets/_Project/Scripts, Tests, Data and Tools) on the same machine:
+- **Byte-identical at both floor counts:** `foundry-batch.csv` (1,076,385 bytes) and `foundry-gate.md` - floor 1 and the
+  gate's rows. The research commit `5f880696` alone moves no run (360 GloamEnemiesResearch rows on seeds 801-830
+  byte-identical to the balance rule study's).
+- `foundry-batch.md`: the header's clock, floor 1's wall-seconds column, and floor 2's rows below them (8 lines at
+  `FOUNDRY_FLOORS=2`, 27 at 4). The frame-perfect careful pilot's floor-2 gate fight keeps 37 / 49 / 62 s and
+  35 / 46 / 58 s; `foundry-batch-floor2.csv` differs in 5 of its 400 runs (a rare beat at the Regent's feet: what the rod
+  took - Ilya's fight cost 11 to 12 - no outcome, no fight length).
+- `foundry-cohorts-floor2.csv`: 407 of 1,391 runs differ - standing 339, clumsy 38, careful 24, first-card 6,
+  auto-farmer none. Floor-2 clears with typical hands (Vanguard / Ilya): standing 185 / 176 to 172 / 164, the Regent its
+  killer at the gate 14 / 11 times (0 / 1 before); careful, first-card, clumsy and auto-farmer clear what they cleared.
+  `foundry-cohorts.md`: the same rows (4 lines at 2 floors, 23 at 4).
+- At `FOUNDRY_FLOORS=4` the floors below follow: `foundry-cohorts-floor3.csv` 373 of 1,307 runs differ and 25 standing
+  runs no longer go down; `foundry-finale.csv` 168 differ and 21 no longer reach it; completions standing 177 / 166 to
+  164 / 159, clumsy Ilya 100 to 99, every other cell as before. The Descent's P50 stays 13.3-14.5 minutes (careful
+  14.5 / 14.3; standing 13.9 / 13.8 against 14.0 / 13.8), inside docs/40's 13-16.
+- Checks: CombatChecks 919 green (`Başarılı`; 917 on main and the two new rule tests); the Unity compile check green. The Unity suites are the lead's gate:
+  `RegentRuleTests`, `FoundrySimulationSceneValueTests.TheGlassRegentIsTheSimulations` (EditMode) and
+  `GlassRegentFlowTests` (PlayMode), with `DescentFlowTests` and `WardenLookTests` beside them.
+
+**What it leaves open.**
+- The 1.7 s telegraph is still above the phone guide (section "The Glass Regent in the game"); the device read may bring it
+  down, and that is a re-measurement of the lane, not of the feet.
+- The ring is drawn as a LineRenderer (as the Warden's ring); the owner's play on the S23 judges whether it reads at 80 px
+  and whether a hero at the Regent's feet sees the strikes as the reason for its health.
+- The pilots have no habit for the ring (the careful kite already keeps 2.0 from a gate boss); a human who reads the ring
+  and steps off its feet as the lane goes down is not modelled, so the standing cohort's cost is the price of ignoring it.
+- Stage 2 (the copies) stays unbuilt; their lanes would be cast by copies, and the feet are the Regent's own (its lane's
+  root, `RegentLanes.AtItsFeet` reads the first caster).

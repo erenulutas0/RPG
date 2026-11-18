@@ -15,7 +15,10 @@ namespace Cryptforge.Core
     // A gate boss that carries a GlassRegent - floor 2's since 2026-11-12 (docs/50 section 6, the lead's decisions) - keeps
     // its own beat (RegentRule) and marks a lane instead of a circle: as the mark goes down where the hero stands, a lane
     // from where the Regent stands through it (Lanes), and the blow catches a hero still inside it for RegentRule.LaneShare
-    // of its maximum health. The foundry simulation marks and judges the same RegentLanes at the same point of its frame
+    // of its maximum health. Its rod is held as the Warden's hammer is, from the mark until the recovery after the blow -
+    // except on a beat whose mark went down with the hero at its feet (RegentRule.FeetReach, RodAtItsFeet; docs/50 "The
+    // Regent's bite for the standing hero"): that hero is struck through the cast. The foundry simulation marks and judges
+    // the same RegentLanes, and holds the rod by the same RegentRule.HoldsRod, at the same point of its frame
     // (DescentSimulation.Vaults.cs).
     //
     // It runs after EncounterController (-50), which brings the gate boss out, and before every script of the default
@@ -43,6 +46,9 @@ namespace Cryptforge.Core
         public Health Boss => _boss != null && _boss.IsAlive ? _boss : null;
         public bool IsFighting => Boss != null;
         public bool IsEnraged { get; private set; }
+        // Whether the Regent's beat down went down with the hero at its feet (RegentRule.FeetReach): it holds no rod through
+        // this beat's cast and shards' run (RegentRule.HoldsRod). Read again as each mark goes down; false for the Warden.
+        public bool RodAtItsFeet { get; private set; }
         // Where the mark is down, on the floor.
         public float MarkX { get; private set; }
         public float MarkY { get; private set; }
@@ -75,6 +81,7 @@ namespace Cryptforge.Core
                 if (_heroAttack != null)
                     _heroAttack.GateBoss = gate;
                 IsEnraged = false;
+                RodAtItsFeet = false;
                 encounter.SetBossEnraged(false);
                 _clock.Reset();
                 _lanes.Clear();
@@ -122,6 +129,8 @@ namespace Cryptforge.Core
                             regentY = ArenaFloor.FloorY(boss.transform.position.y);
                         }
                         _lanes.Add(regentX, regentY);
+                        // At its feet as the lane goes down: no rod held through this beat.
+                        RodAtItsFeet = _lanes.AtItsFeet(RegentRule.FeetReach);
                     }
                     Marked?.Invoke();
                     break;
@@ -147,7 +156,8 @@ namespace Cryptforge.Core
                     Slammed?.Invoke(LastSlamHit);
                     break;
             }
-            Hold(_clock.HoldsWeapon);
+            // The Regent holds its rod as the Warden its hammer, but never for a hero at its feet.
+            Hold(_regent != null ? RegentRule.HoldsRod(_clock.HoldsWeapon, RodAtItsFeet) : _clock.HoldsWeapon);
         }
 
         // The Warden's weapon waits while its hammer is going up or is in the floor.

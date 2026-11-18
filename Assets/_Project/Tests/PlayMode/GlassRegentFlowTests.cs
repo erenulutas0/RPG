@@ -17,7 +17,8 @@ namespace Cryptforge.Tests
     // lane from where it stands through the hero's spot, on the Warden's clock with its weapon held from the mark: a hero
     // who stays on it, or steps along it, is caught for RegentRule.LaneShare of its maximum; one who steps across it is not.
     // WardenSlamView lays the lane - the Regent's two sprites - and no Warden's ring. And the development autopilot, the
-    // careful pilot, sidesteps the lanes (FootworkRule.Sidestep).
+    // careful pilot, sidesteps the lanes (FootworkRule.Sidestep). Since 2026-11-17 the Regent holds its rod through a beat
+    // only for a hero beyond its feet (RegentRule.FeetReach): one at its feet is struck through the cast.
     public sealed class GlassRegentFlowTests
     {
         [UnitySetUp] public IEnumerator Begin()
@@ -171,6 +172,83 @@ namespace Cryptforge.Tests
             yield return null;
             Assert.That(service.IsEnraged, Is.True);
             Assert.That(encounter.IsBossEnraged, Is.True, "its room's horde thickens");
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // Keeps the standing hero at a floor offset from the Regent (its input is off: nothing else moves it).
+        private static void Beside(EncounterController encounter, Health boss, Transform hero, float dx, float dy)
+        {
+            if (encounter.TryFloorPositionOf(boss, out float bx, out float by))
+                hero.position = new Vector3(bx + dx, ArenaFloor.WorldY(by + dy), hero.position.z);
+        }
+
+        // The rod at its feet (RegentRule.FeetReach, RegentRule.HoldsRod; docs/50 "The Regent's bite for the standing hero",
+        // 2026-11-17): a lane that goes down with the hero at the Regent's feet holds no rod - the Regent strikes it through
+        // the cast and raises no windup, its feet ring pulsing; a lane that goes down with the hero beyond its feet holds the
+        // rod from the mark until the shards' recovery, as the Warden holds its hammer.
+        [UnityTest, Timeout(120000)] public IEnumerator TheRegentKeepsItsRodForAHeroAtItsFeet()
+        {
+            yield return Load(false);
+            var heroInput = Object.FindFirstObjectByType<HeroMovementInput>();
+            heroInput.enabled = false;
+            // The hero's own weapons off, so the Regent stands through the beats; its rod stays on.
+            heroInput.GetComponent<AttackController>().enabled = false;
+            var setup = Object.FindFirstObjectByType<CombatSetup>();
+            EncounterController encounter = setup.Encounters;
+            WardenSlamService service = setup.Warden;
+            var view = setup.GetComponent<WardenSlamView>();
+            Transform heroAt = heroInput.transform;
+
+            yield return Until(setup, () => service.IsFighting && !encounter.IsRevealHeld, 30f);
+            Assert.That(service.MarksLanes, Is.True);
+            Health boss = service.Boss;
+            var rod = boss.GetComponent<AttackController>();
+            Assert.That(rod.enabled, Is.True);
+            var look = boss.GetComponent<EnemyLookView>();
+            int marks = 0, strikes = 0;
+            service.Marked += () => marks++;
+            rod.Struck += _ => strikes++;
+            yield return null;
+            Assert.That(view.IsFeetShown, Is.True, "the ring round its feet shows while it is fought");
+            Assert.That(view.IsFeetPulsing, Is.False);
+
+            // The first lane goes down with the hero at its feet, 0.8 from it.
+            float deadline = Time.realtimeSinceStartup + RegentRule.Every + 5f;
+            while (marks == 0 && Time.realtimeSinceStartup < deadline)
+            {
+                Beside(encounter, boss, heroAt, .8f, 0f);
+                yield return null;
+            }
+            Assert.That(marks, Is.EqualTo(1));
+            Assert.That(service.Lanes.AtItsFeet(RegentRule.FeetReach), Is.True, "the mark went down at its feet");
+            Assert.That(service.RodAtItsFeet, Is.True);
+            Assert.That(rod.IsHeld, Is.False, "no rod held for a hero at its feet");
+            yield return null;
+            Assert.That(view.IsFeetPulsing, Is.True, "the ring pulses through the beat");
+            if (look != null)
+                Assert.That(look.IsWindingUp, Is.False, "and no windup: the rod keeps swinging");
+            int before = strikes;
+            deadline = Time.realtimeSinceStartup + RegentRule.Telegraph + WardenRule.RecoverySeconds + 3f;
+            while (service.Clock.HoldsWeapon && Time.realtimeSinceStartup < deadline)
+            {
+                Beside(encounter, boss, heroAt, .8f, 0f);
+                Assert.That(rod.IsHeld, Is.False, "through the cast and the shards' run");
+                yield return null;
+            }
+            Assert.That(strikes, Is.GreaterThan(before), "the rod struck the hero at its feet through the beat");
+
+            // The next lane goes down with the hero 4 units off: the rod is held from the mark, as the Warden's hammer.
+            deadline = Time.realtimeSinceStartup + RegentRule.Every + 5f;
+            while (marks == 1 && Time.realtimeSinceStartup < deadline)
+            {
+                Beside(encounter, boss, heroAt, 4f, 0f);
+                yield return null;
+            }
+            Assert.That(marks, Is.EqualTo(2));
+            Assert.That(service.RodAtItsFeet, Is.False, "the hero beyond its feet");
+            Assert.That(rod.IsHeld, Is.True, "the rod held from the mark");
+            yield return null;
+            Assert.That(view.IsFeetPulsing, Is.False);
             LogAssert.NoUnexpectedReceived();
         }
 

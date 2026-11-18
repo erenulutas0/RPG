@@ -16,6 +16,12 @@ namespace Cryptforge.UI
     // edges through the telegraph, the whole lane flashing hot as the shards run. Each lane is the Regent's two 9-slice
     // sprites (GlassRegent.LaneEdge and LaneFill; Tools/ArtReview/BuildRegentLaneMark.py) at the lane's start, turned in
     // floor space along it, under a parent that squashes y by ArenaFloor.DepthScale so the stripe lies on the floor.
+    //
+    // And the Regent's feet (RegentRule.FeetReach; docs/50 "The Regent's bite for the standing hero"): a faint violet ring
+    // round it while it is fought - violet, a creature's mark that never hurts by itself (docs/49 rule 4) - that brightens
+    // and pulses through a beat whose mark found the hero inside it, when the Regent keeps its rod swinging through the cast
+    // (WardenSlamService.RodAtItsFeet) and raises no windup. A hero beyond the ring as the lane goes down sees the Regent
+    // raise its mirror and hold its rod, as the Warden raises its hammer.
     [DefaultExecutionOrder(100)]
     public sealed class WardenSlamView : MonoBehaviour
     {
@@ -25,6 +31,9 @@ namespace Cryptforge.UI
         private static readonly Color Hot = new Color(1f, .82f, .45f, 1f);
         // The fill's narrowest, as a share of the lane's width, at the mark.
         private const float LaneFillFloor = .05f;
+        // The Regent's feet ring: docs/49's aurora violet, faint at rest and pulsing on a beat that found the hero inside.
+        private static readonly Color Violet = new Color(.545f, .424f, .91f, 1f);
+        private const float FeetRest = .3f;
         private WardenSlamService _service;
         private ArenaView _arena;
         private Material _material;
@@ -42,7 +51,12 @@ namespace Cryptforge.UI
         private readonly float[] _laneWidths = new float[RegentRule.MaxLanes];
         private int _lanes;
         private bool _laneMark;
+        // The ring round the Regent's feet, made as a Regent is first fought.
+        private LineRenderer _feet;
         public bool IsMarkShown => _mark != null && _mark.gameObject.activeSelf;
+        // Whether the ring round the Regent's feet shows, and whether it pulses (the beat down found the hero inside it).
+        public bool IsFeetShown => _feet != null && _feet.gameObject.activeSelf;
+        public bool IsFeetPulsing { get; private set; }
         public float ShownFill { get; private set; }
         // The Regent's lanes showing now (0 for the Warden's ring, or none down).
         public int ShownLanes { get; private set; }
@@ -90,6 +104,9 @@ namespace Cryptforge.UI
             _flash = 0f;
             LayLanes(p.y - ArenaFloor.WorldY(_service.MarkY));
             Health boss = enabled ? _service.Boss : null;
+            // A Regent that found the hero at its feet raises no windup: its rod keeps swinging through the cast.
+            if (_service.MarksLanes && _service.RodAtItsFeet)
+                boss = null;
             _windingUp = boss != null ? boss.GetComponent<EnemyLookView>() : null;
             if (_windingUp != null)
                 _windingUp.WindUp(MarkPoint);
@@ -114,6 +131,7 @@ namespace Cryptforge.UI
                 return;
             if (_flash > 0f)
                 _flash -= Time.deltaTime;
+            ShowFeet();
             bool marked = enabled && _service.IsFighting && _service.Clock.IsMarked;
             // A mark withdrawn without a blow (the boss fell or changed, the fight stopped): the hammer comes down.
             if (!marked && _windingUp != null)
@@ -156,6 +174,45 @@ namespace Cryptforge.UI
             fill.a = fillAlpha;
             _fill.startColor = _fill.endColor = fill;
             _fill.transform.localScale = new Vector3(scale, scale, 1f);
+        }
+
+        // The ring round the Regent's feet while it is fought: faint, or pulsing violet through a beat whose mark found the hero
+        // inside it (its rod free through the cast).
+        private void ShowFeet()
+        {
+            Health boss = enabled && _service.MarksLanes ? _service.Boss : null;
+            if (boss == null)
+            {
+                IsFeetPulsing = false;
+                if (_feet != null && _feet.gameObject.activeSelf)
+                    _feet.gameObject.SetActive(false);
+                return;
+            }
+            if (_feet == null)
+                _feet = FeetRing();
+            if (!_feet.gameObject.activeSelf)
+                _feet.gameObject.SetActive(true);
+            Vector3 p = boss.transform.position;
+            if (_arena != null && _arena.IsFoundryRegion) p.y += FoundrySurface.Lift(p, _arena.transform.position);
+            _feet.transform.position = new Vector3(p.x, p.y, 0f);
+            IsFeetPulsing = _service.RodAtItsFeet && _service.Clock.HoldsWeapon;
+            Color ring = Violet;
+            ring.a = IsFeetPulsing ? .6f + .4f * Mathf.Sin(Time.time * 18f) : FeetRest;
+            _feet.startColor = _feet.endColor = ring;
+        }
+
+        private LineRenderer FeetRing()
+        {
+            var line = new GameObject("Regent Feet").AddComponent<LineRenderer>();
+            line.transform.SetParent(transform, false);
+            line.sharedMaterial = _material; line.useWorldSpace = false; line.loop = true; line.numCapVertices = 2;
+            line.sortingOrder = 0; line.positionCount = Segments; line.startWidth = line.endWidth = .05f;
+            for (int k = 0; k < Segments; k++)
+            {
+                float a = k * Mathf.PI * 2 / Segments;
+                line.SetPosition(k, new Vector3(Mathf.Cos(a) * RegentRule.FeetReach, ArenaFloor.WorldY(Mathf.Sin(a) * RegentRule.FeetReach), 0));
+            }
+            return line;
         }
 
         // The Regent's lanes as the mark goes down (WardenSlamService.Lanes, set before Marked): each laid from where its
