@@ -433,6 +433,42 @@ two pool skills.
 4. **Per-hero arena coefficients** as a second balance table, tuned by a round-robin research in `CombatChecks`.
 5. **P0 before any backend**, with the owner's S23 verdict as the gate for P2.
 
+## 9. The owner's answers and the lead's decisions, 2026-11-18
+
+The owner researched monetisation and arena fairness across nine games of the genre and the Turkish market
+(`docs/research/2026-11-18_monetisation_and_arena_owner_report.md`, in Turkish) and answered section 7:
+
+1. **Async, never real-time.** An auto-duel against another player's saved hero, decided by the server once ranked
+   exists. P3 (real-time) is dropped from the plan.
+2. **A duel, best of three. Automatic first:** the player chooses the build and watches. **P2b (tapped skills) is built
+   if the owner's P0 verdict says watching is not fun.** The race (Daily Trial) and teams are not planned.
+3. **Monetisation: model B** (docs/58): free, an optional rewarded video at the result screen only, one non-consumable
+   "skip reward videos" product at about 99.99 TL. Gold, materials, boosters and efsun are never sold. Since nothing
+   bought touches power, **no server-owned inventory** is needed for monetisation.
+4. **Server budget:** not needed for the first release (P0 has no server). It is asked again before P1.
+5. **Gear in ranked: normalised, with the build's identity kept**, as the owner's report proposes. The ranked duel keeps
+   the hero, the weapon's type and attack pattern, the three skills and the **types** of efsun lines the player picks;
+   the + level, the number of lines and every line's value are **the same for both sides**. The arena's efsun pool is
+   **open to everyone**, so a line type is a loadout choice, not something owned: a rare roll or a +9 never decides a
+   ranked fight. Beside it, an **Open arena** (gear counts in full, casual rewards only, matched by gear power).
+   The fight's summary names the two or three effects that won it (async players cannot intervene, so the "why"
+   matters).
+6. **The anvil stays offline.** Follows from 5: nothing the anvil makes decides ranked, so basma and efsun never need
+   a connection.
+7. **Accounts and law:** not needed for the first release. Asked again before P1, with the privacy policy, the KVKK
+   notice and the lawyer's hour.
+
+**The release order:** the first release is the single-player Descent plus **P0, the local arena**: generated rivals and
+the player's own past heroes, no server. It ships in the APK. Ranked against real players (P1-P2) follows once the
+first release has players.
+
+**The lead's decisions on section 8:** all five as written. The integer core is `Cryptforge.Arena` with no engine
+references. The server decides ranked. Snapshots store ids and levels. Per-hero coefficients come from a round-robin.
+P0 comes before any backend.
+
+The normalised build of answer 5 refines section 3.4's option 1, which had gear as cosmetics only. P0 builds both modes
+on the integer core: **ranked-normalised**, which is the default, and **open**.
+
 ## How to re-run
 
     dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~ArenaDuelTests"
