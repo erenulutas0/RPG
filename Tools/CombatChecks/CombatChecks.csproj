@@ -264,6 +264,7 @@
     <Compile Include="../../Assets/_Project/Scripts/Monetisation/*.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/RewardOfferTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/RewardLedgerTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/EntitlementTests.cs" />
     <!-- docs/54's pure core (phase 1): basma's odds, pity and ceiling, efsun's lines, the gear's caps and power index. -->
     <Compile Include="../../Assets/_Project/Tests/EditMode/AnvilRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/EfsunRuleTests.cs" />
