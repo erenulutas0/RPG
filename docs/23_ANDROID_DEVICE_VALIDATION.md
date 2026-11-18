@@ -2404,6 +2404,10 @@ report (steps 7-8) only read, so they need no focus check.
    ```
    The folder holds no `pull.txt`, so the batch report never reads it.
 4. **Install the APK and check its hash.** The APK is `Builds/Android/Cryptforge-Prototype.apk`, the clean build of
+   main 4b919dd1 with the difficulty tiers (docs/54 21: Forged, Tempered, Inferno, Abyssal on the map choice; save
+   version 5), the Glass Regent's bite for a hero at its feet, the hero skills 2-3 built but off (docs/57), the
+   arena's training rivals, the monetisation scaffold (no SDK, no screen), the release pipeline and the store drafts
+   on top of
    main 299fc7e2 with the arena's core (docs/55 P0: the duel, builds, rivals and a local ladder, no screen yet) and
    Turkish and English (docs/60: the game opens in the phone's language, the pause overlay switches it) on top of
    main 99f8d780 with the equipped gear in the run (docs/54 phases 5-5b: its own multiplicative layer, every efsun
@@ -2430,8 +2434,8 @@ report (steps 7-8) only read, so they need no focus check.
    with a point on every locale; Gradle's 10 MB of holes gone; 36,819,361 bytes). Check the file
    itself, never a hash written down earlier:
    ```
-   (Get-FileHash Builds/Android/Cryptforge-Prototype.apk -Algorithm SHA256).Hash   # 6DCF9FECB3B488F2... on 2026-11-19 01:02
-   (Get-Item Builds/Android/Cryptforge-Prototype.apk).Length                        # 61206981
+   (Get-FileHash Builds/Android/Cryptforge-Prototype.apk -Algorithm SHA256).Hash   # 2039FD71961E420B... on 2026-11-19 02:17
+   (Get-Item Builds/Android/Cryptforge-Prototype.apk).Length                        # 61332677
    adb install -r Builds/Android/Cryptforge-Prototype.apk
    ```
    `install -r` keeps the profile and the telemetry. `Cryptforge-Prototype-679df68d.apk` (47 MB, DA3D13FD...) and the
