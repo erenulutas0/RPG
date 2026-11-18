@@ -269,6 +269,17 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/TelemetryLogTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/TelemetrySessionTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/RunTelemetryTests.cs" />
+    <!-- docs/59 3.3's analytics seam (2026-11-19): IAnalytics with the local file log behind it (LocalFileAnalytics), a
+         fan-out for the backend to come, and the play sessions' SessionClock - pure, compiled with Scripts/Analytics above. -->
+    <Compile Include="../../Assets/_Project/Tests/EditMode/SessionClockTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/AnalyticsSeamTests.cs" />
+    <!-- docs/58 section 7's monetisation scaffold (2026-11-19), pure and without an SDK: the result screen's offer (its rule,
+         coordinator and ledger), the skip's entitlement and its cache, the video, store and consent interfaces with their
+         offline fakes, and their telemetry fields. -->
+    <Compile Include="../../Assets/_Project/Scripts/Monetisation/*.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/RewardOfferTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/RewardLedgerTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/EntitlementTests.cs" />
     <!-- docs/54's pure core (phase 1): basma's odds, pity and ceiling, efsun's lines, the gear's caps and power index. -->
     <Compile Include="../../Assets/_Project/Tests/EditMode/AnvilRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/EfsunRuleTests.cs" />
