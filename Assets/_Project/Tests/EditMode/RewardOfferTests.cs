@@ -39,11 +39,6 @@ namespace Cryptforge.Tests
                     Consent = Consent,
                     OwnsSkip = () => OwnsSkip,
                     Ledger = Ledger,
-                    CreditGold = gold =>
-                    {
-                        Gold += gold;
-                        Order.Add("gold " + gold.ToString(CultureInfo.InvariantCulture));
-                    },
                     SaveLedger = l =>
                     {
                         if (LedgerFailure != null)
@@ -60,7 +55,13 @@ namespace Cryptforge.Tests
             {
                 SavedChecks++;
                 return Saved;
-            });
+            }, Credit);
+
+            private void Credit(int gold)
+            {
+                Gold += gold;
+                Order.Add("gold " + gold.ToString(CultureInfo.InvariantCulture));
+            }
 
             // The first completed run, which is never offered, then the second's screen opened.
             public RewardOfferState OpenSecond(int gold)
@@ -336,7 +337,14 @@ namespace Cryptforge.Tests
             rig.Offer.Take();
             rig.Offer.Close();
             Assert.That(rig.Analytics.Named("reward_result"), Is.Empty, "Not declined: its video is on screen.");
+
+            // Another screen opens, with a profile of its own, before the video ends: the bonus still goes to its own run's.
+            int elsewhere = 0;
+            Assert.That(rig.Offer.Open("s-3", 20, () => true, g => elsewhere += g), Is.EqualTo(RewardOfferState.NoAd));
+            Assert.That(rig.Video.LoadCalls, Is.EqualTo(1), "No second video is asked for while one is on screen.");
             rig.Video.CompleteShow();
+            Assert.That(elsewhere, Is.EqualTo(0));
+            Assert.That(rig.Offer.State, Is.EqualTo(RewardOfferState.NoAd), "s-3's offer is untouched by s-2's result.");
             Assert.That((rig.Gold, rig.Ledger.CreditedRunIds.Count), Is.EqualTo((6, 1)));
             Assert.That(rig.Analytics.Named("reward_result"), Is.EqualTo(new[] { "reward_result @s-2 result=\"watched\" credited=true bonus_gold=6" }));
         }
@@ -395,17 +403,19 @@ namespace Cryptforge.Tests
             Action<int> credit = g => { };
             Assert.Throws<ArgumentNullException>(() => new RewardOfferCoordinator(null));
             Assert.Throws<ArgumentException>(() => new RewardOfferCoordinator(new RewardOfferContext
-                { Consent = consent, OwnsSkip = owns, Ledger = ledger, CreditGold = credit }));
+                { Consent = consent, OwnsSkip = owns, Ledger = ledger }));
             Assert.Throws<ArgumentException>(() => new RewardOfferCoordinator(new RewardOfferContext
-                { Video = video, Consent = consent, OwnsSkip = owns, Ledger = ledger }));
+                { Video = video, Consent = consent, OwnsSkip = owns }));
             Assert.Throws<ArgumentException>(() => new RewardOfferCoordinator(new RewardOfferContext
-                { Video = video, Consent = consent, OwnsSkip = owns, Ledger = ledger, CreditGold = credit, MultiplierPercent = 90 }));
+                { Video = video, Consent = consent, OwnsSkip = owns, Ledger = ledger, MultiplierPercent = 90 }));
             var offer = new RewardOfferCoordinator(new RewardOfferContext
-                { Video = video, Consent = consent, OwnsSkip = owns, Ledger = ledger, CreditGold = credit });
-            Assert.Throws<ArgumentException>(() => offer.Open("", 10, () => true));
-            Assert.Throws<ArgumentOutOfRangeException>(() => offer.Open("r", -1, () => true));
-            Assert.Throws<ArgumentNullException>(() => offer.Open("r", 1, null));
-            Assert.That(offer.Open("r", 1, () => true), Is.EqualTo(RewardOfferState.TooEarly), "No analytics and no ledger file is fine.");
+                { Video = video, Consent = consent, OwnsSkip = owns, Ledger = ledger });
+            Assert.Throws<ArgumentException>(() => offer.Open("", 10, () => true, credit));
+            Assert.Throws<ArgumentOutOfRangeException>(() => offer.Open("r", -1, () => true, credit));
+            Assert.Throws<ArgumentNullException>(() => offer.Open("r", 1, null, credit));
+            Assert.Throws<ArgumentNullException>(() => offer.Open("r", 1, () => true, null));
+            Assert.That(offer.Open("r", 1, () => true, credit), Is.EqualTo(RewardOfferState.TooEarly),
+                "No analytics and no ledger file is fine.");
         }
     }
 }

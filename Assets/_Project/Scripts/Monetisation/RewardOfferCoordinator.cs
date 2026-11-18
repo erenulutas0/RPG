@@ -4,18 +4,17 @@ using Cryptforge.Analytics;
 
 namespace Cryptforge.Monetisation
 {
-    // What the coordinator works with, gathered by the composition root (RunTelemetryContext's pattern). Plain fields;
-    // the coordinator copies and checks them once.
+    // What the coordinator works with for the launch, gathered by the composition root (RunTelemetryContext's pattern).
+    // Plain fields; the coordinator copies and checks them once. Where a bonus goes is not here: the profile is read again
+    // with every scene, so each result screen names its own (Open's creditGold).
     public sealed class RewardOfferContext
     {
         // Required: the placement's video (FakeRewardedVideo until the SDK), the consent gate, whether the skip is owned
-        // (EntitlementService.OwnsSkip), the ledger (RewardLedgerStore.Load) and where a credited bonus goes
-        // (PlayerProfile.Deposit, whose Changed saves the profile).
+        // (EntitlementService.OwnsSkip) and the ledger (RewardLedgerStore.Load).
         public IRewardedVideo Video;
         public IAdConsent Consent;
         public Func<bool> OwnsSkip;
         public RewardLedger Ledger;
-        public Action<int> CreditGold;
         // Optional: where the ledger is written (RewardLedgerStore.Save; null keeps it in memory), the telemetry sink, and
         // the session clock told when a video opens and closes (a background trip to a video is not a new session).
         public Action<RewardLedger> SaveLedger;
@@ -38,7 +37,8 @@ namespace Cryptforge.Monetisation
     }
 
     // The result screen's one rewarded offer (docs/58 sections 1, 3 and 5a) as plain code. The view opens it for a completed
-    // run with the run's id, its banked gold and an injected check that the run's result is saved; the coordinator then
+    // run with the run's id, its banked gold, an injected check that the run's result is saved and where the run's bonus
+    // goes (its scene's PlayerProfile.Deposit, whose Changed saves the profile); the coordinator then
     // decides (RewardOfferRule), shows the video or credits the skip, credits the bonus once per run id through the ledger,
     // and writes reward_offer, reward_result and ad_counters. It owns docs/58 5a's counters for the launch, so one lives as
     // long as the launch (the wiring holds it beside the telemetry session), not as long as a scene.
@@ -56,20 +56,21 @@ namespace Cryptforge.Monetisation
         private readonly IAdConsent _consent;
         private readonly Func<bool> _ownsSkip;
         private readonly RewardLedger _ledger;
-        private readonly Action<int> _creditGold;
         private readonly Action<RewardLedger> _saveLedger;
         private readonly IAnalytics _analytics;
         private readonly SessionClock _sessions;
         private readonly int _multiplierPercent;
 
         private Func<bool> _resultSaved;
+        private Action<int> _creditGold;
         private bool _open;
         private bool _resolved;
         private bool _offerLogged;
         private bool _askedWithoutAd;
-        // The run whose video is on screen, and its bonus; null when none is.
+        // The run whose video is on screen, its bonus and where it goes; null when none is.
         private string _showingRunId;
         private int _showingBonus;
+        private Action<int> _showingCredit;
 
         // Fires when the offer's state may have changed: the view reads Refresh() again.
         public event Action Changed;
@@ -97,7 +98,6 @@ namespace Cryptforge.Monetisation
             _consent = context.Consent ?? throw new ArgumentException("A consent gate is required.", nameof(context));
             _ownsSkip = context.OwnsSkip ?? throw new ArgumentException("The skip's ownership is required.", nameof(context));
             _ledger = context.Ledger ?? throw new ArgumentException("A reward ledger is required.", nameof(context));
-            _creditGold = context.CreditGold ?? throw new ArgumentException("Where the bonus goes is required.", nameof(context));
             if (context.MultiplierPercent < 100)
                 throw new ArgumentException("The bonus never takes gold away.", nameof(context));
             _saveLedger = context.SaveLedger;
@@ -148,8 +148,9 @@ namespace Cryptforge.Monetisation
         }
 
         // The result screen opens for a completed run: counts it (once per run id), and offers if the rule allows. runGold
-        // is what the run banked (RunState.GoldBanked); resultSaved is true once the run's result is on disk.
-        public RewardOfferState Open(string runId, int runGold, Func<bool> resultSaved)
+        // is what the run banked (RunState.GoldBanked); resultSaved is true once the run's result is on disk; creditGold
+        // takes a credited bonus (the scene's PlayerProfile.Deposit).
+        public RewardOfferState Open(string runId, int runGold, Func<bool> resultSaved, Action<int> creditGold)
         {
             if (string.IsNullOrEmpty(runId))
                 throw new ArgumentException("A run id is required.", nameof(runId));
@@ -157,6 +158,8 @@ namespace Cryptforge.Monetisation
                 throw new ArgumentOutOfRangeException(nameof(runGold));
             if (resultSaved == null)
                 throw new ArgumentNullException(nameof(resultSaved));
+            if (creditGold == null)
+                throw new ArgumentNullException(nameof(creditGold));
             if (_open && string.Equals(runId, RunId, StringComparison.Ordinal))
                 return Refresh();
 
@@ -165,6 +168,7 @@ namespace Cryptforge.Monetisation
             RunGold = runGold;
             BonusGold = RewardOfferRule.BonusGold(runGold, _multiplierPercent);
             _resultSaved = resultSaved;
+            _creditGold = creditGold;
             _open = true;
             _resolved = false;
             _offerLogged = false;
@@ -186,12 +190,13 @@ namespace Cryptforge.Monetisation
             switch (state)
             {
                 case RewardOfferState.Skip:
-                    CreditAndResolve(RunId, BonusGold, RewardResultKind.SkipOwned);
+                    CreditAndResolve(RunId, BonusGold, _creditGold, RewardResultKind.SkipOwned);
                     return RewardTakeResult.Credited;
                 case RewardOfferState.Video:
                     Counters.RecordAttempt(true);
                     _showingRunId = RunId;
                     _showingBonus = BonusGold;
+                    _showingCredit = _creditGold;
                     // The offer's lines reach the file before the app leaves for the video.
                     _analytics?.Flush();
                     _sessions?.VideoOpened();
@@ -228,6 +233,7 @@ namespace Cryptforge.Monetisation
             }
             _open = false;
             _resultSaved = null;
+            _creditGold = null;
             RunId = null;
             RunGold = 0;
             BonusGold = 0;
@@ -255,19 +261,21 @@ namespace Cryptforge.Monetisation
             if (runId == null)
                 return;
             int bonus = _showingBonus;
+            Action<int> credit = _showingCredit;
             _showingRunId = null;
             _showingBonus = 0;
+            _showingCredit = null;
             _sessions?.VideoClosed();
             Counters.RecordShow(result);
             if (result == RewardedVideoResult.Completed)
-                CreditAndResolve(runId, bonus, RewardResultKind.Watched);
+                CreditAndResolve(runId, bonus, credit, RewardResultKind.Watched);
             else
                 Resolve(runId, result == RewardedVideoResult.Skipped ? RewardResultKind.Skipped : RewardResultKind.Failed, false, 0);
             // The next run's video.
             Prefetch();
         }
 
-        private void CreditAndResolve(string runId, int bonus, RewardResultKind kind)
+        private void CreditAndResolve(string runId, int bonus, Action<int> credit, RewardResultKind kind)
         {
             // State never offers a credited run; this keeps a credit from ever doubling all the same.
             if (!_ledger.TryCredit(runId, bonus))
@@ -276,7 +284,7 @@ namespace Cryptforge.Monetisation
                 return;
             }
             SaveLedger();
-            _creditGold(bonus);
+            credit(bonus);
             Resolve(runId, kind, true, bonus);
         }
 
