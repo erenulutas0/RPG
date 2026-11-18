@@ -115,7 +115,7 @@ Nothing of the simulation was touched, so the default batch is unmoved by constr
 | `Scripts/Monetisation/FlatJson.cs`, `SmallSaveFile.cs` (internal) | the two small files' JSON (ArenaSaveJson's strict reader, forgiving fields) and their write (ArenaSaveStore's temp, backup, newest revision) |
 | `Scripts/Analytics/IAnalytics.cs`, `LocalFileAnalytics.cs`, `AnalyticsFanOut.cs` | the analytics seam (docs/59 3.3), 7.5 |
 | `Scripts/Analytics/SessionClock.cs` | the play sessions: a background trip to a video is not a new session (7.5) |
-| `Tests/EditMode/RewardOfferTests.cs`, `RewardLedgerTests.cs`, `EntitlementTests.cs`, `AnalyticsSeamTests.cs`, `SessionClockTests.cs` | 33 tests, in Unity's EditMode suite and in every plain `dotnet test` of `Tools/CombatChecks` |
+| `Tests/EditMode/RewardOfferTests.cs`, `RewardLedgerTests.cs`, `EntitlementTests.cs`, `AnalyticsSeamTests.cs`, `SessionClockTests.cs` | 35 tests, in Unity's EditMode suite and in every plain `dotnet test` of `Tools/CombatChecks` |
 
 All of it is in `Project.Gameplay` (namespace `Cryptforge.Monetisation`, and `Cryptforge.Analytics` for the seam) with
 no `UnityEngine`: `Tools/CombatChecks`, which has no Unity, compiles every file. The fakes ship in the game assembly so
@@ -129,12 +129,15 @@ the captures and a development build can use them until the SDKs come.
   (`RewardOfferRule.MultiplierPercent = 150`, a context field) so section 4's measurement can move it without a float.
   "The run's gold" is `RunState.GoldBanked`, what the run put in the profile after a defeat's loss; the gold an item
   melted for in a full bag is not the run's gold and is not multiplied.
+- **A minimum of 10 banked gold** (the lead, 2026-11-19: question 3). Below `RewardOfferRule.MinimumRunGold = 10`, a
+  constant beside `MultiplierPercent` and a context field like it, the offer is not shown (`NoGold`), not even to an
+  owner of the skip: a +1 to +4 offer is never worth a video. 10 banked gives +5.
 - **A completed run is one that reached its result screen** (a victory, an extraction or a defeat; a run left by a
   restart or a closed app is not). The count lives in the ledger, not the profile, so the profile and its save version
   stay untouched: a new ledger's first screen is `TooEarly`, its second offers. A lost ledger restarts the count, which
   costs one offer. Opening the same run id again counts nothing.
-- **The states**, in the rule's order: `TooEarly` (fewer than 2), `NotSaved`, `NoGold` (a run that banked nothing: x1.5
-  adds nothing), `Resolved` (credited, its video ended, or declined), then `Skip` for an owner (**even with a video ready**:
+- **The states**, in the rule's order: `TooEarly` (fewer than 2), `NotSaved`, `NoGold` (less than the minimum banked),
+  `Resolved` (credited, skipped, failed twice, or declined), then `Skip` for an owner (**even with a video ready**:
   they paid not to watch), `Video` with one ready, else `NoAd`. `Showing` while the video is up, `None` with no screen.
 - **`NoAd` is shown, plainly, and can be tapped**: "no video right now", the run's reward standing. A tap asks for a
   video (if consent allows) and counts as one voluntary attempt without a video ready - once per screen, so tapping
@@ -148,9 +151,13 @@ the captures and a development build can use them until the SDKs come.
   loses the bonus and never doubles it; one killed during the video loses only the bonus (the run was saved). A second
   report of the same video is ignored, and the ledger refuses a run id it holds. A ledger that cannot be written
   (`LastPersistError`) does not stop the credit: the player watched, and the ledger in memory still refuses a second.
-- **One show per run.** A skipped or failed video ends the offer (`Resolved`, `LastResult` says which, for the view's
-  plain words). No retry and no second offer: nothing nags (section 1). Leaving an open offer ends it as `declined`;
-  leaving after an unanswered ask as `no_ad`.
+- **A skipped video ends the offer; a failed one allows one retry** (the lead, 2026-11-19: question 2). Skipping is the
+  player's choice, so the offer is `Resolved` at once and nothing nags (section 1). A failure (no fill at the show, the
+  network, a show error) is not the player's fault: `LastResult` says `Failed`, the next video is asked for at once, and
+  the same screen offers it again (`Video`, or `NoAd` until one comes; `RetriesAfterAFailure = 1`). A second failure
+  ends the offer. Leaving an open offer ends it as `declined`; leaving after an unanswered ask as `no_ad`; leaving with
+  the retry untaken as `failed`. Each run still writes one `reward_result`, its final outcome; `ad_counters` counts every
+  failed show.
 - **The ledger keeps the 32 newest credited run ids** (`MaxCreditedRunIds`) and lifetime totals. A run id is the
   telemetry's (the launch's GUID and an ordinal), never offered again after its screen, so the window only has to
   outlast a double report.
@@ -213,10 +220,14 @@ a fresh `Guid.NewGuid().ToString("N")` per run.)
 then draw one button from `offer.Refresh()`: `Video` "watch a video: +{bonus} gold", `Skip` "+{bonus} gold"
 (the owner's), `NoAd` "no video right now" (shown, tappable), any other state hidden. The button calls `offer.Take()`;
 `offer.Changed` redraws it and the gold label (`GoldBanked + bonus` once `LastCredited`), and `LastResult` gives the
-plain words: watched or skip_owned "+{bonus} gold added", skipped "the video was closed early: no bonus", failed "the
-video could not play: no bonus". `OnRestart` and `OnDestroy` call `offer.Close()`. The input delay already guarding the
-two buttons guards this one. The strings go through `Loc` with their Turkish (docs/60). Where the skip's own purchase
-button lives (`service.Purchase(StoreProducts.SkipRewardVideos)`) is question 1 below.
+plain words: watched or skip_owned "+{bonus} gold added", skipped "the video was closed early: no bonus", failed with
+the offer still shown "the video could not play: try once more", failed and over "the video could not play: no bonus".
+`OnRestart` and `OnDestroy` call `offer.Close()`. The input delay already guarding the two buttons guards this one. The
+strings go through `Loc` with their Turkish (docs/60).
+
+**The skip's purchase** (`service.Purchase(StoreProducts.SkipRewardVideos)`, question 1 answered): in both places, low
+key - a small link under the result screen's offer (not shown to an owner), and an entry in the settings: the pause
+overlay for now, the map choice screen after localisation pass 2. Both come with this wiring pass.
 
 **The profile**: nothing new. `PlayerProfile.Deposit` takes the bonus; no field, no save version, no migration.
 
@@ -261,9 +272,12 @@ own time counts in the session. `TelemetrySession`'s id stays the launch's.
 The second is the new tests in Unity (its own NUnit, and the test assembly apart from the game's, so no test reaches an
 `internal`); the third, the telemetry and culture tests beside them, unchanged.
 
-### 7.7 Questions
+### 7.7 Questions, answered by the lead (2026-11-19)
 
-1. **Where is the skip sold?** A small "skip reward videos" link under the result screen's offer (seen exactly where the
-   video is), a line in the pause overlay's settings, or both. The price string comes from the store at integration.
-2. **A failed video** (no fault of the player's) ends the offer like a skipped one. Should it allow one retry instead?
-3. **A run that banked 1 gold** is offered +1. Should the offer need a minimum (say 10 gold) to be worth a video?
+1. **Where is the skip sold?** Both places, low key: a small link under the result screen's offer, and an entry in the
+   settings (the pause overlay now, the map choice screen after localisation pass 2). With the wiring pass (7.4); the
+   price string comes from the store at integration.
+2. **A failed video** allows one retry on the same screen; a second failure ends the offer; a skipped video still ends
+   it. Built (7.2).
+3. **A minimum:** the offer needs at least 10 banked gold, so a +1 offer never shows. Built: `MinimumRunGold`, beside
+   `MultiplierPercent`, overridable in the context (7.2).

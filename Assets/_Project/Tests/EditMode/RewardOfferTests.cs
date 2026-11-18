@@ -30,11 +30,13 @@ namespace Cryptforge.Tests
             public int Gold;
             public Exception LedgerFailure;
 
-            public Rig(RewardLedger ledger = null, Action<RewardLedger> save = null)
+            public Rig(RewardLedger ledger = null, Action<RewardLedger> save = null,
+                int minimumRunGold = RewardOfferRule.MinimumRunGold)
             {
                 Ledger = ledger ?? new RewardLedger();
                 Offer = new RewardOfferCoordinator(new RewardOfferContext
                 {
+                    MinimumRunGold = minimumRunGold,
                     Video = Video,
                     Consent = Consent,
                     OwnsSkip = () => OwnsSkip,
@@ -99,7 +101,16 @@ namespace Cryptforge.Tests
             Assert.That(RewardOfferRule.Evaluate(2, true, 20, false, true, true), Is.EqualTo(RewardOfferState.Skip), "The owner paid not to watch.");
             Assert.That(RewardOfferRule.Evaluate(2, true, 20, false, true, false), Is.EqualTo(RewardOfferState.Skip));
             Assert.That(RewardOfferRule.Evaluate(2, true, 20, false, false, true), Is.EqualTo(RewardOfferState.Video));
-            Assert.That(RewardOfferRule.Evaluate(9, true, 1, false, false, false), Is.EqualTo(RewardOfferState.NoAd));
+            Assert.That(RewardOfferRule.Evaluate(9, true, 10, false, false, false), Is.EqualTo(RewardOfferState.NoAd));
+
+            Assert.That(RewardOfferRule.MinimumRunGold, Is.EqualTo(10));
+            Assert.That(RewardOfferRule.Evaluate(2, true, 9, false, true, true), Is.EqualTo(RewardOfferState.NoGold),
+                "Below 10 banked gold, not even the owner is offered: a +5 bonus is not worth it.");
+            Assert.That(RewardOfferRule.Evaluate(2, true, 1, false, false, true, 150, 0), Is.EqualTo(RewardOfferState.Video),
+                "With no minimum, 1 gold offers +1.");
+            Assert.That(RewardOfferRule.Evaluate(2, true, 10, false, false, true, 150, 11), Is.EqualTo(RewardOfferState.NoGold));
+            Assert.That(RewardOfferRule.Evaluate(2, true, 10, false, false, true, 100, 0), Is.EqualTo(RewardOfferState.NoGold),
+                "x1.0 adds nothing.");
 
             Assert.That(RewardOfferRule.IsOffered(RewardOfferState.Video) && RewardOfferRule.IsOffered(RewardOfferState.Skip), Is.True);
             Assert.That(RewardOfferRule.IsOffered(RewardOfferState.NoAd), Is.False);
@@ -180,29 +191,78 @@ namespace Cryptforge.Tests
         }
 
         [Test]
-        public void ASkippedOrFailedVideoCreditsNothingAndEndsTheOffer()
+        public void ASkippedVideoCreditsNothingAndEndsTheOfferAndASecondFailureEndsItToo()
         {
             var rig = new Rig();
-            rig.Video.ScriptShows(RewardedVideoResult.Skipped, RewardedVideoResult.Failed);
+            rig.Video.ScriptShows(RewardedVideoResult.Skipped, RewardedVideoResult.Failed, RewardedVideoResult.Failed);
             rig.OpenSecond(40);
             Assert.That(rig.Offer.Take(), Is.EqualTo(RewardTakeResult.VideoShown));
             Assert.That((rig.Gold, rig.Ledger.BonusesCredited), Is.EqualTo((0, 0)));
             Assert.That((rig.Offer.LastResult, rig.Offer.LastCredited), Is.EqualTo(((RewardResultKind?)RewardResultKind.Skipped, false)));
-            Assert.That(rig.Offer.State, Is.EqualTo(RewardOfferState.Resolved), "No second video for the same run.");
+            Assert.That(rig.Offer.State, Is.EqualTo(RewardOfferState.Resolved), "The player closed it: no second video.");
             rig.Offer.Close();
 
             Assert.That(rig.Open("s-3", 40), Is.EqualTo(RewardOfferState.Video));
             rig.Offer.Take();
             Assert.That((rig.Gold, rig.Offer.LastResult), Is.EqualTo((0, (RewardResultKind?)RewardResultKind.Failed)));
+            Assert.That(rig.Offer.State, Is.EqualTo(RewardOfferState.Video), "A failure is not the player's: one retry.");
+            Assert.That(rig.Analytics.Named("reward_result").Count, Is.EqualTo(1), "The offer is not over yet.");
+            rig.Offer.Take();
+            Assert.That(rig.Offer.State, Is.EqualTo(RewardOfferState.Resolved), "A second failure ends it.");
+            Assert.That(rig.Offer.Take(), Is.EqualTo(RewardTakeResult.NotOffered));
             rig.Offer.Close();
 
             Assert.That(rig.Analytics.Named("reward_result"), Is.EqualTo(new[]
             {
                 "reward_result @s-2 result=\"skipped\" credited=false bonus_gold=0",
                 "reward_result @s-3 result=\"failed\" credited=false bonus_gold=0"
-            }), "Closing a resolved offer writes nothing more.");
+            }), "One line a run; closing a resolved offer writes nothing more.");
             AdCounters c = rig.Offer.Counters;
-            Assert.That((c.Shows, c.ShowFailures, c.Rewards, c.Attempts, c.AttemptsReady), Is.EqualTo((1, 1, 0, 2, 2)));
+            Assert.That((c.Shows, c.ShowFailures, c.Rewards, c.Attempts, c.AttemptsReady), Is.EqualTo((1, 2, 0, 3, 3)));
+            Assert.That(rig.Gold, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void TheRetryAfterAFailureCanStillCreditAndAnUntakenRetryEndsAsFailed()
+        {
+            var rig = new Rig();
+            rig.Video.ScriptShows(RewardedVideoResult.Failed, RewardedVideoResult.Completed);
+            rig.OpenSecond(40);
+            rig.Offer.Take();
+            Assert.That((rig.Offer.State, rig.Offer.LastResult), Is.EqualTo((RewardOfferState.Video, (RewardResultKind?)RewardResultKind.Failed)),
+                "The next video was asked for at once, and the fake filled it.");
+            Assert.That(rig.Offer.Take(), Is.EqualTo(RewardTakeResult.VideoShown));
+            Assert.That((rig.Gold, rig.Offer.LastResult, rig.Offer.LastCredited),
+                Is.EqualTo((20, (RewardResultKind?)RewardResultKind.Watched, true)));
+            Assert.That(rig.Analytics.Named("reward_result"), Is.EqualTo(new[] { "reward_result @s-2 result=\"watched\" credited=true bonus_gold=20" }));
+
+            // With no video for the retry: the button says so, and leaving ends the offer as failed, not as declined.
+            var left = new Rig();
+            left.Video.ScriptShows(RewardedVideoResult.Failed).ScriptLoads(true, false);
+            left.OpenSecond(40);
+            left.Offer.Take();
+            Assert.That(left.Offer.State, Is.EqualTo(RewardOfferState.NoAd));
+            left.Offer.Close();
+            Assert.That(left.Analytics.Named("reward_result"), Is.EqualTo(new[] { "reward_result @s-2 result=\"failed\" credited=false bonus_gold=0" }));
+            Assert.That(left.Gold, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void ARunBelowTheMinimumIsNotOfferedUnlessTheContextLowersIt()
+        {
+            var rig = new Rig();
+            Assert.That(rig.Offer.MinimumRunGold, Is.EqualTo(10));
+            Assert.That(rig.OpenSecond(9), Is.EqualTo(RewardOfferState.NoGold));
+            Assert.That(rig.Offer.Take(), Is.EqualTo(RewardTakeResult.NotOffered));
+            Assert.That(rig.Video.LoadCalls, Is.EqualTo(0), "No video is asked for a screen that cannot offer.");
+            rig.Offer.Close();
+            Assert.That(rig.Analytics.Lines, Is.Empty);
+            Assert.That(rig.Open("s-3", 10), Is.EqualTo(RewardOfferState.Video), "10 banked gold is enough.");
+
+            var none = new Rig(null, null, 0);
+            Assert.That(none.OpenSecond(1), Is.EqualTo(RewardOfferState.Video));
+            none.Offer.Take();
+            Assert.That(none.Gold, Is.EqualTo(1));
         }
 
         [Test]
@@ -383,13 +443,13 @@ namespace Cryptforge.Tests
         {
             var rig = new Rig { LedgerFailure = new IOException("disk full") };
             rig.Video.ReportTwice = true;
-            rig.OpenSecond(4);
+            rig.OpenSecond(10);
             Assert.That(rig.Offer.LastPersistError, Is.EqualTo("IOException: disk full"));
             rig.Offer.Take();
-            Assert.That((rig.Gold, rig.Ledger.BonusesCredited), Is.EqualTo((2, 1)), "The player watched: the bonus stands, once.");
+            Assert.That((rig.Gold, rig.Ledger.BonusesCredited), Is.EqualTo((5, 1)), "The player watched: the bonus stands, once.");
             rig.LedgerFailure = null;
             rig.Offer.Close();
-            rig.Open("s-3", 4);
+            rig.Open("s-3", 10);
             Assert.That(rig.Offer.LastPersistError, Is.Null, "A later write clears it.");
         }
 
@@ -408,6 +468,8 @@ namespace Cryptforge.Tests
                 { Video = video, Consent = consent, OwnsSkip = owns }));
             Assert.Throws<ArgumentException>(() => new RewardOfferCoordinator(new RewardOfferContext
                 { Video = video, Consent = consent, OwnsSkip = owns, Ledger = ledger, MultiplierPercent = 90 }));
+            Assert.Throws<ArgumentException>(() => new RewardOfferCoordinator(new RewardOfferContext
+                { Video = video, Consent = consent, OwnsSkip = owns, Ledger = ledger, MinimumRunGold = -1 }));
             var offer = new RewardOfferCoordinator(new RewardOfferContext
                 { Video = video, Consent = consent, OwnsSkip = owns, Ledger = ledger });
             Assert.Throws<ArgumentException>(() => offer.Open("", 10, () => true, credit));

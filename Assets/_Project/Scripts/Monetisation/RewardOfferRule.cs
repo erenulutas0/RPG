@@ -12,9 +12,9 @@ namespace Cryptforge.Monetisation
         TooEarly,
         // The run's result is not saved yet: no video before it is (3.1).
         NotSaved,
-        // The run banked no gold, so x1.5 adds nothing.
+        // The run banked less than the minimum (MinimumRunGold): a +1 offer is not worth a video.
         NoGold,
-        // This run's one offer is over: its bonus credited, its video skipped or failed, or the player declined.
+        // This run's one offer is over: its bonus credited, its video skipped or failed twice, or the player declined.
         Resolved,
         // The video is on screen.
         Showing,
@@ -32,6 +32,9 @@ namespace Cryptforge.Monetisation
         // docs/58 section 1: the run's gold x1.5, as a percentage so the bonus stays in whole gold. A starting value that
         // gear_economy.py measures before it ships (section 4).
         public const int MultiplierPercent = 150;
+        // The least banked gold a run needs for an offer (the lead, 2026-11-19): below it the bonus is a few gold, never
+        // worth a video.
+        public const int MinimumRunGold = 10;
         // The first completed run whose result screen may offer (section 3.4): the second.
         public const int FirstOfferRun = 2;
 
@@ -49,15 +52,16 @@ namespace Cryptforge.Monetisation
         }
 
         // completedRuns counts the run whose result is on screen. resolved: this run's offer is over (credited, its video
-        // ended, or declined). An owner of the skip is offered the skip even with a video ready: they paid not to watch.
+        // skipped or failed twice, or declined). An owner of the skip is offered the skip even with a video ready: they paid
+        // not to watch.
         public static RewardOfferState Evaluate(int completedRuns, bool resultSaved, int runGold, bool resolved,
-            bool ownsSkip, bool videoReady, int multiplierPercent = MultiplierPercent)
+            bool ownsSkip, bool videoReady, int multiplierPercent = MultiplierPercent, int minimumRunGold = MinimumRunGold)
         {
             if (completedRuns < FirstOfferRun)
                 return RewardOfferState.TooEarly;
             if (!resultSaved)
                 return RewardOfferState.NotSaved;
-            if (BonusGold(runGold, multiplierPercent) <= 0)
+            if (runGold < minimumRunGold || BonusGold(runGold, multiplierPercent) <= 0)
                 return RewardOfferState.NoGold;
             if (resolved)
                 return RewardOfferState.Resolved;

@@ -21,6 +21,7 @@ namespace Cryptforge.Monetisation
         public IAnalytics Analytics;
         public SessionClock Sessions;
         public int MultiplierPercent = RewardOfferRule.MultiplierPercent;
+        public int MinimumRunGold = RewardOfferRule.MinimumRunGold;
     }
 
     // What a tap on the offer's button did.
@@ -46,11 +47,14 @@ namespace Cryptforge.Monetisation
     // Save before the video (3.1): State is Video or Skip only while the injected check says the result is saved, and Take
     // reads State at the tap, the last moment before the app leaves for the video. The ledger is written before the gold is
     // credited: an app killed between the two loses the bonus, never doubles it, and the run's own reward is already saved.
-    // A skipped or failed video credits nothing and LastResult says so. One show per run: its outcome ends the offer.
+    // A skipped or failed video credits nothing and LastResult says so. A skipped video ends the offer; a failed one (no
+    // fault of the player's) leaves one retry on the same screen, and a second failure ends it (the lead, 2026-11-19).
     public sealed class RewardOfferCoordinator
     {
         // The one placement's name, for an SDK or backend that wants one (AdMob's ad unit, GameAnalytics' ad events).
         public const string Placement = "result_screen";
+        // Failed videos a screen forgives before its offer ends: one, so the player gets one retry.
+        public const int RetriesAfterAFailure = 1;
 
         private readonly IRewardedVideo _video;
         private readonly IAdConsent _consent;
@@ -60,6 +64,7 @@ namespace Cryptforge.Monetisation
         private readonly IAnalytics _analytics;
         private readonly SessionClock _sessions;
         private readonly int _multiplierPercent;
+        private readonly int _minimumRunGold;
 
         private Func<bool> _resultSaved;
         private Action<int> _creditGold;
@@ -67,6 +72,7 @@ namespace Cryptforge.Monetisation
         private bool _resolved;
         private bool _offerLogged;
         private bool _askedWithoutAd;
+        private int _failedShows;
         // The run whose video is on screen, its bonus and where it goes; null when none is.
         private string _showingRunId;
         private int _showingBonus;
@@ -78,13 +84,15 @@ namespace Cryptforge.Monetisation
         public AdCounters Counters { get; } = new AdCounters();
         public RewardLedger Ledger => _ledger;
         public int MultiplierPercent => _multiplierPercent;
+        public int MinimumRunGold => _minimumRunGold;
         public bool IsLoading { get; private set; }
         public bool IsShowing => _showingRunId != null;
         // The open result screen's run, its banked gold and the bonus a credit would add; null and 0 when none is open.
         public string RunId { get; private set; }
         public int RunGold { get; private set; }
         public int BonusGold { get; private set; }
-        // How the last offer ended and whether it credited, for the view's plain words; null before one ends.
+        // How the last video or offer ended and whether it credited, for the view's plain words; null before one ends. A
+        // first failure sets Failed while its screen still offers the retry (State Video or NoAd again).
         public RewardResultKind? LastResult { get; private set; }
         public bool LastCredited { get; private set; }
         // The type and message of the last ledger write that failed; null after a success.
@@ -100,10 +108,13 @@ namespace Cryptforge.Monetisation
             _ledger = context.Ledger ?? throw new ArgumentException("A reward ledger is required.", nameof(context));
             if (context.MultiplierPercent < 100)
                 throw new ArgumentException("The bonus never takes gold away.", nameof(context));
+            if (context.MinimumRunGold < 0)
+                throw new ArgumentException("The minimum run gold is 0 or more.", nameof(context));
             _saveLedger = context.SaveLedger;
             _analytics = context.Analytics;
             _sessions = context.Sessions;
             _multiplierPercent = context.MultiplierPercent;
+            _minimumRunGold = context.MinimumRunGold;
         }
 
         // The offer as it stands now, without writing anything.
@@ -117,7 +128,7 @@ namespace Cryptforge.Monetisation
                     return RewardOfferState.Showing;
                 bool resolved = _resolved || _ledger.HasCredited(RunId);
                 return RewardOfferRule.Evaluate(_ledger.CompletedRuns, _resultSaved(), RunGold, resolved, _ownsSkip(),
-                    _video.IsReady, _multiplierPercent);
+                    _video.IsReady, _multiplierPercent, _minimumRunGold);
             }
         }
 
@@ -173,6 +184,7 @@ namespace Cryptforge.Monetisation
             _resolved = false;
             _offerLogged = false;
             _askedWithoutAd = false;
+            _failedShows = 0;
             if (_ledger.RecordCompletedRun(runId))
                 SaveLedger();
             // A screen that could offer but has no video asks for one now.
@@ -217,8 +229,9 @@ namespace Cryptforge.Monetisation
             }
         }
 
-        // The player left the result screen. An offer still open ends as declined, or as no_ad when the player asked and no
-        // video came. A video still on screen keeps its run: its result still credits that run.
+        // The player left the result screen. An offer still open ends as failed when its video failed once and the retry
+        // was not taken, as no_ad when the player asked and no video came, else as declined. A video still on screen keeps
+        // its run: its result still credits that run.
         public void Close()
         {
             if (!_open)
@@ -226,7 +239,9 @@ namespace Cryptforge.Monetisation
             bool showing = _showingRunId != null && string.Equals(_showingRunId, RunId, StringComparison.Ordinal);
             if (!_resolved && !showing && !_ledger.HasCredited(RunId))
             {
-                if (_askedWithoutAd)
+                if (_failedShows > 0)
+                    Resolve(RunId, RewardResultKind.Failed, false, 0);
+                else if (_askedWithoutAd)
                     Resolve(RunId, RewardResultKind.NoAd, false, 0);
                 else if (_offerLogged)
                     Resolve(RunId, RewardResultKind.Declined, false, 0);
@@ -268,10 +283,23 @@ namespace Cryptforge.Monetisation
             _sessions?.VideoClosed();
             Counters.RecordShow(result);
             if (result == RewardedVideoResult.Completed)
+            {
                 CreditAndResolve(runId, bonus, credit, RewardResultKind.Watched);
+            }
+            else if (result == RewardedVideoResult.Failed && _failedShows < RetriesAfterAFailure &&
+                     _open && string.Equals(runId, RunId, StringComparison.Ordinal))
+            {
+                // No fault of the player's: the screen keeps its offer for one retry, with the next video asked for below.
+                _failedShows++;
+                LastResult = RewardResultKind.Failed;
+                LastCredited = false;
+                Changed?.Invoke();
+            }
             else
+            {
                 Resolve(runId, result == RewardedVideoResult.Skipped ? RewardResultKind.Skipped : RewardResultKind.Failed, false, 0);
-            // The next run's video.
+            }
+            // The next video: the retry's, or the next run's.
             Prefetch();
         }
 
