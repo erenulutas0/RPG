@@ -7,8 +7,9 @@ namespace Cryptforge.Save
     [Serializable]
     public sealed class ProfileSaveData
     {
-        // Version 2 added forged weapons; version 3 added heroes (docs/45); version 4 added gear (docs/54).
-        public const int CurrentVersion = 4;
+        // Version 2 added forged weapons; version 3 added heroes (docs/45); version 4 added gear (docs/54); version 5 added
+        // the difficulty tiers' records (docs/54 section 21).
+        public const int CurrentVersion = 5;
 
         public int saveVersion;
         // Increases with every save; loading prefers the readable file with the highest revision.
@@ -40,11 +41,27 @@ namespace Cryptforge.Save
         public int anvilSeed;
         public int anvilDraws;
         public bool firstArmourGiven;
+        // The tiers (version 4 stored these two ahead of the tiers' build): highestTierCompleted counts the tiers completed
+        // in order (0 none, 1 Forged, 2 Tempered, ...) - from version 5 written from tierProgress for a reader's eye and
+        // read only by the migration from 4; selectedTier is the tier chosen for the next run (DifficultyTier: 0 Forged).
         public int highestTierCompleted;
         public int selectedTier;
         // A reroll shown and not yet kept or discarded: "item:<uid>" or "weapon:<id>" (empty for none), and its new lines.
         public string pendingRerollKey;
         public LineSaveData[] pendingRerollLines;
+
+        // Version 5 (docs/54 section 21): each difficulty tier's record by its id.
+        public TierProgressSaveData[] tierProgress;
+    }
+
+    // A difficulty tier's record: its id ("forged", "tempered", "inferno", "abyssal"), the deepest floor a run on it has
+    // cleared, and whether a run on it walked out of the Descent (which opens the tier above it).
+    [Serializable]
+    public sealed class TierProgressSaveData
+    {
+        public string tier;
+        public int deepestFloorCleared;
+        public bool completed;
     }
 
     [Serializable]

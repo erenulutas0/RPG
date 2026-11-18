@@ -233,7 +233,7 @@ namespace Cryptforge.Tests
                 Foe foe = CreateFoe(definition,
                     FloorScaling.Health(definition.Health, SwarmHealthMultiplier() * scale, _floor.ModifierHealthPercent),
                     damageBonus, false);
-                foe.Gold = FloorScaling.Gold(definition.Gold, _floor.ModifierGoldPercent);
+                foe.Gold = FloorScaling.Gold(definition.Gold, _floor.ModifierGoldPercent, _tier);
                 foe.Experience = definition.Experience;
                 foe.Motion = _waveMotion;
                 foe.Slot = spawn.Slot;
@@ -253,12 +253,12 @@ namespace Cryptforge.Tests
             }
 
             // EncounterController.FloorHealthMultiplier(false) and FloorDamageMultiplier: the climb's tier, or the floor's
-            // authored one.
-            private float SwarmHealthMultiplier() =>
-                _floor.ClimbScaled ? ClimbScaling.Health(_floor.FloorNumber) : _floor.EnemyHealthMultiplier;
+            // authored one, then the run's difficulty tier (Forged: the floor's own).
+            private float SwarmHealthMultiplier() => FloorScaling.Tiered(
+                _floor.ClimbScaled ? ClimbScaling.Health(_floor.FloorNumber) : _floor.EnemyHealthMultiplier, _tierHealth);
 
-            private float SwarmDamageMultiplier() =>
-                _floor.ClimbScaled ? ClimbScaling.Damage(_floor.FloorNumber) : _floor.EnemyDamageMultiplier;
+            private float SwarmDamageMultiplier() => FloorScaling.Tiered(
+                _floor.ClimbScaled ? ClimbScaling.Damage(_floor.FloorNumber) : _floor.EnemyDamageMultiplier, _tierDamage);
 
             // EncounterController.TickSwarm, after the pack has stepped and before anything strikes: the clock moves on and
             // whatever is due walks in, the ramp's step is reported, the way out is read where the hero stands now - it

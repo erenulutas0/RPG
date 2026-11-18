@@ -1,9 +1,11 @@
 """The balance rule's read (docs/56): a paired, seed-level bootstrap of four-floor completion changes.
 
 usage: python Tools/BalanceRule/paired_bootstrap.py <folder> [first-seed last-seed]
-<folder> holds GloamEnemiesResearch outputs (gloam-enemies.csv) or HeroSkillsDescentResearch outputs (hero-skills-rule.csv,
-docs/57's skills), one run each in a subfolder (FOUNDRY_OUT=<folder>/<name>), every one with `shipped` or paired against a
-`shipped` run of the same seeds elsewhere in <folder>. Typical hands only. For each
+<folder> holds GloamEnemiesResearch, HeroSkillsDescentResearch or DifficultyTiersResearch outputs (gloam-enemies.csv,
+hero-skills-rule.csv for docs/57's skills, difficulty-tiers.csv), one run each in a subfolder (FOUNDRY_OUT=<folder>/<name>),
+every one with `shipped` or paired against a `shipped` run of the same seeds elsewhere in <folder>. Typical hands only. A
+difficulty tier (docs/54 section 21) is its matched geared cohort on the tier against the same cohort ungeared on Forged;
+every tier option found (a candidate "tempered@1.10/1.08" included) gets its row. For each
 comparison below and each cohort it prints, over the seeds asked (1-800 by default): the change in completions (two
 heroes a seed), in completion-rate points, the bootstrap 90 % CI (10,000 resamples of seeds, both heroes of a seed
 together, a fixed generator seed so the table repeats), the SD of the paired change per 400 seeds, and the change on
@@ -21,12 +23,16 @@ from collections import defaultdict
 
 root = sys.argv[1] if len(sys.argv) > 1 else os.path.dirname(os.path.abspath(__file__))
 runs = {}
-for path in glob.glob(os.path.join(root, '*', 'gloam-enemies.csv')) + glob.glob(os.path.join(root, '*', 'hero-skills-rule.csv')):
-    with open(path, newline='') as f:
-        for r in csv.DictReader(f):
-            if r['realism'] != 'typical human':
-                continue
-            runs[(r['option'], r['cohort'], r['hero'], int(r['seed']))] = r['finale_outcome'] == 'WalkedOut'
+tier_options = set()
+for name in ('gloam-enemies.csv', 'hero-skills-rule.csv', 'difficulty-tiers.csv'):
+    for path in glob.glob(os.path.join(root, '*', name)):
+        with open(path, newline='') as f:
+            for r in csv.DictReader(f):
+                if r['realism'] != 'typical human':
+                    continue
+                runs[(r['option'], r['cohort'], r['hero'], int(r['seed']))] = r['finale_outcome'] == 'WalkedOut'
+                if name == 'difficulty-tiers.csv' and r['option'] != 'shipped':
+                    tier_options.add(r['option'])
 
 COMPARISONS = [
     # (label, option, flip[, base]): the base is `shipped` unless named
@@ -55,7 +61,13 @@ COMPARISONS = [
     ('docs/57: all three skills (s23)', 's23', False),
     ('docs/57: candidate 1 (c1)', 'c1', False),
     ('docs/57: candidate 2 (c2)', 'c2', False),
+    ('Tempered with the +5 set vs Forged ungeared', 'tempered', False),
+    ('Inferno with the +9 set vs Forged ungeared', 'inferno', False),
+    ('Abyssal with the +9 set and good efsun vs Forged ungeared', 'abyssal', False),
 ]
+COMPARISONS += [(f'Tier candidate `{o}` vs Forged ungeared', o, False)
+                for o in sorted(tier_options) if o not in {c[1] for c in COMPARISONS}]
+# first-card is read from now on (docs/56, the lead's decisions of 2026-11-17, point 2).
 COHORTS = ['clumsy', 'careful', 'first-card', 'standing']
 HEROES = ['Vanguard', 'Ilya']
 SEEDS = range(int(sys.argv[2]), int(sys.argv[3]) + 1) if len(sys.argv) > 3 else range(1, 801)

@@ -24,6 +24,13 @@ namespace Cryptforge.UI
     // still while it is open. With one hero in the roster there is no hero row. CombatSetup adds it when
     // DevelopmentStart.OffersMapChoice says so: every run start of a release build, never with map-choice.txt "off" (the
     // scene tests) or another development start.
+    // Between the heroes and the maps stands the difficulty tier row (docs/54 section 21): Forged, Tempered, Inferno and
+    // Abyssal side by side, the chosen one lit in its own tier's card (green, orange, red and gold, the run's choice cards'
+    // ladder) and the others on the neutral card, a locked tier shaded and saying how it opens ("Locked: Complete the Descent
+    // on Forged"); under the row a line on the chosen tier - its enemies, its rewards, its item luck and the gear it is
+    // built for beside the chosen hero's own. A tier card chooses the tier and the profile remembers it as it remembers the
+    // hero; the map cards follow it, since each tier opens its deeper starts once a run on that tier has reached them. A
+    // tier other than the scene's reloads the scene with the map, as another hero does.
     public sealed class MapChoiceView : MonoBehaviour
     {
         public const string CanvasName = "Map Choice";
@@ -33,9 +40,9 @@ namespace Cryptforge.UI
         public const float InputDelay = .35f;
 
         // On the 1080-wide canvas (CanvasScaler 1080x1920, width matched): a 992-wide surface as the choice panel's; under
-        // the title a row of 420-tall hero cards side by side, then three 300-tall map cards (thumb-sized on a 1080x2340
-        // phone; 1644 units in all, inside a 16:9 phone's 1920), the preview in each map card's well on its left. A screen
-        // shorter than the panel scales it down whole (FitToSafeArea).
+        // the title a row of 420-tall hero cards side by side, then the tier row, then three 300-tall map cards (thumb-sized
+        // on a 1080x2340 phone; 1900 units in all, inside a 16:9 phone's 1920), the preview in each map card's well on its
+        // left. A screen shorter than the panel scales it down whole (FitToSafeArea).
         private const float SurfaceWidth = 992f;
         private const float CardInset = 40f;
         private const float CardHeight = 300f;
@@ -45,8 +52,17 @@ namespace Cryptforge.UI
         private const float HeroRowTop = 180f;
         public const float HeroCardHeight = 420f;
         private const float HeroCardGap = 28f;
-        private const float HeroRowGap = 44f;
         private const float CardsTopWithoutHeroes = 190f;
+        // The tier row (docs/54 section 21): four 190-tall cards across the surface's inner width under the hero row (or the
+        // title) - room for a locked tier's three lines of hint at 22 - the chosen tier's two lines under them, then the
+        // maps: 1900 units in all with the hero row, so the panel fits a 16:9 phone's 1920 (scaled to 99 % inside its
+        // 16-unit margins) and stands whole on the S23's 2340.
+        public const float TierCardHeight = 190f;
+        private const float TierCardGap = 16f;
+        private const float TierRowGapAfterHeroes = 24f;
+        private const float TierDetailGap = 6f;
+        private const float TierDetailHeight = 56f;
+        private const float TierRowGapBeforeMaps = 24f;
         private const float BottomMargin = 40f;
         private const float PreviewWidth = 280f;
         private const float PreviewHeight = 236f;
@@ -58,6 +74,8 @@ namespace Cryptforge.UI
         public const string SelectedText = "Selected";
         public const string ChooseText = "Tap to choose";
         public const string LockedWord = "Locked";
+        private const string TierRewardFormat = "Rewards {0}";
+        private const string PercentFormat = "+0.#";
         private const string WeaponFormat = "Weapon: {0}";
         private const string SubtitleFormat = "{0}\n<size=26>{1}</size>";
         private static readonly Color SelectedColour = new Color32(238, 191, 108, 255);
@@ -84,6 +102,10 @@ namespace Cryptforge.UI
         private readonly List<bool> _mapOpen = new List<bool>(3);
         private readonly List<Sprite> _made = new List<Sprite>(3);
         private readonly List<HeroCard> _heroCards = new List<HeroCard>(3);
+        private readonly List<Text> _descriptions = new List<Text>(3);
+        private readonly List<Image> _previews = new List<Image>(3);
+        private readonly List<TierCard> _tierCards = new List<TierCard>(DifficultyTiers.Count);
+        private Text _tierDetail;
         private ChoiceCardArtSet _art;
         private Text _title;
         private RectTransform _safe;
@@ -93,6 +115,16 @@ namespace Cryptforge.UI
         private bool _chosen;
         // Whether a hero may be chosen: CombatSetup.IsHeroPlayable, or a test's stand-in (TreatHeroesAs).
         private Func<HeroDefinition, bool> _isPlayable;
+
+        private sealed class TierCard
+        {
+            public DifficultyTier Tier;
+            public Button Button;
+            public Image Frame;
+            public Text Name;
+            public Text Reward;
+            public Text State;
+        }
 
         private sealed class HeroCard
         {
@@ -132,6 +164,18 @@ namespace Cryptforge.UI
         public bool PaintsCards => _painter != null;
         // The panel's root, for tests and captures.
         public GameObject Panel => _canvas;
+        // The tier row (docs/54 section 21), Forged first: each card's tier, button, name and state ("Selected", "Tap to
+        // choose", or how a locked tier opens), whether it may be chosen, and the line under the row on the chosen tier.
+        public int TierCardCount => _tierCards.Count;
+        public Button TierCardButton(int slot) => _tierCards[slot].Button;
+        public DifficultyTier TierAt(int slot) => _tierCards[slot].Tier;
+        public string TierNameAt(int slot) => _tierCards[slot].Name.text;
+        public string TierRewardAt(int slot) => _tierCards[slot].Reward.text;
+        public string TierStateAt(int slot) => _tierCards[slot].State.text;
+        public bool IsTierOpenAt(int slot) => _setup.IsTierOpen(_tierCards[slot].Tier);
+        public string TierDetailText => _tierDetail != null ? _tierDetail.text : string.Empty;
+        // The tier a map card starts the run on: the scene's own until a tier card is tapped.
+        public DifficultyTier SelectedTier { get; private set; }
 
         public void Initialize(CombatSetup setup, HeroMovementInput movement)
         {
@@ -139,6 +183,7 @@ namespace Cryptforge.UI
             _movement = movement;
             _isPlayable = setup.IsHeroPlayable;
             SelectedHero = setup.Hero;
+            SelectedTier = setup.Tier;
             // The hero stands while the player chooses, as at the gate's arrival.
             if (_movement != null)
             {
@@ -189,7 +234,8 @@ namespace Cryptforge.UI
             Stretch(_safe, Vector2.zero, Vector2.zero);
             safe.AddComponent<SafeAreaFitter>();
 
-            float cardsTop = heroRow ? HeroRowTop + HeroCardHeight + HeroRowGap : CardsTopWithoutHeroes;
+            float tierTop = heroRow ? HeroRowTop + HeroCardHeight + TierRowGapAfterHeroes : CardsTopWithoutHeroes;
+            float cardsTop = tierTop + TierCardHeight + TierDetailGap + TierDetailHeight + TierRowGapBeforeMaps;
             float height = cardsTop + 3 * CardHeight + 2 * CardGap + BottomMargin;
             _height = height;
             Image surface = Part(safe.transform, "Map Choice Surface");
@@ -217,7 +263,7 @@ namespace Cryptforge.UI
             FloorDefinition floor = _setup.Encounters != null ? _setup.Encounters.Floor : null;
             for (int number = DescentStart.FirstFloor; number <= DescentStart.DeepestStart && floor != null; number++)
             {
-                AddCard(surface.transform, cardsTop, number, floor, arena, art, nameSource, descriptionSource, fallback);
+                AddCard(surface.transform, cardsTop, number, floor, arena, nameSource, descriptionSource, fallback);
                 floor = floor.NextFloor;
             }
             if (heroRow)
@@ -228,10 +274,127 @@ namespace Cryptforge.UI
                         AddHeroCard(surface.transform, roster[i], roster.Count, nameSource, descriptionSource, fallback);
                 }
             }
+            for (int i = 0; i < DifficultyTiers.Count; i++)
+                AddTierCard(surface.transform, tierTop, (DifficultyTier)i, nameSource, descriptionSource, fallback);
+            _tierDetail = Label(surface.transform, "Tier Detail", descriptionSource, fallback, 24, TextAnchor.MiddleCenter);
+            Place(_tierDetail.rectTransform, tierTop + TierCardHeight + TierDetailGap, TierDetailHeight, CardInset);
+            _tierDetail.supportRichText = true;
             _inputEnabledAt = Time.unscaledTime + InputDelay;
             SetInteractable(false);
             RefreshHeroCards();
+            RefreshTierCards();
         }
+
+        // A tier's card in the row: its name, its reward and its state, the row's cards sharing the surface's inner width.
+        private void AddTierCard(Transform surface, float top, DifficultyTier tier, Text nameSource, Text descriptionSource,
+            Font fallback)
+        {
+            int slot = _tierCards.Count;
+            float inner = SurfaceWidth - 2 * CardInset;
+            float width = (inner - (DifficultyTiers.Count - 1) * TierCardGap) / DifficultyTiers.Count;
+            var cardObject = new GameObject("Tier Card " + DifficultyTiers.Id(tier), typeof(RectTransform), typeof(Image), typeof(Button));
+            cardObject.layer = surface.gameObject.layer;
+            var rect = (RectTransform)cardObject.transform;
+            rect.SetParent(surface, false);
+            rect.anchorMin = rect.anchorMax = new Vector2(0f, 1f);
+            rect.pivot = new Vector2(0f, 1f);
+            rect.anchoredPosition = new Vector2(CardInset + slot * (width + TierCardGap), -top);
+            rect.sizeDelta = new Vector2(width, TierCardHeight);
+            var frame = cardObject.GetComponent<Image>();
+            var button = cardObject.GetComponent<Button>();
+            button.targetGraphic = frame;
+            button.onClick.AddListener(() => ChooseTier(slot));
+
+            Text name = Label(rect, "Tier Name", nameSource, fallback, 36, TextAnchor.MiddleCenter);
+            Place(name.rectTransform, 14f, 46f, 14f);
+            name.text = DifficultyTiers.Name(tier);
+
+            Text reward = Label(rect, "Tier Reward", descriptionSource, fallback, 22, TextAnchor.MiddleCenter);
+            Place(reward.rectTransform, 60f, 30f, 12f);
+            reward.text = string.Format(CultureInfo.InvariantCulture, TierRewardFormat, DifficultyTiers.RewardText(tier));
+
+            Text state = Label(rect, "Tier State", descriptionSource, fallback, 22, TextAnchor.MiddleCenter);
+            Place(state.rectTransform, 94f, 84f, 10f);
+
+            _tierCards.Add(new TierCard { Tier = tier, Button = button, Frame = frame, Name = name, Reward = reward, State = state });
+        }
+
+        // Each tier card as the choice stands: the chosen one lit in its own tier's card and saying so, an open one inviting
+        // a tap on the neutral card, a locked one shaded and saying how it opens; then the line on the chosen tier.
+        private void RefreshTierCards()
+        {
+            PrototypeTextDefinition text = _setup.Text;
+            for (int i = 0; i < _tierCards.Count; i++)
+            {
+                TierCard card = _tierCards[i];
+                bool open = _setup.IsTierOpen(card.Tier);
+                bool selected = card.Tier == SelectedTier;
+                if (!open)
+                {
+                    string hint = DifficultyTiers.UnlockHint(card.Tier);
+                    card.State.text = text != null
+                        ? string.Format(CultureInfo.InvariantCulture, text.HeroLockedFormat, LockedWord, hint)
+                        : LockedWord + ": " + hint;
+                    card.State.color = LockedColour;
+                }
+                else
+                {
+                    card.State.text = selected ? SelectedText : ChooseText;
+                    card.State.color = selected ? SelectedColour : IdleColour;
+                }
+                card.Button.interactable = open && !_chosen && Time.unscaledTime >= _inputEnabledAt;
+                card.Frame.color = selected ? TierSwatch(card.Tier) : open ? new Color(.2f, .17f, .22f, 1f) : new Color(.12f, .11f, .13f, 1f);
+                if (_painter != null)
+                {
+                    ChoiceCardArtSet.Treatment look = selected ? _art.Tier(TierLook(card.Tier)) ?? _art.Climb : _art.Neutral;
+                    // After the map cards' and the hero cards' slots, so each card breathes in its own phase.
+                    _painter.Paint(DescentStart.DeepestStart + _heroCards.Count + i, card.Button, card.Name, card.Reward, null, look);
+                    // No crest on these cards: the gold clasp would stand above the card's top edge, into the hero row.
+                    Transform crest = card.Button.transform.Find(ChoiceCardPainter.CrestName);
+                    if (crest != null && crest.TryGetComponent(out Image crestImage))
+                        crestImage.enabled = false;
+                }
+            }
+            if (_tierDetail != null)
+                _tierDetail.text = DescribeTier(SelectedTier, _setup.GearPowerFor(SelectedHero));
+        }
+
+        // The run's choice cards' ladder for the tiers: Forged green, Tempered orange, Inferno red, Abyssal gold.
+        private static UpgradeRarity TierLook(DifficultyTier tier) => (UpgradeRarity)(int)tier;
+
+        private static Color TierSwatch(DifficultyTier tier) => tier switch
+        {
+            DifficultyTier.Tempered => new Color(.62f, .38f, .16f, 1f),
+            DifficultyTier.Inferno => new Color(.56f, .2f, .2f, 1f),
+            DifficultyTier.Abyssal => new Color(.66f, .5f, .2f, 1f),
+            _ => new Color(.26f, .44f, .26f, 1f)
+        };
+
+        // The two lines under the tier row: what the chosen tier does to the foes and pays (gold, materials and boosters, and
+        // the items' luck), then the gear it is built for beside the chosen hero's own. Numbers in the invariant culture.
+        public static string DescribeTier(DifficultyTier tier, int gearPower)
+        {
+            string yours = (gearPower / 100.0).ToString(PercentFormat, CultureInfo.InvariantCulture);
+            if (tier == DifficultyTier.Forged)
+                return string.Format(CultureInfo.InvariantCulture,
+                    "Forged: the Descent as it was first forged; rewards x1\nBuilt for no gear. Your gear: {0}%", yours);
+            string health = ((DifficultyTiers.EnemyHealth(tier) - 1.0) * 100.0).ToString(PercentFormat, CultureInfo.InvariantCulture);
+            string damage = ((DifficultyTiers.EnemyDamage(tier) - 1.0) * 100.0).ToString(PercentFormat, CultureInfo.InvariantCulture);
+            string built = (DifficultyTiers.MatchedGearPower(tier) / 100.0).ToString("+0", CultureInfo.InvariantCulture);
+            return string.Format(CultureInfo.InvariantCulture,
+                "{0}: foes {1}% health, {2}% damage; rewards {3}; item luck +{4}\nBuilt for gear {5}% ({6}). Your gear: {7}%",
+                DifficultyTiers.Name(tier), health, damage, DifficultyTiers.RewardText(tier),
+                DifficultyTiers.ItemLuck(tier).ToString("0", CultureInfo.InvariantCulture), built, MatchedSet(tier), yours);
+        }
+
+        // The set docs/54 section 7.2 models at the tier's gear power.
+        private static string MatchedSet(DifficultyTier tier) => tier switch
+        {
+            DifficultyTier.Tempered => "a +5 set",
+            DifficultyTier.Inferno => "a +9 set",
+            DifficultyTier.Abyssal => "+9 with good efsun",
+            _ => "none"
+        };
 
         // A hero's card in the row: the portrait in the card's well at the top, then its name (and the character's own
         // name), its role, its weapon and its state. The row's cards share the surface's width.
@@ -340,7 +503,7 @@ namespace Cryptforge.UI
             rect.offsetMax = new Vector2(-inset, -top);
         }
 
-        private void AddCard(Transform surface, float cardsTop, int number, FloorDefinition floor, ArenaView arena, ChoiceCardArtSet art,
+        private void AddCard(Transform surface, float cardsTop, int number, FloorDefinition floor, ArenaView arena,
             Text nameSource, Text descriptionSource, Font fallback)
         {
             int slot = _cards.Count;
@@ -355,10 +518,9 @@ namespace Cryptforge.UI
             float top = cardsTop + slot * (CardHeight + CardGap);
             rect.offsetMin = new Vector2(CardInset, -(top + CardHeight));
             rect.offsetMax = new Vector2(-CardInset, -top);
-            // A map not yet reached is shaded like a locked hero card and says how to open it (MapUnlock).
-            bool open = _setup.IsMapOpen(number);
+            // A map not yet reached on the chosen tier is shaded like a locked hero card and says how to open it (MapUnlock;
+            // RefreshMapCards draws it as the tier stands).
             var frame = cardObject.GetComponent<Image>();
-            frame.color = open ? new Color(.2f, .17f, .22f, 1f) : new Color(.12f, .11f, .13f, 1f);
             var button = cardObject.GetComponent<Button>();
             button.targetGraphic = frame;
             button.onClick.AddListener(() => Choose(slot));
@@ -386,7 +548,6 @@ namespace Cryptforge.UI
             RectTransform descriptionRect = description.rectTransform;
             descriptionRect.anchorMin = Vector2.zero;
             descriptionRect.anchorMax = Vector2.one;
-            descriptionRect.offsetMin = new Vector2(TextLeft, open ? 26f : 70f);
             descriptionRect.offsetMax = new Vector2(-CardInset, -112f);
             description.text = Describe(number);
 
@@ -398,20 +559,42 @@ namespace Cryptforge.UI
             stateRect.pivot = new Vector2(.5f, 0f);
             stateRect.offsetMin = new Vector2(TextLeft, 24f);
             stateRect.offsetMax = new Vector2(-CardInset, 64f);
-            PrototypeTextDefinition text = _setup.Text;
-            string hint = MapUnlock.Hint(number);
-            state.text = open ? string.Empty
-                : text != null ? string.Format(CultureInfo.InvariantCulture, text.HeroLockedFormat, LockedWord, hint) : LockedWord;
             state.color = LockedColour;
 
             _cards.Add(button);
             _floors.Add(number);
             _names.Add(name);
             _mapStates.Add(state);
-            _mapOpen.Add(open);
+            _mapOpen.Add(false);
+            _descriptions.Add(description);
+            _previews.Add(preview);
+            RefreshMapCard(slot);
+        }
+
+        private void RefreshMapCards()
+        {
+            for (int i = 0; i < _cards.Count; i++)
+                RefreshMapCard(i);
+        }
+
+        // A map card as the chosen tier stands: open, or shaded with its hint (the description giving up its bottom 44
+        // units to that line), interactable only while open and the panel takes taps.
+        private void RefreshMapCard(int slot)
+        {
+            int number = _floors[slot];
+            bool open = _setup.IsMapOpen(number, SelectedTier);
+            _mapOpen[slot] = open;
+            _cards[slot].GetComponent<Image>().color = open ? new Color(.2f, .17f, .22f, 1f) : new Color(.12f, .11f, .13f, 1f);
+            RectTransform descriptionRect = _descriptions[slot].rectTransform;
+            descriptionRect.offsetMin = new Vector2(TextLeft, open ? 26f : 70f);
+            PrototypeTextDefinition text = _setup.Text;
+            string hint = MapUnlock.Hint(number);
+            _mapStates[slot].text = open ? string.Empty
+                : text != null ? string.Format(CultureInfo.InvariantCulture, text.HeroLockedFormat, LockedWord, hint) : LockedWord;
+            _cards[slot].interactable = open && !_chosen && Time.unscaledTime >= _inputEnabledAt;
             if (_painter != null)
-                _painter.Paint(slot, button, name, description, preview,
-                    number == DescentStart.FirstFloor || !open ? art.Neutral : art.Climb);
+                _painter.Paint(slot, _cards[slot], _names[slot], _descriptions[slot], _previews[slot],
+                    number == DescentStart.FirstFloor || !open ? _art.Neutral : _art.Climb);
         }
 
         // A card's text: the map's line, then what a hero starting there begins with. Numbers in the invariant culture.
@@ -472,6 +655,10 @@ namespace Cryptforge.UI
                 _painter.Tick(Time.unscaledTime);
         }
 
+        // Fits the surface to the safe area the canvas measures now - a capture tool calls it after it redraws the canvases
+        // at a phone's size, since Update would only fit them a frame later (as AnvilView.FitNow).
+        public void FitNow() => FitToSafeArea();
+
         // A screen whose safe area is shorter (or narrower) than the panel shows it whole, scaled down; never up.
         private void FitToSafeArea()
         {
@@ -491,6 +678,8 @@ namespace Cryptforge.UI
                 _cards[i].interactable = interactable && _mapOpen[i];
             for (int i = 0; i < _heroCards.Count; i++)
                 _heroCards[i].Button.interactable = interactable && _isPlayable(_heroCards[i].Hero);
+            for (int i = 0; i < _tierCards.Count; i++)
+                _tierCards[i].Button.interactable = interactable && _setup.IsTierOpen(_tierCards[i].Tier);
         }
 
         // A hero card tapped, after the input delay: a playable hero becomes the run's, and the profile remembers it as the
@@ -505,10 +694,29 @@ namespace Cryptforge.UI
             SelectedHero = hero;
             _setup.Profile.SelectHero(hero == _setup.Heroes[0] ? null : hero.Id);
             RefreshHeroCards();
+            // The line under the tier row names this hero's gear.
+            RefreshTierCards();
         }
 
-        // A map card tapped: once, after the input delay, and only a map the profile has reached. The Foundry with the scene's own hero closes the panel and the run
-        // begins; a deeper map or another hero reloads the scene with the choice, the panel standing until it goes.
+        // A tier card tapped, after the input delay: an open tier becomes the run's, and the profile remembers it as it
+        // remembers the hero; the map cards follow it (each tier opens its own deeper starts). A locked tier, or the one
+        // already chosen, changes nothing.
+        public void ChooseTier(int slot)
+        {
+            if (_chosen || !IsOpen || slot < 0 || slot >= _tierCards.Count || Time.unscaledTime < _inputEnabledAt)
+                return;
+            DifficultyTier tier = _tierCards[slot].Tier;
+            if (tier == SelectedTier || !_setup.IsTierOpen(tier))
+                return;
+            SelectedTier = tier;
+            _setup.Profile.SelectTier(tier);
+            RefreshTierCards();
+            RefreshMapCards();
+        }
+
+        // A map card tapped: once, after the input delay, and only a map the profile has reached on the chosen tier. The
+        // Foundry with the scene's own hero and tier closes the panel and the run begins; a deeper map, another hero or
+        // another tier reloads the scene with the choice, the panel standing until it goes.
         public void Choose(int slot)
         {
             if (_chosen || !IsOpen || slot < 0 || slot >= _cards.Count || Time.unscaledTime < _inputEnabledAt || !_mapOpen[slot])
@@ -518,9 +726,10 @@ namespace Cryptforge.UI
             int floor = _floors[slot];
             HeroDefinition hero = SelectedHero;
             bool otherHero = hero != null && hero != _setup.Hero && _setup.IsHeroPlayable(hero);
-            if (floor == DescentStart.FirstFloor && !otherHero)
+            bool otherTier = SelectedTier != _setup.Tier;
+            if (floor == DescentStart.FirstFloor && !otherHero && !otherTier)
                 Close();
-            _setup.StartOnMap(floor, otherHero ? hero : null);
+            _setup.StartOnMap(floor, otherHero ? hero : null, SelectedTier);
         }
 
         private void Close()

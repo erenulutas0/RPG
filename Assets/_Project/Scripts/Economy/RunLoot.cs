@@ -47,6 +47,9 @@ namespace Cryptforge.Economy
         private bool _giftOwed;
         private int _moments;
 
+        // The difficulty tier the run is played on (docs/54 section 21): its boosters' chances and materials are the tier's
+        // reward times Forged's, its items drawn at the tier's luck (LootRule.Roll).
+        public DifficultyTier Tier { get; }
         public IReadOnlyList<ItemDrop> Items => _itemDrops;
         public LootSettlement Settlement { get; private set; }
 
@@ -57,8 +60,12 @@ namespace Cryptforge.Economy
         // A Descend made the floor's loot safe: the bank deposits what became secured.
         public event Action Secured;
 
-        public RunLoot(RunState run, IReadOnlyList<ItemTemplate> items, bool firstArmourOwed, float atRiskShare = 0.5f)
+        public RunLoot(RunState run, IReadOnlyList<ItemTemplate> items, bool firstArmourOwed, float atRiskShare = 0.5f,
+            DifficultyTier tier = DifficultyTier.Forged)
         {
+            if (!DifficultyTiers.IsDefined((int)tier))
+                throw new ArgumentOutOfRangeException(nameof(tier));
+            Tier = tier;
             _run = run ?? throw new ArgumentNullException(nameof(run));
             if (float.IsNaN(atRiskShare) || atRiskShare < 0f || atRiskShare > 1f)
                 throw new ArgumentOutOfRangeException(nameof(atRiskShare));
@@ -144,7 +151,7 @@ namespace Cryptforge.Economy
         {
             if (_run.HasEnded)
                 return;
-            LootDrop drop = LootRule.Roll(source, floor, _run.Seed, _moments++, _items, gift);
+            LootDrop drop = LootRule.Roll(source, floor, _run.Seed, _moments++, _items, gift, Tier);
             if (drop.HasMaterial && drop.MaterialAmount > 0)
                 _unsecuredMaterials[(int)drop.Material] += drop.MaterialAmount;
             for (int kind = 0; kind < GearCurrency.BoosterCount; kind++)

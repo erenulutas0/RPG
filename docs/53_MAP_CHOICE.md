@@ -88,6 +88,18 @@ the finale), but a deeper map is a start only once the player has reached it in 
 - A deeper start that clears its floor raises `DeepestFloorCleared` as any run does, so clearing the Vaults from a Vaults
   start opens the Gardens.
 
+## Map starts per difficulty tier (docs/54 phase 6, 2026-11-17)
+
+The panel gains the tier row between the heroes and the maps (docs/54 section 21): Forged, Tempered, Inferno, Abyssal.
+Each tier keeps its own record (`ProfileTiers`, save version 5), and a deeper map is a start on a tier only once a run on
+that tier has reached it - `MapUnlock.IsOpen(floor, the tier's deepest floor cleared)`, the same rule as above with the
+tier's record in place of the profile's. Forged's record is the profile's depth record (every run before the tiers was a
+Forged run), so a profile's Forged map cards read exactly as they did. Choosing a tier redraws the map cards: a profile
+whose Forged runs reached the Gardens but whose Tempered runs have not left the Foundry sees the Vaults and the Gardens
+locked on Tempered ("Locked: Clear floor 1 to unlock"). `CombatSetup.StartOnMap(floor, hero, tier)` refuses a locked tier
+or a map the chosen tier has not reached; a tier other than the scene's reloads the scene with it (`RunStartRequest`
+carries the floor, the hero and the tier), as another hero does.
+
 ## Starting deeper is the floor a descent reaches
 
 `EncounterController.Initialize(..., startFloor)` walks the authored Descent from the scene's floor 1

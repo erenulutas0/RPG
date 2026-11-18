@@ -59,7 +59,7 @@ namespace Cryptforge.Tests
             Assert.That(loaded.OwnedWeaponIds, Is.EqualTo(new[] { "weapon_staff" }));
             Assert.That(loaded.EquippedWeaponId, Is.EqualTo("weapon_staff"));
             string json = File.ReadAllText(Path.Combine(_directory, ProfileStore.FileName));
-            Assert.That(json, Does.Contain("\"saveVersion\": 4").And.Contain("\"gold\": 120").And.Contain("\"equippedWeaponId\": \"weapon_staff\""));
+            Assert.That(json, Does.Contain("\"saveVersion\": 5").And.Contain("\"gold\": 120").And.Contain("\"equippedWeaponId\": \"weapon_staff\""));
             Assert.That(File.Exists(Path.Combine(_directory, ProfileStore.TempFileName)), Is.False);
         }
 
@@ -115,7 +115,7 @@ namespace Cryptforge.Tests
             store.Save(profile);
 
             string json = File.ReadAllText(path);
-            Assert.That(json, Does.Contain("\"saveVersion\": 4").And.Contain("\"revision\": 6").And.Contain("\"gold\": 30"));
+            Assert.That(json, Does.Contain("\"saveVersion\": 5").And.Contain("\"revision\": 6").And.Contain("\"gold\": 30"));
             Assert.That(File.ReadAllText(Path.Combine(_directory, ProfileStore.BackupFileName)), Does.Contain("\"saveVersion\": 1"),
                 "The version 1 file stays behind as the backup.");
             PlayerProfile reloaded = new ProfileStore(_directory).Load();
@@ -274,7 +274,7 @@ namespace Cryptforge.Tests
             store.Save(profile);
 
             string json = File.ReadAllText(Path.Combine(_directory, ProfileStore.FileName));
-            Assert.That(json, Does.Contain("\"saveVersion\": 4").And.Contain("\"itemId\": \"item_cinder_ring\"")
+            Assert.That(json, Does.Contain("\"saveVersion\": 5").And.Contain("\"itemId\": \"item_cinder_ring\"")
                 .And.Contain("\"weaponId\": \"weapon_sword\"").And.Contain("\"anvilSeed\": 77"));
             PlayerProfile loaded = new ProfileStore(_directory).Load();
             Assert.That(loaded.Gold, Is.EqualTo(profile.Gold));
@@ -283,7 +283,7 @@ namespace Cryptforge.Tests
             Assert.That(loaded.Gear.PendingRerollPiece, Is.SameAs(loaded.Gear.WeaponGear("weapon_sword")));
         }
 
-        // A version 3 save (before gear) loads with its gold and an empty bag, and is written back as version 4.
+        // A version 3 save (before gear) loads with its gold and an empty bag, and is written back as the current version.
         [Test]
         public void AVersionThreeProfileKeepsItsGoldAndGainsAnEmptyBag()
         {
@@ -300,7 +300,88 @@ namespace Cryptforge.Tests
             Assert.That(profile.Gear.AnvilSeed, Is.Zero, "Seeded on the first draw.");
             profile.Deposit(1);
             store.Save(profile);
-            Assert.That(File.ReadAllText(path), Does.Contain("\"saveVersion\": 4").And.Contain("\"items\": []"));
+            Assert.That(File.ReadAllText(path), Does.Contain("\"saveVersion\": 5").And.Contain("\"items\": []"));
+        }
+
+        // Version 5 (docs/54 section 21): each difficulty tier's record and the tier chosen survive the JSON round trip.
+        [Test]
+        public void TiersRoundTripThroughVersionFive()
+        {
+            var store = new ProfileStore(_directory);
+            PlayerProfile profile = store.Load();
+            profile.RecordFloorCleared(4);
+            Assert.That(profile.RecordDescentCompleted(DifficultyTier.Forged), Is.True);
+            profile.RecordFloorCleared(4, DifficultyTier.Tempered);
+            Assert.That(profile.RecordDescentCompleted(DifficultyTier.Tempered), Is.True);
+            profile.RecordFloorCleared(2, DifficultyTier.Inferno);
+            Assert.That(profile.SelectTier(DifficultyTier.Inferno), Is.True);
+            store.Save(profile);
+
+            string json = File.ReadAllText(Path.Combine(_directory, ProfileStore.FileName));
+            Assert.That(json, Does.Contain("\"saveVersion\": 5").And.Contain("\"tierProgress\"").And.Contain("\"tier\": \"inferno\"")
+                .And.Contain("\"selectedTier\": 2").And.Contain("\"highestTierCompleted\": 2"));
+            PlayerProfile loaded = new ProfileStore(_directory).Load();
+            Assert.That(loaded.Tiers.Selected, Is.EqualTo(DifficultyTier.Inferno));
+            Assert.That(loaded.Tiers.HasCompleted(DifficultyTier.Tempered), Is.True);
+            Assert.That(loaded.Tiers.HasCompleted(DifficultyTier.Inferno), Is.False);
+            Assert.That(loaded.Tiers.DeepestFloorCleared(DifficultyTier.Inferno), Is.EqualTo(2));
+            Assert.That(loaded.Tiers.IsMapOpen(3, DifficultyTier.Inferno), Is.True, "Inferno reached floor 3's start");
+            Assert.That(loaded.Tiers.IsOpen(DifficultyTier.Abyssal), Is.False);
+            Assert.That(loaded.DeepestFloorCleared, Is.EqualTo(4));
+        }
+
+        // A version 4 save (the tiers stored ahead of their build) loads with its depth record as Forged's: the owner's
+        // Descents walked out of open Tempered; a profile short of the finale opens nothing new. Written back as version 5.
+        [Test]
+        public void AVersionFourProfileCarriesItsDepthToForged()
+        {
+            string path = Path.Combine(_directory, ProfileStore.FileName);
+            File.WriteAllText(path, "{\"saveVersion\":4,\"revision\":30,\"gold\":39491,\"deepestFloorCleared\":4,\"items\":[]," +
+                "\"highestTierCompleted\":0,\"selectedTier\":0}");
+            var store = new ProfileStore(_directory);
+            PlayerProfile veteran = store.Load();
+            Assert.That(store.LastLoadStatus, Is.EqualTo(ProfileLoadStatus.Loaded));
+            Assert.That(veteran.Gold, Is.EqualTo(39491), "gold untouched");
+            Assert.That(veteran.Tiers.HasCompleted(DifficultyTier.Forged), Is.True);
+            Assert.That(veteran.Tiers.IsOpen(DifficultyTier.Tempered), Is.True);
+            Assert.That(veteran.Tiers.IsOpen(DifficultyTier.Inferno), Is.False);
+            Assert.That(veteran.Tiers.Selected, Is.EqualTo(DifficultyTier.Forged));
+            veteran.Deposit(1);
+            store.Save(veteran);
+            Assert.That(File.ReadAllText(path), Does.Contain("\"saveVersion\": 5").And.Contain("\"tier\": \"forged\"")
+                .And.Contain("\"highestTierCompleted\": 1"));
+
+            File.WriteAllText(path, "{\"saveVersion\":4,\"revision\":40,\"gold\":5,\"deepestFloorCleared\":2,\"selectedTier\":3}");
+            File.Delete(Path.Combine(_directory, ProfileStore.BackupFileName));
+            PlayerProfile midway = new ProfileStore(_directory).Load();
+            Assert.That(midway.Tiers.IsOpen(DifficultyTier.Tempered), Is.False);
+            Assert.That(midway.Tiers.Selected, Is.EqualTo(DifficultyTier.Forged), "a locked choice falls back");
+            Assert.That(midway.Tiers.IsMapOpen(3, DifficultyTier.Forged), Is.True, "floor 2 cleared opens the Gardens on Forged");
+        }
+
+        // Damaged tiers in a readable version 5 save are repaired, never rejected (ProfileTiers.Restore): an unknown or
+        // repeated tier dropped, a negative depth zeroed, a tier whose tier below is not completed keeps nothing, a locked
+        // choice falls back to Forged.
+        [Test]
+        public void DamagedTiersInAReadableSaveAreRepaired()
+        {
+            File.WriteAllText(Path.Combine(_directory, ProfileStore.FileName),
+                "{\"saveVersion\":5,\"revision\":2,\"gold\":10,\"deepestFloorCleared\":3,\"selectedTier\":2,\"tierProgress\":[" +
+                "{\"tier\":\"tempered\",\"deepestFloorCleared\":3,\"completed\":true}," +
+                "{\"tier\":\"forged\",\"deepestFloorCleared\":-5,\"completed\":false}," +
+                "{\"tier\":\"forged\",\"deepestFloorCleared\":4,\"completed\":true}," +
+                "{\"tier\":\"legendary\",\"deepestFloorCleared\":4,\"completed\":true}]}");
+            var store = new ProfileStore(_directory);
+            PlayerProfile profile = store.Load();
+            Assert.That(store.LastLoadStatus, Is.EqualTo(ProfileLoadStatus.Loaded));
+            Assert.That(profile.Tiers.DeepestFloorCleared(DifficultyTier.Forged), Is.EqualTo(3),
+                "the first forged record (-5, zeroed) wins, raised to the profile's own record");
+            Assert.That(profile.Tiers.HasCompleted(DifficultyTier.Forged), Is.False);
+            Assert.That(profile.Tiers.IsOpen(DifficultyTier.Tempered), Is.False);
+            Assert.That((profile.Tiers.DeepestFloorCleared(DifficultyTier.Tempered), profile.Tiers.HasCompleted(DifficultyTier.Tempered)),
+                Is.EqualTo((0, false)), "Tempered is not open: its record goes");
+            Assert.That(profile.Tiers.Selected, Is.EqualTo(DifficultyTier.Forged));
+            Assert.That(profile.Tiers.IsMapOpen(3, DifficultyTier.Forged), Is.True);
         }
 
         // Damaged gear in a readable version 4 save is repaired, never rejected (ProfileGear.Restore).

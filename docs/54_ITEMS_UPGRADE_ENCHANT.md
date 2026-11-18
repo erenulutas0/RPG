@@ -318,6 +318,9 @@ the two can stack later. The multipliers ride `FloorScaling` (the modifier path 
 the horde and the bosses alike; the bosses' 45-65 s bands are measured per tier with the matched geared cohort (section
 13). Map starts (docs/53) are per tier: a deeper start on a tier opens once that tier reached it.
 
+Built in phase 6 (section 21) with section 8's health and lower damage: Tempered x1.08 / x1.02, Inferno x1.15 / x1.10,
+Abyssal x1.20 / x1.14.
+
 ## 9. The economy model: runs to each milestone
 
 `python Tools/Economy/gear_economy.py --players 2000` (2,000 simulated players for careful and clumsy, 500 for the others;
@@ -908,6 +911,313 @@ empty folder present).
 - **`AnvilFlowTests`' fixture starts geared runs.** Its asserts read the forge after the hero is killed with 100,000
   damage; a geared start should not move them, but it has not been run.
 
+## 21. Built: phase 6, the difficulty tiers (2026-11-17/19)
+
+Forged, Tempered, Inferno and Abyssal (section 8), each a harder Descent that pays more, each matched to a gear power. A
+Forged run is today's run to the bit: Forged multiplies nothing, rounds no gold of its own, draws no loot word it did
+not draw, and writes no telemetry key it did not write (the default batch is byte-identical, below). No Forged balance
+constant changed.
+
+### The tiers
+
+| Tier | Opens when | Enemy health / damage | Matched gear (the cohort read) | Gold, materials, boosters | Item luck (`RarityTable`) |
+|---|---|---|---|---|---|
+| **Forged** | always | x1 / x1 | none (ungeared) | x1 | 0 |
+| **Tempered** | the Descent completed on Forged | **x1.08 / x1.02** | +5 set, +14.7 % (`careful+5`, `clumsy+5`, `first-card+5`) | x1.25 | +10 |
+| **Inferno** | the Descent completed on Tempered | **x1.15 / x1.10** | +9 set, +30.9 % (`+9`) | x1.5 | +20 |
+| **Abyssal** | the Descent completed on Inferno | **x1.20 / x1.14** | +9 with good efsun, +41.9 % (`+9g`) | x2 | +30 |
+
+Section 8's health stands; the damage is lower than section 8's (1.06 / 1.13 / 1.18), under the matched set's own health
+(+5 %, +10 % and +14 % at the cap): the tier's health times damage is +10.2 %, +26.5 % and +36.8 % against the sets'
++14.7 %, +30.9 % and +41.9 %. The reasons are measured below.
+
+**Where the multipliers ride** (`DifficultyTiers`, `FloorScaling.Tiered`). The tier's enemy health and damage multiply
+the floor's own tier - the climb's (`ClimbScaling`), a boss room's growth included, or an authored floor's - in
+`EncounterController.FloorHealthMultiplier` and `FloorDamageMultiplier`, which every node wave, elite, gate boss, horde
+enemy and finale swarm enemy reads, before the run's difficulty and the horde's shares. `FloorScaling.Tiered` is one
+`[MethodImpl(NoInlining)]` body; the scene reaches it through `TierHealth` / `TierDamage`, the Descent simulation
+(`DescentSimulation.FoundryRun`: `SpawnWave`, the horde's spawn, the finale's `SpawnSwarmFoe`) calls it at the same
+point with the same operands, so the two round the product alike (the stamina lesson). A multiplier of exactly 1 returns
+the floor's own, so Forged is untouched. What the tier does not touch: the Warden's slam (20 % of the hero's maximum)
+and the Regent's lanes (10 %), which take a share of the hero's health on every floor and never rode the floors'
+multipliers; the pit's eruptions; the Mirror Sentry's reflection (the hero's own blows).
+
+**Rewards.**
+- **Gold**: `FloorScaling.Gold(base, modifier, tier)` - the floor's gold times the tier's reward, rounded once (away
+  from zero, as the floor's is) - at each kill (`EncounterController`'s spawn) and each chest (`ChestSpawner`). The
+  run's gold, the checkpoint's "Extract with N gold", the result's banked gold and telemetry's kill and chest gold all
+  read the tier's. Per kill: a 3-gold grunt pays 4 on Tempered, 5 on Inferno, 6 on Abyssal; a 10-gold chest 13 / 15 /
+  20.
+- **Materials** (`LootRule.Roll` with the tier): the amount times the reward; a fraction is made whole by one word of
+  the moment's loot stream drawn last (so the moment's other draws stay where they were): a floor clear's two Ember
+  Shards are 2 or 3 (2.5 on average) on Tempered, 3 on Inferno, 4 on Abyssal.
+- **Boosters**: each chance (parts of 10,000) times the reward, never above certain: a Seal from an elite 8 % -> 10 / 12
+  / 16 %. Each chance still draws exactly one word, so the same moments drop the same items on every tier.
+- **Items**: their chance is Forged's on every tier (the tier pays in luck): the rarity is drawn at the tier's item luck
+  (`RarityTable.Draw(stream, 10 / 20 / 30)`, one word as at no luck). At +30 a Gold item is about 6 % of drops (3 % on
+  Forged).
+- The first floor-1 boss's armour is the profile's gift once, on whatever tier.
+
+**Unlock and map starts** (`ProfileTiers`). A tier opens once a run on the tier below walks out of the Descent's finale
+(`PlayerProfile.RecordDescentCompleted`, from `CombatSetup.OnFloorCleared` on the last floor when it is the finale,
+floor 4 - not a development or proof floor that ends a run alone - before `Run.End(Victory)`). A walk-out from a deeper
+start counts: a deeper start on a tier is open only once that tier reached it. Each tier keeps its own record of the
+deepest floor cleared (`RecordFloorCleared(floor, tier)` raises it and the profile's own depth record), and a deeper map
+is a start on a tier once a run on that tier reached it (`ProfileTiers.IsMapOpen` = `MapUnlock.IsOpen` with the tier's
+record; docs/53). Forged's record is the profile's depth record at the least: every run before the tiers was a Forged
+run (`Reconcile`), so a profile's Forged map cards read as they did, and a depth record through the finale (4) completed
+Forged. No development exception: the owner sees the locks as a player does (the development start files still start a
+floor without the panel, on Forged or the profile's tier).
+
+### How the multipliers were found (exploration seeds 1-2000)
+
+`DifficultyTiersResearch` (Tools/CombatChecks, explicit): each tier played by its matched cohorts - the clumsy, careful
+and first-card autopilots wearing `FoundryGear`'s set at the tier's level (the hero's own weapon and a Gold armour,
+amulet and ring; +9g with good efsun) - against the same cohort ungeared on Forged (`shipped`), both heroes, the whole
+Descent with typical human hands, on the same seeds. The read is docs/56's: the change in four-floor completion in
+points of rate, both heroes of a seed pooled, with `Tools/BalanceRule/paired_bootstrap.py`'s seed-level 90 % CI (it now
+reads `difficulty-tiers.csv` and the first-card cohort). `FOUNDRY_PARALLEL=4`.
+
+**Round 1, seeds 1-400** (section 8's values, and a harder Tempered to see the slope):
+
+| Option (health / damage, gear) | clumsy | careful | first-card |
+|---|---|---|---|
+| Tempered 1.08 / 1.06, +5 | -0.25 (-2.88 to +2.38) | +1.25 (+0.12 to +2.50) | +0.12 (-2.00 to +2.12) |
+| Inferno 1.15 / 1.13, +9 | +0.38 (-2.38 to +3.12) | +0.88 (-0.38 to +2.12) | -0.62 (-2.62 to +1.38) |
+| Abyssal 1.20 / 1.18, +9g | -0.75 (-3.62 to +2.00) | +0.88 (-0.25 to +2.00) | -2.12 (-4.25 to +0.00) |
+| Tempered 1.12 / 1.09, +5 | -5.00 (-7.88 to -2.25) | +0.00 (-1.25 to +1.25) | -5.62 (-7.75 to -3.50) |
+
+Section 8's multipliers were matched to the sets' power almost exactly - every cohort within about a point of Forged -
+and the slope is steep: 6.6 % more health times damage cost the clumsy and first-card cohorts five points. (Two harder
+probes, Inferno 1.22 / 1.18 and Abyssal 1.28 / 1.25, were stopped unread once the slope was plain.)
+
+**Why not ship "exactly matched".** A tier changes every enemy from floor 1 and the gear changes every crit and offer,
+so a tier's paired runs diverge from the first wave: the paired change's SD per 400 seeds came out **12.7-13.5
+completions for the clumsy cohort, about 10 for first-card and 6 for careful** (a floor-2 creature's: 6-8 for clumsy,
+docs/56 section 2). At 3,200 seeds that is an SE of **0.60, 0.44 and 0.27 points**: a tier that changes nothing at all
+fails the rule's lower bound (-1.5) about one time in five for the clumsy cohort alone. So the multipliers were set to
+leave every gated cohort about a point ahead of Forged on these seeds - an easing the rule passes and reports - rather
+than on its edge. Health stayed at section 8's (it sets the bosses' fights, and the sets' DPS meets it: below), and the
+damage came down under the sets' own health.
+
+**Round 2, seeds 1-2000** (the shipped `shipped` once; Tempered at two damages, chosen by a rule written before its
+second read: the hardest whose weakest gated cohort is at least +0.75, else the easiest):
+
+| Option (health / damage, gear) | clumsy | careful | first-card | Completed: clumsy / careful / first-card |
+|---|---|---|---|---|
+| Forged, ungeared (`shipped`) | - | - | - | 37.8 % / 95.9 % / 82.3 % |
+| Tempered 1.08 / 1.04, +5 | +0.33 (-0.82 to +1.52) | +0.30 (-0.30 to +0.93) | +1.38 (+0.45 to +2.30) | 38.1 / 96.2 / 83.7 % |
+| **Tempered 1.08 / 1.02, +5** | **+1.32 (+0.17 to +2.50)** | **+0.70 (+0.12 to +1.27)** | **+2.17 (+1.25 to +3.12)** | 39.1 / 96.6 / 84.5 % |
+| **Inferno 1.15 / 1.10, +9** | **+0.75 (-0.42 to +1.95)** | **+0.97 (+0.42 to +1.52)** | **+1.62 (+0.72 to +2.55)** | 38.6 / 96.9 / 83.9 % |
+| **Abyssal 1.20 / 1.14, +9g** | **+2.15 (+0.90 to +3.40)** | **+1.40 (+0.88 to +1.95)** | **+1.20 (+0.28 to +2.12)** | 40.0 / 97.3 / 83.5 % |
+
+The shipped multipliers are in bold. Tempered at 1.04 left the clumsy cohort +0.33 (about a one-in-five chance of
+failing the confirmation's lower bound); at 1.02, +1.32. Inferno at 1.10 met the +0.75. Abyssal at 1.14 has its weakest
+cohort (first-card) at +1.20 and was not made harder: a step back towards 1.16 would put first-card near zero.
+
+**The bosses** (P50 of the felled fights, seconds, Vanguard / Ilya, seeds 1-2000; the gate's band 45-65 s):
+
+| Cohort | Tier | Warden (floor 1) | Regent (floor 2) | Warden (floor 3) |
+|---|---|---|---|---|
+| careful | Forged | 51.1 / 45.8 | 49.4 / 46.0 | 60.8 / 57.2 |
+| careful | Tempered (+5) | 51.1 / 45.9 | 49.1 / 45.8 | 59.9 / 57.3 |
+| careful | Inferno (+9) | 50.6 / 45.8 | 48.2 / 45.8 | 59.7 / 57.3 |
+| careful | Abyssal (+9g) | 50.2 / 45.8 | 48.3 / 45.8 | 59.7 / 57.3 |
+| clumsy | Forged / Tempered / Inferno / Abyssal | 47.0-48.2 / 48.5-49.2 | 45.6-47.0 / 48.2-48.7 | 60.2-61.8 / 61.4-62.6 |
+| first-card | Forged / Tempered / Inferno / Abyssal | 48.2-49.2 / **44.1-44.2** | 47.4-48.0 / 44.8-45.3 | 55.9-57.0 / 53.4-54.1 |
+
+Every boss holds its Forged length on every tier, within a second (the tier's health against the set's DPS: section 20's
++9g Warden at 44.9 / 40.5 s is back at 50.2 / 45.8). Every careful boss is inside 45-65 s on every tier. The one P50
+under the band is first-card Ilya's floor-1 Warden, at 44.1-44.2 s on every tier - and at 44.2 s on Forged itself: the
+tiers neither cause it nor fix it (as first-card Ilya's floor-2 Regent, 44.8-45.3 s, Forged's 45.3).
+
+**The Descent's minutes** (P50 of the completed runs): Forged 14.37 / 14.40 / 14.21 (clumsy / careful / first-card);
+every tier within **-0.07 to +0.01 minutes** of it (target +-1).
+
+**What a run pays** (forge gold banked a run, mean, careful, rebuilt as `GearEconomyResearch` does with the tier's
+gold): Forged 496 / 497 (Vanguard / Ilya), Tempered 618 / 622 (x1.25), Inferno 759 / 760 (x1.53), Abyssal 997 / 999
+(x2.01).
+
+### The confirmation (seeds 5201-8400)
+
+The fresh block assigned to this phase, read once with the shipped multipliers above (303b28a7), the same research and
+cohorts, both heroes, typical hands, `FOUNDRY_PARALLEL=4`; one candidate a tier, none changed after the read. Recorded
+in docs/56's "Blocks used". The read was begun on 2026-11-17 and stopped by the machine's shutdown in its last tier
+(Abyssal); it was read again from scratch on the same code on 2026-11-18/19 (5 h 45 m beside another agent's batches),
+and the rows the stopped read had written - Forged, Tempered and Inferno, 57,600 runs - came back byte for byte.
+
+docs/56's bar for clumsy, careful and first-card: the point change at least **-1.0** and the 90 % CI's lower bound at
+least **-1.5** (`paired_bootstrap.py <folder> 5201 8400`; 6,400 runs a cohort):
+
+| Tier (gear) | Cohort | Forged ungeared | Tier | Change (points) | 90 % CI | SD per 400 | Verdict |
+|---|---|---|---|---|---|---|---|
+| Tempered (+5) | clumsy | 2394 (37.4 %) | 2560 (40.0 %) | **+2.59** | +1.61 to +3.56 | 13.4 | passes; an easing |
+| Tempered (+5) | careful | 6169 (96.4 %) | 6191 (96.7 %) | **+0.34** | -0.09 to +0.78 | 6.0 | passes |
+| Tempered (+5) | first-card | 5246 (82.0 %) | 5345 (83.5 %) | **+1.55** | +0.78 to +2.30 | 10.3 | passes; an easing |
+| Inferno (+9) | clumsy | 2394 (37.4 %) | 2452 (38.3 %) | **+0.91** | -0.05 to +1.88 | 13.3 | passes |
+| Inferno (+9) | careful | 6169 (96.4 %) | 6204 (96.9 %) | **+0.55** | +0.09 to +1.03 | 6.3 | passes; an easing |
+| Inferno (+9) | first-card | 5246 (82.0 %) | 5326 (83.2 %) | **+1.25** | +0.52 to +1.98 | 10.0 | passes; an easing |
+| Abyssal (+9g) | clumsy | 2394 (37.4 %) | 2578 (40.3 %) | **+2.88** | +1.91 to +3.84 | 13.3 | passes; an easing |
+| Abyssal (+9g) | careful | 6169 (96.4 %) | 6219 (97.2 %) | **+0.78** | +0.33 to +1.23 | 6.2 | passes; an easing |
+| Abyssal (+9g) | first-card | 5246 (82.0 %) | 5306 (82.9 %) | **+0.94** | +0.19 to +1.69 | 10.2 | passes; an easing |
+
+**All three tiers pass**, no cohort's point change below zero. Seven of the nine CIs lie wholly above 0: by docs/56 rule
+3 these are easings, reported to the lead - the matched set plays its tier a little easier than an ungeared player plays
+Forged, by design (the margin above); the largest are the clumsy cohort's on Tempered (+2.6) and Abyssal (+2.9), a
+little over the exploration seeds' +1.3 and +2.2. The weakest reads are Inferno's clumsy (+0.91, lower bound -0.05) and
+Tempered's careful (+0.34, lower bound -0.09), both well inside the bar.
+
+**The bosses** (P50, seconds, Vanguard / Ilya, the careful cohort; the gate's band 45-65 s):
+
+| Tier | Warden (floor 1) | Regent (floor 2) | Warden (floor 3) | Descent P50, completed (min) | Banked a run |
+|---|---|---|---|---|---|
+| Forged | 51.1 / 45.9 | 49.0 / 46.0 | 60.1 / 56.8 | 14.48 / 14.31 | 497 / 499 |
+| Tempered | 51.1 / 45.9 | 48.9 / 46.1 | 60.0 / 56.8 | 14.48 / 14.30 | 619 / 622 |
+| Inferno | 50.3 / 45.7 | 48.1 / 45.9 | 59.5 / 56.6 | 14.45 / 14.30 | 759 / 762 |
+| Abyssal | 50.7 / 45.9 | 48.2 / 45.7 | 59.4 / 56.7 | 14.40 / 14.25 | 999 / 997 |
+
+Every careful boss inside its band on every tier and within a second of Forged's; first-card Ilya's floor-1 Warden at
+44.1-44.2 s on every tier as on Forged (44.1), outside the band before the tiers. The Descent's minutes, pooled, within
+**-0.08 to -0.01** of Forged's for every cohort and tier (target +-1).
+
+### The save: version 5
+
+`ProfileSaveData.CurrentVersion` 4 -> **5**:
+
+    public TierProgressSaveData[] tierProgress;   // a record per tier
+    [Serializable] class TierProgressSaveData { string tier; int deepestFloorCleared; bool completed; }   // "forged", "tempered", ...
+    public int selectedTier;          // kept from version 4: the tier chosen for the next run (0 Forged)
+    public int highestTierCompleted;  // kept from version 4: now written from the records (0 none, 1 Forged, ...), read only by the migration
+
+- **Migration** (`ProfileMigration`, case 4): every run so far was Forged's, so Forged's record is
+  `deepestFloorCleared`, completed when that is 4 (the finale) or when version 4's `highestTierCompleted` counted it;
+  the tiers above start empty; `selectedTier` stays (Restore lets only an open tier stand). Gold, gear and everything
+  else untouched. The owner's profile (deepest 4) opens Tempered on its first load.
+- **Repair on load** (`ProfileTiers.Restore`, never throws): unknown or empty tier ids dropped, a repeated tier's later
+  records dropped (the first wins), negative depths zeroed, a completed tier raised to the finale, Forged raised to the
+  profile's depth record; a tier that is not open (the tier below it not completed) keeps no record, so a damaged save
+  never opens what was not earned; a chosen tier that is unknown or not open falls back to Forged.
+- `ProfileGear` no longer holds the two tier fields it stored ahead of their build; `ProfileTiersSave` copies the fields
+  to a `TierSnapshot` and back, as `ProfileGearSave` does the gear's.
+- **docs/57's skills take version 6** (its section 11, item 9, now says so; its build plan's save row too).
+
+### The UI
+
+**The tier row on the hero and map choice** (`MapChoiceView`, docs/53). Between the hero row and the maps: four cards
+(216 x 190 on the 1080-wide canvas), Forged, Tempered, Inferno, Abyssal, each with its name, "Rewards x1.25" and a state
+line. Drawn with `ChoiceCardPainter` in the run's choice cards' look: the chosen tier lit in its own tier's card - the
+cards' ladder, Forged green, Tempered orange, Inferno red, Abyssal gold (no crest: the gold clasp would stand into the
+hero row) - "Selected" in gold; an open tier on the neutral card, "Tap to choose"; a locked tier on the neutral card,
+not interactable (the disabled shade), its hint in the locked grey worded as a locked hero's: "Locked: Complete the
+Descent on Forged". Under the row, two lines on the chosen tier: "Tempered: foes +8% health, +2% damage; rewards x1.25;
+item luck +10 / Built for gear +15% (a +5 set). Your gear: +14.7%" - the chosen hero's own gear power
+(`CombatSetup.GearPowerFor`, the weapon it would carry). A tier card chooses the tier and the profile remembers it
+(`PlayerProfile.SelectTier`, as the hero); the map cards redraw for it (each tier its own record); the Foundry with the
+scene's hero and tier begins the run there, and a tier other than the scene's reloads the scene with the map
+(`RunStartRequest` carries the floor, the hero and the tier; `CombatSetup.Tier` takes the request's tier when open, else
+the profile's). The panel is 1900 units tall with the hero row (was 1644): whole on the S23's 2340, scaled to 99 % on a
+16:9 phone's 1920.
+
+**The tier in the run.** Above Forged, the HUD's floor line begins with the tier's name in its colour ("Tempered  ·
+Floor 1  /  Room 2/5"), the pause screen's run title reads "CRYPTFORGE  ·  Tempered", and the result's title "Defeated
+· Tempered" (`TierText`); a Forged run's labels are exactly as they were.
+
+**Capture.** `pwsh -File Tools/ArtReview/Run-TierUiProof.ps1` (installs `TierUiCapture.cs` for one PlayMode run, removes
+it): 1080x2340 on a tr-TR culture, frames in `ArtDirection/2026-11-17/tier-ui-01` (untracked) with `frames.txt`: a fresh
+profile (Forged lit, three locked), a geared profile that completed Forged (Tempered open), Tempered chosen (the deeper
+maps locked on Tempered), that run's HUD and its result, and every tier open with Abyssal chosen. `MapChoiceView.FitNow`
+fits the panel to the phone's safe area after the canvases are redrawn at its size, as `AnvilView.FitNow` does for the
+Anvil (the batch run's own screen is small). Not yet run: the lead's.
+
+### Telemetry
+
+`run_start` writes `tier` ("tempered", "inferno", "abyssal") on a run above Forged, after the gear's keys; a Forged
+run's line keeps its keys exactly (`RunTelemetryContext.Tier`). `DevicePull` reads it (`RunRecord.Tier`, null for Forged
+and every older run) and leaves a tiered run out of the owner's floor rows, counted apart (`DeviceEvidence.TieredRuns`,
+named in the gate's "left out" line), as a geared or deeper-started run already is.
+
+### Tests
+
+- **EditMode, also in CombatChecks: `DifficultyTierTests`.** Forged changes nothing - `TierHealth` / `TierDamage` /
+  `Tiered(x, 1)` return the floor's multiplier to the bit, Forged gold is `Gold(base, modifier)`, chances and amounts
+  are Forged's and draw nothing, and every Forged loot roll is the old roll word for word; the table (rewards, luck,
+  matched power, ids, hints, each tier harder than the last); the enemies' layer on the floor's own (a Warden at 8.5 x
+  1.6 is the tier's health more); gold per kill and chest; materials (x1.25 averages 2.5, x1.5 and x2 whole), boosters
+  x1.25 / 1.5 / 2, items as often on every tier and rarer at the tier's luck, the satchel rolling on its run's tier; the
+  unlock chain and the choice, map starts per tier, every run before the tiers Forged; the round trip through the save's
+  fields and a damaged snapshot repaired; the version 4 -> 5 migration; the simulation's floor-1 Warden at the tier's
+  health.
+- **EditMode, Unity: `ProfileStoreTests`** - `TiersRoundTripThroughVersionFive` (the JSON keys, every record and the
+  choice back), `AVersionFourProfileCarriesItsDepthToForged` (the owner's 39,491 gold and deepest 4: Tempered open,
+  written back as 5; deepest 2 with a tier chosen ahead of its build: nothing opens, Forged chosen, the Gardens still
+  open on Forged), `DamagedTiersInAReadableSaveAreRepaired`; the version strings moved 4 -> 5. `MapStartFloorTests` -
+  the tier rides `RunStartRequest` once with its map; the tier line reads the same on tr-TR. `WeaponForgeTests` - the
+  version is 5.
+- **EditMode, also in CombatChecks:** `RunTelemetryTests.ARunOnATierSaysSoOnRunStart` (Forged's keys exactly, `tier`
+  above it), `DevicePullTests.ATieredRunIsLeftOutOfTheOwnersFloors`, `ProfileGearTests` (the tier fields left the gear).
+- **PlayMode: `TierChoiceFlowTests`** - a fresh profile: four tier cards, Forged selected, the three locked with their
+  hints and refusing a tap and `StartOnMap`, every tier label fitting at its minimum size, Forged's floor line as it
+  was; a profile that completed Forged: Tempered chosen and saved, the deeper maps locked on Tempered, the Foundry
+  reloading on Tempered with every enemy at the tier's health and damage (`FloorHealthMultiplier`,
+  `FloorDamageMultiplier`), the loot on the tier, the HUD's floor line and the result's title naming it; a Tempered
+  profile whose runs cleared floor 1: the Vaults open on Tempered and the Gardens not, both open on Forged, the Vaults
+  starting a Tempered run on floor 2 with its boss's health on the climb's.
+
+      Unity, EditMode:  pwsh -File Tools/Run-UnityTests.ps1 -Platform EditMode -SkipApk -Filter "DifficultyTierTests;ProfileStoreTests;ProfileGearTests;WeaponForgeTests;MapStartFloorTests;RunTelemetryTests;RunLootTests;DescentTests;ClimbScalingTests;FoundrySimulationTests;GearApplyTests;AnvilTests"
+      Unity, PlayMode:  pwsh -File Tools/Run-UnityTests.ps1 -Platform PlayMode -SkipApk -Filter "TierChoiceFlowTests;MapChoiceFlowTests;HeroAndMapChoiceFlowTests;RunResultTests;RunHudProgressTests;HudTextTests;LabelAllocationTests;TelemetryFlowTests;ChestPresentationTests;DescentFlowTests;FoundryDescentFlowTests;FoundryRunEndFlowTests;SimulationParityTests;GearRunStartTests;AnvilFlowTests;RelicForgeFlowTests;MultiRunSoak;PauseFlowTests"
+      Capture:          pwsh -File Tools/ArtReview/Run-TierUiProof.ps1     (frames in ArtDirection/2026-11-17/tier-ui-01, untracked)
+
+The whole EditMode suite is the safer read: `EncounterController`, `CombatSetup`, `PlayerProfile`, `LootRule`,
+`RunLoot`, the save and `RunTelemetry` changed (each only where a tier above Forged is played, or where the save gained
+its field). In PlayMode the flows above end a run, read the HUD's floor line, the result, the telemetry or the profile,
+or play several runs on one profile (`MultiRunSoak`: a run walked out now completes Forged, which opens Tempered but
+chooses nothing).
+
+### Risks the build leaves open
+
+- **Not run in Unity.** The compile check, CombatChecks and the batches only; the EditMode and PlayMode suites above and
+  the capture are the lead's. The tier row is laid out by the numbers above, not looked at: four 216-wide cards hold a
+  locked tier's three lines of hint at 22 units only by the generator's arithmetic (`TierChoiceFlowTests` asserts every
+  tier label fits at its minimum size).
+- **The panel grew to 1900 units** with the hero row; a 16:9 phone shows it at 99 %, and a shorter safe area (a 16:9
+  phone with a notch) scales it further, the map cards' 300 shrinking with it.
+- **A walk-out from a deeper start completes the tier.** A deeper start on a tier is open only once that tier reached
+  it, so a player cannot skip a tier's floors 1-2 without having walked them once on it; but the tier's completion can
+  come from a run begun on its Gardens. If the lead wants a whole Descent (floor 1 to the finale) for the unlock,
+  `CombatSetup` records it only when `StartFloor` is 1 - a one-line change.
+- **The rule's read is noisier for a tier than for a creature.** A tier changes every enemy from floor 1, and the gear
+  changes every crit and offer, so the paired change's SD per 400 seeds is about 12.7-13.5 completions for the clumsy
+  cohort and 10 for first-card (a floor-2 creature's: 6-8); at 3,200 seeds a cohort's SE is 0.60 points, so a tier that
+  changes nothing fails the rule's lower bound about one time in five for the clumsy cohort. The tiers were tuned to
+  come out a point or so ahead of Forged on the exploration seeds (an easing of that size passes and is reported) rather
+  than on the rule's edge; on the fresh block they came out +0.3 to +2.9 ahead, seven of nine cells an easing. If the
+  lead wants the tiers closer to "exactly matched", the damage multipliers are the knob (about 0.8 points of the clumsy
+  and first-card cohorts per percent of health times damage), and a new candidate needs a fresh block.
+- **The standing and auto-farmer cohorts were not read** (the rule gates clumsy, careful and first-card); the
+  auto-farmer meets a tier only through its slow ladder (section 20).
+- **Matched means the modelled set.** A real profile's +5 is rarely four +5 pieces with no lines; the line under the
+  tier row shows the hero's own gear power beside the tier's, and the owner's device week (phase 7) will read who plays
+  which tier with what (`run_start`'s `tier`, `gear_power`).
+- **The owner's device rows thin out further.** Tiered runs are left out of the gate's owner rows as geared runs are; a
+  tiered reading of the device (the tier's matched cohort against the owner's tiered runs) is not built.
+- **Per-kill gold rounding.** A tier's gold is rounded at each kill: a 3-gold grunt pays 4 on Tempered (x1.33), a 5-gold
+  one 6 (x1.2); over a run the reward lands near x1.25-1.3, x1.5 and x2 (the research's banked gold, above).
+
+### The regression line
+
+Against main 408f95fa (its sources exported to a clean folder and run there), `FOUNDRY_SEEDS=200 FOUNDRY_LEVERS=0
+FOUNDRY_COHORTS=1 FOUNDRY_REALISM=typical FOUNDRY_PARALLEL=4`, each run into its own empty output folder with the same
+empty `FOUNDRY_EDITOR` and `FOUNDRY_DEVICE=none`, on this branch's tuned code (303b28a7, run 2026-11-18; the later
+commits change docs only):
+- `FOUNDRY_FLOORS=4`: `foundry-gate.md`, `foundry-batch.csv`, `foundry-batch-floor2.csv`, `foundry-cohorts.md`,
+  `foundry-cohorts-floor2.csv`, `foundry-cohorts-floor3.csv`, `foundry-finale.md` and `foundry-finale.csv` match byte
+  for byte; in `foundry-batch.md` only the clock in its header and the wall-seconds column differ.
+- `FOUNDRY_FLOORS=2`: the same - every file byte-identical but `foundry-batch.md`'s clock and wall seconds.
+
+CombatChecks: 929 green (`Başarılı`; 917 on main, 10 in `DifficultyTierTests`, one each in `RunTelemetryTests` and
+`DevicePullTests`); the Unity compile check green, the capture fixture included (copied into PlayMode for the check and
+removed).
+
 ## Measured and modelled: how to re-run
 
     dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~GearEconomyResearch"
@@ -918,6 +1228,16 @@ empty folder present).
       # section 20's geared cohorts: FOUNDRY_GEAR (all), FOUNDRY_SEEDS=200, FOUNDRY_REALISM=typical, FOUNDRY_PARALLEL;
       # writes TestResults/gear-cohorts.md and .csv (phase 5b's run of 2026-11-17, eight geared cohorts and the three
       # ungeared ones: FOUNDRY_PARALLEL=4, 12 minutes)
+    dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~DifficultyTiersResearch"
+      # section 21's tiers with their matched gear: TIER_OPTIONS (shipped,tempered,inferno,abyssal), TIER_CANDIDATES
+      # ("tempered@1.10/1.08": a tier's set and rewards at other enemy multipliers, through the same body), TIER_COHORTS
+      # (clumsy,careful,first-card), FOUNDRY_FIRST_SEED, FOUNDRY_SEEDS (200), FOUNDRY_PARALLEL, FOUNDRY_REALISM (typical);
+      # writes TestResults/difficulty-tiers.md and .csv (a row a run, rewritten after each option). Seeds 1-2000, the four
+      # options: 1 h 59 m at FOUNDRY_PARALLEL=4; seeds 5201-8400: 5 h 45 m beside another agent's batches.
+    python Tools/BalanceRule/paired_bootstrap.py <folder> <first-seed> <last-seed>
+      # docs/56's read of every FOUNDRY_OUT=<folder>/<name> under <folder>, difficulty-tiers.csv included; each read's own
+      # folder (a candidate's option names are its multipliers; a shipped option's are not, so two rounds of `tempered` at
+      # different multipliers must not share a folder)
 
 ## Sources
 

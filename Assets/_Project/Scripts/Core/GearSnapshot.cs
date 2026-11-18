@@ -15,8 +15,6 @@ namespace Cryptforge.Core
         public int AnvilSeed;
         public int AnvilDraws;
         public bool FirstArmourGiven;
-        public int HighestTierCompleted;
-        public int SelectedTier;
         // A reroll shown and not yet kept or discarded: "item:<uid>" or "weapon:<id>", and the new lines.
         public string PendingRerollKey;
         public GearLineRecord[] PendingRerollLines = new GearLineRecord[0];

@@ -1,3 +1,6 @@
+using System;
+using Cryptforge.Progression;
+
 namespace Cryptforge.Save
 {
     public static class ProfileMigration
@@ -43,6 +46,25 @@ namespace Cryptforge.Save
                     data.saveVersion = 4;
                     goto case 4;
                 case 4:
+                    // Version 4 predates the tiers' records (docs/54 section 21): every run so far was a Forged run, so the
+                    // depth record is Forged's, and a record through the finale (or a tier version 4 counted as completed)
+                    // completed Forged's Descent; the tiers above start with nothing. The chosen tier stays as it was
+                    // (ProfileTiers.Restore lets only an open one stand).
+                    data.tierProgress = new TierProgressSaveData[DifficultyTiers.Count];
+                    for (int i = 0; i < data.tierProgress.Length; i++)
+                    {
+                        bool forged = i == (int)DifficultyTier.Forged;
+                        data.tierProgress[i] = new TierProgressSaveData
+                        {
+                            tier = DifficultyTiers.Id((DifficultyTier)i),
+                            deepestFloorCleared = forged ? Math.Max(0, data.deepestFloorCleared) : 0,
+                            completed = data.highestTierCompleted > i ||
+                                        (forged && data.deepestFloorCleared >= DescentStart.FinaleFloor)
+                        };
+                    }
+                    data.saveVersion = 5;
+                    goto case 5;
+                case 5:
                     return data;
                 default:
                     return null;

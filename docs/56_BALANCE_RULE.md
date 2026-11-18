@@ -199,10 +199,18 @@ once any option on it has been read, whatever the verdict; the next confirmation
 | 1-800 | the tuning of floors 2 and 3 (docs/50, docs/52) | 2026-11-12..16 | every shipped creature's choice | tuning seeds |
 | 801-2000 | this rule's study (sections 2-4) | 2026-11-17 | the A/A probes, the shipped creatures against what they replaced, three Thornlings | the study's verdicts |
 | 2001-5200 | the Glass Regent's round (docs/50 "The Regent's bite for the standing hero") | 2026-11-17/18 | `regent-feet` against `f2-warden`, beside `shipped` and `aa-f2`; careful, standing, first-card, clumsy; both heroes, typical hands | `regent-feet` passes (standing -1.12, clumsy -0.25, careful +1.06, first-card +1.34 points against the Warden; the A/A probe within -0.31 to +0.56); one candidate read |
+| 5201-8400 | docs/54 phase 6, the difficulty tiers (docs/54 section 21) | 2026-11-17..19 | Tempered, Inferno and Abyssal, each with its matched geared cohort against the cohort ungeared on Forged; clumsy, careful, first-card; one candidate a tier | all three pass; seven of nine cells an easing |
 | 8401-11600 | docs/57's hero skills, phases 1-2 (docs/57 section 13.3) | 2026-11-18/19 | `c1` (the three skills a hero as phase 2 chose them) against `shipped`; careful, standing, first-card, clumsy; both heroes, typical hands; the A/A `aa-f1` (one unread draw as floor 1 begins) for the clumsy cohort | `c1` passes as an easing (clumsy +15.00, CI +14.02 to +15.98; careful +1.45, +1.08 to +1.83; first-card +3.88, +3.27 to +4.48; standing +4.33); one candidate read; `aa-f1` +0.77 (-0.19 to +1.73), SD 13.0 completions per 400 seeds |
 
-The block 5201-8400 was allotted on 2026-11-18 to the difficulty tiers' round, which ran beside docs/57's; its row is
-theirs. A change that is on from floor 1 (docs/57's skills) reads the floor-2 count,
+A change that is on from floor 1 (docs/57's skills) reads the floor-2 count,
 3,200 seeds, and nudges floor 1 for its A/A (`HeroSkillsDescentResearch`'s `aa-f1`), whose SD per 400 seeds (13.0 for the
 clumsy cohort) is wider than `aa-f2`'s 8.1: the divergence runs over four floors. The next fresh block after these starts
 at seed **11601**.
+
+The tiers' read was begun on 2026-11-17 and stopped by a shutdown in its last tier (Abyssal). It was read again whole on
+the same code on 2026-11-18/19, and the rows the first read had written came back byte for byte (the simulation is
+deterministic), so the block was read once in substance. A difficulty tier changes the whole Descent from floor 1, and
+its gear changes every crit and offer. Its paired change's SD per 400 seeds is about 13 completions for the clumsy cohort,
+10 for first-card and 6 for careful (a floor-2 creature's: 6-8, section 2). So at 3,200 seeds a tier's SE is about
+0.60 / 0.44 / 0.27 points, and a tier that changes nothing fails the -1.5 lower bound about one time in five for the
+clumsy cohort. A whole-Descent change wants its candidate set a little inside the bar on the exploration seeds.

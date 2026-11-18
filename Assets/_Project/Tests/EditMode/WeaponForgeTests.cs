@@ -184,7 +184,8 @@ namespace Cryptforge.Tests
 
             ProfileSaveData upgraded = ProfileMigration.Upgrade(versionOne);
 
-            Assert.That(ProfileSaveData.CurrentVersion, Is.EqualTo(4), "Version 4 added gear (docs/54) on top of version 3's heroes and version 2's weapons.");
+            Assert.That(ProfileSaveData.CurrentVersion, Is.EqualTo(5),
+                "Version 5 added the difficulty tiers' records (docs/54 section 21) on top of version 4's gear, version 3's heroes and version 2's weapons.");
             Assert.That(upgraded.saveVersion, Is.EqualTo(ProfileSaveData.CurrentVersion));
             Assert.That(upgraded.ownedWeaponIds, Is.Empty);
             Assert.That(upgraded.equippedWeaponId, Is.Empty);

@@ -23,6 +23,9 @@ namespace Cryptforge.Progression
         public const int FirstFloor = 1;
         // The deepest map a run may start on; the finale is never a start.
         public const int DeepestStart = 3;
+        // The Descent's last floor, the finale (floors 1-3, then the Final Swarm): walking out of it completes the Descent,
+        // which opens the next difficulty tier (ProfileTiers, docs/54 section 21).
+        public const int FinaleFloor = 4;
         public const int FloorTwoArrivalLevel = 31;
         public const int FloorThreeArrivalLevel = 44;
 

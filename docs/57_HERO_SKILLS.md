@@ -576,7 +576,7 @@ Vitality), not more buttons. P2b's tapped skills are these three buttons, laid o
 | 1. Core and simulation (**done 2026-11-18**, section 13.1) | `AbilityKind` gains Guard, Rush, Sigil, Ward; `HeroDefinition` three abilities, `AbilityController` three slots; `HeroDash` (one body with docs/46's dash), `SlowStatus` (read by `PackMotion`), `SigilZone` (on `BurnRule`'s clock), the guard as a timed armour modifier, the ward as a pool in `HealthState`, build scaling; the assets; `FoundryLevers.Skills`, the pilot's rules and `TimesTheSkills`; EditMode and parity tests | **5** | skills off: the default batch byte-identical, every test green; the parity table for skills on |
 | 2. Measurement (**done 2026-11-18**, sections 13.2-13.4) | section 6.2's rows for each skill and for all three, both heroes, seeds 1-400, both hands; tuning; this document's numbers replaced by measured ones | **2-3** | the rows pass, or the lead chooses which bind |
 | 3. HUD, art, telemetry | three `AbilityButtonView` slots (section 5.2), the reveal's hold over all three, four icons (`build_ability_icons.py`'s family), four effect strips (`build_skill_vfx.py`), the Rush's puppet clip; section 5.3's events | **3** | a PlayMode flow fires each slot; telemetry in the log |
-| 4. Unlock and the Forge | save version 5 (opened and forged skills per hero, migration adds empties), the first-clear opening, the Forge's skills tab with the 300 / 500 prices, the result screen's unlock line | **2** | a profile opens and forges skill 2 after a floor-2 clear; `ProfileStoreTests` round-trip and migrate |
+| 4. Unlock and the Forge | save version 6 (opened and forged skills per hero, migration adds empties; version 5 went to docs/54's difficulty tiers), the first-clear opening, the Forge's skills tab with the 300 / 500 prices, the result screen's unlock line | **2** | a profile opens and forges skill 2 after a floor-2 clear; `ProfileStoreTests` round-trip and migrate |
 | 5. Device | the owner plays both heroes with three skills on the S23: mis-taps, frame time, and whether it is more fun | **1** + the owner | the owner's verdict, telemetry read |
 | 6. Ranks (later) | ranks I-V, save, the Forge's rank strip, the simulation's rank lever, the power index note | **2-3** | rank V inside section 4.3's +2-4 % |
 | Arena (in docs/55 P0) | the duel's kinds move into `Cryptforge.Arena`; per-hero coefficients by round-robin; dealt boons | inside P0's 12-15 | P0's own gate |
@@ -648,7 +648,8 @@ The lead takes section 10's recommendations:
 7. Automatic skills 2-3 only if the device session shows one-hand play stalling.
 8. The arena retires docs/55's stand-in skills for the heroes' three, deals boons for variety, plays ranked at rank III
    without the cooldown line, starts Ilya's coefficient near x0.8, and the skills read the hero's own maximum health.
-9. Save version 5 for skills.
+9. Save version 5 for skills. **Superseded 2026-11-17: skills take version 6**, since the difficulty tiers (docs/54 phase 6,
+   section 21) took version 5 for each tier's record; the skills' migration is 5 -> 6.
 10. Ilya's third is the Cinder Ward; Backdraft stays the measured alternative.
 
 Section 9's four owner questions are open; the build (section 8) starts once the owner answers 1, 2 and 4 (3 is later).

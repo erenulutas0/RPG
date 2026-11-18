@@ -12,7 +12,8 @@ namespace Cryptforge.Core
     }
 
     // Permanent progress between runs: banked gold, forged relics and weapons, what is equipped, the heroes unlocked and
-    // chosen, the depth record, and the gear (docs/54: items, basma, efsun, floor materials and boosters).
+    // chosen, the depth record, the gear (docs/54: items, basma, efsun, floor materials and boosters) and the difficulty
+    // tiers' records with the tier chosen for the next run (docs/54 section 21).
     // Every successful change raises Changed exactly once, which is the save trigger.
     public sealed class PlayerProfile
     {
@@ -24,10 +25,14 @@ namespace Cryptforge.Core
         public string EquippedRelicId { get; private set; }
         // Null while the hero carries the starting weapon, which is never stored as owned.
         public string EquippedWeaponId { get; private set; }
+        // The deepest floor any run has cleared, on any tier (the map choice's Forged record reads it through Tiers).
         public int DeepestFloorCleared { get; private set; }
         // The bag, each weapon's upgrades, the materials and boosters (docs/54). The Anvil and the run's bank change it;
         // each of their operations raises Changed once, through NotifyChanged.
         public ProfileGear Gear { get; }
+        // Each difficulty tier's record and the tier chosen for the next run (docs/54 section 21). Forged's record is the
+        // depth record above at the least: every run before the tiers was a Forged run.
+        public ProfileTiers Tiers { get; }
         public IReadOnlyList<string> OwnedRelicIds => _ownedRelicIds;
         public IReadOnlyList<string> OwnedWeaponIds => _ownedWeaponIds;
         // Heroes unlocked by play; the heroes open from the start are never stored.
@@ -39,17 +44,21 @@ namespace Cryptforge.Core
         public PlayerProfile()
         {
             Gear = new ProfileGear();
+            Tiers = new ProfileTiers();
         }
 
         // Restores saved progress. Damaged values are repaired instead of rejected so a hand-edited or partially
         // valid save still loads: negative numbers become zero, duplicates are dropped and unowned items are unequipped.
         public PlayerProfile(int gold, IEnumerable<string> ownedRelicIds, string equippedRelicId, int deepestFloorCleared,
             IEnumerable<string> ownedWeaponIds = null, string equippedWeaponId = null,
-            IEnumerable<string> unlockedHeroIds = null, string selectedHeroId = null, ProfileGear gear = null)
+            IEnumerable<string> unlockedHeroIds = null, string selectedHeroId = null, ProfileGear gear = null,
+            ProfileTiers tiers = null)
         {
             Gear = gear ?? new ProfileGear();
             Gold = Math.Max(0, gold);
             DeepestFloorCleared = Math.Max(0, deepestFloorCleared);
+            Tiers = tiers ?? new ProfileTiers();
+            Tiers.Reconcile(DeepestFloorCleared);
             AddUnique(_ownedRelicIds, ownedRelicIds);
             AddUnique(_ownedWeaponIds, ownedWeaponIds);
             EquippedRelicId = Owns(equippedRelicId) ? equippedRelicId : null;
@@ -267,15 +276,43 @@ namespace Cryptforge.Core
             return true;
         }
 
-        public void RecordFloorCleared(int floorNumber)
+        // A floor cleared on Forged, as every run cleared one before the tiers.
+        public void RecordFloorCleared(int floorNumber) => RecordFloorCleared(floorNumber, DifficultyTier.Forged);
+
+        // A floor cleared on a tier: the depth record and the tier's own, as one change.
+        public void RecordFloorCleared(int floorNumber, DifficultyTier tier)
         {
             if (floorNumber < 1)
                 throw new ArgumentOutOfRangeException(nameof(floorNumber));
-            if (floorNumber <= DeepestFloorCleared)
-                return;
+            bool changed = Tiers.RecordFloorCleared(tier, floorNumber);
+            if (floorNumber > DeepestFloorCleared)
+            {
+                DeepestFloorCleared = floorNumber;
+                changed = true;
+            }
+            if (changed)
+                Changed?.Invoke();
+        }
 
-            DeepestFloorCleared = floorNumber;
+        // A run walked out of the Descent's last floor on this tier: the tier is completed, which opens the next one.
+        // False when it already was.
+        public bool RecordDescentCompleted(DifficultyTier tier)
+        {
+            if (!Tiers.RecordCompleted(tier))
+                return false;
+            if (DescentStart.FinaleFloor > DeepestFloorCleared)
+                DeepestFloorCleared = DescentStart.FinaleFloor;
             Changed?.Invoke();
+            return true;
+        }
+
+        // Chooses the tier for the next run; only an open tier, and false when nothing changed.
+        public bool SelectTier(DifficultyTier tier)
+        {
+            if (!Tiers.Select(tier))
+                return false;
+            Changed?.Invoke();
+            return true;
         }
 
         // Spends the price and records ownership when the item is new and affordable; the caller equips and saves.

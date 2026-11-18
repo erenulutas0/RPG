@@ -1263,6 +1263,37 @@ namespace Cryptforge.Tests
             })), Is.EqualTo("0,-1,4,-1"), "a weapon the Anvil never touched is +0");
         }
 
+        // A run on a difficulty tier above Forged says which on run_start (docs/54 section 21); a Forged run's line keeps its
+        // keys exactly, as before the tiers.
+        [Test]
+        public void ARunOnATierSaysSoOnRunStart()
+        {
+            string[] runStartKeys =
+            {
+                "v", "seq", "t", "st", "session", "run", "event",
+                "run_ordinal", "hero_id", "weapon_id", "relic_id", "ability_id", "forge_gold", "deepest_floor", "seed"
+            };
+            var forged = new Telemetry();
+            var forgedRecorder = new RunTelemetry(Mutated(new Scene(null), forged, c => c.Tier = DifficultyTier.Forged));
+            forgedRecorder.Begin();
+            Assert.That(Single(forged.Lines(), "run_start").Keys, Is.EqualTo(runStartKeys), "Forged writes no tier");
+            forgedRecorder.Dispose();
+
+            foreach (DifficultyTier tier in new[] { DifficultyTier.Tempered, DifficultyTier.Inferno, DifficultyTier.Abyssal })
+            {
+                var telemetry = new Telemetry();
+                var recorder = new RunTelemetry(Mutated(new Scene(null), telemetry, c => c.Tier = tier));
+                recorder.Begin();
+                List<Line> lines = telemetry.Lines();
+                AssertLogShape(lines);
+                Line start = Single(lines, "run_start");
+                Assert.That(start.Keys, Is.EqualTo(With(runStartKeys, "tier")));
+                Assert.That(start.Text("tier"), Is.EqualTo(DifficultyTiers.Id(tier)));
+                recorder.Dispose();
+            }
+            Assert.Throws<ArgumentOutOfRangeException>(() => new RunTelemetry(Mutated(new Scene(null), new Telemetry(), c => c.Tier = (DifficultyTier)7)));
+        }
+
         [Test]
         public void TheContextIsValidatedBeforeAnythingSubscribes()
         {
