@@ -70,7 +70,7 @@ namespace Cryptforge.UI
         private int _flareCursor;
         private int _shownRound = -1;
         private DuelPhase _shownPhase = DuelPhase.Done;
-        private int _speedChoice = DuelPlaybackClock.Normal;
+        private int _speedChoice = DuelPlaybackClock.Fast; // x2 first (the lead, 2026-11-19): a best of three at x1 is 60-80 s
         private string[] _names = new string[2];
 
         private sealed class SideView

@@ -155,12 +155,12 @@ namespace Cryptforge.Tests
             screen.ConfirmBuild();
             screen.FightSelected();
             DuelPlaybackView playback = screen.Playback;
-            Assert.That(playback.Clock.Speed, Is.EqualTo(DuelPlaybackClock.Normal));
+            Assert.That(playback.Clock.Speed, Is.EqualTo(DuelPlaybackClock.Fast), "The arena plays at x2 first.");
             yield return new WaitForSecondsRealtime(.5f);
-            double atX1 = playback.Clock.Ticks;
+            double atX1 = playback.Clock.Ticks; // at x2, the default
             Assert.That(atX1, Is.GreaterThan(0.0), "The playback runs on unscaled time.");
             playback.SpeedButton.onClick.Invoke();
-            Assert.That(playback.Clock.Speed, Is.EqualTo(DuelPlaybackClock.Fast));
+            Assert.That(playback.Clock.Speed, Is.EqualTo(DuelPlaybackClock.Normal));
 
             bool sawNumbers = false;
             bool sawFight = false;
@@ -184,7 +184,7 @@ namespace Cryptforge.Tests
             screen.WatchAgain();
             Assert.That(screen.Shown, Is.EqualTo(ArenaScreen.Page.Playback));
             Assert.That(playback.Clock.Ticks, Is.LessThan(atX1 + 1), "Watch again plays the same log from the start.");
-            Assert.That(playback.Clock.Speed, Is.EqualTo(DuelPlaybackClock.Fast), "The speed chosen stays.");
+            Assert.That(playback.Clock.Speed, Is.EqualTo(DuelPlaybackClock.Normal), "The speed chosen stays.");
             LogAssert.NoUnexpectedReceived();
         }
 
