@@ -31,6 +31,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../../Assets/_Project/Scripts/**/*.cs" Exclude="../../Assets/_Project/Scripts/Editor/**/*.cs;../../Assets/_Project/Scripts/Arena/**/*.cs" />
+    <!-- The release pipeline's Editor scripts (docs/61), which the EditMode suite tests: UnityEditor's assemblies are in the
+         reference glob below. The rest of Scripts/Editor stays out. Unity compiles Project.Editor with UNITY_EDITOR against
+         the .NET 4.8 profile; this checks the same sources against netstandard2.1. -->
+    <Compile Include="../../Assets/_Project/Scripts/Editor/AndroidReleaseBuild.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Editor/Release/**/*.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/**/*.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/**/*.cs" />
     <Compile Include="../../Assets/_Project/Tests/PlayMode/**/*.cs" />

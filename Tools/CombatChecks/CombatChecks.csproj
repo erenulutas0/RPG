@@ -267,5 +267,10 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/GearApplyTests.cs" />
     <!-- A run started on a deeper map (Scripts/Progression/DescentStart.cs, compiled above with Progression). -->
     <Compile Include="../../Assets/_Project/Tests/EditMode/DescentCatchUpTests.cs" />
+    <!-- docs/61's release pipeline, its pure rules only: the version file, the signing environment, the settings plan, the
+         AAB's protobuf manifest and the JAR signature (Scripts/Editor/Release, no UnityEditor). AndroidReleaseBuild and its
+         settings table are Unity's (ReleaseBuildSettingsTests, EditMode only). -->
+    <Compile Include="../../Assets/_Project/Scripts/Editor/Release/*.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/ReleaseBuildTests.cs" />
   </ItemGroup>
 </Project>

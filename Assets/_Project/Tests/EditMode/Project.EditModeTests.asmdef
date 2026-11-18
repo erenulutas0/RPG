@@ -1,7 +1,7 @@
 {
   "name": "Project.EditModeTests",
   "rootNamespace": "Cryptforge.Tests",
-  "references": ["Project.Gameplay", "Project.TestSupport", "Cryptforge.Arena"],
+  "references": ["Project.Gameplay", "Project.TestSupport", "Cryptforge.Arena", "Project.Editor"],
   "includePlatforms": ["Editor"],
   "optionalUnityReferences": ["TestAssemblies"],
   "autoReferenced": false
