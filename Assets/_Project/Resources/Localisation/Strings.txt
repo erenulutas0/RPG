@@ -356,5 +356,97 @@ ability_shield_rush.name	Shield Rush	Kalkan Hücumu	The Vanguard's skill 3 (docs
 ability_shield_rush.description	Charge {4:0} units along the stick, {0:0} damage to every enemy in the way and a short daze, ready every {2:0}s	Kolun yönünde {4:0} birim hücum: yoldaki her düşmana {0:0} hasar ve kısa bir sersemlik, her {2:0} sn'de hazır	{4} distance, {0} damage, {2} cooldown; the stick is the movement joystick. Not on screen yet.
 ability_flame_sigil.name	Flame Sigil	Alev Mührü	The Arcanist's skill 2 (docs/57); not on screen yet.
 ability_flame_sigil.description	A glyph of {1:0.#} units for {3:0}s: enemies inside walk {4:0%} slower and burn double, ready every {2:0}s	{3:0} sn boyunca {1:0.#} birimlik bir mühür: içindeki düşmanlar {4:%0} daha yavaş yürür ve iki kat yanar, her {2:0} sn'de hazır	{1} radius, {3} seconds, {4} slow, {2} cooldown. Not on screen yet.
-ability_cinder_ward.name	Cinder Ward	Kül Kalkanı	The Arcanist's skill 3 (docs/57); not on screen yet.
-ability_cinder_ward.description	A ward of {4:0%} of your health for {3:0}s; whoever strikes it catches fire, ready every {2:0}s	{3:0} sn boyunca canının {4:%0} kadar bir kalkan; ona vuran alev alır, her {2:0} sn'de hazır	{4} of the hero's health, {3} seconds, {2} cooldown. Not on screen yet.
+ability_cinder_ward.name	Cinder Ward	Kül Siperi	The Arcanist's skill 3 (docs/57); not on screen yet.
+ability_cinder_ward.description	A ward of {4:0%} of your health for {3:0}s; whoever strikes it catches fire, ready every {2:0}s	{3:0} sn boyunca canının {4:%0} kadar bir siper; ona vuran alev alır, her {2:0} sn'de hazır	{4} of the hero's health, {3} seconds, {2} cooldown. Not on screen yet.
+
+# ---- The arena (docs/55 section 11): ArenaText, the arena screen's words
+arena.title	Arena	Arena	The arena screen's title; also the map choice's entry button.
+arena.close	Close	Kapat	Closes the arena screen.
+arena.you	You	Sen	The player's side in the lane, the score and the round banner.
+arena.build.title	Your build	Dizilimin	Build page subtitle. "Build": the hero, weapon, efsun types and autopilot (dizilim).
+arena.build.hero	Hero	Kahraman	Build page heading.
+arena.build.weapon	Weapon	Silah	Build page heading.
+arena.build.policy	Autopilot	Otomatik pilot	Build page heading: how the hero fights on its own.
+arena.build.locked	Locked	Kilitli	A hero not yet unlocked, before its unlock hint.
+arena.build.not_owned	Forge it first	Önce dövmelisin	A weapon chip the profile does not own yet.
+arena.build.continue	Continue	Devam et	Build page button, to the ladder.
+arena.build.lines_note	Both sides fight at the same + level and line values: only the line types are yours.	İki taraf da aynı + seviyede ve aynı efsun değerleriyle dövüşür: yalnızca efsun türlerini sen seçersin.	Under the line picker (ranked normalisation, docs/55 section 9).
+arena.build.lines	Efsun lines {picked} / {count}	Efsunlar {picked} / {count}	Line picker heading. {picked} chosen, {count} needed (3).
+arena.policy.bold	Bold	Atak	Autopilot policy.
+arena.policy.careful	Careful	Temkinli	Autopilot policy.
+arena.policy.bold_note	Uses each skill as soon as it can land	Her yeteneği isabet edebildiği an kullanır	Under the policy's name.
+arena.policy.careful_note	Waits for each skill's moment	Her yetenek için doğru anı bekler	Under the policy's name.
+arena.skill.forge_burst	Forge Burst	Ocak Patlaması	Skill call-out in the lane (docs/60 glossary).
+arena.skill.iron_resolve	Iron Resolve	Demir İrade	Skill call-out in the lane.
+arena.skill.shield_rush	Shield Rush	Kalkan Hücumu	Skill call-out in the lane.
+arena.skill.crucible_vent	Crucible Vent	Pota Ağzı	Skill call-out in the lane (docs/60 glossary).
+arena.skill.flame_sigil	Flame Sigil	Alev Mührü	Skill call-out in the lane.
+arena.skill.cinder_ward	Cinder Ward	Kül Siperi	Skill call-out in the lane; "siper" so it does not repeat Kalkan.
+arena.rival.past_name	You, fight {fight}	Sen, {fight}. dövüş	A past hero of the player's standing on the ladder. {fight} the fight it was kept at.
+arena.tab.training	Training	Antrenman	Ladder tab: the training ladder (ranked against training rivals).
+arena.tab.open	Open arena	Açık arena	Ladder tab: the open arena, gear counts.
+arena.ladder.edit	Edit build	Dizilimi değiştir	Button on the build card, 266 wide.
+arena.fight	Fight	Dövüş	The ladder's main button.
+arena.rival.training	Training rival	Antrenman rakibi	Tag on a generated, handicapped rival's card (docs/55 10.10).
+arena.rival.past_self	Your past hero	Geçmişteki kahramanın	Tag on a past hero's card.
+arena.ladder.open_note	Your gear counts in full here. Pick the risk.	Burada ekipmanın tümüyle sayılır. Riski sen seç.	Open arena tab, above the three offers.
+arena.ladder.training_note	Training rivals hold back a little low on the ladder and less as you climb.	Antrenman rakipleri merdivenin altında biraz geri durur, tırmandıkça daha az.	Training tab, above the three rivals.
+arena.ladder.gear_counts	Your equipped gear	Kuşandığın ekipman	Build card in the open arena, in place of the line types.
+arena.ladder.gear	Your gear +{power}%	Ekipmanın +%{power}	Open arena status. {power} the gear's power index in per cent.
+arena.ladder.rung	Rung {rung} of {rungs}	Basamak {rung} / {rungs}	Training status. {rung} the player's rung, {rungs} 30.
+arena.ladder.training_rating	Training rating {rating}	Antrenman puanı {rating}	Training status.
+arena.ladder.open_rating	Open rating {rating}	Açık arena puanı {rating}	Open arena status.
+arena.ladder.record	Won {wins}  Lost {losses}  Drawn {draws}	Galibiyet {wins}  Mağlubiyet {losses}  Beraberlik {draws}	The ladder's record line.
+arena.rival.rating	Rating {rating}	Puan {rating}	A rival card's rating.
+arena.offer.below	{gap}% below you	Senden %{gap} aşağıda	Open offer card. {gap} 2.
+arena.offer.above	{gap}% above you	Senden %{gap} yukarıda	Open offer card. {gap} 2.
+arena.offer.level	Level with you	Seninle denk	Open offer card.
+arena.offer.powers	Your gear +{mine}%  Theirs +{theirs}%	Senin ekipmanın +%{mine}  Onunki +%{theirs}	Open offer card: both gear powers.
+arena.offer.chance	Chance to win {chance}%	Kazanma şansı %{chance}	Open offer card: the card's expected chance.
+arena.round	Round {round}	Tur {round}	Playback header and the round's banner.
+arena.round_to	Round to {name}	Turu {name} aldı	Banner after a round the rival took. {name} the rival's name.
+arena.round_you	Your round	Tur senin	Banner after a round the player took.
+arena.round_drawn	Round drawn	Tur berabere	Banner after a drawn round.
+arena.skip	Skip	Geç	Playback button: to the result at once.
+arena.dazed	Dazed	Sersem	Call-out over a hero dazed by a Shield Rush.
+arena.boon.force	Force: +{value}% damage	Güç: +%{value} hasar	The round's dealt boon under a health bar.
+arena.boon.tempo	Tempo: +{value}% attack speed	Tempo: +%{value} saldırı hızı	The round's dealt boon.
+arena.boon.vitality	Vitality: +{value}% health	Dirilik: +%{value} can	The round's dealt boon.
+arena.boon.keen	Keen: +{value} crit points	Keskinlik: +{value} kritik puanı	The round's dealt boon (crit points, not per cent).
+arena.result.victory	Victory	Zafer	Result title.
+arena.result.defeat	Defeat	Yenilgi	Result title.
+arena.result.draw	Draw	Berabere	Result title.
+arena.result.again	Watch again	Tekrar izle	Result button: plays the same duel again.
+arena.result.next	Next fight	Sonraki dövüş	Result button: back to the ladder.
+arena.result.no_why	Nobody won: the rounds came out even.	Kazanan yok: turlar denk bitti.	Result, in place of the summary after a draw.
+arena.result.rounds	Rounds {mine} - {theirs}	Turlar {mine} - {theirs}	Result: rounds won by each side.
+arena.result.training_rating	Training rating {before} -> {after} ({delta})	Antrenman puanı {before} -> {after} ({delta})	Result. {delta} signed: +16, -12.
+arena.result.open_rating	Open rating {before} -> {after} ({delta})	Açık arena puanı {before} -> {after} ({delta})	Result. {delta} signed.
+arena.result.why	Why {name} won	{name} neden kazandı	Summary heading when the rival won. {name} the rival.
+arena.result.why_you	Why you won	Neden kazandın	Summary heading when the player won.
+arena.result.against	Against {name}	Rakip: {name}	Result, under the title.
+arena.why.weapon	{weapon} strikes dealt {amount}	{weapon} vuruşları {amount} hasar verdi	Summary line (DuelSummary.Id weapon). {amount} health points.
+arena.why.crits	Crits dealt {amount} extra	Kritikler {amount} ek hasar verdi	Summary line: crits.
+arena.why.forge_burst	Forge Burst dealt {amount}	Ocak Patlaması {amount} hasar verdi	Summary line.
+arena.why.iron_resolve	Iron Resolve turned away {amount}	Demir İrade {amount} hasarı savuşturdu	Summary line.
+arena.why.shield_rush	Shield Rush dealt {amount}	Kalkan Hücumu {amount} hasar verdi	Summary line.
+arena.why.crucible_vent	Crucible Vent dealt {amount}	Pota Ağzı {amount} hasar verdi	Summary line.
+arena.why.flame_sigil	Flame Sigil's heat dealt {amount}	Alev Mührü'nün ısısı {amount} hasar verdi	Summary line: the glyph's heat on the burn.
+arena.why.cinder_ward	Cinder Ward absorbed {amount}	Kül Siperi {amount} hasarı emdi	Summary line.
+arena.why.ember_memory	Ember Memory's burn dealt {amount}	Kor Hafızası'nın yanığı {amount} hasar verdi	Summary line: Ilya's passive burn.
+arena.why.damage_gear	Damage from gear added {amount}	Ekipmandan gelen hasar {amount} ekledi	Summary line, open arena.
+arena.why.damage_lines	Damage lines added {amount}	Hasar efsunları {amount} ekledi	Summary line, ranked.
+arena.why.attack_speed_gear	Attack speed from gear added {amount}	Ekipmandan gelen saldırı hızı {amount} ekledi	Summary line, open arena.
+arena.why.attack_speed_lines	Attack speed lines added {amount}	Saldırı hızı efsunları {amount} ekledi	Summary line, ranked.
+arena.why.crit_gear	Crit from gear added {amount}	Ekipmandan gelen kritik {amount} ekledi	Summary line, open arena.
+arena.why.crit_lines	Crit lines added {amount}	Kritik efsunları {amount} ekledi	Summary line, ranked.
+arena.why.health_gear	Health from gear held {amount} more	Ekipmandan gelen can {amount} fazla dayandı	Summary line, open arena.
+arena.why.health_lines	Health lines held {amount} more	Can efsunları {amount} fazla dayandı	Summary line, ranked.
+arena.why.armour_gear	Armour from gear turned away {amount}	Ekipmandan gelen zırh {amount} hasarı savuşturdu	Summary line, open arena.
+arena.why.armour_lines	Armour lines turned away {amount}	Zırh efsunları {amount} hasarı savuşturdu	Summary line, ranked.
+arena.why.burn_gear	Burn from gear added {amount}	Ekipmandan gelen yanma {amount} ekledi	Summary line, open arena.
+arena.why.burn_lines	Burn lines added {amount}	Yanma efsunları {amount} ekledi	Summary line, ranked.
+arena.why.move_speed_gear	Move speed from gear	Ekipmandan gelen hareket hızı	Summary line, open arena (no amount: speed buys nothing measurable).
+arena.why.move_speed_lines	Move speed lines	Hareket hızı efsunları	Summary line, ranked (not in the ranked pool today).
+arena.why.ability_cooldown	Shorter cooldowns added {amount}	Kısa bekleme süreleri {amount} ekledi	Summary line, open arena: the cooldown line.
+arena.why.boon	Boons added {amount}	Lütuflar {amount} ekledi	Summary line: the rounds' dealt boons.

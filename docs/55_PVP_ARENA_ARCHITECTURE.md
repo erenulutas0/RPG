@@ -858,6 +858,221 @@ rival's damage (and none of the player's), the training ladder and its stamps, t
 restamping, the store restamping, the fitted table, the three offers' powers and cards, an offer's rating move and
 re-run, and the offer's Elo-equivalent rating. The rules pin moved to version 2; the fingerprint pin did not.
 
+## 11. P0's view, built (2026-11-19)
+
+Built on section 10's core and 10.10's answers: the arena on the phone. Its playback is the heart of it, because section
+6's gate is the owner's verdict on whether **watching** an automatic best of three is fun. Nothing else moved:
+
+- no ProjectSettings, Packages, scene or Build Settings change;
+- the map choice, the HUD and the result screen are untouched (another branch rewrites them);
+- the core, its rules and its pins are untouched. The view reads the log and never runs a duel; the only duel is the one
+  the Fight button asks the ladder for.
+
+Not yet run in Unity: a worktree has none. The gates below are the .NET tests and the Unity compile check (11.7).
+
+### 11.1 What is built
+
+| Where | What |
+|---|---|
+| `Scripts/UI/Duel/ArenaScreen.cs` | `ArenaScreen.Open(setup, closed, mode)` and `Close()`: one overlay canvas (sorting order 110, above the map choice's 100) of four pages built in code like the Anvil; the save, the fights, the event |
+| `Scripts/UI/Duel/DuelPlaybackView.cs`, `DuelFigure.cs` | the playback page: the lane, the two heroes in the run's art, bars, numbers, effects, banner, x1/x2, Skip |
+| `Scripts/UI/Duel/DuelPlayback.cs` (pure) | `DuelTimeline` (the rounds laid end to end), `DuelPlaybackClock` (60 ticks a second, x1/x2, Skip, Watch again), `DuelPlaybackState` (the log played to a moment), `DuelNumbers` |
+| `Scripts/UI/Duel/ArenaText.cs` (pure) | every word the screen shows, through `Loc`; **90 rows** of `Strings.txt` with their Turkish |
+| `Scripts/UI/Duel/ArenaUi.cs` | the parts: labels on LegacyRuntime, buttons on the forge's painted plates (`ScreenArtSet`) or plain colours, three generated sprites (a white square, a soft disc, a ring) made and destroyed with the screen |
+| `Scripts/UI/Duel/ArenaDevelopmentEntry.cs` | `development/arena.txt` (11.5) |
+| `Scripts/Analytics/ArenaTelemetryEvent.cs` (pure), `Analytics/Unity/ArenaTelemetryWriter.cs` | `arena_fight` on the game's telemetry (11.4); `RunTelemetry.cs` untouched |
+| `Tests/EditMode/DuelPlaybackTests.cs` (13), `ArenaViewTextTests.cs` (5) | the pure view logic; in Unity's EditMode suite and every plain `dotnet test` of `Tools/CombatChecks` |
+| `Tests/PlayMode/ArenaScreenTests.cs` (4) | the screen in the game; `Project.PlayModeTests.asmdef` now references `Cryptforge.Arena` by name |
+| `Tools/ArtReview/Run-ArenaProof.ps1`, `ArenaViewCapture.cs` | the capture (11.7) |
+
+### 11.2 The four pages
+
+On the 1080-wide canvas, a 1000 x 1800 surface scaled down to the safe area of a short phone (never up), as the Anvil's.
+
+- **Build.**
+  - The hero: the Vanguard, and Ilya only where the run would let the player take it (`CombatSetup.IsHeroPlayable`, the
+    same check as the run's hero choice; a development build opens every hero, as the run does). A locked hero shows
+    "Locked" and its unlock hint.
+  - The weapon type: one the hero carries and the profile owns ("Forge it first" on the others).
+  - The ranked pool's line types, each at its ranked value ("Crit chance +3.25 pts"): three distinct are needed, and a
+    fourth pick replaces the earliest.
+  - Careful or bold, each with one line on what it does.
+  - Continue: the builds are `ArenaProfileBuild.Ranked` and `.Open`, read from the profile and never written to it.
+- **Ladder**, two tabs:
+  - *Training*: the rung (the rating's place among the rivals' 700-1500, 1 to 30), the training rating, the record, the
+    build and Edit build, then the three rivals of `ArenaLadder.Opponents`. Each card shows its name, its tag ("Training
+    rival", or "Your past hero"), its hero, weapon and autopilot, and its rating. Then Fight.
+  - *Open arena*: the open rating and the player's gear power, then `ArenaLadder.OpenOffers`' three cards. Each shows the
+    offer's kind ("2% below you", "Level with you", "2% above you"), the rival, both powers and "Chance to win 68%".
+    Level is chosen first.
+- **Playback** (11.3).
+- **Result.**
+  - "Victory", "Defeat" or "Draw", the rival's name, "Rounds 2 - 1" and a dot a round in the winner's colour.
+  - The rating's change ("Training rating 1,000 -> 1,016 (+16)").
+  - "Why you won" (or "Why Brann won"), then the summary's two or three lines. Each line is `DuelSummary.Line`'s English
+    word for word (a test holds them equal), localised by the effect `DuelSummary.Id` names.
+  - Watch again, and Next fight.
+
+### 11.3 The playback
+
+**The time line** (`DuelTimeline`, from the log alone):
+- each round has a banner before it (72 ticks: "Round 2", and each side's dealt boon), its fight at the duel's 60 ticks a
+  second, and its end held after it (96 ticks: "Your round", "Round to Brann" or "Round drawn", the loser fallen);
+- **x2** doubles everything, Skip goes to the result, and Watch again plays the same log from the start;
+- the speed chosen stays for the next fight;
+- the clock runs on unscaled time, since the map choice has the run frozen, and a frame longer than 0.1 s plays as 0.1 s,
+  so a hitch never jumps the duel;
+- a best of three of two or three rounds of about 27 s (10.3) watches in about 60-80 s at x1 and 30-40 s at x2.
+
+**The lane.**
+- Its 12 units are 960 of the surface's 1000 (80 a unit), with posts at the walls; the heroes enter at +-4.
+- The heroes stand on blue (the player) and red (the rival) floor marks, so a mirror reads.
+- They are drawn at 190 UI units a world unit of their art: the Vanguard stands about 260 tall. That is larger against
+  the lane than in the run, so the two read on a phone, and at the Sword's reach they meet a little overlapped, as
+  melee does. The player is drawn in front where they meet.
+- Above the lane: the round, the score, both names, their hero and weapon, the health bars with a trail and their
+  points, and each side's boon. Under it: the last three skills used.
+
+**The heroes, in the run's own art.**
+- **Ilya** is drawn from its rendered set (`HeroDefinition.RenderedArt`): the frames the run draws, chosen by the run's
+  pure `RenderedCharacterPlayer` - the walk by distance, the strike, the cast, the flinch, the death - and mirrored as
+  the run mirrors.
+- **The Vanguard** is drawn from its painted frames and painted weapons (`VanguardArtSet`, read from the scene's
+  `HeroLookView`): the walk's four poses by distance, the Sword's windup, strike and recovery, each weapon in its hand
+  where `VanguardAnimator` puts it. The run's default Vanguard is the cut-out puppet (`PuppetAnimator`). It hangs on a
+  hero's SpriteRenderers, `AttackController` and `Health`, so the lane, built of UI images, draws the painted frames:
+  the same painting, and the puppet's own fallback. See question 2.
+- Without art, a plain standing figure.
+
+**What each event shows** (`DuelPlaybackState` crosses each event once, in order, whatever the frames):
+
+| Event | Shown |
+|---|---|
+| `RoundStart` | the round's banner, full bars, the boon under the side's bar, both heroes standing at +-4 |
+| `Move` | the walk, exactly as `DuelReplay` reads it (each round's positions equal its in a test) |
+| `Strike` | the striker's strike; over the victim its health taken in whole points (larger and gold for a crit or the Daggers' rhythm), what a ward absorbed in amber "(5)", a spark, a hit flash (the painted Vanguard's flash frames; a red tint on Ilya) and a flinch if idle |
+| `Hit` | as a strike; the Rush adds an impact ring, the Vent an eruption on the victim |
+| `Skill` | the skill's name called out over the caster and added to the feed; the cast pose; the Forge Burst's ring at its 2.5-unit radius; Iron Resolve's ring and Cinder Ward's bubble for their lasting ticks; Flame Sigil's glyph on the floor where the log puts it, at its radius, for its ticks; **every Shield Rush drawn as a leap** (below) |
+| `Burn` | a small orange number on the burning side |
+| `Stacks` | the burn's stacks as flames over the head |
+| `Daze` | "Dazed" over the head and three circling sparks for its ticks |
+| `RoundEnd` | a fallen side falls (Ilya's death; the painted Vanguard tips back and greys); the end's banner and the score |
+
+**The Rush, measured.** Under the shipped rules a Shield Rush **never leaps**: 0 of 21,308 Rushes leapt, over 2,400
+matches of every Vanguard identity against every identity, careful and bold (seeds 1-200 a pairing). As far as the rules
+show, two reasons:
+- its first use waits half its 12 s cooldown, while the heroes meet in about a second;
+- after that, the chaser closes on a kiter in the same tick the kiter backs off, so whenever a Rush is ready the rusher
+  already stands within its reach.
+
+So every Rush is drawn as a leap at the foe: an arc over 12 ticks from where the rusher stood to where the log lands
+it. From within its reach that is where it stood, with the impact and the daze. A logged leap (a `Move` with Aux 1)
+would travel the arc; a hand-written log tests that. See question 3.
+
+### 11.4 The save, the past heroes, the event
+
+- **Load.** Opening reads `ArenaSaveStore(ProfileLocation.Resolve()).Load(seed)`; a new arena's seed comes from the
+  clock. With no build kept yet the screen opens on the build, otherwise on the ladder.
+- **Continue** keeps both arenas' builds (`rankedBuild`, `openBuild`) and saves. A build that changed **after it fought
+  in its arena** is kept first with `ArenaLadder.KeepSnapshot`, at the rating it reached there, so the player meets it on
+  that ladder later. A build that never fought is simply replaced, and an unchanged one keeps nothing.
+- **Fight** calls `ArenaLadder.Fight` (training) or `FightOffer` (open) with a `DuelLog`, saves, writes the event, then
+  plays the log. The open build's gear is read from the profile at the fight. A save that cannot be written is logged
+  as a warning and the fight still plays.
+- **The event.** `ArenaTelemetryEvent` copies `ArenaFightTelemetry.Fields` into `TelemetryFields` (same order and
+  kinds). `ArenaTelemetryWriter` emits them as `arena_fight` on the launch's one session (`TelemetryRuntime`, the profile
+  folder's telemetry folder) under **no run id**, since the arena is fought between runs, and flushes at once.
+
+### 11.5 The entry: the map choice's two lines, and the development file
+
+When `MapChoiceView` is rewritten, its arena button needs two lines, beside its start button and in its own style. The
+label's word is already in the table:
+
+```csharp
+arenaButton.onClick.AddListener(() => ArenaScreen.Open(_setup));   // Close() leaves the map choice as it was
+LocalisedLabel.Bind(arenaLabel, () => ArenaText.Title);             // "Arena" in both languages
+```
+
+The map choice holds the run, and the arena's canvas sits above it and takes every touch, so nothing else is needed.
+Until that button exists, **`development/arena.txt`** opens the arena:
+- any text in `<profile folder>/development/arena.txt` opens it as the gameplay scene loads, a frame after the scene's
+  Start, over the map choice; it works in the Editor and development builds only, as `development/skills.txt` does;
+- "open" as the first word opens the open arena, anything else the training ladder;
+- a release build never looks;
+- on a phone: `adb shell "mkdir -p /sdcard/Android/data/com.cryptforge.prototype/files/development && echo training >
+  /sdcard/Android/data/com.cryptforge.prototype/files/development/arena.txt"`; remove the file to stop it.
+
+### 11.6 Small decisions taken here
+
+- **The defaults.** A fresh build is the profile's chosen hero (the Vanguard if none), its weapon as `ArenaProfileBuild`
+  picks it, damage, health and armour, and careful. Damage, health and armour are in both heroes' pools, and are 10.5's
+  strongest Daggers build without crit.
+- **The rung** is the rating's place among the rivals' ratings: (rating - 700) x 29 / 800, rounded, plus 1. The start
+  (1000) is rung 12 of 30, 10.10's "near rung 11" counted from 0.
+- **The playback's holds** are 1.2 s before a round and 1.6 s after: long enough to read the boons and the round's
+  winner, short enough not to wait.
+- **Labels in a mirror.** Every label says "You" and the rival's name, never a hero's alone.
+- **The Turkish words** for the skills that had none, and the arena's own (docs/60's style):
+  - skills: Iron Resolve → Demir İrade, Shield Rush → Kalkan Hücumu, Flame Sigil → Alev Mührü, Cinder Ward → Kül Siperi
+    ("siper", so it does not repeat Kalkan);
+  - Ember Memory → Kor Hafızası;
+  - build → dizilim, careful / bold → Temkinli / Atak, boon → lütuf, training rival → antrenman rakibi, round → tur.
+
+### 11.7 For the lead: the gates, the Unity filters, the capture
+
+The gates in the worktree:
+- `dotnet test Tools/CombatChecks -c Release -p:NuGetAudit=false`: **986** green, up from 968 (the 18 new view tests).
+  The determinism pins did not move: the fingerprint is still 0x0E7077FD7DB78B0E, and the rules are version 2, hash
+  0x1AF9F58A1ED37422.
+- `dotnet build Tools/UnityCompileCheck/UnityCompileCheck.csproj -p:UnityLibrary=E:/MobileGame/Library`: 0 errors, 0
+  warnings, with the capture fixture compiled in temporarily.
+
+**EditMode filter:**
+
+    Cryptforge.Tests.DuelPlaybackTests;Cryptforge.Tests.ArenaViewTextTests;Cryptforge.Tests.LocalisationTableTests;Cryptforge.Tests.LocalisationAssetTests;Cryptforge.Tests.DuelCoreTests;Cryptforge.Tests.ArenaBuildTests;Cryptforge.Tests.ArenaLadderTests;Cryptforge.Tests.ArenaTrainingTests
+
+**PlayMode filter** (the last two to see that nothing else moved):
+
+    Cryptforge.Tests.ArenaScreenTests;Cryptforge.Tests.TurkishScreensTests;Cryptforge.Tests.MapChoiceFlowTests
+
+**The capture:**
+
+    pwsh -File Tools/ArtReview/Run-ArenaProof.ps1
+    pwsh -File Tools/ArtReview/Run-ArenaProof.ps1 -Language tr
+
+Frames land in `ArtDirection/2026-11-19/arena-view-01/` (untracked), from an arena save of a fixed seed on a profile
+with gear:
+- `en-01-build` and `tr-01-build`, then `02-ladder-training` and `03-ladder-open`;
+- `04-playback-strike`, `05-playback-skill` (the glyph when the duel has one) and `06-playback-round-end`;
+- `07-result`;
+- `frames-en.txt` and `frames-tr.txt` say what each shows.
+
+**To look at in Unity** (none of it runnable here):
+- the asmdef reference imports;
+- the painted Vanguard's weapons in its hands at the lane's scale;
+- Ilya's frame sizes against the Vanguard's;
+- the canvas above the map choice;
+- the Turkish fit, on the S23 too (docs/60 section 8: the phone draws with Roboto).
+
+### 11.8 Risks
+
+- **Unrun in Unity.** The layout, the art's placement and the fit are reasoned, not seen. The PlayMode tests and the
+  capture are the first look.
+- **The painted Vanguard, not the puppet** (11.3). The lane shows the run's painting, but not its current motion.
+- **The overlap at melee reach.** Should the owner find it muddy, the scale is one constant (`DuelFigure.Scale`).
+- **The Rush that never leaps** (11.3). The view draws a leap that the duel's positions do not have.
+
+### 11.9 Questions
+
+1. *Owner*: the pace. x1 is the duel's real time, about 60-80 s a best of three. Should the arena open at x2?
+2. *Lead*: draw the run's cut-out puppet in the lane? That means world-space figures with their own camera, or a
+   presentation-only driver for `PuppetRig`. Or is the painted Vanguard right for the lane?
+3. *Lead*: the Shield Rush never leaps (11.3). Ready its first use early, so a duel's opening has a real leap? That is a
+   rules change: a version bump and re-measuring.
+4. *Lead*: the past-hero rule (11.4): keep the build being replaced, at the rating it reached. Agree, or keep every N
+   fights too?
+5. *Owner*: the Turkish words of 11.6, for the docs/60 glossary.
+
 ## How to re-run
 
     dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~ArenaDuelTests"
@@ -879,6 +1094,11 @@ re-run, and the offer's Elo-equivalent rating. The rules pin moved to version 2;
     dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~ArenaBalanceResearch.TrainingRivals|FullyQualifiedName~ArenaBalanceResearch.OpenOffers"
       # 10.10's measurements: ARENA_TRAINING_SEEDS (4000 a grid point), ARENA_OFFER_SEEDS (1500 a cell), ARENA_SEEDS (2000
       # for the checks); writes arena-p0-training.md and arena-p0-offers.md
+    dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~DuelPlaybackTests|FullyQualifiedName~ArenaViewTextTests"
+      # section 11's view logic, in every plain run and in Unity's EditMode suite: the playback's time line, clock and
+      # state against the log, the summary's lines and the screen's words in both languages, arena_fight's fields
+    pwsh -File Tools/ArtReview/Run-ArenaProof.ps1 [-Language tr]
+      # section 11's capture (Unity, graphics): ArtDirection/2026-11-19/arena-view-01
 
 The prototype's limits: one lane, no horde, two heroes at their run-start kits with a 10 % base crit, a pool of five
 skills, a hand-written autopilot (close or keep reach, skills by health thresholds). Its numbers are the shape of the

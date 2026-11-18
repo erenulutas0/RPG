@@ -1,7 +1,7 @@
 {
   "name": "Project.PlayModeTests",
   "rootNamespace": "Cryptforge.Tests",
-  "references": ["Project.Gameplay", "Project.TestSupport", "UnityEngine.UI"],
+  "references": ["Project.Gameplay", "Project.TestSupport", "UnityEngine.UI", "Cryptforge.Arena"],
   "optionalUnityReferences": ["TestAssemblies"],
   "autoReferenced": false
 }

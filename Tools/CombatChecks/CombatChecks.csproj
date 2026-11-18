@@ -226,6 +226,13 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/ArenaBuildTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/ArenaLadderTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/ArenaTrainingTests.cs" />
+    <!-- docs/55 section 11, P0's arena view: its pure playback (the time line, the clock and its x2 and skip, the log
+         played to a moment) and its words (the summary's lines, the boons, the cards; arena_fight's telemetry is in the
+         Analytics glob above), with their EditMode tests; the screen itself is Unity's. -->
+    <Compile Include="../../Assets/_Project/Scripts/UI/Duel/DuelPlayback.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/UI/Duel/ArenaText.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/DuelPlaybackTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/ArenaViewTextTests.cs" />
     <Compile Include="ArenaBalanceResearch.cs" />
     <!-- docs/57 phase 2 (2026-11-18): the skills in the Descent with every playing cohort, against the shipped kit, on demand;
          its CSV is what Tools/BalanceRule/paired_bootstrap.py reads for docs/56's rule. -->
