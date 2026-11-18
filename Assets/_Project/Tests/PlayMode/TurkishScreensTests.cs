@@ -16,7 +16,8 @@ namespace Cryptforge.Tests
     // The game in Turkish (docs/60): the scene loaded with the language set, its screens speak Turkish, no label shows a
     // key, every label of the result, forge, pause, level-up and Anvil screens fits at its smallest best-fit size on a
     // short and a tall phone (Turkish runs 20-30 % longer than English), and the pause overlay's toggle switches the
-    // language at once and stores the choice.
+    // language at once and stores the choice. The difficulty tiers' screens - the map choice with its tier row and its own
+    // toggle, the HUD, pause and result of a tier run - are TurkishTierScreensTests', with these checks.
     public sealed class TurkishScreensTests
     {
         private const string ScenePath = "Assets/_Project/Scenes/Gameplay/Gameplay.unity";
@@ -169,7 +170,7 @@ namespace Cryptforge.Tests
         }
 
         // Every active label under root fits its rect at its smallest size: its best fit's minimum, or its size without one.
-        private static void Check(Transform root, string where, List<string> problems)
+        internal static void Check(Transform root, string where, List<string> problems)
         {
             Canvas.ForceUpdateCanvases();
             foreach (Text label in root.GetComponentsInChildren<Text>())
@@ -192,7 +193,7 @@ namespace Cryptforge.Tests
             }
         }
 
-        private static void AssertNoKeyShows()
+        internal static void AssertNoKeyShows()
         {
             var shown = new StringBuilder();
             foreach (Text label in Object.FindObjectsByType<Text>(FindObjectsInactive.Include, FindObjectsSortMode.None))
