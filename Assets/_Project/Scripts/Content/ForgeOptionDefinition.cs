@@ -1,3 +1,4 @@
+using Cryptforge.Localisation;
 using Cryptforge.Progression;
 using UnityEngine;
 
@@ -15,10 +16,14 @@ namespace Cryptforge.Content
         [SerializeField] private float _amount;
 
         public string Id => _id;
-        public string DisplayName => _displayName;
+        public string DisplayName => Loc.Text(_nameKey ??= ContentKeys.Key(_id, ContentKeys.Name), _displayName);
+        public string DescriptionFormat => Loc.Text(_descriptionKey ??= ContentKeys.Key(_id, ContentKeys.Description), _descriptionFormat);
+        [System.NonSerialized] private string _nameKey;
+        [System.NonSerialized] private string _descriptionKey;
         public ForgeEffect Effect => _effect;
         public float Amount => _amount;
 
-        public ForgeOption CreateOption() => new ForgeOption(_id, _displayName, _descriptionFormat, _effect, _amount);
+        // In the language the game speaks as the visit opens.
+        public ForgeOption CreateOption() => new ForgeOption(_id, DisplayName, DescriptionFormat, _effect, _amount);
     }
 }

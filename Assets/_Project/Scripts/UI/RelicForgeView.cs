@@ -1,7 +1,7 @@
 using System;
-using System.Globalization;
 using Cryptforge.Content;
 using Cryptforge.Core;
+using Cryptforge.Localisation;
 using Cryptforge.Progression;
 using UnityEngine;
 using UnityEngine.UI;
@@ -67,10 +67,11 @@ namespace Cryptforge.UI
             }
 
             _panel.SetActive(false);
-            _titleLabel.text = _text.ForgeTitle;
-            _weaponsHeaderLabel.text = _text.ForgeWeaponsHeader;
-            _relicsHeaderLabel.text = _text.ForgeRelicsHeader;
-            _startLabel.text = _text.StartRunLabel;
+            // The panel's fixed words follow the language (docs/60); its cards are written again by Refresh.
+            LocalisedLabel.Bind(_titleLabel, () => _text.ForgeTitle);
+            LocalisedLabel.Bind(_weaponsHeaderLabel, () => _text.ForgeWeaponsHeader);
+            LocalisedLabel.Bind(_relicsHeaderLabel, () => _text.ForgeRelicsHeader);
+            LocalisedLabel.Bind(_startLabel, () => _text.StartRunLabel);
             for (int i = 0; i < _weaponCards.Length; i++)
             {
                 int slot = i;
@@ -91,7 +92,16 @@ namespace Cryptforge.UI
             _anvil = gameObject.AddComponent<AnvilView>();
             _anvil.Initialize(_setup, _titleLabel, _startLabel);
             _setup.Profile.Changed += OnProfileChanged;
+            Loc.Changed += OnLanguageChanged;
             _subscribed = true;
+        }
+
+        // The language changed: the status and each card's state are written again at once. A card's name and description
+        // are its shop option's, made as the scene loaded, and follow on the next load (the next run).
+        private void OnLanguageChanged()
+        {
+            if (IsOpen)
+                Refresh();
         }
 
         private static bool CardsAreValid(ForgeCard[] cards, int itemCount)
@@ -124,7 +134,7 @@ namespace Cryptforge.UI
 
         private void Refresh()
         {
-            _statusLabel.text = string.Format(CultureInfo.InvariantCulture, _text.ForgeStatusFormat, _setup.Profile.Gold, _setup.Profile.DeepestFloorCleared);
+            _statusLabel.text = string.Format(Loc.Numbers, _text.ForgeStatusFormat, _setup.Profile.Gold, _setup.Profile.DeepestFloorCleared);
 
             WeaponShop weapons = _setup.Weapons;
             for (int i = 0; i < _weaponCards.Length; i++)
@@ -186,10 +196,10 @@ namespace Cryptforge.UI
             switch (status)
             {
                 case UnlockStatus.Affordable:
-                    card.State.text = string.Format(CultureInfo.InvariantCulture, _text.UnlockForgeFormat, price);
+                    card.State.text = string.Format(Loc.Numbers, _text.UnlockForgeFormat, price);
                     break;
                 case UnlockStatus.TooExpensive:
-                    card.State.text = string.Format(CultureInfo.InvariantCulture, _text.UnlockNeedGoldFormat, price, goldNeeded);
+                    card.State.text = string.Format(Loc.Numbers, _text.UnlockNeedGoldFormat, price, goldNeeded);
                     break;
                 case UnlockStatus.Owned:
                     card.State.text = _text.UnlockOwnedLabel;
@@ -255,6 +265,7 @@ namespace Cryptforge.UI
                 return;
 
             _setup.Profile.Changed -= OnProfileChanged;
+            Loc.Changed -= OnLanguageChanged;
             if (_startButton != null)
                 _startButton.onClick.RemoveListener(OnStart);
             RemoveListeners(_weaponCards);

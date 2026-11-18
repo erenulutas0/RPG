@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using System.Globalization;
 using System.Text;
 using Cryptforge.Art;
 using Cryptforge.Core;
+using Cryptforge.Localisation;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -39,7 +39,14 @@ namespace Cryptforge.UI
         public Button Button => _button != null ? _button.GetComponent<Button>() : null;
         public string Summary { get; private set; } = string.Empty;
 
-        public void Initialize(CombatSetup setup) => _setup = setup;
+        public void Initialize(CombatSetup setup)
+        {
+            _setup = setup;
+            Loc.Changed += Rewrite;
+        }
+
+        // The language changed: the next Update writes the count again in the new words.
+        private void Rewrite() => _shownPending = -1;
 
         private void Update()
         {
@@ -75,7 +82,7 @@ namespace Cryptforge.UI
             {
                 // A new offer: the count, and the tap delay again.
                 _shownPending = pending;
-                _label.text = string.Format(CultureInfo.InvariantCulture, "Auto-pick {0} level-ups", pending);
+                _label.text = Loc.Format("catchup.auto_pick", "Auto-pick {count} level-ups", ("count", pending));
                 _readyAt = Time.unscaledTime + InputDelay;
             }
         }
@@ -153,14 +160,15 @@ namespace Cryptforge.UI
                 counts[taken[i]]++;
             }
             var line = new StringBuilder();
-            line.Append(string.Format(CultureInfo.InvariantCulture, "Auto-picked {0} level-ups", taken.Count));
-            if (taken.Count < levels)
-                line.Append(string.Format(CultureInfo.InvariantCulture, " of {0}", levels));
+            // Whole sentences, not a sentence and a tail: Turkish orders "44 of 45" otherwise (docs/60's rule 2).
+            line.Append(taken.Count < levels
+                ? Loc.Format("catchup.summary_of", "Auto-picked {taken} level-ups of {levels}", ("taken", taken.Count), ("levels", levels))
+                : Loc.Format("catchup.summary", "Auto-picked {taken} level-ups", ("taken", taken.Count)));
             for (int i = 0; i < order.Count; i++)
             {
                 line.Append(i == 0 ? ": " : ", ").Append(order[i]);
                 if (counts[order[i]] > 1)
-                    line.Append(string.Format(CultureInfo.InvariantCulture, " x{0}", counts[order[i]]));
+                    line.Append(" x").Append(counts[order[i]].ToString(Loc.Numbers));
             }
             return line.ToString();
         }
@@ -231,6 +239,7 @@ namespace Cryptforge.UI
 
         private void OnDestroy()
         {
+            Loc.Changed -= Rewrite;
             if (_button != null)
                 Button.onClick.RemoveListener(OnAutoPick);
         }

@@ -83,6 +83,12 @@
     <Compile Include="../../Assets/_Project/Scripts/Economy/LootText.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/LootDeposit.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Progression/*.cs" />
+    <!-- docs/60's localisation core (the gear's, the loot's and the cards' words go through it): pure only, the Unity
+         subfolder is compiled by Unity and UnityCompileCheck. Its checks over the string table run here too. -->
+    <Compile Include="../../Assets/_Project/Scripts/Localisation/*.cs" />
+    <Compile Include="../../Assets/_Project/Tests/Support/LocalisationChecks.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/LocalisationTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/LocalisationTableTests.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Save/ProfileSaveData.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Save/ProfileMigration.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Save/ProfileGearSave.cs" />

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using Cryptforge.Art;
 using Cryptforge.Core;
+using Cryptforge.Localisation;
 using Cryptforge.Progression;
 using UnityEngine;
 using UnityEngine.UI;
@@ -29,7 +30,8 @@ namespace Cryptforge.UI
     //   - Bag: thirty places on their rarity's ground with each item's level; a tap picks one, then Equip, Melt (a second tap
     //     confirms), Inherit (pick the receiving item of the same slot, a lower level; a second tap pays the 10 %) or Upgrade
     //     (the Anvil tab on that item).
-    // Every number is written in the invariant culture (GearText); the Anvil service (CombatSetup.Anvil) does every change.
+    // Its words are the language's (Loc, docs/60) and every number is written in that language's format (GearText); the
+    // panel writes itself again when the language changes. The Anvil service (CombatSetup.Anvil) does every change.
     public sealed class AnvilView : MonoBehaviour
     {
         public enum Tab
@@ -72,7 +74,17 @@ namespace Cryptforge.UI
         private const int Columns = 6;
         private const float TileGap = 10f;
 
+        // The tabs' and the slots' names for their objects, English whatever the language (tests and captures find them).
         private static readonly string[] TabNames = { "Forge", "Anvil", "Efsun", "Bag" };
+        private static readonly string[] SlotNames = { "Weapon", "Armour", "Amulet", "Ring" };
+        // The tabs' words on screen.
+        private static readonly LocText[] TabWords =
+        {
+            new LocText("anvil.tab.forge", "Forge"),
+            new LocText("anvil.tab.anvil", "Anvil"),
+            new LocText("anvil.tab.efsun", "Efsun"),
+            new LocText("anvil.tab.bag", "Bag")
+        };
         private static readonly Color Gold = new Color32(238, 191, 108, 255);
         private static readonly Color Muted = new Color32(163, 167, 183, 255);
         private static readonly Color Bright = new Color32(240, 234, 220, 255);
@@ -264,13 +276,21 @@ namespace Cryptforge.UI
                 RectTransform titleRect = forgeTitle.rectTransform;
                 titleRect.offsetMin = new Vector2(EntryOuter + EntryWidth + 14f, titleRect.offsetMin.y);
                 titleRect.offsetMax = new Vector2(-(EntryOuter + EntryWidth + 14f), titleRect.offsetMax.y);
-                BagEntry = Entry(forgeTitle, BagEntryName, TabNames[(int)Tab.Bag], true, () => Open(Tab.Bag));
-                AnvilEntry = Entry(forgeTitle, AnvilEntryName, TabNames[(int)Tab.Anvil], false, () => Open(Tab.Anvil));
+                BagEntry = Entry(forgeTitle, BagEntryName, TabWords[(int)Tab.Bag], true, () => Open(Tab.Bag));
+                AnvilEntry = Entry(forgeTitle, AnvilEntryName, TabWords[(int)Tab.Anvil], false, () => Open(Tab.Anvil));
             }
+            Loc.Changed += OnLanguageChanged;
+        }
+
+        // The language changed: the fixed words follow by themselves (LocalisedLabel); an open panel writes the rest again.
+        private void OnLanguageChanged()
+        {
+            if (IsOpen)
+                Refresh();
         }
 
         // A button in the forge title's row, at its left or right end, clear of the 600-wide nameplate in its middle.
-        private Button Entry(Text title, string name, string text, bool left, Action open)
+        private Button Entry(Text title, string name, LocText text, bool left, Action open)
         {
             RectTransform titleRect = title.rectTransform;
             var entry = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button));
@@ -288,7 +308,7 @@ namespace Cryptforge.UI
             Paint(button, false);
             Text label = Label(rect, name + " Label", _nameSource, 34, TextAnchor.MiddleCenter);
             Stretch(label.rectTransform, new Vector2(10f, 6f), new Vector2(-10f, -6f));
-            label.text = text;
+            LocalisedLabel.Bind(label, text.Get);
             button.onClick.AddListener(() => open());
             return button;
         }
@@ -415,7 +435,7 @@ namespace Cryptforge.UI
 
             _title = Label(surface.transform, "Anvil Title", _titleSource, 56, TextAnchor.MiddleCenter);
             Row(_title.rectTransform, TitleTop, TitleHeight, 140f);
-            _title.text = "The Anvil";
+            LocalisedLabel.Bind(_title, () => Loc.Text("anvil.title", "The Anvil"));
             if (_cards != null)
                 _painter = new ChoiceCardPainter(_cards, backdrop, surface, _title);
 
@@ -423,7 +443,8 @@ namespace Cryptforge.UI
             for (int i = 0; i < _tabs.Length; i++)
             {
                 var tab = (Tab)i;
-                Button button = MakeButton(surface.transform, "Anvil Tab " + TabNames[i], TabNames[i], 36, out Text label);
+                Button button = MakeButton(surface.transform, "Anvil Tab " + TabNames[i], string.Empty, 36, out Text label);
+                LocalisedLabel.Bind(label, TabWords[i].Get);
                 Place((RectTransform)button.transform, Inset + i * (tabWidth + 14f), TabsTop, tabWidth, TabsHeight);
                 button.onClick.AddListener(() => { if (Ready()) Show(tab); });
                 _tabs[i] = button;
@@ -441,7 +462,7 @@ namespace Cryptforge.UI
             for (int i = 0; i < _pieces.Length; i++)
             {
                 int slot = i;
-                _pieces[i] = MakePieceCard(surface.transform, "Anvil Piece " + GearText.SlotName((GearSlot)i),
+                _pieces[i] = MakePieceCard(surface.transform, "Anvil Piece " + SlotNames[i],
                     Inset + i * (pieceWidth + PieceGap), PiecesTop, pieceWidth, PieceHeight, 30, true);
                 _pieces[i].Button.onClick.AddListener(() => OnPiece(slot));
             }
@@ -547,10 +568,12 @@ namespace Cryptforge.UI
             _rerollScroll = MakeButton(page, "Efsun Reroll Scroll", string.Empty, 32, out _rerollScrollLabel);
             Place((RectTransform)_rerollScroll.transform, half + 24f, buttonsTop, half, 126f);
             _rerollScroll.onClick.AddListener(() => { if (Ready()) Reroll(true); });
-            _keepOld = MakeButton(page, "Efsun Keep Old", "Keep old", 36, out _);
+            _keepOld = MakeButton(page, "Efsun Keep Old", string.Empty, 36, out Text keepOldLabel);
+            LocalisedLabel.Bind(keepOldLabel, () => Loc.Text("anvil.efsun.keep_old", "Keep old"));
             Place((RectTransform)_keepOld.transform, 0f, buttonsTop, half, 126f);
             _keepOld.onClick.AddListener(() => { if (Ready()) Resolve(false); });
-            _takeNew = MakeButton(page, "Efsun Take New", "Take new", 36, out _);
+            _takeNew = MakeButton(page, "Efsun Take New", string.Empty, 36, out Text takeNewLabel);
+            LocalisedLabel.Bind(takeNewLabel, () => Loc.Text("anvil.efsun.take_new", "Take new"));
             Place((RectTransform)_takeNew.transform, half + 24f, buttonsTop, half, 126f);
             _takeNew.onClick.AddListener(() => { if (Ready()) Resolve(true); });
             _rune = MakeButton(page, "Efsun Binding Rune", string.Empty, 32, out _runeLabel);
@@ -575,16 +598,17 @@ namespace Cryptforge.UI
             _detail = Label(page, "Bag Detail", _descriptionSource, 28, TextAnchor.MiddleCenter);
             Row(_detail.rectTransform, gridBottom + 12f, height - 150f - gridBottom - 24f, 0f);
             float quarter = (width - 3 * 14f) / 4f;
-            _equip = MakeButton(page, "Bag Equip", "Equip", 32, out _equipLabel);
+            _equip = MakeButton(page, "Bag Equip", Loc.Text("anvil.bag.equip", "Equip"), 32, out _equipLabel);
             Place((RectTransform)_equip.transform, 0f, height - 140f, quarter, 130f);
             _equip.onClick.AddListener(() => { if (Ready()) EquipPick(); });
-            _inherit = MakeButton(page, "Bag Inherit", "Inherit", 30, out _inheritLabel);
+            _inherit = MakeButton(page, "Bag Inherit", Loc.Text("anvil.bag.inherit", "Inherit"), 30, out _inheritLabel);
             Place((RectTransform)_inherit.transform, quarter + 14f, height - 140f, quarter, 130f);
             _inherit.onClick.AddListener(() => { if (Ready()) InheritPick(); });
-            _melt = MakeButton(page, "Bag Melt", "Melt", 30, out _meltLabel);
+            _melt = MakeButton(page, "Bag Melt", Loc.Text("anvil.bag.melt", "Melt"), 30, out _meltLabel);
             Place((RectTransform)_melt.transform, 2 * (quarter + 14f), height - 140f, quarter, 130f);
             _melt.onClick.AddListener(() => { if (Ready()) MeltPick(); });
-            _upgrade = MakeButton(page, "Bag Upgrade", "Upgrade", 32, out _);
+            _upgrade = MakeButton(page, "Bag Upgrade", string.Empty, 32, out Text upgradeLabel);
+            LocalisedLabel.Bind(upgradeLabel, () => Loc.Text("anvil.bag.upgrade", "Upgrade"));
             Place((RectTransform)_upgrade.transform, 3 * (quarter + 14f), height - 140f, quarter, 130f);
             _upgrade.onClick.AddListener(() => { if (Ready() && _bagPick != null) { SelectItem(_bagPick); Show(Tab.Anvil); } });
         }
@@ -633,13 +657,14 @@ namespace Cryptforge.UI
         private string Wallet(ProfileGear gear)
         {
             var text = new System.Text.StringBuilder();
-            text.Append("<color=#EEBF6C>Gold ").Append(GearText.Gold(_setup.Profile.Gold)).Append("</color>");
+            text.Append("<color=#EEBF6C>").Append(Loc.Format("anvil.wallet_gold", "Gold {gold}", ("gold", GearText.Gold(_setup.Profile.Gold))))
+                .Append("</color>");
             for (int i = 0; i < GearCurrency.MaterialCount; i++)
             {
                 var kind = (MaterialKind)i;
                 text.Append("    <color=#").Append(ColorUtility.ToHtmlStringRGB(MaterialColours[i])).Append('>')
                     .Append(GearText.MaterialShortName(kind)).Append(' ')
-                    .Append(gear.Material(kind).ToString(CultureInfo.InvariantCulture)).Append("</color>");
+                    .Append(gear.Material(kind).ToString(Loc.Numbers)).Append("</color>");
             }
             return text.ToString();
         }
@@ -652,7 +677,7 @@ namespace Cryptforge.UI
                 var kind = (BoosterKind)i;
                 if (i > 0)
                     text.Append("   ");
-                text.Append(GearText.BoosterName(kind)).Append(' ').Append(gear.Booster(kind).ToString(CultureInfo.InvariantCulture));
+                text.Append(GearText.BoosterName(kind)).Append(' ').Append(gear.Booster(kind).ToString(Loc.Numbers));
             }
             return text.ToString();
         }
@@ -675,7 +700,7 @@ namespace Cryptforge.UI
             bool empty = id == null;
             bool selected = !empty && (slot == 0 ? _weaponId == id && (_piece == null || _piece.IsWeapon) : _piece == piece);
             card.Level.text = empty ? string.Empty : GearText.Level(piece != null ? piece.Level : 0);
-            card.Name.text = empty ? "Empty" : _setup.ItemDisplayName(id);
+            card.Name.text = empty ? Loc.Text("anvil.piece.empty", "Empty") : _setup.ItemDisplayName(id);
             card.Info.text = GearText.SlotName((GearSlot)slot);
             card.Name.color = selected ? Gold : empty ? Muted : Bright;
             card.Mark.enabled = selected && Current != Tab.Bag;
@@ -699,7 +724,7 @@ namespace Cryptforge.UI
 
             if (id == null || level >= AnvilTable.MaxLevel)
             {
-                _chanceCaption.text = id == null ? string.Empty : "The anvil's work is done";
+                _chanceCaption.text = id == null ? string.Empty : Loc.Text("anvil.max_caption", "The anvil's work is done");
                 _chance.text = id == null ? string.Empty : GearText.Level(AnvilTable.MaxLevel);
                 _chance.color = Gold;
                 _breakdown.text = string.Empty;
@@ -708,7 +733,8 @@ namespace Cryptforge.UI
                 _cost.text = string.Empty;
                 _seal.gameObject.SetActive(false);
                 _hammer.gameObject.SetActive(false);
-                _strikeLabel.text = id == null ? "Nothing to strike" : "+9: nothing more to strike";
+                _strikeLabel.text = id == null ? Loc.Text("anvil.strike.nothing", "Nothing to strike")
+                    : Loc.Text("anvil.strike.max", "+9: nothing more to strike");
                 _strike.interactable = false;
                 return;
             }
@@ -720,42 +746,52 @@ namespace Cryptforge.UI
             _sealOn &= sealUseful;
             _hammerOn &= hammerUseful;
             int chance = AnvilRule.ChancePercent(level, pity, _sealOn ? 1 : 0, _hammerOn);
-            _chanceCaption.text = "Chance to reach " + GearText.Level(target);
+            _chanceCaption.text = Loc.Format("anvil.chance_caption", "Chance to reach {level}", ("level", GearText.Level(target)));
             _chance.text = GearText.Percent(chance);
             _chance.color = chance >= 100 ? Held : chance >= 60 ? Bright : chance >= 30 ? Gold : Short;
             _breakdown.text = Breakdown(level, pity, certain);
 
             int ceiling = AnvilTable.CeilingFailures(target);
             _memoryFill.fillAmount = ceiling > 0 ? Mathf.Clamp01(pity / (float)ceiling) : 0f;
-            _memory.text = ceiling == 0 ? "This strike always holds"
-                : pity >= ceiling ? "Anvil's memory is full: this strike holds"
-                : string.Format(CultureInfo.InvariantCulture, "Anvil's memory {0} / {1}: holds for certain in {2}", pity, ceiling, ceiling - pity);
+            _memory.text = ceiling == 0 ? Loc.Text("anvil.memory.always", "This strike always holds")
+                : pity >= ceiling ? Loc.Text("anvil.memory.full", "Anvil's memory is full: this strike holds")
+                : Loc.Format("anvil.memory.count", "Anvil's memory {pity} / {ceiling}: holds for certain in {left}",
+                    ("pity", pity), ("ceiling", ceiling), ("left", ceiling - pity));
 
             int gold = AnvilTable.GoldCost(target);
             bool needs = AnvilTable.TryMaterialCost(target, out MaterialKind material, out int amount);
             bool goldShort = _setup.Profile.Gold < gold;
             bool materialShort = needs && gear.Material(material) < amount;
-            string goldText = Colour(GearText.Gold(gold) + " gold", goldShort ? Short : Gold);
+            string goldText = Colour(Loc.Format("anvil.cost.gold", "{gold} gold", ("gold", GearText.Gold(gold))), goldShort ? Short : Gold);
             _cost.text = needs
-                ? goldText + "   " + Colour(string.Format(CultureInfo.InvariantCulture, "{0} {1} (have {2})", amount,
-                    GearText.MaterialName(material), gear.Material(material)), materialShort ? Short : MaterialColours[(int)material])
+                ? goldText + "   " + Colour(Loc.Format("anvil.cost.material", "{amount} {material} (have {have})", ("amount", amount),
+                    ("material", GearText.MaterialName(material)), ("have", gear.Material(material))), materialShort ? Short : MaterialColours[(int)material])
                 : goldText;
 
             _seal.gameObject.SetActive(sealUseful);
-            _sealLabel.text = string.Format(CultureInfo.InvariantCulture, "{0} {1} x{2}\n+{3}% this strike", _sealOn ? "Using" : "Use",
-                GearText.BoosterName(BoosterKind.ForgeSeal), gear.Booster(BoosterKind.ForgeSeal), AnvilTable.SealBonusPercent);
+            string seal = GearText.BoosterName(BoosterKind.ForgeSeal);
+            int seals = gear.Booster(BoosterKind.ForgeSeal);
+            _sealLabel.text = _sealOn
+                ? Loc.Format("anvil.seal.using", "Using {booster} x{count}\n+{bonus}% this strike", ("booster", seal), ("count", seals),
+                    ("bonus", AnvilTable.SealBonusPercent))
+                : Loc.Format("anvil.seal.use", "Use {booster} x{count}\n+{bonus}% this strike", ("booster", seal), ("count", seals),
+                    ("bonus", AnvilTable.SealBonusPercent));
             Paint(_seal, _sealOn);
             _hammer.gameObject.SetActive(hammerUseful);
-            _hammerLabel.text = string.Format(CultureInfo.InvariantCulture, "{0} {1} x{2}\nthis strike holds", _hammerOn ? "Using" : "Use",
-                GearText.BoosterName(BoosterKind.MastersHammer), gear.Booster(BoosterKind.MastersHammer));
+            string hammer = GearText.BoosterName(BoosterKind.MastersHammer);
+            int hammers = gear.Booster(BoosterKind.MastersHammer);
+            _hammerLabel.text = _hammerOn
+                ? Loc.Format("anvil.hammer.using", "Using {booster} x{count}\nthis strike holds", ("booster", hammer), ("count", hammers))
+                : Loc.Format("anvil.hammer.use", "Use {booster} x{count}\nthis strike holds", ("booster", hammer), ("count", hammers));
             Paint(_hammer, _hammerOn);
 
             bool canStrike = !goldShort && !materialShort && gear.PendingRerollPiece == null;
             _strike.interactable = canStrike;
-            _strikeLabel.text = goldShort ? string.Format(CultureInfo.InvariantCulture, "Need {0} more gold", GearText.Gold(gold - _setup.Profile.Gold))
-                : materialShort ? string.Format(CultureInfo.InvariantCulture, "Need {0} more {1}", amount - gear.Material(material), GearText.MaterialName(material))
-                : gear.PendingRerollPiece != null ? "Keep or discard the reroll first"
-                : "Hold to strike " + GearText.Level(target);
+            _strikeLabel.text = goldShort ? Loc.Format("anvil.strike.need_gold", "Need {gold} more gold", ("gold", GearText.Gold(gold - _setup.Profile.Gold)))
+                : materialShort ? Loc.Format("anvil.strike.need_material", "Need {amount} more {material}",
+                    ("amount", amount - gear.Material(material)), ("material", GearText.MaterialName(material)))
+                : gear.PendingRerollPiece != null ? Loc.Text("anvil.strike.pending_reroll", "Keep or discard the reroll first")
+                : Loc.Format("anvil.strike.hold", "Hold to strike {level}", ("level", GearText.Level(target)));
         }
 
         // "Base 30% + memory 6% + Seal 10%", or why the strike is certain.
@@ -763,16 +799,18 @@ namespace Cryptforge.UI
         {
             int target = level + 1;
             if (_hammerOn)
-                return "Master's Hammer: this strike cannot fail";
+                return Loc.Text("anvil.breakdown.hammer", "Master's Hammer: this strike cannot fail");
             if (certain)
-                return AnvilTable.BaseChancePercent(target) >= 100 ? "Up to +3 every strike holds" : "The anvil's memory makes this strike certain";
-            var text = new System.Text.StringBuilder("Base ").Append(GearText.Percent(AnvilTable.BaseChancePercent(target)));
+                return AnvilTable.BaseChancePercent(target) >= 100 ? Loc.Text("anvil.breakdown.safe", "Up to +3 every strike holds")
+                    : Loc.Text("anvil.breakdown.certain", "The anvil's memory makes this strike certain");
+            var text = new System.Text.StringBuilder(Loc.Format("anvil.breakdown.base", "Base {chance}",
+                ("chance", GearText.Percent(AnvilTable.BaseChancePercent(target)))));
             int memory = AnvilTable.PityStepPercent(target) * pity;
             if (memory > 0)
-                text.Append("  +  memory ").Append(GearText.Percent(memory));
+                text.Append("  +  ").Append(Loc.Format("anvil.breakdown.memory", "memory {chance}", ("chance", GearText.Percent(memory))));
             if (_sealOn)
-                text.Append("  +  Seal ").Append(GearText.Percent(AnvilTable.SealBonusPercent));
-            text.Append("    (a miss keeps the level)");
+                text.Append("  +  ").Append(Loc.Format("anvil.breakdown.seal", "Seal {chance}", ("chance", GearText.Percent(AnvilTable.SealBonusPercent))));
+            text.Append("    ").Append(Loc.Text("anvil.breakdown.miss", "(a miss keeps the level)"));
             return text.ToString();
         }
 
@@ -787,8 +825,8 @@ namespace Cryptforge.UI
             bool pendingElsewhere = gear.PendingRerollPiece != null && !pendingHere;
             IReadOnlyList<EfsunLine> lines = _piece != null ? _piece.Lines : (IReadOnlyList<EfsunLine>)Array.Empty<EfsunLine>();
             int expected = _piece != null ? lines.Count : EfsunRule.WeaponLines;
-            _currentHeader.text = pendingHere ? "Current" : "Lines";
-            _newHeader.text = pendingHere ? "New" : string.Empty;
+            _currentHeader.text = pendingHere ? Loc.Text("anvil.efsun.current", "Current") : Loc.Text("anvil.efsun.lines", "Lines");
+            _newHeader.text = pendingHere ? Loc.Text("anvil.efsun.new", "New") : string.Empty;
             // One column across the page, two (the old and the new) while a reroll is shown.
             float columnWidth = pendingHere ? _halfWidth : _fullWidth;
             _currentHeader.rectTransform.sizeDelta = new Vector2(columnWidth, _currentHeader.rectTransform.sizeDelta.y);
@@ -803,20 +841,20 @@ namespace Cryptforge.UI
             int scrolls = gear.Booster(BoosterKind.EfsunScroll);
             int runes = gear.Booster(BoosterKind.BindingRune);
             _efsunNote.text = id == null ? string.Empty
-                : pendingHere ? "Keep the old lines or take the new: nothing is lost until you choose."
-                : pendingElsewhere ? "Another piece's reroll waits for Keep old or Take new."
-                : "A reroll draws every line again and shows them beside the old.";
+                : pendingHere ? Loc.Text("anvil.efsun.note_pending", "Keep the old lines or take the new: nothing is lost until you choose.")
+                : pendingElsewhere ? Loc.Text("anvil.efsun.note_elsewhere", "Another piece's reroll waits for Keep old or Take new.")
+                : Loc.Text("anvil.efsun.note", "A reroll draws every line again and shows them beside the old.");
             _rerollGold.gameObject.SetActive(!pendingHere);
             _rerollScroll.gameObject.SetActive(!pendingHere);
             _keepOld.gameObject.SetActive(pendingHere);
             _takeNew.gameObject.SetActive(pendingHere);
-            _rerollGoldLabel.text = "Reroll\n" + GearText.Gold(price) + " gold";
+            _rerollGoldLabel.text = Loc.Format("anvil.efsun.reroll_gold", "Reroll\n{gold} gold", ("gold", GearText.Gold(price)));
             _rerollGold.interactable = id != null && !pendingElsewhere && _setup.Profile.Gold >= price;
-            _rerollScrollLabel.text = string.Format(CultureInfo.InvariantCulture, "Reroll with an\nEfsun Scroll ({0})", scrolls);
+            _rerollScrollLabel.text = Loc.Format("anvil.efsun.reroll_scroll", "Reroll with an\nEfsun Scroll ({count})", ("count", scrolls));
             _rerollScroll.interactable = id != null && !pendingElsewhere && scrolls > 0;
             int count = _piece != null ? lines.Count : EfsunRule.WeaponLines;
-            _runeLabel.text = count >= EfsunRule.MaxLines ? "Five lines: the most a piece can carry"
-                : string.Format(CultureInfo.InvariantCulture, "Binding Rune ({0}): add a line", runes);
+            _runeLabel.text = count >= EfsunRule.MaxLines ? Loc.Text("anvil.efsun.rune_full", "Five lines: the most a piece can carry")
+                : Loc.Format("anvil.efsun.rune", "Binding Rune ({count}): add a line", ("count", runes));
             _rune.interactable = id != null && !pendingHere && !pendingElsewhere && runes > 0 && count < EfsunRule.MaxLines;
         }
 
@@ -825,7 +863,7 @@ namespace Cryptforge.UI
             ProfileGear gear = _setup.Profile.Gear;
             if (_bagPick != null && !gear.Owns(_bagPick))
                 ResetBagState();
-            _bagCount.text = string.Format(CultureInfo.InvariantCulture, "Bag  {0} / {1}", gear.Bag.Count, ProfileGear.BagCapacity);
+            _bagCount.text = Loc.Format("anvil.bag.count", "Bag  {count} / {capacity}", ("count", gear.Bag.Count), ("capacity", ProfileGear.BagCapacity));
             for (int i = 0; i < _tiles.Length; i++)
             {
                 Tile tile = _tiles[i];
@@ -844,15 +882,17 @@ namespace Cryptforge.UI
             _detail.text = Detail();
             bool picked = _bagPick != null;
             bool equipped = picked && gear.IsEquipped(_bagPick);
-            _equipLabel.text = equipped ? "Equipped" : "Equip";
+            _equipLabel.text = equipped ? Loc.Text("anvil.bag.equipped", "Equipped") : Loc.Text("anvil.bag.equip", "Equip");
             _equip.interactable = picked && !equipped && _inheritSource == null;
             _melt.interactable = picked && !equipped && _inheritSource == null;
             _meltLabel.text = _meltArmed && picked
-                ? string.Format(CultureInfo.InvariantCulture, "Melt: +{0} gold\n+{1} Ember", AnvilTable.MeltGold(_bagPick.Rarity), AnvilTable.MeltEmber(_bagPick.Rarity))
-                : "Melt";
-            _inheritLabel.text = _inheritSource == null ? "Inherit"
-                : _inheritTarget == null ? "Cancel"
-                : string.Format(CultureInfo.InvariantCulture, "Move {0}\n{1} gold", GearText.Level(_inheritSource.Level), GearText.Gold(AnvilRule.InheritGold(_inheritSource.Level)));
+                ? Loc.Format("anvil.bag.melt_confirm", "Melt: +{gold} gold\n+{ember} Ember", ("gold", AnvilTable.MeltGold(_bagPick.Rarity)),
+                    ("ember", AnvilTable.MeltEmber(_bagPick.Rarity)))
+                : Loc.Text("anvil.bag.melt", "Melt");
+            _inheritLabel.text = _inheritSource == null ? Loc.Text("anvil.bag.inherit", "Inherit")
+                : _inheritTarget == null ? Loc.Text("anvil.bag.cancel", "Cancel")
+                : Loc.Format("anvil.bag.inherit_move", "Move {level}\n{gold} gold", ("level", GearText.Level(_inheritSource.Level)),
+                    ("gold", GearText.Gold(AnvilRule.InheritGold(_inheritSource.Level))));
             _inherit.interactable = (picked && _bagPick.Level > 0) || _inheritSource != null;
             _upgrade.interactable = picked && _inheritSource == null;
         }
@@ -863,21 +903,22 @@ namespace Cryptforge.UI
             if (_inheritSource != null)
             {
                 return _inheritTarget == null
-                    ? string.Format(CultureInfo.InvariantCulture, "Inherit {0} from {1}: tap a lower {2} to receive it.",
-                        GearText.Level(_inheritSource.Level), _setup.ItemDisplayName(_inheritSource.ItemId), GearText.SlotName(_inheritSource.Slot))
-                    : string.Format(CultureInfo.InvariantCulture, "{0} becomes {1} and {2} is used up. Tap Move to pay {3} gold.",
-                        _setup.ItemDisplayName(_inheritTarget.ItemId), GearText.Level(_inheritSource.Level),
-                        _setup.ItemDisplayName(_inheritSource.ItemId), GearText.Gold(AnvilRule.InheritGold(_inheritSource.Level)));
+                    ? Loc.Format("anvil.bag.inherit_pick", "Inherit {level} from {item}: tap a lower {slot} to receive it.",
+                        ("level", GearText.Level(_inheritSource.Level)), ("item", _setup.ItemDisplayName(_inheritSource.ItemId)),
+                        ("slot", GearText.SlotName(_inheritSource.Slot)))
+                    : Loc.Format("anvil.bag.inherit_confirm", "{target} becomes {level} and {source} is used up. Tap Move to pay {gold} gold.",
+                        ("target", _setup.ItemDisplayName(_inheritTarget.ItemId)), ("level", GearText.Level(_inheritSource.Level)),
+                        ("source", _setup.ItemDisplayName(_inheritSource.ItemId)), ("gold", GearText.Gold(AnvilRule.InheritGold(_inheritSource.Level))));
             }
             if (_bagPick == null)
-                return gear.Bag.Count == 0 ? "Items drop from bosses, elites and the walk-out. Each is kept, even on a death."
-                    : gear.IsBagFull ? "The bag is full: a new drop melts at once. Melt or inherit to make room."
-                    : "Tap an item to equip, melt, inherit from or upgrade it.";
+                return gear.Bag.Count == 0 ? Loc.Text("anvil.bag.empty", "Items drop from bosses, elites and the walk-out. Each is kept, even on a death.")
+                    : gear.IsBagFull ? Loc.Text("anvil.bag.full", "The bag is full: a new drop melts at once. Melt or inherit to make room.")
+                    : Loc.Text("anvil.bag.hint", "Tap an item to equip, melt, inherit from or upgrade it.");
             var text = new System.Text.StringBuilder();
             text.Append(_setup.ItemDisplayName(_bagPick.ItemId)).Append("   ").Append(GearText.RarityName(_bagPick.Rarity)).Append(' ')
                 .Append(GearText.SlotName(_bagPick.Slot)).Append("   ").Append(GearText.Level(_bagPick.Level));
             if (gear.IsEquipped(_bagPick))
-                text.Append("   (equipped)");
+                text.Append("   ").Append(Loc.Text("anvil.bag.equipped_mark", "(equipped)"));
             text.Append('\n').Append(GearText.MainStat(_bagPick.Slot, _bagPick.Level));
             for (int i = 0; i < _bagPick.Lines.Count; i++)
                 text.Append(i == 0 ? "   |   " : ",  ").Append(GearText.Line(_bagPick.Lines[i]));
@@ -888,7 +929,7 @@ namespace Cryptforge.UI
         {
             bool empty = id == null;
             card.Level.text = empty ? string.Empty : GearText.Level(level);
-            card.Name.text = empty ? "Nothing equipped" : _setup.ItemDisplayName(id);
+            card.Name.text = empty ? Loc.Text("anvil.piece.nothing_equipped", "Nothing equipped") : _setup.ItemDisplayName(id);
             card.Info.text = empty ? string.Empty : GearText.RarityName(rarity) + " " + GearText.SlotName(slot);
             card.Icon.sprite = empty ? null : IconFor(slot, id);
             card.Icon.enabled = card.Icon.sprite != null;
@@ -901,7 +942,7 @@ namespace Cryptforge.UI
             row.Root.SetActive(true);
             if (line == null)
             {
-                row.Text.text = unrolled ? "(drawn on the first touch)" : "-";
+                row.Text.text = unrolled ? Loc.Text("anvil.efsun.unrolled", "(drawn on the first touch)") : "-";
                 row.Text.color = Muted;
                 for (int p = 0; p < row.Pips.Length; p++)
                     row.Pips[p].enabled = false;
@@ -970,8 +1011,9 @@ namespace Cryptforge.UI
                 return;
             }
             ShowMoment(strike.Success
-                ? string.Format(CultureInfo.InvariantCulture, "{0}: the strike held!", GearText.Level(piece.Level))
-                : string.Format(CultureInfo.InvariantCulture, "Missed: {0} kept\n<size=34>The anvil remembers: +1 memory</size>", GearText.Level(before)),
+                ? Loc.Format("anvil.moment.held", "{level}: the strike held!", ("level", GearText.Level(piece.Level)))
+                : Loc.Format("anvil.moment.missed", "Missed: {level} kept\n<size=34>The anvil remembers: +1 memory</size>",
+                    ("level", GearText.Level(before))),
                 strike.Success);
             Refresh();
         }
@@ -1147,6 +1189,7 @@ namespace Cryptforge.UI
 
         private void OnDestroy()
         {
+            Loc.Changed -= OnLanguageChanged;
             if (_subscribed && _setup != null && _setup.Profile != null)
                 _setup.Profile.Changed -= OnProfileChanged;
             if (_hold != null)

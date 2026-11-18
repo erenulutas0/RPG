@@ -1,5 +1,5 @@
 using System;
-using System.Globalization;
+using Cryptforge.Localisation;
 
 namespace Cryptforge.Progression
 {
@@ -16,7 +16,8 @@ namespace Cryptforge.Progression
         public float Threshold { get; }
         public int Price { get; }
 
-        public string Description => string.Format(CultureInfo.InvariantCulture, DescriptionFormat, Amount * 100f, Threshold * 100f);
+        // Its numbers in the language the game speaks (Loc.Numbers): "30%" in English, "%30" as the Turkish text writes it.
+        public string Description => string.Format(Loc.Numbers, DescriptionFormat, Amount * 100f, Threshold * 100f);
 
         public RelicOption(string id, string displayName, string descriptionFormat, RelicEffect effect, float amount,
             float threshold, int price)

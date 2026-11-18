@@ -1,6 +1,6 @@
-using System.Globalization;
 using Cryptforge.Content;
 using Cryptforge.Core;
+using Cryptforge.Localisation;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -65,7 +65,15 @@ namespace Cryptforge.UI
             _label.color = Ember;
             labelObject.SetActive(false);
             _setup.HeroStats.Changed += Refresh;
+            Loc.Changed += Rewrite;
             Refresh();
+        }
+
+        // The language changed: the same percent in the new words, without a swell.
+        private void Rewrite()
+        {
+            if (_label != null && _shownPercent > 0)
+                _label.text = string.Format(Loc.Numbers, _text.DangerFormat, _shownPercent);
         }
 
         // On the stats' change event only; the string is rebuilt when the shown percent moves, never per frame.
@@ -79,7 +87,7 @@ namespace Cryptforge.UI
                 if (percent > _shownPercent)
                     _pulsePending = true;
                 _shownPercent = percent;
-                _label.text = string.Format(CultureInfo.InvariantCulture, _text.DangerFormat, percent);
+                _label.text = string.Format(Loc.Numbers, _text.DangerFormat, percent);
                 _label.gameObject.SetActive(percent > 0);
             }
         }
@@ -111,6 +119,7 @@ namespace Cryptforge.UI
 
         private void OnDestroy()
         {
+            Loc.Changed -= Rewrite;
             if (_setup != null && _setup.HeroStats != null)
                 _setup.HeroStats.Changed -= Refresh;
         }

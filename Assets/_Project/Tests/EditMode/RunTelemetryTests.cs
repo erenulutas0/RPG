@@ -1339,6 +1339,70 @@ namespace Cryptforge.Tests
             scene.Die("enemy_brute");
         }
 
+        // The log is data (docs/60): a Turkish phone, or one whose minus sign is not ASCII, writes it byte for byte as the
+        // invariant culture does - gear_levels "9,7,-1,9", seconds with a point, the build's levels, the hero's health.
+        [Test]
+        public void TheLogIsByteIdenticalWhateverTheThreadsCulture()
+        {
+            string invariant = RecordUnder(CultureInfo.InvariantCulture);
+            var odd = (CultureInfo)CultureInfo.InvariantCulture.Clone();
+            odd.NumberFormat.NegativeSign = "−";
+            odd.NumberFormat.NumberDecimalSeparator = ",";
+            odd.NumberFormat.NumberGroupSeparator = ".";
+
+            Assert.That(RecordUnder(new CultureInfo("tr-TR")), Is.EqualTo(invariant));
+            Assert.That(RecordUnder(odd), Is.EqualTo(invariant));
+            Assert.That(invariant, Does.Contain("\"gear_levels\":\"9,7,-1,9\""));
+            Assert.That(invariant, Does.Contain("\"weapon_levels\":\"").And.Contain("\"tome_levels\":\""));
+            Assert.That(invariant, Does.Match("\"st\":1\\.250"));
+        }
+
+        // A category run with gear on a clock with fractions of a second: a swarm room, a kill, a weapon and a tome taken,
+        // a heal chest, a death at half health; then a geared run's start.
+        private static string RecordUnder(CultureInfo culture)
+        {
+            CultureInfo before = System.Threading.Thread.CurrentThread.CurrentCulture;
+            CultureInfo beforeUi = System.Threading.Thread.CurrentThread.CurrentUICulture;
+            try
+            {
+                System.Threading.Thread.CurrentThread.CurrentCulture = culture;
+                System.Threading.Thread.CurrentThread.CurrentUICulture = culture;
+                var telemetry = new Telemetry();
+                var scene = new Scene(telemetry.Session, true);
+                scene.Recorder.Begin();
+                telemetry.Clock.Advance(1.25);
+                scene.Room(1, Floor1, 1, RoomKind.Swarm, "enemy_mite");
+                scene.Kill("enemy_mite", 10, 3);
+                telemetry.Clock.Advance(0.375);
+                scene.LevelUpTaking(card => card.Category == OfferCategory.NewWeapon, "the Daggers");
+                scene.LevelUpTaking(card => card.Category == OfferCategory.NewTome, "a tome");
+                scene.HealChest("upgrade_damage", UpgradeRarity.Epic);
+                scene.Hero.Current = 37.5f;
+                telemetry.Clock.Advance(2.0625);
+                scene.Die("enemy_mite");
+                scene.Recorder.Dispose();
+                telemetry.Session.Flush();
+
+                var gear = new GearLoadout(new[]
+                {
+                    new ItemInstance(0, "weapon_sword", GearSlot.Weapon, UpgradeRarity.Rare, 9, 0, null),
+                    new ItemInstance(1, "item_foundry_mail", GearSlot.Armour, UpgradeRarity.Gold, 7, 0, null),
+                    new ItemInstance(3, "item_cinder_ring", GearSlot.Ring, UpgradeRarity.Gold, 9, 0, null)
+                });
+                var geared = new Telemetry();
+                var recorder = new RunTelemetry(Mutated(new Scene(null), geared, c => c.Gear = gear));
+                recorder.Begin();
+                recorder.Dispose();
+                geared.Session.Flush();
+                return string.Concat(telemetry.Store.Appends) + string.Concat(geared.Store.Appends);
+            }
+            finally
+            {
+                System.Threading.Thread.CurrentThread.CurrentCulture = before;
+                System.Threading.Thread.CurrentThread.CurrentUICulture = beforeUi;
+            }
+        }
+
         private static RunTelemetryContext Mutated(Scene scene, Telemetry telemetry, Action<RunTelemetryContext> change)
         {
             RunTelemetryContext context = scene.ContextFor(telemetry.Session);

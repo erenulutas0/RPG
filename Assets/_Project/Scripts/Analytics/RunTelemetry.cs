@@ -868,7 +868,7 @@ namespace Cryptforge.Analytics
             fields.Add("weapon_ids", _loadoutList.ToString());
             _loadoutList.Clear();
             for (int i = 0; i < loadout.Count; i++)
-                AppendItem(_loadoutList, i).Append(loadout.At(i).Level);
+                AppendItem(_loadoutList, i).Append(loadout.At(i).Level.ToString(System.Globalization.CultureInfo.InvariantCulture));
             fields.Add("weapon_levels", _loadoutList.ToString());
 
             IReadOnlyList<UpgradeOption> tomes = _upgrades.Tomes;
@@ -884,7 +884,7 @@ namespace Cryptforge.Analytics
             {
                 int level = _upgrades.TomeLevel(tomes[i].Id);
                 if (level > 0)
-                    AppendItem(_loadoutList, held++).Append(level);
+                    AppendItem(_loadoutList, held++).Append(level.ToString(System.Globalization.CultureInfo.InvariantCulture));
             }
             fields.Add("tome_levels", _loadoutList.ToString());
             fields.Add("evolutions", _upgrades.EvolutionsTaken);

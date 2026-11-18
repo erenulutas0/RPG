@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using System.Globalization;
 using Cryptforge.Content;
 using Cryptforge.Core;
+using Cryptforge.Localisation;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -101,6 +101,7 @@ namespace Cryptforge.UI
             _label.raycastTarget = false;
 
             _setup.Profile.Changed += Refresh;
+            Loc.Changed += Refresh;
             Refresh();
         }
 
@@ -148,17 +149,17 @@ namespace Cryptforge.UI
             if (Current == null)
                 return;
             // A locked hero says how to unlock it on the second line; otherwise the chosen hero's own name does.
-            string second = Current.Subtitle;
+            string second = HeroText.Subtitle(Current);
             IReadOnlyList<HeroDefinition> heroes = _setup.Heroes;
             for (int i = 0; i < heroes.Count; i++)
             {
                 if (heroes[i] != null && !_setup.IsHeroPlayable(heroes[i]) && heroes[i].UnlockHint.Length > 0)
                 {
-                    second = string.Format(CultureInfo.InvariantCulture, _text.HeroLockedFormat, heroes[i].DisplayName, heroes[i].UnlockHint);
+                    second = string.Format(Loc.Numbers, _text.HeroLockedFormat, HeroText.Name(heroes[i]), HeroText.UnlockHint(heroes[i]));
                     break;
                 }
             }
-            _label.text = string.Format(CultureInfo.InvariantCulture, _text.HeroChoiceFormat, Current.DisplayName, second);
+            _label.text = string.Format(Loc.Numbers, _text.HeroChoiceFormat, HeroText.Name(Current), second);
             Sprite portrait = Current.Portrait;
             _portrait.sprite = portrait;
             _portrait.enabled = portrait != null;
@@ -168,6 +169,7 @@ namespace Cryptforge.UI
 
         private void OnDestroy()
         {
+            Loc.Changed -= Refresh;
             if (_setup != null && _setup.Profile != null)
                 _setup.Profile.Changed -= Refresh;
         }

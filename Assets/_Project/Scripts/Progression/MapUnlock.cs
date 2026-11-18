@@ -1,4 +1,4 @@
-using System.Globalization;
+using Cryptforge.Localisation;
 
 namespace Cryptforge.Progression
 {
@@ -8,14 +8,15 @@ namespace Cryptforge.Progression
     // Development starts (start-floor.txt, a test's RunStartRequest) do not ask: only the panel and StartOnMap do.
     public static class MapUnlock
     {
+        // The English; the words shown are Hint's, in the language the game speaks.
         public const string HintFormat = "Clear floor {0} to unlock";
 
         public static bool IsOpen(int floorNumber, int deepestFloorCleared) =>
             DescentStart.IsStart(floorNumber) &&
             (floorNumber == DescentStart.FirstFloor || deepestFloorCleared >= floorNumber - 1);
 
-        // How a locked map is opened: "Clear floor 1 to unlock" for the Vaults. Numbers in the invariant culture.
+        // How a locked map is opened: "Clear floor 1 to unlock" for the Vaults, in the language the game speaks (Loc).
         public static string Hint(int floorNumber) =>
-            string.Format(CultureInfo.InvariantCulture, HintFormat, floorNumber - 1);
+            Loc.Format("map.unlock_hint", "Clear floor {0} to unlock", floorNumber - 1);
     }
 }

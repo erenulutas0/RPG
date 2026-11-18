@@ -1,3 +1,4 @@
+using Cryptforge.Localisation;
 using UnityEngine;
 
 namespace Cryptforge.Content
@@ -40,7 +41,9 @@ namespace Cryptforge.Content
         [SerializeField] private FloorTheme _theme;
 
         public string Id => _id;
-        public string DisplayName => _displayName;
+        // Localisation key <id>.name (ContentKeys); the field is the English.
+        public string DisplayName => Loc.Text(_nameKey ??= ContentKeys.Key(_id, ContentKeys.Name), _displayName);
+        [System.NonSerialized] private string _nameKey;
         public int RoomCount => _rooms?.Length ?? 0;
         public float EnemyHealthMultiplier => _enemyHealthMultiplier;
         public float EnemyDamageMultiplier => _enemyDamageMultiplier;

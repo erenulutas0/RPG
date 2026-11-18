@@ -1,0 +1,352 @@
+# Cryptforge string table (docs/60). Tab-separated: key, en, tr, note. The owner reviews the tr column.
+# en is a copy of the English in the code or the content asset; LocalisationTableTests keep it equal to its source.
+# A line break is written \n. Keep placeholders ({0}, {gold}) and rich-text tags (<size=34>) as they are in en.
+key	en	tr	note
+
+# ---- Settings
+settings.language	Language: {language}	Dil: {language}	Pause overlay toggle. {language}: the current language in its own name.
+settings.language_english	English	English	Endonym: the same in both columns.
+settings.language_turkish	Türkçe	Türkçe	Endonym: the same in both columns.
+
+# ---- HUD, world labels and the game's own words (PrototypeTextDefinition: prototype.<field>)
+hud.tap_to_continue	Tap to continue	Devam etmek için dokun	Gate arrival cinematic, bottom of the screen.
+hud.stamina_label	MOVE	HAREKET	The stamina bar's word (bar hidden while stamina is off).
+prototype.title	CRYPTFORGE	CRYPTFORGE	Proper name: the game's title.
+prototype.exit_instruction	EXIT - Stand still	ÇIKIŞ - Hareketsiz dur	World label on the exit seal.
+prototype.exit_direction	EXIT	ÇIKIŞ	World arrow label pointing at the exit.
+prototype.gate_instruction	GATE - Stand still to climb	KAPI - Tırmanmak için hareketsiz dur	World label on the gate seal.
+prototype.gate_direction	GATE	KAPI	World arrow label pointing at the gate.
+prototype.hall_instruction	NEXT HALL - Step in	SONRAKİ SALON - İçeri gir	World label on the next hall's seal.
+prototype.hall_direction	NEXT HALL	SONRAKİ SALON	World arrow label pointing at the next hall.
+prototype.altar_instruction	ALTAR - Step in: a power, +10% danger	SUNAK - İçeri gir: bir güç, +%10 tehlike	World label on an altar.
+prototype.danger_format	Danger +{0}%	Tehlike +%{0}	HUD, 288 px wide. {0}: percent harder than authored.
+prototype.floor_clock_format	{0}:{1:00}	{0}:{1:00}	HUD floor clock. {0} minutes, {1} seconds.
+prototype.overrun_format	OVERRUN +{0}:{1:00}	İSTİLA +{0}:{1:00}	HUD floor clock once the horde overruns the floor (red).
+prototype.gate_opens_format	Gate opens in {0}:{1:00}	Kapının açılmasına {0}:{1:00}	HUD floor clock while the gate room waits. 420 px wide.
+prototype.hero_choice_format	{0}\n<size=20>{1}</size>	{0}\n<size=20>{1}</size>	Forge hero chooser: {0} hero, {1} subtitle or unlock hint.
+prototype.hero_locked_format	{0}: {1}	{0}: {1}	{0} hero, {1} how to unlock it.
+prototype.loadout_evolved_format	{0}+	{0}+	HUD loadout badge of an evolved weapon. {0} short name.
+prototype.card_new_weapon	NEW WEAPON	YENİ SİLAH	Level-up card kind line.
+prototype.card_new_tome	NEW TOME	YENİ KİTAP	Level-up card kind line.
+prototype.card_level_up_format	Lv {0} -> {1}	Sv {0} -> {1}	Level-up card kind line. {0} level now, {1} after.
+prototype.card_evolution	EVOLUTION	EVRİM	Level-up card kind line.
+prototype.floor_progress_format	Floor {0}  /  Room {1}/{2}\n{3}	Kat {0}  /  Oda {1}/{2}\n{3}	HUD. {0} floor, {1} room, {2} rooms, {3} room name.
+prototype.wave_format	Wave {0}/{1}: combat is automatic	Dalga {0}/{1}: savaş otomatik	HUD status. {0} wave, {1} waves.
+prototype.victory_format	{0} defeated in {1} hits, {2:0.0}s	{0} {1} vuruşta yenildi, {2:0.0} sn	HUD status. {0} enemy, {1} hits, {2} seconds.
+prototype.enraged_format	{0} is enraged!	{0} öfkelendi!	HUD status. {0} enemy.
+prototype.forge_status	The forge is quiet. Choose your edge.	Ocak sessiz. Üstünlüğünü seç.	HUD status in a forge room.
+prototype.health_format	{0}  |  {1:0} / {2:0} HP	{0}  |  {1:0} / {2:0} Can	HUD. {0} name, {1} health, {2} maximum.
+prototype.pack_health_format	{0}  |  {1:0} / {2:0} HP  (+{3} more)	{0}  |  {1:0} / {2:0} Can  (+{3} daha)	HUD. {3} other enemies alive in the pack.
+prototype.pack_victory_format	{0} enemies defeated in {1} hits, {2:0.0}s	{0} düşman {1} vuruşta yenildi, {2:0.0} sn	HUD status. {0} enemies, {1} hits, {2} seconds.
+prototype.weapon_format	{0}  |  {1:0} damage every {2:0.00}s	{0}  |  her {2:0.00} sn'de {1:0} hasar	HUD. {0} weapon, {1} damage, {2} seconds between strikes.
+prototype.gold_format	Gold {0}  ({1} at risk)	Altın {0}  ({1} riskte)	HUD. {0} run gold, {1} gold a death would take. Plain placeholders only (HudText).
+prototype.experience_format	Level {0}  |  XP {1} / {2}	Seviye {0}  |  XP {1} / {2}	HUD. Plain placeholders only (HudText).
+prototype.upgrade_choice_title	Level up! Choose one upgrade	Seviye atladın! Bir güçlendirme seç	Choice panel title.
+prototype.forge_choice_title	The forge: choose one	Ocak: birini seç	Choice panel title in a forge room.
+prototype.checkpoint_choice_title	Checkpoint: extract or climb?	Durak: Çık ya da Tırman	Choice panel title at the checkpoint; names the two cards.
+prototype.extract_name	Extract	Çık	Checkpoint card: bank the gold and end the run.
+prototype.extract_description_format	Bank all {0} gold and end the run	{0} altını kasaya koy ve seferi bitir	{0} run gold.
+prototype.descend_name	Climb	Tırman	Checkpoint card: go on to the next floor.
+prototype.descend_description_format	Secure {0} gold. {1}: {2}	{0} altını güvenceye al. {1}: {2}	{0} gold, {1} next floor, {2} its rule.
+prototype.no_floor_modifier	no modifier	ek kural yok	Stands for {2} above when the next floor has no rule.
+prototype.result_victory_title	Ascent complete	Tırmanış tamamlandı	Result title.
+prototype.result_extracted_title	Extracted	Sağ çıktın	Result title after Extract.
+prototype.result_defeat_title	Defeated	Yenildin	Result title.
+prototype.result_victory_cause_format	{0} defeated the {1} and cleared {2}	{0} kazandı: {1} yenildi, {2} temizlendi	{0} hero, {1} boss, {2} floor. No suffix on a placeholder (docs/60 rule 2).
+prototype.result_extracted_cause_format	{0} escaped after clearing {1}	{0}, {1} katını temizleyip kaçtı	{0} hero, {1} floor.
+prototype.result_defeat_cause_format	{0} fell to a {1} in {2}	{0}, {2} içinde bir {1} karşısında düştü	{0} hero, {1} enemy, {2} room.
+prototype.result_finale_cause_format	{0} walked out of {1}	{0}, {1} katından sağ çıktı	{0} hero, {1} floor.
+prototype.result_pit_cause_format	{0} was burnt by the pit's eruption in {1}	{0}, {1} içinde çukurun püskürmesiyle yandı	{0} hero, {1} room (or floor).
+prototype.result_progress_format	Floor {0}  |  {1} rooms  |  Level {2}  |  XP {3}	Kat {0}  |  {1} oda  |  Seviye {2}  |  XP {3}	Result. No plural after a number.
+prototype.result_gold_format	Gold banked: {0}	Kazanılan altın: {0}	Result.
+prototype.result_gold_lost_format	Gold banked: {0}  |  lost: {1}	Kazanılan altın: {0}  |  kayıp: {1}	Result.
+prototype.result_loot_format	Loot: {0}	Ganimet: {0}	Result. {0} the loot line (LootText).
+prototype.result_loot_lost_format	Loot: {0}  |  lost: {1}	Ganimet: {0}  |  kayıp: {1}	Result.
+prototype.result_build_format	Build: {0}  |  {1}	Yapı: {0}  |  {1}	Result. {0} weapon, {1} relic and upgrades.
+prototype.result_upgrade_format	{0} x{1}	{0} x{1}	{0} upgrade, {1} stacks.
+prototype.result_no_upgrades	no upgrades	güçlendirme yok	Result build line.
+prototype.restart_label	Try again	Tekrar dene	Result button.
+prototype.relic_format	Relic: {0}	Kalıntı: {0}	HUD relic badge.
+prototype.relic_triggered_format	Relic: {0} ({1}x)	Kalıntı: {0} ({1}x)	{1} times it triggered.
+prototype.result_relic_format	{0} ({1}x)	{0} ({1}x)	Result build line.
+prototype.forge_hint_ready_format	Forge gold {0}: {1} is ready to forge	Ocak altını {0}: {1} dövülmeye hazır	Result. {0} profile gold, {1} relic or weapon.
+prototype.forge_hint_next_format	Forge gold {0}: {1} costs {2}	Ocak altını {0}: {1} için {2} gerekli	{1} cheapest unowned item, {2} its price.
+prototype.forge_hint_complete_format	Forge gold {0}: everything is forged	Ocak altını {0}: her şey dövüldü	Result.
+prototype.forge_hint_relics_complete_format	Forge gold {0}: every relic is forged	Ocak altını {0}: tüm kalıntılar dövüldü	Result.
+prototype.forge_button_label	Relic Forge	Kalıntı Ocağı	Result button opening the forge.
+prototype.forge_title	Relic Forge	Kalıntı Ocağı	Forge nameplate, 600 px.
+prototype.forge_status_format	Gold {0}  |  Highest floor cleared: {1}	Altın {0}  |  En yüksek temizlenen kat: {1}	Forge. {0} gold, {1} deepest floor cleared.
+prototype.forge_weapons_header	Weapons: carry one	Silahlar: birini taşı	Forge header.
+prototype.forge_relics_header	Relics: equip one	Kalıntılar: birini kuşan	Forge header.
+prototype.unlock_forge_format	Forge for {0} gold	{0} altına döv	Forge card state. {0} price.
+prototype.unlock_need_gold_format	{0} gold: need {1} more	{0} altın: {1} daha gerekli	{0} price, {1} gold still needed.
+prototype.unlock_owned_label	Owned: tap to equip	Sende: kuşanmak için dokun	Forge card state.
+prototype.unlock_equipped_label	Equipped	Kuşanıldı	Forge card state.
+prototype.start_run_label	Start run	Sefere çık	Forge start button; narrowed beside the hero chooser.
+prototype.pause_button_label	II	II	The pause symbol.
+prototype.pause_title	Paused	Duraklatıldı	Pause overlay title.
+prototype.pause_hint	Combat waits until you resume	Sen dönene kadar savaş bekler	Pause overlay.
+prototype.resume_label	Resume	Devam et	Pause overlay button.
+map.unlock_hint	Clear floor {0} to unlock	Açmak için {0}. katı temizle	Map choice, a locked map. {0} floor number; "1." is the Turkish ordinal.
+
+# ---- Catch-up auto-pick (a deeper start)
+catchup.auto_pick	Auto-pick {count} level-ups	{count} seviyeyi otomatik seç	Level-up panel button on a deeper start.
+catchup.summary	Auto-picked {taken} level-ups	Otomatik seçilen seviye: {taken}	Summary line; the cards follow after ": ".
+catchup.summary_of	Auto-picked {taken} level-ups of {levels}	Otomatik seçilen seviye: {taken} / {levels}	When the player picked some by hand.
+
+# ---- The Anvil, Efsun and Bag (AnvilView)
+anvil.title	The Anvil	Örs	Anvil panel title.
+anvil.tab.forge	Forge	Ocak	Tab back to the Relic Forge.
+anvil.tab.anvil	Anvil	Örs	Tab and the forge's entry button (186 px).
+anvil.tab.efsun	Efsun	Efsun	Tab.
+anvil.tab.bag	Bag	Çanta	Tab and the forge's entry button (186 px).
+anvil.wallet_gold	Gold {gold}	Altın {gold}	Wallet row, inside a colour tag kept in the code.
+anvil.piece.empty	Empty	Boş	An empty equipment slot.
+anvil.piece.nothing_equipped	Nothing equipped	Kuşanılmış eşya yok	Big card with no piece.
+anvil.max_caption	The anvil's work is done	Örsün işi bitti	At +9.
+anvil.chance_caption	Chance to reach {level}	{level} olma şansı	{level} "+8".
+anvil.memory.always	This strike always holds	Bu basma her zaman tutar	Pity line, levels that never fail.
+anvil.memory.full	Anvil's memory is full: this strike holds	Örsün hafızası dolu: bu basma tutar	Pity at its ceiling.
+anvil.memory.count	Anvil's memory {pity} / {ceiling}: holds for certain in {left}	Örsün hafızası {pity} / {ceiling}: {left} basma sonra kesin tutar	{left} misses before a certain strike.
+anvil.cost.gold	{gold} gold	{gold} altın	Cost line.
+anvil.cost.material	{amount} {material} (have {have})	{amount} {material} (sende {have})	Cost line.
+anvil.seal.use	Use {booster} x{count}\n+{bonus}% this strike	{booster} kullan x{count}\nbu basmaya +%{bonus}	Toggle, 2 lines.
+anvil.seal.using	Using {booster} x{count}\n+{bonus}% this strike	{booster} kullanılıyor x{count}\nbu basmaya +%{bonus}	Toggle on, 2 lines.
+anvil.hammer.use	Use {booster} x{count}\nthis strike holds	{booster} kullan x{count}\nbu basma kesin tutar	Toggle, 2 lines.
+anvil.hammer.using	Using {booster} x{count}\nthis strike holds	{booster} kullanılıyor x{count}\nbu basma kesin tutar	Toggle on, 2 lines.
+anvil.strike.nothing	Nothing to strike	Basılacak eşya yok	Strike button.
+anvil.strike.max	+9: nothing more to strike	+9: daha fazla basılamaz	Strike button at +9.
+anvil.strike.need_gold	Need {gold} more gold	{gold} altın daha gerekli	Strike button.
+anvil.strike.need_material	Need {amount} more {material}	{amount} {material} daha gerekli	Strike button.
+anvil.strike.pending_reroll	Keep or discard the reroll first	Önce yeni efsunları tut ya da bırak	Strike button while a reroll waits.
+anvil.strike.hold	Hold to strike {level}	{level} basmak için basılı tut	Strike button: hold 0.4 s. {level} "+8".
+anvil.breakdown.hammer	Master's Hammer: this strike cannot fail	Usta Çekici: bu basma boşa gidemez	Chance breakdown.
+anvil.breakdown.safe	Up to +3 every strike holds	+3'e kadar her basma tutar	Chance breakdown, levels up to +3.
+anvil.breakdown.certain	The anvil's memory makes this strike certain	Örsün hafızası bu basmayı kesinleştirir	Chance breakdown.
+anvil.breakdown.base	Base {chance}	Temel {chance}	Breakdown part; parts joined by "  +  ".
+anvil.breakdown.memory	memory {chance}	hafıza {chance}	Breakdown part.
+anvil.breakdown.seal	Seal {chance}	Mühür {chance}	Breakdown part.
+anvil.breakdown.miss	(a miss keeps the level)	(tutmazsa seviye korunur)	Breakdown tail.
+anvil.moment.held	{level}: the strike held!	{level}: basma tuttu!	The strike's moment, success.
+anvil.moment.missed	Missed: {level} kept\n<size=34>The anvil remembers: +1 memory</size>	Tutmadı: {level} korundu\n<size=34>Örs hatırlıyor: +1 hafıza</size>	The strike's moment, a miss.
+anvil.efsun.current	Current	Mevcut	Column header beside a reroll.
+anvil.efsun.lines	Lines	Efsunlar	Column header.
+anvil.efsun.new	New	Yeni	Column header of the rerolled lines.
+anvil.efsun.keep_old	Keep old	Eskiyi tut	Button.
+anvil.efsun.take_new	Take new	Yeniyi al	Button.
+anvil.efsun.note	A reroll draws every line again and shows them beside the old.	Yenileme tüm efsunları yeniden çeker ve eskilerin yanında gösterir.	Efsun note.
+anvil.efsun.note_elsewhere	Another piece's reroll waits for Keep old or Take new.	Başka bir eşyanın yenilemesi bekliyor: Eskiyi tut ya da Yeniyi al.	Efsun note.
+anvil.efsun.note_pending	Keep the old lines or take the new: nothing is lost until you choose.	Eski efsunları tut ya da yenileri al: seçene kadar hiçbir şey kaybolmaz.	Efsun note.
+anvil.efsun.reroll_gold	Reroll\n{gold} gold	Yenile\n{gold} altın	Button, 2 lines.
+anvil.efsun.reroll_scroll	Reroll with an\nEfsun Scroll ({count})	Efsun Parşömeniyle\nyenile ({count})	Button, 2 lines.
+anvil.efsun.rune	Binding Rune ({count}): add a line	Bağlama Rünü ({count}): efsun ekle	Button.
+anvil.efsun.rune_full	Five lines: the most a piece can carry	Beş efsun: bir eşya en fazla bu kadar taşır	Button at five lines.
+anvil.efsun.unrolled	(drawn on the first touch)	(ilk dokunuşta çekilir)	A weapon line not drawn yet.
+anvil.bag.count	Bag  {count} / {capacity}	Çanta  {count} / {capacity}	Bag header.
+anvil.bag.equip	Equip	Kuşan	Bag button (quarter width).
+anvil.bag.equipped	Equipped	Kuşanıldı	Bag button.
+anvil.bag.equipped_mark	(equipped)	(kuşanılı)	Bag detail line.
+anvil.bag.melt	Melt	Erit	Bag button.
+anvil.bag.melt_confirm	Melt: +{gold} gold\n+{ember} Ember	Erit: +{gold} altın\n+{ember} Kor	Bag button armed; a second tap melts.
+anvil.bag.inherit	Inherit	Aktar	Bag button: move a level onto a lower item.
+anvil.bag.cancel	Cancel	Vazgeç	Bag button.
+anvil.bag.inherit_move	Move {level}\n{gold} gold	{level} aktar\n{gold} altın	Bag button, 2 lines.
+anvil.bag.inherit_pick	Inherit {level} from {item}: tap a lower {slot} to receive it.	{item} eşyasının {level} seviyesini aktar: alacak daha düşük bir {slot} seç.	Bag detail.
+anvil.bag.inherit_confirm	{target} becomes {level} and {source} is used up. Tap Move to pay {gold} gold.	{target} {level} olur, {source} harcanır. {gold} altın ödemek için aktar düğmesine dokun.	Bag detail.
+anvil.bag.empty	Items drop from bosses, elites and the walk-out. Each is kept, even on a death.	Eşyalar bosslardan, elitlerden ve çıkışta düşer. Ölsen bile hepsi saklanır.	Bag detail, empty bag.
+anvil.bag.full	The bag is full: a new drop melts at once. Melt or inherit to make room.	Çanta dolu: yeni düşen eşya hemen erir. Yer açmak için erit ya da aktar.	Bag detail.
+anvil.bag.hint	Tap an item to equip, melt, inherit from or upgrade it.	Kuşanmak, eritmek, aktarmak ya da güçlendirmek için bir eşyaya dokun.	Bag detail.
+anvil.bag.upgrade	Upgrade	Güçlendir	Bag button: the Anvil tab on this item.
+
+# ---- Gear words (GearText)
+gear.stat.damage	Damage	Hasar	Stat.
+gear.stat.attack_speed	Attack speed	Saldırı hızı	Stat.
+gear.stat.crit_chance	Crit chance	Kritik şansı	Stat.
+gear.stat.max_health	Max health	Azami can	Stat.
+gear.stat.armour	Armour	Zırh	Stat.
+gear.stat.elite_damage	Damage vs elites	Elitlere hasar	Stat.
+gear.stat.burn_damage	Burn damage	Yanma hasarı	Stat.
+gear.stat.area	Area	Alan	Stat.
+gear.stat.move_speed	Move speed	Hareket hızı	Stat.
+gear.stat.pickup_radius	Pickup radius	Toplama alanı	Stat.
+gear.stat.ability_cooldown	Ability cooldown	Yetenek beklemesi	Stat: the ability's cooldown.
+gear.stat.healing	Healing	İyileşme	Stat.
+gear.stat.luck	Luck	Şans	Stat.
+gear.rarity.common	Common	Sıradan	Rarity.
+gear.rarity.rare	Rare	Nadir	Rarity.
+gear.rarity.epic	Epic	Destansı	Rarity.
+gear.rarity.gold	Gold	Altın	Rarity (the gold tier).
+gear.material.ember_shard	Ember Shard	Kor Parçası	Floor 1 material.
+gear.material.ember_shard_short	Ember	Kor	Short form in the wallet and the loot line.
+gear.material.quicksilver_bead	Quicksilver Bead	Cıva Boncuğu	Floor 2 material.
+gear.material.quicksilver_bead_short	Bead	Boncuk	Short form.
+gear.material.gloam_spore	Gloam Spore	Loş Sporu	Floor 3 material.
+gear.material.gloam_spore_short	Spore	Spor	Short form.
+gear.booster.forge_seal	Forge Seal	Ocak Mührü	Booster: +10 points on one strike.
+gear.booster.forge_seal_short	Seal	Mühür	Short form.
+gear.booster.masters_hammer	Master's Hammer	Usta Çekici	Booster: a strike that cannot fail.
+gear.booster.masters_hammer_short	Hammer	Çekiç	Short form.
+gear.booster.efsun_scroll	Efsun Scroll	Efsun Parşömeni	Booster: a free reroll.
+gear.booster.efsun_scroll_short	Scroll	Parşömen	Short form.
+gear.booster.binding_rune	Binding Rune	Bağlama Rünü	Booster: adds a line.
+gear.booster.binding_rune_short	Rune	Rün	Short form.
+gear.slot.weapon	Weapon	Silah	Slot.
+gear.slot.armour	Armour	Zırh	Slot.
+gear.slot.amulet	Amulet	Tılsım	Slot.
+gear.slot.ring	Ring	Yüzük	Slot.
+gear.value.points	+{value} pts	+{value} puan	Crit and armour lines. {value} "0,8".
+gear.value.percent	+{value}%	+%{value}	Turkish puts % before the number.
+gear.value.percent_less	-{value}%	-%{value}	A shorter cooldown.
+gear.main_stat_max	{stat}  (max)	{stat}  (maks.)	Main stat at +9.
+gear.percent	{value}%	%{value}	The Anvil's chance.
+
+# ---- The loot line (LootText)
+loot.count	{name} x{count}	{name} x{count}	Loot line.
+loot.short_count	{name} {count}	{name} {count}	Short loot line.
+loot.item	{name} ({rarity})	{name} ({rarity})	Loot line.
+loot.item_melted	{name} ({rarity}, melted)	{name} ({rarity}, eritildi)	An item a full bag melted.
+loot.one_item	1 item	1 eşya	No plural after a number in Turkish.
+loot.items	{count} items	{count} eşya	No plural after a number in Turkish.
+loot.melted	{count} melted	{count} eritildi	Items a full bag melted.
+
+# ---- Heroes (HeroText: <id>.name, .subtitle, .role, .unlock_hint)
+hero_vanguard.name	Vanguard	Vanguard	Proper name (the lead, 2026-11-18).
+hero_vanguard.role	Holds the front line. Forge Burst blasts every foe close by.	Ön safı tutar. Ocak Patlaması yakındaki her düşmanı savurur.	Map choice hero card.
+hero_cinder_arcanist.name	Cinder Arcanist	Cinder Arcanist	Proper name like Vanguard; the owner may prefer "Kül Büyücüsü" (docs/60 section 3).
+hero_cinder_arcanist.subtitle	Ilya Kest	Ilya Kest	Proper name.
+hero_cinder_arcanist.role	Every hit sets a foe alight. Crucible Vent erupts the burning.	Her vuruş bir düşmanı tutuşturur. Pota Ağzı yananları patlatır.	Map choice hero card.
+hero_cinder_arcanist.unlock_hint	Clear The Foundry with the Staff	Dökümhane katını Asa ile temizle	Locked hero.
+
+# ---- Floors, rooms (room.<english slug>.name) and floor rules
+floor_ember_halls.name	The Foundry	Dökümhane	Floor 1.
+floor_quicksilver_vaults.name	Quicksilver Vaults	Cıva Mahzenleri	Floor 2.
+floor_gloam_gardens.name	Gloam Gardens	Loş Bahçeler	Floor 3.
+floor_final_swarm.name	The Final Swarm	Son Sürü	The finale.
+modifier_cursed_gold.name	Cursed Gold	Lanetli Altın	Floor rule.
+modifier_cursed_gold.description	+20% enemy damage, +50% gold	+%20 düşman hasarı, +%50 altın	Floor rule.
+room.ember_hall.name	Ember Hall	Kor Salonu	Floor 1 room.
+room.cinder_walk.name	Cinder Walk	Kül Yolu	Floor 1 room.
+room.slag_gate.name	Slag Gate	Cüruf Kapısı	Floor 1 room.
+room.the_forge.name	The Forge	Ocak	Floor 1 forge room.
+room.captains_post.name	Captain's Post	Kaptan Karakolu	Floor 1 elite room.
+room.wardens_crucible.name	Warden's Crucible	Bekçinin Potası	Floor 1 boss room.
+room.mercury_stair.name	Mercury Stair	Cıva Merdiveni	Floor 2 room.
+room.cold_crucible.name	Cold Crucible	Soğuk Pota	Floor 2 room.
+room.vault_gate.name	Vault Gate	Mahzen Kapısı	Floor 2 room.
+room.the_deep_forge.name	The Deep Forge	Derin Ocak	Floor 2 forge room.
+room.sentry_hall.name	Sentry Hall	Nöbetçi Salonu	Floor 2 elite room.
+room.wardens_vault.name	Warden's Vault	Bekçinin Mahzeni	Floor 2 boss room.
+room.ash_orchard.name	Ash Orchard	Küllü Bahçe	Floor 3 room.
+room.rootbound_walk.name	Rootbound Walk	Köklü Yol	Floor 3 room.
+room.bloom_gate.name	Bloom Gate	Çiçek Kapısı	Floor 3 room.
+room.the_grafting_forge.name	The Grafting Forge	Aşı Ocağı	Floor 3 forge room.
+room.thorn_post.name	Thorn Post	Diken Karakolu	Floor 3 elite room.
+room.wardens_grove.name	Warden's Grove	Bekçinin Korusu	Floor 3 boss room.
+room.unending_crowd.name	Unending Crowd	Bitmeyen Kalabalık	The finale.
+
+# ---- Enemies
+enemy_grunt.name	Grunt	Piyade	Enemy.
+enemy_grunt_captain.name	Grunt Captain	Piyade Kaptanı	Elite.
+enemy_runner.name	Runner	Koşucu	Enemy.
+enemy_tank.name	Tank	Tank	Enemy; a game word in Turkish.
+enemy_cinder_mite.name	Cinder Mite	Kül Akarı	Horde enemy.
+enemy_cinder_bloom.name	Cinder Bloom	Kül Çiçeği	Floor 3 enemy.
+enemy_forge_warden.name	Forge Warden	Ocak Bekçisi	Gate boss.
+enemy_glass_regent.name	Glass Regent	Cam Naibi	Floor 2 boss (naip: regent).
+enemy_mirror_sentry.name	Mirror Sentry	Ayna Nöbetçisi	Floor 2 elite.
+enemy_pollen_wraith.name	Pollen Wraith	Polen Hortlağı	Floor 3 enemy.
+
+# ---- Hero weapons (<id>.description is the forge card) and their level-up lines
+weapon_sword.name	Sword	Kılıç	Weapon; HUD badge shows up to 5 letters, else 3.
+weapon_sword.description	{0:0} damage every {1:0.0#}s. Cleaves a second enemy for {2:0}%	Her {1:0.0#} sn'de {0:0} hasar. İkinci bir düşmanı %{2:0} biçer	{0} damage, {1} seconds, {2} cleave percent.
+weapon_staff.name	Staff	Asa	Weapon.
+weapon_staff.description	{0:0} damage every {1:0.0#}s. Blasts every enemy near the target for {2:0}%	Her {1:0.0#} sn'de {0:0} hasar. Hedefin yakınındaki her düşmana %{2:0} patlama	{2} blast percent.
+weapon_daggers.name	Daggers	Hançerler	Weapon; badge "Han".
+weapon_daggers.description	{0:0} damage every {1:0.0#}s. Crits for {3:0}% once every {4} strikes. Double damage to elites	Her {1:0.0#} sn'de {0:0} hasar. Her {4} vuruşta bir %{3:0} kritik. Elitlere çift hasar	{3} crit percent, {4} strikes.
+line_sword_area.name	Sword	Kılıç	Weapon line card.
+line_sword_area.description	+{0:0.#}% area	+%{0:0.#} alan	
+line_sword_damage.name	Sword	Kılıç	Weapon line card.
+line_sword_damage.description	+{0:0.##} damage	+{0:0.##} hasar	
+line_sword_range.name	Sword	Kılıç	Weapon line card.
+line_sword_range.description	+{0:0.0#} reach	+{0:0.0#} menzil	
+line_staff_area.name	Staff	Asa	Weapon line card.
+line_staff_area.description	+{0:0.#}% area	+%{0:0.#} alan	
+line_staff_attack_speed.name	Staff	Asa	Weapon line card.
+line_staff_attack_speed.description	+{0:0.#}% attack speed	+%{0:0.#} saldırı hızı	
+line_staff_damage.name	Staff	Asa	Weapon line card.
+line_staff_damage.description	+{0:0.##} damage	+{0:0.##} hasar	
+line_daggers_attack_speed.name	Daggers	Hançerler	Weapon line card.
+line_daggers_attack_speed.description	+{0:0.#}% attack speed	+%{0:0.#} saldırı hızı	
+line_daggers_crit.name	Daggers	Hançerler	Weapon line card.
+line_daggers_crit.description	+{0:0.#%} crit chance	+{0:%0.#} kritik şansı	"%0.#" puts the sign first: +%2,5.
+line_daggers_damage.name	Daggers	Hançerler	Weapon line card.
+line_daggers_damage.description	+{0:0.##} damage	+{0:0.##} hasar	
+
+# ---- Level-up cards, evolutions and tomes
+upgrade_armor.name	Iron Skin	Demir Deri	Card.
+upgrade_armor.description	+{0:0} armor	+{0:0} zırh	
+upgrade_attack_speed.name	Quickened Grip	Çevik Kavrayış	Card.
+upgrade_attack_speed.description	+{0:0}% attack speed	+%{0:0} saldırı hızı	
+upgrade_attack_speed_evolved.name	Blurred Grip	Bulanık Kavrayış	Evolved card.
+upgrade_attack_speed_evolved.description	+{0:0}% attack speed, and a harder world	+%{0:0} saldırı hızı ve daha zorlu bir dünya	
+upgrade_crit.name	Keen Edge	Keskin Ağız	Card.
+upgrade_crit.description	+{0:0%} chance to crit	+{0:%0} kritik şansı	
+upgrade_crit_splash.name	Splintering Crit	Parçalayan Kritik	Card.
+upgrade_crit_splash.description	Crits splinter for {0:0%} nearby	Kritikler yakına {0:%0} hasarla sıçrar	
+upgrade_damage.name	Tempered Edge	Tavlı Ağız	Card (tempered edge).
+upgrade_damage.description	+{0:0}% damage per hit	Vuruş başına +%{0:0} hasar	
+upgrade_damage_evolved.name	Ruinous Edge	Yıkıcı Ağız	Evolved card.
+upgrade_damage_evolved.description	+{0:0}% damage, and a harder world	+%{0:0} hasar ve daha zorlu bir dünya	
+upgrade_health.name	Vital Surge	Can Dalgası	Card.
+upgrade_health.description	+{0:0} maximum health	+{0:0} azami can	
+upgrade_health_evolved.name	Ironblood	Demirkan	Evolved card (iron blood).
+upgrade_health_evolved.description	+{0:0} maximum health, and a harder world	+{0:0} azami can ve daha zorlu bir dünya	
+upgrade_luck.name	Fortune	Talih	Card.
+upgrade_luck.description	+{0:0} luck	+{0:0} şans	
+upgrade_move_speed.name	Swift Boots	Çevik Çizmeler	Card.
+upgrade_move_speed.description	+{0:0}% movement speed	+%{0:0} hareket hızı	
+upgrade_pulse.name	Forge Pulse	Ocak Nabzı	Card.
+upgrade_pulse.description	Every 4th strike bursts for {0:0%} damage nearby	Her 4. vuruş yakına {0:%0} hasarla patlar	
+upgrade_range.name	Long Reach	Uzun Menzil	Card.
+upgrade_range.description	+{0:0.0#} reach	+{0:0.0#} menzil	
+upgrade_stamina.name	Deep Lungs	Geniş Ciğer	Card (deep lungs).
+upgrade_stamina.description	+{0:0.0#}s of running	+{0:0.0#} sn koşu	
+evolution_sword.name	Resonant Edge	Çınlayan Ağız	The Sword's evolution.
+evolution_sword.description	Every 4th strike bursts for {0:0%} damage nearby, and a harder world	Her 4. vuruş yakına {0:%0} hasarla patlar ve daha zorlu bir dünya	
+evolution_staff.name	Cinder Nova	Kül Novası	The Staff's evolution.
+evolution_staff.description	Kills burst for {0:0%} damage nearby, and a harder world	Öldürmeler yakına {0:%0} hasarla patlar ve daha zorlu bir dünya	
+evolution_daggers.name	Rift Echo	Yarık Yankısı	The Daggers' evolution.
+evolution_daggers.description	Crits splinter for {0:0%} nearby, and a harder world	Kritikler yakına {0:%0} hasarla sıçrar ve daha zorlu bir dünya	
+tome_force.name	Force	Kuvvet	Tome; badge "Kuv".
+tome_force.description	+{0:0.#}% damage to every weapon	Her silaha +%{0:0.#} hasar	
+tome_precision.name	Precision	İsabet	Tome; badge "İsa".
+tome_precision.description	+{0:0.#%} crit chance to every weapon	Her silaha +{0:%0.#} kritik şansı	
+tome_reach.name	Reach	Erim	Tome.
+tome_reach.description	+{0:0.#}% area to every weapon	Her silaha +%{0:0.#} alan	
+tome_tempo.name	Tempo	Tempo	Tome.
+tome_tempo.description	+{0:0.#}% attack speed to every weapon	Her silaha +%{0:0.#} saldırı hızı	
+tome_vitality.name	Vitality	Dirilik	Tome; badge "Dir".
+tome_vitality.description	+{0:0} maximum health	+{0:0} azami can	
+
+# ---- Forge room cards, relics, items and abilities
+forge_mend.name	Mend	Onarım	Forge room card.
+forge_mend.description	Restore {0:0}% of your health	Canının %{0:0} kadarını yenile	
+forge_temper.name	Temper	Su Verme	Forge room card (tempering steel).
+forge_temper.description	Gain {0:0} extra upgrade choice	{0:0} ek güçlendirme seçeneği kazan	
+relic_counterweight.name	Counterweight	Karşı Ağırlık	Relic.
+relic_counterweight.description	When an enemy hits you, strike back for {0:0}% of your weapon damage	Bir düşman sana vurunca, silah hasarının %{0:0} kadarıyla karşılık ver	
+relic_second_wind.name	Second Wind	İkinci Nefes	Relic.
+relic_second_wind.description	Once per run, at {1:0}% health or less, restore {0:0}% of your health	Sefer başına bir kez, canın %{1:0} ya da altına inince canının %{0:0} kadarını yenile	
+item_bark_mail.name	Bark Mail	Kabuk Zırh	Armour.
+item_foundry_mail.name	Foundry Mail	Dökümhane Zırhı	Armour.
+item_quicksilver_hauberk.name	Quicksilver Hauberk	Cıva Zırhı	Armour.
+item_ember_locket.name	Ember Locket	Kor Madalyonu	Amulet.
+item_quicksilver_locket.name	Quicksilver Locket	Cıva Madalyonu	Amulet.
+item_spore_locket.name	Spore Locket	Spor Madalyonu	Amulet.
+item_cinder_ring.name	Cinder Ring	Kül Yüzüğü	Ring.
+item_mirror_ring.name	Mirror Ring	Ayna Yüzüğü	Ring.
+item_gloam_signet.name	Gloam Signet	Loş Mühür	Ring (a signet).
+ability_forge_burst.name	Forge Burst	Ocak Patlaması	The Vanguard's ability; not on screen yet (hero skills).
+ability_forge_burst.description	{0:0} damage to every enemy within {1:0.#} units, ready every {2:0}s	{1:0.#} birim içindeki her düşmana {0:0} hasar, her {2:0} sn'de hazır	Not on screen yet.
+ability_crucible_vent.name	Crucible Vent	Pota Ağzı	The Arcanist's ability; not on screen yet.
+ability_crucible_vent.description	Every burning enemy within {1:0.#} units erupts for {0:0} damage per Burn stack, ready every {2:0}s	{1:0.#} birim içinde yanan her düşman, Yanma yığını başına {0:0} hasarla patlar; her {2:0} sn'de hazır	Not on screen yet.
