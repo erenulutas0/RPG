@@ -867,6 +867,20 @@ are read against.
    1, -3 with all three); on the fresh block the standing Vanguard gains +120 of 3,200 with all three. Standing is read
    against its own target (docs/56), and its gate fights already sit under the band as shipped.
 
+### 13.8 The lead's decisions (2026-11-19; gameplay calls are delegated to the lead)
+
+1. **The easing is accepted for now, with a ceiling.** Skills 2 and 3 open only after the first clear, then the Forge
+   forges them for 300 and 500 gold (section 12). So a new player's first Descents are not eased, and the easing is
+   a reward the player has earned. When phases 3-4 make the skills live, the confirmation is read again with the
+   unlock as built. If the clumsy cohort's pooled completion with all three skills goes above **60 %**, the ward is
+   trimmed first (its size, then its window), then the glyph's slow, each as a candidate on a fresh block.
+2. **The Rush stays as built.** It is an escape and an opening against the lone Captain. The careful pilot's rare use
+   is the pilot's habit, not the skill's fault. Phase 5's device session reads whether people find it.
+3. **Skill dependence is read on the device**, where hands are slower than the typical model. With slow hands it is
+   already met.
+4. **Scaling the Rush by the whole loadout** waits for the ranks (later), where a skill's numbers are reopened anyway.
+5. **The standing Vanguard needs nothing:** +120 of 3,200 on the fresh block.
+
 ## How to re-run
 
     dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~HeroSkillDuelTests"
