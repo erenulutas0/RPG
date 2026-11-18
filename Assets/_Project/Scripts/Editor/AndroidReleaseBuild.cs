@@ -166,8 +166,11 @@ namespace Cryptforge.Editor
                     throw new BuildFailedException("The release plan names " + step.Key + ", which the build cannot restore.");
                 steps.Add(new KeyValuePair<Setting, object>(setting, setting.Parse(step.Value)));
             }
+            // A value already in place is not written again: PlayerSettings serialises an explicit entry for it (an
+            // il2cppCompilerConfiguration of Release where the default was {}), which would change ProjectSettings' bytes.
             foreach (KeyValuePair<Setting, object> step in steps)
-                step.Key.Set(step.Value);
+                if (!Equals(step.Key.Get(), step.Value))
+                    step.Key.Set(step.Value);
         }
 
         [MenuItem("Cryptforge/Build Android Release (AAB)")]
