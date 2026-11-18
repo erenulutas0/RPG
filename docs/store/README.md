@@ -89,6 +89,33 @@ These appear as `{{NAME}}` in the files. Fill them in every file at once; never 
 - **SDK versions:** re-read Google's and Unity's data disclosures for the versions actually integrated
   (data-safety-answers.md section 5).
 
+## The lead's answers (2026-11-19)
+
+The owner delegated gameplay and engineering calls to the lead. The legal ones stay with the owner and their lawyer or
+SMMM.
+
+- **Target audience: 13 and over.** The game is not directed at children, so Google's Families policy does not apply.
+- **Title and category:** "Cryptforge" alone, in Action. The owner may change either.
+- **Tone:** the texts keep "sen", like the game. A lawyer may ask for "siz" in the legal texts.
+- **When the ad SDK starts:**
+  - not at launch: after the first completed run, because the offer appears from the second;
+  - consent (UMP) is gathered at that point, before any ad request;
+  - never for owners of "Skip reward videos".
+- **Android backup stays on** for the save. We have no cloud save, so a new phone keeps the player's progress.
+  - The entitlement cache is excluded from the backup; Play is queried again.
+  - The reward ledger travels with the save, so a restored save cannot be credited twice.
+  - Built with backup rules in the release pipeline; the privacy policy already names Android's backup.
+- **A player ID in the settings:** yes. A random install ID, shown in the settings, lets a player ask for deletion, so
+  the Play form can answer "Yes" to deletion requests. Built in the settings pass.
+- **Unity's hardware statistics** are turned off in the release build if the licence allows it. If not, they are
+  declared honestly in the Data safety form. The release pipeline checks this.
+- **Until a lawyer answers the consent questions**, the engineering default is the conservative one, behind a switch
+  that is easy to flip:
+  - non-personalised ads in Turkey;
+  - GameAnalytics starts after a first-launch notice that offers an opt-out.
+  The owner's questions 1-4 (consent in Turkey, analytics consent, transfers abroad, VERBİS) stay open for the lawyer
+  or SMMM.
+
 ## Before publishing (checklist)
 
 1. Fill the six placeholders everywhere.
