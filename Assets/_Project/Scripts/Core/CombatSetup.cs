@@ -7,6 +7,7 @@ using Cryptforge.Art;
 using Cryptforge.Combat;
 using Cryptforge.Content;
 using Cryptforge.Economy;
+using Cryptforge.Localisation;
 using Cryptforge.Progression;
 using Cryptforge.UI;
 using Cryptforge.Save;
@@ -60,6 +61,11 @@ namespace Cryptforge.Core
         public DifficultyTier Tier { get; private set; }
         // The map choice is open: the first wave and the run's telemetry wait for a map (StartOnMap).
         public bool IsChoosingMap { get; private set; }
+        // The language this scene's words were made in (docs/60): the level-up cards, the forge's and the shops' were
+        // named as it loaded. The map choice's toggle may change it before the run starts; StartOnMap then loads the scene
+        // again, so the whole run speaks the language chosen.
+        public Language SceneLanguage { get; private set; }
+        public bool LanguageChangedSinceLoad => Loc.Language != SceneLanguage;
 
         // The hero this run plays: the profile's choice when it may be played, otherwise the default.
         public HeroDefinition Hero { get; private set; }
@@ -119,6 +125,7 @@ namespace Cryptforge.Core
 
         private void Awake()
         {
+            SceneLanguage = Loc.Language;
             if (_heroDefinition == null || _economy == null || _text == null || _hero == null || _attack == null ||
                 _ability == null || _relicBehaviour == null || _encounters == null || _heroDefinition.StartingWeapon == null ||
                 _heroDefinition.Ability == null ||
@@ -347,8 +354,9 @@ namespace Cryptforge.Core
         // The map the player tapped on the map choice (MapChoiceView), with the hero and the difficulty tier chosen beside
         // it: floor 1 with the scene's own hero and tier begins here and now, as every run began before the choice existed;
         // a deeper floor, another playable hero or another open tier reloads the scene with the choice (RunStartRequest),
-        // and that load begins with that hero on that floor and tier (Awake) without the choice. Once only, and only while
-        // the choice is open. tier null keeps the scene's.
+        // and that load begins with that hero on that floor and tier (Awake) without the choice; so does a language other
+        // than the one the scene loaded in (the map choice's toggle), so the run's words are all that language's. Once only,
+        // and only while the choice is open. tier null keeps the scene's.
         public void StartOnMap(int floorNumber, HeroDefinition hero = null, DifficultyTier? tier = null)
         {
             bool deeper = floorNumber > DescentStart.FirstFloor && DescentStart.IsStart(floorNumber);
@@ -360,7 +368,7 @@ namespace Cryptforge.Core
             IsChoosingMap = false;
             bool otherHero = hero != null && hero != Hero && IsHeroPlayable(hero);
             bool otherTier = chosen != Tier;
-            if (deeper || otherHero || otherTier)
+            if (deeper || otherHero || otherTier || LanguageChangedSinceLoad)
             {
                 RunStartRequest.Set(deeper ? floorNumber : DescentStart.FirstFloor, otherHero ? hero.Id : null, chosen);
                 RestartRun();

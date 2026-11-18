@@ -84,5 +84,46 @@ namespace Cryptforge.Tests
                 Is.EqualTo("<color=#EEBF6C>" + TierText.Name(DifficultyTier.Abyssal) + "</color>  ·  Kat 1"));
             Assert.That(_warnings, Is.Empty, string.Join("\n", _warnings));
         }
+
+        // The line under the tier row in English, byte for byte as the tiers branch wrote it with its own formats.
+        [Test]
+        public void InEnglishTheTierLineIsAsItWas()
+        {
+            Speak(Language.English);
+            Assert.That(MapChoiceView.DescribeTier(DifficultyTier.Forged, 0),
+                Is.EqualTo("Forged: the Descent as it was first forged; rewards x1\nBuilt for no gear. Your gear: +0%"));
+            Assert.That(MapChoiceView.DescribeTier(DifficultyTier.Tempered, 1470),
+                Is.EqualTo("Tempered: foes +8% health, +2% damage; rewards x1.25; item luck +10\nBuilt for gear +15% (a +5 set). Your gear: +14.7%"));
+            Assert.That(MapChoiceView.DescribeTier(DifficultyTier.Inferno, 0),
+                Is.EqualTo("Inferno: foes +15% health, +10% damage; rewards x1.5; item luck +20\nBuilt for gear +31% (a +9 set). Your gear: +0%"));
+            Assert.That(MapChoiceView.DescribeTier(DifficultyTier.Abyssal, 4190),
+                Is.EqualTo("Abyssal: foes +20% health, +14% damage; rewards x2; item luck +30\nBuilt for gear +42% (+9 with good efsun). Your gear: +41.9%"));
+            Assert.That(MapChoiceView.Describe(1), Is.EqualTo(
+                "Lava-lit halls where every Descent begins. The Forge Warden keeps the gate.\nFloor 1. A fresh hero, the whole Descent ahead."));
+            Assert.That((MapChoiceView.HeroAndMapTitle, MapChoiceView.SelectedText, MapChoiceView.ChooseText, MapChoiceView.LockedWord),
+                Is.EqualTo(("Choose your hero and map", "Selected", "Tap to choose", "Locked")));
+            Assert.That(_warnings, Is.Empty, string.Join("\n", _warnings));
+        }
+
+        // In Turkish the percent sign stands before the number, the decimals take a comma, and every word is the table's.
+        [Test]
+        public void InTurkishTheTierLinePutsThePercentSignFirstWithDecimalCommas()
+        {
+            Speak(Language.Turkish);
+            string forged = MapChoiceView.DescribeTier(DifficultyTier.Forged, 0);
+            Assert.That(forged, Does.StartWith(TierText.Name(DifficultyTier.Forged) + ":").And.EndWith("+%0"));
+            string tempered = MapChoiceView.DescribeTier(DifficultyTier.Tempered, 1470);
+            Assert.That(tempered, Does.StartWith(TierText.Name(DifficultyTier.Tempered) + ":").And.Contain("+%8").And.Contain("+%2")
+                .And.Contain("x1,25").And.Contain("+10").And.Contain("+%15 (+5 set)").And.EndWith("+%14,7"));
+            Assert.That(tempered, Does.Not.Contain("%+").And.Not.Contain("14.7").And.Not.Contain("1.25").And.Not.Contain("foes"));
+            Assert.That(tempered.Split('\n').Length, Is.EqualTo(2), "two lines");
+            Assert.That(MapChoiceView.DescribeTier(DifficultyTier.Abyssal, 4190),
+                Does.Contain("+%20").And.Contain("x2;").And.Contain("+%42").And.EndWith("+%41,9"));
+            Assert.That(MapChoiceView.Describe(2), Does.EndWith("Kat 2. 31. seviyeden başla: önce 31 seviye seç."));
+            Assert.That(MapChoiceView.Describe(1), Does.Contain("Ocak Bekçisi").And.EndWith("Kat 1. Taze bir kahraman, önünde koca bir İniş."));
+            Assert.That((MapChoiceView.MapTitle, MapChoiceView.SelectedText, MapChoiceView.LockedWord),
+                Is.EqualTo(("Haritanı seç", "Seçildi", "Kilitli")));
+            Assert.That(_warnings, Is.Empty, string.Join("\n", _warnings));
+        }
     }
 }
