@@ -19,6 +19,9 @@ namespace Cryptforge.Monetisation
         private readonly Func<DateTime> _utcNow;
         private readonly EntitlementCacheData _data;
         private bool _purchasing;
+        // Products a purchase granted while a query was out: the query's list was taken before them, so it must not take
+        // them away (a skip bought while Play Billing was still connecting).
+        private readonly List<string> _grantedDuringQuery = new List<string>();
 
         // Fires when what is owned changes.
         public event Action Changed;
@@ -55,6 +58,7 @@ namespace Cryptforge.Monetisation
                 return;
             }
             IsRefreshing = true;
+            _grantedDuringQuery.Clear();
             _store.QueryOwned(result => OnQueried(result, onDone));
         }
 
@@ -79,11 +83,18 @@ namespace Cryptforge.Monetisation
                 return;
             IsRefreshing = false;
             LastRefreshSucceeded = result != null && result.Succeeded;
+            var grantedDuringQuery = new List<string>(_grantedDuringQuery);
+            _grantedDuringQuery.Clear();
             if (LastRefreshSucceeded == true)
             {
                 var ids = new List<string>(result.Owned.Count);
                 foreach (OwnedProduct product in result.Owned)
                     ids.Add(product.ProductId);
+                foreach (string granted in grantedDuringQuery)
+                {
+                    if (!ids.Contains(granted))
+                        ids.Add(granted);
+                }
                 bool changed = _data.ReplaceWith(ids);
                 _data.ConfirmedUtc = Now();
                 Persist();
@@ -107,6 +118,8 @@ namespace Cryptforge.Monetisation
             if (result == StorePurchaseResult.Purchased || result == StorePurchaseResult.AlreadyOwned)
             {
                 granted = _data.Grant(productId);
+                if (IsRefreshing && !_grantedDuringQuery.Contains(productId))
+                    _grantedDuringQuery.Add(productId);
                 _data.ConfirmedUtc = Now();
                 Persist();
             }
