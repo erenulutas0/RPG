@@ -30,6 +30,12 @@ namespace Cryptforge.Tests
     //   OpenCurve      the open arena: a geared side against an ungeared one by gear power, equal gear across the range
     //                  (with the scaling burn and the run's flat one), and gaps between matched powers
     //   Cost           a best of three's cost, and the replay pin at scale (sequential against parallel, logs replayed)
+    //   TrainingRivals the training rivals' handicap by rung (docs/55 section 10.10): a careful middle player's share by the
+    //                  rival's handicap, the log-odds fit, the table and the share it measures at every rung
+    //                  (ARENA_TRAINING_SEEDS, 4000 a grid point)
+    //   OpenOffers     the open offers' expected chance: A's share by base power and ratio gap, any identity on either side,
+    //                  the logistic fit and its table, and the three offers' cards against measured shares
+    //                  (ARENA_OFFER_SEEDS, 1500 a cell)
     [Explicit("docs/55 P0's arena balance research: run it by name.")]
     public sealed class ArenaBalanceResearch
     {
@@ -611,6 +617,206 @@ namespace Cryptforge.Tests
             Write("arena-p0-cost.md", md.ToString());
             Assert.That(same, Is.EqualTo(count));
             Assert.That(replayed, Is.EqualTo(Math.Min(count, 500)));
+        }
+
+        // ---- docs/55 section 10.10: the training rivals' handicap and the open offers' chance ----
+
+        // The logit and its inverse, for fits (research only; the shipped tables are integers).
+        private static double Logit(double p) => Math.Log(p / (1 - p));
+
+        private static double Logistic(double x) => 1 / (1 + Math.Exp(-x));
+
+        // A careful player (an identity evenly, then one of its careful builds) against generated ranked rivals (drawn as
+        // ArenaRivals draws them) wearing a handicap; the player's share of best-of-threes.
+        private static double TrainingShare(ArenaRules rules, ArenaFighter[][] players, ArenaBuild[] rivals, int handicap, int[] seeds,
+            int identity = -1)
+        {
+            ArenaFighter[] foes = rivals.Select(b => ArenaResolver.Resolve(b.WithHandicap(handicap, rules.Version), rules)).ToArray();
+            return Share(seeds, s =>
+            {
+                ArenaRandom dice = ArenaRandom.Stream(s, FieldPurpose, 3);
+                ArenaFighter[] pool = players[identity >= 0 ? identity : dice.NextBelow(players.Length)];
+                return (pool[dice.NextBelow(pool.Length)], foes[dice.NextBelow(foes.Length)]);
+            });
+        }
+
+        [Test]
+        public void TrainingRivals()
+        {
+            int[] seeds = Enumerable.Range(1, Env("ARENA_TRAINING_SEEDS", 4000)).ToArray();
+            int[] check = Enumerable.Range(1, Env("ARENA_SEEDS", 2000)).ToArray();
+            ArenaRules rules = ArenaRules.Current;
+            ArenaFighter[][] players = Identities.Select(x => Builds(rules, x).Where(b => b.Policy == ArenaPolicy.Careful)
+                .Select(b => ArenaResolver.Resolve(b, rules)).ToArray()).ToArray();
+            ArenaBuild[] rivals = Enumerable.Range(0, 600).Select(i => ArenaRivals.Ranked(4242, i, rules)).ToArray();
+            int rungs = ArenaLadder.Size;
+            var md = new StringBuilder();
+            md.AppendLine("# The training rivals' handicap (docs/55 section 10.10)");
+            md.AppendLine();
+            md.AppendLine($"Rules v{rules.Version} (hash {ArenaHash.Hex(rules.Hash)}). The player: careful, an identity drawn evenly, then one of its " +
+                          "careful ranked builds (the middle of the field by construction); the rival: one of 600 generated ranked rivals " +
+                          "(ArenaRivals.Ranked: a hero evenly, a weapon it carries, a policy, three line types), its damage at the handicap. " +
+                          "Best of three, the player's wins (draws half).");
+            md.AppendLine();
+
+            // 1. The player's share against the handicap over the range the table needs (75 % to 50 %), and a logistic fit
+            // there (logit linear in the handicap; past the range the logit steepens, so the fit stays inside it).
+            md.AppendLine($"## 1. The player's share by the rival's handicap ({seeds.Length} seeds a point)");
+            md.AppendLine();
+            md.AppendLine("| Rival's damage (per mille) | Player's wins | Logit |");
+            md.AppendLine("|---|---|---|");
+            int[] grid = { 1000, 994, 988, 982, 976, 970, 964 };
+            var xs = new List<double>();
+            var ys = new List<double>();
+            foreach (int h in grid)
+            {
+                double w = TrainingShare(rules, players, rivals, h, seeds);
+                md.AppendLine($"| {h} | {P(w)} | {F(Logit(w), "0.000")} |");
+                xs.Add(1000 - h);
+                ys.Add(Logit(w));
+            }
+            double mx = xs.Average(), my = ys.Average();
+            double slope = xs.Zip(ys, (x, y) => (x - mx) * (y - my)).Sum() / xs.Sum(x => (x - mx) * (x - mx));
+            double intercept = my - slope * mx;
+            md.AppendLine();
+            md.AppendLine($"Fit: logit(win) = {F(intercept, "0.000")} + {F(slope, "0.0000")} x (1000 - handicap) - each per mille off the " +
+                          $"rival's damage is worth {F(slope * 25, "0.0")} points of the player's win near 50 %.");
+            md.AppendLine();
+
+            // 2. The curve: even in log-odds from 75 % at the bottom rung to 50 % at the top, inverted through the fit's slope
+            // and anchored at the top - the top rung is a real rival, no handicap (the field's own balance makes it even).
+            double top = Logit(0.75);
+            var table = new int[rungs];
+            for (int r = 0; r < rungs; r++)
+            {
+                double target = top * (rungs - 1 - r) / (rungs - 1);
+                int h = (int)Math.Round(1000 - target / slope);
+                table[r] = Math.Max(ArenaBuild.MinHandicap, Math.Min(ArenaBuild.NoHandicap, h));
+            }
+            md.AppendLine("## 2. The table (even in log-odds: each rung the same step in Elo terms) and the shares it measures");
+            md.AppendLine();
+            md.AppendLine($"Proposed: `{{ {string.Join(", ", table)} }}`; shipped: `{{ {string.Join(", ", Enumerable.Range(0, rules.TrainingRungs).Select(rules.TrainingHandicap))} }}`.");
+            md.AppendLine();
+            md.AppendLine($"| Rung | Rival's rating | Handicap (shipped) | Target | Measured ({check.Length} seeds) |");
+            md.AppendLine("|---|---|---|---|---|");
+            var measured = new double[rungs];
+            for (int r = 0; r < rungs; r++)
+            {
+                double target = Logistic(top * (rungs - 1 - r) / (rungs - 1));
+                measured[r] = TrainingShare(rules, players, rivals, rules.TrainingHandicap(r), check);
+                md.AppendLine($"| {r} | {ArenaLadder.LowRating + (ArenaLadder.HighRating - ArenaLadder.LowRating) * r / (rungs - 1)} | " +
+                              $"{rules.TrainingHandicap(r)} | {P(target)} | {P(measured[r])} |");
+            }
+            md.AppendLine();
+
+            // 3. How far a player's identity moves it.
+            md.AppendLine("## 3. By the player's identity (careful builds of one identity), at the bottom, middle and top rungs");
+            md.AppendLine();
+            md.AppendLine("| Player | Rung 0 | Rung 14 | Rung 29 |");
+            md.AppendLine("|---|---|---|---|");
+            for (int i = 0; i < Identities.Length; i++)
+            {
+                md.AppendLine($"| {Identities[i].Name} | {P(TrainingShare(rules, players, rivals, rules.TrainingHandicap(0), check, i))} | " +
+                              $"{P(TrainingShare(rules, players, rivals, rules.TrainingHandicap(14), check, i))} | " +
+                              $"{P(TrainingShare(rules, players, rivals, rules.TrainingHandicap(rungs - 1), check, i))} |");
+            }
+            Write("arena-p0-training.md", md.ToString());
+            for (int r = 1; r < rungs; r++)
+                Assert.That(rules.TrainingHandicap(r), Is.GreaterThanOrEqualTo(rules.TrainingHandicap(r - 1)), "the handicap eases rung by rung");
+        }
+
+        [Test]
+        public void OpenOffers()
+        {
+            int[] seeds = Enumerable.Range(1, Env("ARENA_OFFER_SEEDS", 1500)).ToArray();
+            int[] check = Enumerable.Range(1, Env("ARENA_SEEDS", 2000)).ToArray();
+            ArenaRules rules = ArenaRules.Current;
+            var md = new StringBuilder();
+            md.AppendLine("# The open offers' expected chance (docs/55 section 10.10)");
+            md.AppendLine();
+            md.AppendLine($"Rules v{rules.Version} (hash {ArenaHash.Hex(rules.Hash)}). A wears gear made near a base power plus a gap " +
+                          "(ArenaRivals.GearNear), B near the base; each side's identity drawn evenly from the four and its policy at random, " +
+                          "as the offers' rivals are; best of three, A's wins (draws half). The gap is read as the offers read it: a ratio, " +
+                          "(1 + A's power) / (1 + B's) - 1.");
+            md.AppendLine();
+            md.AppendLine($"## 1. A's wins by base and gap ({seeds.Length} seeds a cell)");
+            md.AppendLine();
+            int[] bases = { 500, 1500, 2500, 3500 };
+            int[] gaps = { -800, -400, -200, -100, 0, 100, 200, 400, 800 };
+            md.AppendLine("| Base | " + string.Join(" | ", gaps.Select(g => (g >= 0 ? "+" : "") + F(g / 100.0, "0.0") + " %")) + " |");
+            md.AppendLine("|---|" + string.Join("|", gaps.Select(_ => "---")) + "|");
+            var points = new List<(double gap, double win)>();
+            foreach (int b in bases)
+            {
+                var cells = new List<string>();
+                foreach (int g in gaps)
+                {
+                    List<ArenaGearPiece> gearA = ArenaRivals.GearNear(b + g);
+                    List<ArenaGearPiece> gearB = ArenaRivals.GearNear(b);
+                    int pa = ArenaGearTable.Power(ArenaGearTable.Totals(gearA));
+                    int pb = ArenaGearTable.Power(ArenaGearTable.Totals(gearB));
+                    double w = AnyIdentity(rules, gearA, gearB, seeds);
+                    double ratio = ((10000.0 + pa) / (10000.0 + pb) - 1) * 100;
+                    points.Add((ratio, w));
+                    cells.Add($"{P(w)} ({F(ratio, "+0.0;-0.0;0.0")})");
+                }
+                md.AppendLine($"| +{F(b / 100.0, "0")} % | {string.Join(" | ", cells)} |");
+            }
+            md.AppendLine();
+            md.AppendLine("(Each cell: A's wins, and in brackets the ratio gap in per cent the two gears actually made.)");
+            md.AppendLine();
+
+            // 2. The fit: a logistic in the ratio gap through 50 % at none, least squares on the logits of the cells inside
+            // 2-98 %.
+            var usable = points.Where(p => p.win > 0.02 && p.win < 0.98 && Math.Abs(p.gap) > 0.05).ToList();
+            double s = usable.Sum(p => p.gap * Logit(p.win)) / usable.Sum(p => p.gap * p.gap);
+            var table = new int[21];
+            for (int i = 0; i < table.Length; i++)
+                table[i] = (int)Math.Round(1000 * Logistic(s * i * ArenaRules.OpenChanceStep / 100.0));
+            md.AppendLine("## 2. The fitted table");
+            md.AppendLine();
+            md.AppendLine($"logit(A's wins) = {F(s, "0.000")} x the ratio gap in per cent ({usable.Count} cells). A 2 % gap: " +
+                          $"{P(Logistic(2 * s))}. 10.6's matched-power points on the Vanguard + Sword: a 1.7 % gap 67.8 % (the fit " +
+                          $"{P(Logistic(1.7 * s))}), 4.1 % 83.0 % ({P(Logistic(4.1 * s))}), 8.2 % 94.4 % ({P(Logistic(8.2 * s))}).");
+            md.AppendLine();
+            md.AppendLine($"Proposed, per mille at gaps 0, 0.5, ... 10 %: `{{ {string.Join(", ", table)} }}`; shipped: " +
+                          $"`{{ {string.Join(", ", Enumerable.Range(0, 21).Select(i => rules.OpenChance(i * ArenaRules.OpenChanceStep, 0)))} }}`.");
+            md.AppendLine();
+
+            // 3. The offers themselves, as a player sees them: the card's chance against the measured share.
+            md.AppendLine($"## 3. The three offers at a few player powers: the card's chance against the measured share ({check.Length} seeds)");
+            md.AppendLine();
+            md.AppendLine("| Player's power | Offer | Rival's power | Card's chance | Measured |");
+            md.AppendLine("|---|---|---|---|---|");
+            var save = ArenaLadder.NewSave(55, rules);
+            foreach (int power in new[] { 0, 1000, 2500, 4000, 5000 })
+            {
+                ArenaHero vanguard = rules.Hero(ArenaRules.Vanguard);
+                ArenaBuild player = ArenaBuild.Open(vanguard.Id, ArenaRules.Sword, vanguard.SkillIds, ArenaPolicy.Careful, ArenaRivals.GearNear(power), rules.Version);
+                foreach (ArenaOpenOffer offer in ArenaLadder.OpenOffers(save, player, rules))
+                {
+                    double w = AnyIdentity(rules, ArenaRivals.GearNear(power), offer.Build.Gear.ToList(), check);
+                    md.AppendLine($"| +{F(offer.PlayerPower / 100.0)} % | {offer.Kind} | +{F(offer.RivalPower / 100.0)} % | " +
+                                  $"{F(offer.ExpectedPermille / 10.0)} % | {P(w)} |");
+                }
+            }
+            md.AppendLine();
+            md.AppendLine("(The measured column draws both identities at random, as the table does; a card is for any rival.)");
+            Write("arena-p0-offers.md", md.ToString());
+        }
+
+        // A in gearA against B in gearB, each side's identity drawn evenly from the four and its policy at random.
+        private static double AnyIdentity(ArenaRules rules, List<ArenaGearPiece> gearA, List<ArenaGearPiece> gearB, int[] seeds)
+        {
+            ArenaFighter Make(Identity x, ArenaPolicy p, List<ArenaGearPiece> gear)
+            {
+                ArenaHero hero = rules.Hero(x.Hero);
+                return ArenaResolver.Resolve(ArenaBuild.Open(hero.Id, x.Weapon, hero.SkillIds, p, gear, rules.Version), rules);
+            }
+            ArenaFighter[] fa = Identities.SelectMany(x => new[] { Make(x, ArenaPolicy.Careful, gearA), Make(x, ArenaPolicy.Bold, gearA) }).ToArray();
+            ArenaFighter[] fb = Identities.SelectMany(x => new[] { Make(x, ArenaPolicy.Careful, gearB), Make(x, ArenaPolicy.Bold, gearB) }).ToArray();
+            return Share(seeds, sd => (fa[ArenaRandom.Stream(sd, FieldPurpose, 0).NextBelow(fa.Length)],
+                fb[ArenaRandom.Stream(sd, FieldPurpose, 1).NextBelow(fb.Length)]));
         }
 
         private static void Write(string name, string text)

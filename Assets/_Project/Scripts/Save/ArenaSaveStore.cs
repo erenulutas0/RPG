@@ -43,7 +43,12 @@ namespace Cryptforge.Save
             _problems.Clear();
             ArenaSaveData best = Newest(Newest(TryRead(_path), TryRead(_tempPath)), TryRead(_backupPath));
             LastLoadWasNew = best == null;
-            return best ?? ArenaLadder.NewSave(newSeed);
+            if (best == null)
+                return ArenaLadder.NewSave(newSeed);
+            // A save fought under other rules takes the current table's training handicaps (docs/55 section 10.10).
+            if (best.rulesVersion != ArenaRules.Current.Version)
+                ArenaLadder.Restamp(best);
+            return best;
         }
 
         public void Save(ArenaSaveData save)

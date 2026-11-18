@@ -334,6 +334,10 @@ namespace Cryptforge.Arena
             ArenaHero hero = f.Hero;
             ArenaWeapon weapon = f.Weapon;
             int damage = Total(ArenaStat.Damage);
+            // The hero's arena coefficient, and a training rival's handicap on top (docs/55 section 10.10): every point of
+            // damage the side deals - strikes, skills, burn - and nothing else. 1000 x 1000 / 1000 is exact, so an
+            // unhandicapped side fights as it did before handicaps existed.
+            int coefficient = hero.DamagePermille * f.Build.HandicapPermille / ArenaBuild.NoHandicap;
             int own = (int)((long)hero.Health * (10000 + Total(ArenaStat.MaxHealth)) / 10000);
             var s = new Side
             {
@@ -341,7 +345,7 @@ namespace Cryptforge.Arena
                 F = f,
                 OwnMaxHealth = own,
                 MaxHealth = (int)((long)own * DuelRules.HealthScale * hero.HealthPermille / 1000),
-                Damage = (int)((long)weapon.Damage * hero.DamagePermille * weapon.DamagePermille / 1000 * (10000 + damage) / 10000000),
+                Damage = (int)((long)weapon.Damage * coefficient * weapon.DamagePermille / 1000 * (10000 + damage) / 10000000),
                 IntervalTicks = weapon.IntervalTicks,
                 AttackSpeed = Total(ArenaStat.AttackSpeed),
                 CritPermille = DuelRules.BaseCritPermille + Total(ArenaStat.CritChance) / 10,
@@ -349,8 +353,8 @@ namespace Cryptforge.Arena
                 RhythmPercent = weapon.RhythmPercent,
                 Armour = Math.Min(9000, Total(ArenaStat.Armour)),
                 BurnTick = rules.BurnScales
-                    ? BurnTickOf(hero, damage, Total(ArenaStat.AttackSpeed), Total(ArenaStat.CritChance), Total(ArenaStat.BurnDamage))
-                    : BurnTickOf(hero, 0, 0, 0, Total(ArenaStat.BurnDamage)),
+                    ? BurnTickOf(coefficient, damage, Total(ArenaStat.AttackSpeed), Total(ArenaStat.CritChance), Total(ArenaStat.BurnDamage))
+                    : BurnTickOf(coefficient, 0, 0, 0, Total(ArenaStat.BurnDamage)),
                 BurnOnHit = hero.BurnOnHit,
                 Bold = f.Policy == ArenaPolicy.Bold,
                 Reach = (long)weapon.Reach * Precision,
@@ -375,7 +379,7 @@ namespace Cryptforge.Arena
                 // A skill that strikes scales with the build: the hero's coefficient and its damage bonus, never the
                 // weapon's coefficient (docs/57 section 3.0: the skill's base x the weapon's damage over its base).
                 if (skill.Kind == ArenaSkillKind.Burst || skill.Kind == ArenaSkillKind.Rush || skill.Kind == ArenaSkillKind.Vent)
-                    power = (int)((long)power * hero.DamagePermille * (10000 + damage) / 10000000);
+                    power = (int)((long)power * coefficient * (10000 + damage) / 10000000);
                 s.SkillPower[i] = power;
                 s.SkillSlow[i] = ArenaSkill.AtRank(skill.SlowPermille, rules.SkillRank);
                 s.SkillCooldown[i] = (int)((long)skill.CooldownTicks * (10000 - cooldown) / 10000);
@@ -397,9 +401,9 @@ namespace Cryptforge.Arena
         // third of Ilya's damage, and flat it moved the hero balance with the gear: with the coefficients tuned at ranked's
         // + level, Ilya won 80 % of open fights at no gear against the Vanguard's Sword and lost at the ceiling (measured,
         // section 10 of docs/55). Fixed point at a thousandth of a milli-point, one rounding at the end.
-        private static int BurnTickOf(ArenaHero hero, int damage, int attackSpeed, int crit, int burn)
+        private static int BurnTickOf(int coefficient, int damage, int attackSpeed, int crit, int burn)
         {
-            long tick = (long)DuelRules.BurnTickMilli * hero.DamagePermille;
+            long tick = (long)DuelRules.BurnTickMilli * coefficient;
             tick = tick * (10000 + damage) / 10000;
             tick = tick * (10000 + attackSpeed) / 10000;
             tick = tick * (10000 + crit) / 10000;

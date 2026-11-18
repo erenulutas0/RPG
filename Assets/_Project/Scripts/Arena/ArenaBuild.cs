@@ -55,6 +55,11 @@ namespace Cryptforge.Arena
     // (open). Never a resolved stat: ArenaResolver re-resolves it under the rules of the fight, so a balance patch reaches
     // every stored defence at once. RulesVersion is the version it was made under (kept for audits); Hash identifies its
     // content.
+    //
+    // HandicapPermille: a training rival's handicap (docs/55 section 10.10), a coefficient on every point of damage the
+    // build deals - its strikes, its skills, its burn - 1000 for none. Only a generated ranked rival carries one, stamped
+    // by the ladder from the rules' table at its rung (ArenaRules.TrainingHandicap) and stored in its snapshot beside the
+    // rules version that set it; a player's build never does.
     public sealed class ArenaBuild
     {
         private readonly string[] _skillIds;
@@ -66,6 +71,7 @@ namespace Cryptforge.Arena
         public string WeaponId { get; }
         public ArenaPolicy Policy { get; }
         public int RulesVersion { get; }
+        public int HandicapPermille { get; }
         public IReadOnlyList<string> SkillIds => _skillIds;
         // Ranked only: the line types picked, in the player's order.
         public IReadOnlyList<ArenaStat> LineTypes => _lineTypes;
@@ -74,15 +80,18 @@ namespace Cryptforge.Arena
         public ulong Hash { get; }
 
         private ArenaBuild(ArenaMode mode, string heroId, string weaponId, IEnumerable<string> skillIds, ArenaPolicy policy,
-            IEnumerable<ArenaStat> lineTypes, IEnumerable<ArenaGearPiece> gear, int rulesVersion)
+            IEnumerable<ArenaStat> lineTypes, IEnumerable<ArenaGearPiece> gear, int rulesVersion, int handicapPermille = NoHandicap)
         {
             if (string.IsNullOrEmpty(heroId))
                 throw new ArgumentException("A hero id is required.", nameof(heroId));
+            if (handicapPermille < MinHandicap || handicapPermille > NoHandicap)
+                throw new ArgumentOutOfRangeException(nameof(handicapPermille));
             Mode = mode;
             HeroId = heroId;
             WeaponId = weaponId ?? string.Empty;
             Policy = policy;
             RulesVersion = rulesVersion;
+            HandicapPermille = handicapPermille;
             _skillIds = skillIds != null ? new List<string>(skillIds).ToArray() : new string[0];
             _lineTypes = lineTypes != null ? new List<ArenaStat>(lineTypes).ToArray() : new ArenaStat[0];
             var pieces = new List<ArenaGearPiece>(ArenaGearTable.SlotCount);
@@ -98,6 +107,10 @@ namespace Cryptforge.Arena
             Hash = ComputeHash();
         }
 
+        public const int NoHandicap = 1000;
+        // A handicap never takes more than half a rival's damage: a floor for repaired saves, far below any table's.
+        public const int MinHandicap = 500;
+
         public static ArenaBuild Ranked(string heroId, string weaponId, IEnumerable<string> skillIds, ArenaPolicy policy,
             IEnumerable<ArenaStat> lineTypes, int rulesVersion = ArenaRules.ShippedVersion) =>
             new ArenaBuild(ArenaMode.Ranked, heroId, weaponId, skillIds, policy, lineTypes, null, rulesVersion);
@@ -108,15 +121,21 @@ namespace Cryptforge.Arena
 
         // The same build in the other arena: a ranked build's identity with this gear, or an open build's identity with
         // these line types.
-        public ArenaBuild AsOpen(IEnumerable<ArenaGearPiece> gear) => Open(HeroId, WeaponId, _skillIds, Policy, gear, RulesVersion);
+        public ArenaBuild AsOpen(IEnumerable<ArenaGearPiece> gear) =>
+            new ArenaBuild(ArenaMode.Open, HeroId, WeaponId, _skillIds, Policy, null, gear, RulesVersion, HandicapPermille);
 
         public ArenaBuild AsRanked(IEnumerable<ArenaStat> lineTypes) =>
-            Ranked(HeroId, WeaponId, _skillIds, Policy, lineTypes, RulesVersion);
+            new ArenaBuild(ArenaMode.Ranked, HeroId, WeaponId, _skillIds, Policy, lineTypes, null, RulesVersion, HandicapPermille);
 
         public ArenaBuild WithPolicy(ArenaPolicy policy) =>
-            new ArenaBuild(Mode, HeroId, WeaponId, _skillIds, policy, _lineTypes, _gear, RulesVersion);
+            new ArenaBuild(Mode, HeroId, WeaponId, _skillIds, policy, _lineTypes, _gear, RulesVersion, HandicapPermille);
 
-        // FNV-1a over the stored ids and levels in a fixed order; the rules version is not part of the content.
+        // The same build carrying a training handicap stamped under a rules version (NoHandicap for none).
+        public ArenaBuild WithHandicap(int handicapPermille, int rulesVersion) =>
+            new ArenaBuild(Mode, HeroId, WeaponId, _skillIds, Policy, _lineTypes, _gear, rulesVersion, handicapPermille);
+
+        // FNV-1a over the stored ids and levels in a fixed order; the rules version is not part of the content. A handicap
+        // is mixed in only when there is one, so an unhandicapped build hashes as it did before handicaps existed.
         private ulong ComputeHash()
         {
             ulong hash = ArenaHash.Seed;
@@ -142,6 +161,8 @@ namespace Cryptforge.Arena
                     hash = ArenaHash.Mix(hash, line.Tier);
                 }
             }
+            if (HandicapPermille != NoHandicap)
+                hash = ArenaHash.Mix(hash, HandicapPermille);
             return hash;
         }
     }

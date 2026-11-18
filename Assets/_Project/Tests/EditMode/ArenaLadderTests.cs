@@ -125,12 +125,12 @@ namespace Cryptforge.Tests
             Assert.That(back.ranked.rivals[0].name, Is.EqualTo(save.ranked.rivals[0].name));
             Assert.That(back.ranked.history.Single().fingerprint, Is.EqualTo(save.ranked.history.Single().fingerprint));
             Assert.That(ArenaSnapshots.ToBuild(back.openBuild).Hash, Is.EqualTo(ArenaSnapshots.ToBuild(save.openBuild).Hash));
-            Assert.That(text, Does.Contain("\"saveVersion\": 1"));
+            Assert.That(text, Does.Contain("\"saveVersion\": 2"));
 
             Assert.That(ArenaSaveJson.Read("not json"), Is.Null);
             Assert.That(ArenaSaveJson.Read("[1, 2]"), Is.Null);
-            Assert.That(ArenaSaveJson.Read(text.Replace("\"saveVersion\": 1", "\"saveVersion\": 99")), Is.Null, "a newer save is refused");
-            ArenaSaveData sparse = ArenaSaveJson.Read("{\"saveVersion\": 1, \"seed\": 5, \"ranked\": {\"rating\": 1234, \"extra\": [1.5, null]}}");
+            Assert.That(ArenaSaveJson.Read(text.Replace("\"saveVersion\": 2", "\"saveVersion\": 99")), Is.Null, "a newer save is refused");
+            ArenaSaveData sparse = ArenaSaveJson.Read("{\"saveVersion\": 2, \"seed\": 5, \"ranked\": {\"rating\": 1234, \"extra\": [1.5, null]}}");
             Assert.That(sparse.seed, Is.EqualTo(5));
             Assert.That(sparse.ranked.rating, Is.EqualTo(1234));
             Assert.That(sparse.open.rating, Is.EqualTo(ArenaLadder.StartRating), "missing keys keep their defaults");
@@ -183,7 +183,7 @@ namespace Cryptforge.Tests
             Assert.That(fields.Single(f => f.Key == "result").Text, Is.EqualTo(outcome.Record.result));
             Assert.That(fields.Single(f => f.Key == "fingerprint").Text, Is.EqualTo(outcome.Record.fingerprint));
             Assert.That(ArenaFightTelemetry.EventName, Is.EqualTo("arena_fight"));
-            Assert.That(ArenaFightTelemetry.Describe(fields), Does.StartWith("mode=ranked rules_version=1"));
+            Assert.That(ArenaFightTelemetry.Describe(fields), Does.StartWith("mode=ranked rules_version=2"));
         }
     }
 }

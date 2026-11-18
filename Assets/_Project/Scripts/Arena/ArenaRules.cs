@@ -61,7 +61,9 @@ namespace Cryptforge.Arena
     // variants with the With* methods, which keep the version and change the hash.
     public sealed class ArenaRules
     {
-        public const int ShippedVersion = 1;
+        // 1: P0's core (2026-11-18). 2: the training rivals' rung handicaps and the open offers' chance table (docs/55
+        // section 10.10, 2026-11-19); no fight between unhandicapped builds moved.
+        public const int ShippedVersion = 2;
 
         public const string Vanguard = "hero_vanguard";
         public const string Ilya = "hero_cinder_arcanist";
@@ -82,6 +84,8 @@ namespace Cryptforge.Arena
         private ArenaSkill[] _skills;
         private int[] _rankedLineValues;
         private ArenaBoon[] _boons;
+        private int[] _trainingHandicap;
+        private int[] _openChance;
 
         public int Version { get; private set; }
         // The rank every skill plays at, in both modes (docs/57 decision 8: ranked at rank III; ranks are not built yet).
@@ -98,6 +102,10 @@ namespace Cryptforge.Arena
         // Ember Memory's burn grows with the build's output bonus (DuelCore's burn tick); false is the run's flat burn,
         // kept as a research variant to show why the arena does not use it.
         public bool BurnScales { get; private set; }
+        // The open offers' expected chance (docs/55 section 10.10): per mille, for a gear power ahead of the rival's by 0,
+        // OpenChanceStep, 2 x OpenChanceStep ... (a ratio gap in hundredths of a percent: (1 + mine) / (1 + theirs) - 1); a
+        // logistic fitted to the open arena's measured curve (ArenaBalanceResearch.OpenOffers), read between the steps.
+        public const int OpenChanceStep = 50;
         public ulong Hash { get; private set; }
 
         private ArenaRules()
@@ -114,6 +122,16 @@ namespace Cryptforge.Arena
                 throw new ArgumentOutOfRangeException(nameof(BoonsDealt));
             if (BackpedalPermille < 0 || BackpedalPermille > 1000)
                 throw new ArgumentOutOfRangeException(nameof(BackpedalPermille));
+            if (_trainingHandicap.Length == 0 ||
+                Array.Exists(_trainingHandicap, h => h < ArenaBuild.MinHandicap || h > ArenaBuild.NoHandicap))
+                throw new ArgumentOutOfRangeException(nameof(TrainingHandicap));
+            if (_openChance.Length < 2 || _openChance[0] != 500)
+                throw new ArgumentException("The open chance starts at an even 500.", nameof(OpenChance));
+            for (int i = 1; i < _openChance.Length; i++)
+            {
+                if (_openChance[i] < _openChance[i - 1] || _openChance[i] > 1000)
+                    throw new ArgumentException("The open chance rises with the gap, to 1000 at most.", nameof(OpenChance));
+            }
             Hash = ComputeHash();
         }
 
@@ -196,7 +214,9 @@ namespace Cryptforge.Arena
                 RankedLines = 3,
                 BoonsDealt = 1,
                 BackpedalPermille = 600,
-                BurnScales = true
+                BurnScales = true,
+                _trainingHandicap = TrainingTable(),
+                _openChance = OpenChanceTable()
             };
             rules.Seal();
             return rules;
@@ -206,6 +226,55 @@ namespace Cryptforge.Arena
         public IReadOnlyList<ArenaWeapon> Weapons => _weapons;
         public IReadOnlyList<ArenaSkill> Skills => _skills;
         public IReadOnlyList<ArenaBoon> Boons => _boons;
+
+        // ---- Training rivals and open offers (docs/55 section 10.10) ----
+
+        // The training rivals' handicap by rung, per mille of their damage, bottom rung first: set so that a careful player
+        // of a middle build wins about 75 % against the bottom rung, falling to 50 % at the top (no handicap). The shape is
+        // even in log-odds - each rung the same step in Elo terms, as the rivals' ratings step evenly by rung - and the
+        // measured slope (about 0.037 logits a per mille near even, ArenaBalanceResearch.TrainingRivals) turns it into
+        // almost even per mille: 970 at the bottom, 1000 at the top.
+        private static int[] TrainingTable() => new[]
+        {
+            970, 971, 972, 973, 974, 975, 976, 977, 978, 979, 980, 981, 982, 983, 984,
+            985, 986, 988, 989, 990, 991, 992, 993, 994, 995, 996, 997, 998, 999, 1000
+        };
+
+        // The open offers' expected chance at gaps 0, 0.5 %, ... 10 % (OpenChanceStep); beyond, the last. A logistic,
+        // logit = 0.374 x the ratio gap in per cent, fitted to 36 measured cells (four base powers, gaps to 8 %, any identity
+        // on either side; ArenaBalanceResearch.OpenOffers): a 2 % gap is about two fights in three.
+        private static int[] OpenChanceTable() => new[]
+        {
+            500, 547, 592, 637, 679, 718, 754, 787, 817, 843, 866, 886, 904, 919, 932, 943, 952, 960, 967, 972, 977
+        };
+
+        public int TrainingRungs => _trainingHandicap.Length;
+
+        // A training rival's handicap at a rung (0 the bottom); past the table's ends, its nearest end.
+        public int TrainingHandicap(int rung) => _trainingHandicap[Math.Max(0, Math.Min(_trainingHandicap.Length - 1, rung))];
+
+        // The expected chance per mille that a side of gear power `mine` beats one of `theirs` (the gear's power index in
+        // hundredths of a percent) in the open arena: the table read at the ratio gap, linear between its steps, mirrored
+        // below zero.
+        public int OpenChance(int mine, int theirs)
+        {
+            long gap = (10000L + mine) * 10000 / (10000L + theirs) - 10000;
+            bool behind = gap < 0;
+            long g = Math.Abs(gap);
+            int last = _openChance.Length - 1;
+            int chance;
+            if (g >= (long)last * OpenChanceStep)
+            {
+                chance = _openChance[last];
+            }
+            else
+            {
+                int step = (int)(g / OpenChanceStep);
+                int within = (int)(g % OpenChanceStep);
+                chance = _openChance[step] + (_openChance[step + 1] - _openChance[step]) * within / OpenChanceStep;
+            }
+            return behind ? 1000 - chance : chance;
+        }
 
         public ArenaHero Hero(string id) => Array.Find(_heroes, h => h.Id == id);
         public ArenaWeapon Weapon(string id) => Array.Find(_weapons, w => w.Id == id);
@@ -279,6 +348,10 @@ namespace Cryptforge.Arena
 
         public ArenaRules WithBurnScaling(bool scales) => With(r => r.BurnScales = scales);
 
+        public ArenaRules WithTrainingHandicaps(int[] perRung) => With(r => r._trainingHandicap = (int[])perRung.Clone());
+
+        public ArenaRules WithOpenChance(int[] perStep) => With(r => r._openChance = (int[])perStep.Clone());
+
         private static T[] Replace<T>(T[] items, T item, Predicate<T> match)
         {
             var copy = (T[])items.Clone();
@@ -334,6 +407,11 @@ namespace Cryptforge.Arena
             hash = ArenaHash.Mix(hash, BoonsDealt);
             hash = ArenaHash.Mix(hash, BackpedalPermille);
             hash = ArenaHash.Mix(hash, BurnScales ? 1 : 0);
+            foreach (int value in _trainingHandicap)
+                hash = ArenaHash.Mix(hash, value);
+            hash = ArenaHash.Mix(hash, OpenChanceStep);
+            foreach (int value in _openChance)
+                hash = ArenaHash.Mix(hash, value);
             return hash;
         }
     }

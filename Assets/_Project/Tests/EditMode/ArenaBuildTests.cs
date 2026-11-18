@@ -15,8 +15,8 @@ namespace Cryptforge.Tests
     {
         // The shipped table's content hash (ArenaRules.Current.Hash). A change to any arena number moves it: bump
         // ArenaRules.ShippedVersion, write both pins (this and DuelCoreTests' fingerprint), and say so in docs/55.
-        private const int PinnedVersion = 1;
-        private const ulong PinnedHash = 0x6988134A9881CFE8UL;
+        private const int PinnedVersion = 2;
+        private const ulong PinnedHash = 0x1AF9F58A1ED37422UL;
 
         [Test]
         public void TheRulesVersionAndHashArePinnedTogether()

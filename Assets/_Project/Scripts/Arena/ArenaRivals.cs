@@ -49,6 +49,25 @@ namespace Cryptforge.Arena
             return identity.AsOpen(GearAt(targetPower));
         }
 
+        // An open rival as near the target as the gear's tables allow from either side (GearNear): the open offers' rival.
+        public static ArenaBuild OpenNear(int seed, int index, int targetPower, ArenaRules rules = null)
+        {
+            ArenaBuild identity = Ranked(seed, index, rules);
+            return identity.AsOpen(GearNear(targetPower));
+        }
+
+        // Gear as near a power index as the tables allow, from below or a little above: GearAt at the target and at the
+        // target plus `slack`, whichever lands nearer (the lower on a tie). GearAt alone falls short by up to 0.6 % near the
+        // ceiling; this keeps a level offer within half a per cent (ArenaLadderTests).
+        public static List<ArenaGearPiece> GearNear(int targetPower, int slack = 40)
+        {
+            List<ArenaGearPiece> below = GearAt(targetPower);
+            List<ArenaGearPiece> above = GearAt(targetPower + slack);
+            int belowGap = Math.Abs(ArenaGearTable.Power(ArenaGearTable.Totals(below)) - targetPower);
+            int aboveGap = Math.Abs(ArenaGearTable.Power(ArenaGearTable.Totals(above)) - targetPower);
+            return aboveGap < belowGap ? above : below;
+        }
+
         // Gear at a power index: all four slots at the highest common + level within the target, then power lines (never a
         // slot's main stat, four a piece at most) at the highest tier that still fits, in a fixed order, until none fits.
         public static List<ArenaGearPiece> GearAt(int targetPower)

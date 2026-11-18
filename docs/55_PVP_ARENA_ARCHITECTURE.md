@@ -752,6 +752,112 @@ against it.
    Each card shows both powers and the expected chance read from 10.6's curve, so the player chooses the risk. An online
    ladder (P1) matches within +-2 % and widens the band with the wait, as 3.4 says.
 
+**Built and measured (2026-11-19).** Answers 1 and 5 are in the core (no UI). The rules are now **version 2** (hash
+**0x1AF9F58A1ED37422**), adding the training table and the offers' chance table. No fight between unhandicapped builds
+moved: the duel's fingerprint pin is still **0x0E7077FD7DB78B0E**, and 2,000 of 2,000 fingerprints match sequential
+against three threads, with 500 of 500 logs replayed. The arena save is **version 2** and migrates version 1. Numbers
+come from `ArenaBalanceResearch.TrainingRivals` and `.OpenOffers` (seeds 1-4000 for the fits, 1-2000 for the checks,
+best of three).
+
+*The training rivals.*
+- **How the handicap works.** A generated ranked rival carries a handicap: a coefficient on every point of damage it
+  deals (strikes, skills, burn), and nothing else. `ArenaLadder.Fill` stamps it into the rival's snapshot from
+  `ArenaRules.TrainingHandicap(rung)`, beside the rules version that set it. The ranked ladder carries `training: true`.
+  Past heroes and the player's own build never carry a handicap.
+- **When it is restamped.** A save fought under other rules, or a migrated version-1 save, is restamped by rung
+  (`ArenaLadder.Restamp`, called by `ArenaSaveStore.Load` and the migration).
+- **How it was measured.** The player is careful, with an identity drawn evenly and then one of its careful ranked
+  builds: the middle of the field by construction. Its rival is one of 600 generated ranked rivals, drawn as the ladder
+  draws them, at a given handicap. Over the needed range the logit of the player's share is close to linear in the
+  handicap:
+
+  | Rival's damage | 1000 | 994 | 988 | 982 | 976 | 970 | 964 |
+  |---|---|---|---|---|---|---|---|
+  | The player wins | 49.2 % | 55.0 % | 60.6 % | 64.8 % | 69.7 % | 74.1 % | 78.7 % |
+
+  The fit gives 0.0365 logits a per mille near even. An auto-duel is steep: 3 % off a rival's damage is a quarter of
+  the fights.
+- **The curve's shape: even in log-odds.** The target runs from 75 % at the bottom rung to 50 % at the top, and each rung
+  is the same step in Elo terms (about 6.6 points of Elo-equivalent a rung). Three reasons:
+  - The rivals' ratings step evenly by rung, 700 to 1500.
+  - The ladder's Elo then reads a rung's difficulty the way it reads its rating.
+  - The step per rung stays even where the fights are close.
+
+  Through the measured slope that is almost even per mille. The top rung is anchored at no handicap: it is a real rival.
+- **The shipped table** (per mille, rung 0 to 29): 970, 971, 972, 973, 974, 975, 976, 977, 978, 979, 980, 981, 982,
+  983, 984, 985, 986, 988, 989, 990, 991, 992, 993, 994, 995, 996, 997, 998, 999, 1000.
+- **Measured shares, monotonic:**
+
+  | Rung | 0 | 5 | 10 | 14 | 20 | 25 | 29 |
+  |---|---|---|---|---|---|---|---|
+  | Target | 75.0 % | 71.3 % | 67.3 % | 63.8 % | 58.4 % | 53.8 % | 50.0 % |
+  | Measured | 73.9 % | 70.6 % | 67.3 % | 63.7 % | 57.8 % | 53.6 % | 50.1 % |
+
+  By the player's identity (rungs 0 / 14 / 29):
+
+  | Player | Rung 0 | Rung 14 | Rung 29 |
+  |---|---|---|---|
+  | Vanguard + Sword | 74.0 % | 62.5 % | 48.8 % |
+  | Vanguard + Staff | 71.1 % | 60.9 % | 48.4 % |
+  | Vanguard + Daggers | 77.1 % | 63.4 % | 46.2 % |
+  | Ilya | 74.4 % | 63.8 % | 49.6 % |
+
+- **How a player climbs.** The player starts at 1000, near rung 11, and wins about two in three there. The rating climbs
+  while its wins beat Elo's even expectation against rivals near its rating, and levels off at the top, where the rivals
+  are real.
+- **The save, version 2.** `ArenaLadderData.training` (true for ranked), `ArenaRivalData.rung` (-1 for a past hero),
+  `ArenaSnapshotData.handicap` (1000 none), and the open offers' history fields. Version 1 migrates: the ranked ladder
+  becomes the training ladder, each generated rival takes the rung its id names (`ranked-07`) and that rung's handicap,
+  and the rating stands as a training rating.
+- **The event.** `arena_fight` gains `rival_training` and `rival_handicap`.
+
+*The open offers.*
+- **What is offered.** `ArenaLadder.OpenOffers` generates three rivals for the save's next fight at the player's own open
+  gear power, each drawn as the ladder's rivals are from the save's seed:
+  - **below** at 2 % (never under no gear);
+  - **level**;
+  - **above** at 2 % (never past the ceiling, where it meets level).
+- **Getting level within half a per cent.** The gear is made as near the target as the tables allow
+  (`ArenaRivals.GearNear`, the better of the recipe at the target and 0.4 % above it). Measured over every target from
+  0 to the ceiling, it misses by at most 0.40 %, where the old recipe from below missed by up to 0.61 % near the ceiling.
+- **The card's chance.** It is read from a fitted table, `ArenaRules.OpenChance`, not a duel run per offer. The chance is
+  a logistic in the ratio gap, (1 + mine) / (1 + theirs) - 1, fitted to 32 measured cells: four base powers (+5 to
+  +35 %), gaps out to 8 %, any identity on either side as the offers' rivals are.
+
+  | Base | -2 % | -1 % | level | +1 % | +2 % | +4 % |
+  |---|---|---|---|---|---|---|
+  | +5 % | 33.5 % | 41.2 % | 50.9 % | 57.9 % | 69.5 % | 81.1 % |
+  | +15 % | 39.8 % | 44.1 % | 50.1 % | 59.1 % | 67.6 % | 78.1 % |
+  | +25 % | 37.4 % | 42.3 % | 49.4 % | 57.1 % | 64.6 % | 74.9 % |
+  | +35 % | 39.0 % | 43.5 % | 49.1 % | 54.3 % | 62.1 % | 70.6 % |
+
+  The fit is logit = **0.374 x the gap in per cent**, so a 2 % gap is **67.9 %**. 10.6's matched points (Vanguard + Sword
+  mirror) sit on it: 1.7 % gave 67.8 % (fit 65.4 %), 4.1 % gave 83.0 % (82.2 %), 8.2 % gave 94.4 % (95.5 %). The curve
+  flattens a little at high power (+35 %: a 1.5 % gap is 62 %); one table is the compromise.
+- **The table** (per mille, gaps 0, 0.5, ... 10 %, linear between, mirrored below zero): 500, 547, 592, 637, 679, 718,
+  754, 787, 817, 843, 866, 886, 904, 919, 932, 943, 952, 960, 967, 972, 977.
+- **Cards against measured shares** (any identity on either side):
+
+  | Player's power | Below: card / measured | Level | Above |
+  |---|---|---|---|
+  | 0 | 50.0 / 51.1 % (no gear: below = level) | 50.0 / 51.1 % | 32.4 / 33.4 % |
+  | +10.2 % | 66.6 / 66.8 % | 50.0 / 50.5 % | 35.0 / 36.7 % |
+  | +24.9 % | 65.9 / 64.4 % | 50.0 / 49.4 % | 35.8 / 36.1 % |
+  | +40.0 % | 65.2 / 65.0 % | 50.0 / 51.3 % | 37.7 / 38.7 % |
+  | +50.0 % (the ceiling) | 61.3 / 61.9 % | 50.0 / 51.7 % | 46.1 / 47.4 % |
+
+  The cards stand within about 1.5 points of the measured share.
+- **Fighting an offer.** `ArenaLadder.FightOffer` moves the open rating by K x (score - the card's chance). Each offer
+  carries the Elo-equivalent rating (`GapFor`), so the rating moves by what the card promised. The history keeps the
+  offer's rival build, both powers and the card's chance, so any offer re-runs from its record. `arena_fight` gains
+  `offer_kind` and `offer_expected`.
+- **The open board.** The open ladder's thirty fixed-power rivals stay as its board, and past open heroes stand there.
+
+*Tests.* `ArenaTrainingTests` adds 9 tests (EditMode, and in every plain CombatChecks run): a handicap's share of a
+rival's damage (and none of the player's), the training ladder and its stamps, the version-1 migration, a rules change
+restamping, the store restamping, the fitted table, the three offers' powers and cards, an offer's rating move and
+re-run, and the offer's Elo-equivalent rating. The rules pin moved to version 2; the fingerprint pin did not.
+
 ## How to re-run
 
     dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~ArenaDuelTests"
@@ -768,6 +874,11 @@ against it.
       # Coefficients, Dominance, OpenCurve, Cost; ARENA_SEEDS (2000), ARENA_DOMINANCE_SEEDS (2000), ARENA_LOOP_SEEDS (400),
       # ARENA_LOOP_PASSES (12), ARENA_SWEEP_SEEDS (300), ARENA_SWEEP_PASSES (5), ARENA_PARALLEL (3), ARENA_OUT (TestResults);
       # writes arena-p0-<name>.md
+    dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~ArenaTrainingTests"
+      # 10.10's training rivals and open offers, in every plain run and in Unity's EditMode suite
+    dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~ArenaBalanceResearch.TrainingRivals|FullyQualifiedName~ArenaBalanceResearch.OpenOffers"
+      # 10.10's measurements: ARENA_TRAINING_SEEDS (4000 a grid point), ARENA_OFFER_SEEDS (1500 a cell), ARENA_SEEDS (2000
+      # for the checks); writes arena-p0-training.md and arena-p0-offers.md
 
 The prototype's limits: one lane, no horde, two heroes at their run-start kits with a 10 % base crit, a pool of five
 skills, a hand-written autopilot (close or keep reach, skills by health thresholds). Its numbers are the shape of the
