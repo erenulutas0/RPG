@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Cryptforge.Analytics;
 
@@ -73,6 +74,10 @@ namespace Cryptforge.Monetisation
         private bool _offerLogged;
         private bool _askedWithoutAd;
         private int _failedShows;
+        // The runs whose result screen closed in this launch (the newest 32): opened again, they are over - no second
+        // offer, no second completed run, no second reward_offer or reward_result (the review of 2026-11-19).
+        private readonly List<string> _endedRunIds = new List<string>();
+        private const int EndedRunsKept = 32;
         // The run whose video is on screen, its bonus and where it goes; null when none is.
         private string _showingRunId;
         private int _showingBonus;
@@ -181,11 +186,12 @@ namespace Cryptforge.Monetisation
             _resultSaved = resultSaved;
             _creditGold = creditGold;
             _open = true;
-            _resolved = false;
-            _offerLogged = false;
+            bool ended = _endedRunIds.Contains(runId);
+            _resolved = ended;
+            _offerLogged = ended;
             _askedWithoutAd = false;
             _failedShows = 0;
-            if (_ledger.RecordCompletedRun(runId))
+            if (!ended && _ledger.RecordCompletedRun(runId))
                 SaveLedger();
             // A screen that could offer but has no video asks for one now.
             if (State == RewardOfferState.NoAd)
@@ -247,6 +253,12 @@ namespace Cryptforge.Monetisation
                     Resolve(RunId, RewardResultKind.Declined, false, 0);
             }
             _open = false;
+            if (!_endedRunIds.Contains(RunId))
+            {
+                _endedRunIds.Add(RunId);
+                if (_endedRunIds.Count > EndedRunsKept)
+                    _endedRunIds.RemoveAt(0);
+            }
             _resultSaved = null;
             _creditGold = null;
             RunId = null;
