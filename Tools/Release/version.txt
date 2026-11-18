@@ -1,0 +1,6 @@
+# The release AAB's version (docs/61). AndroidReleaseBuild reads it and bumps nothing.
+# versionCode: a counter, one higher for every AAB uploaded to Play; never reused, never lowered.
+#   pwsh -File Tools/Build-Release.ps1 -BumpVersion   raises it by one before the build (and undoes that if the build fails).
+# versionName: MAJOR.MINOR.PATCH, the version players see; edited by hand.
+versionName=0.1.0
+versionCode=1

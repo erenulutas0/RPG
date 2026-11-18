@@ -296,5 +296,10 @@
     <!-- docs/57's skills 2 and 3 (phase 1): their pure bodies, and the simulation's skills off and on. -->
     <Compile Include="../../Assets/_Project/Tests/EditMode/HeroSkillRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/FoundrySkillsTests.cs" />
+    <!-- docs/61's release pipeline, its pure rules only: the version file, the signing environment, the settings plan, the
+         AAB's protobuf manifest and the JAR signature (Scripts/Editor/Release, no UnityEditor). AndroidReleaseBuild and its
+         settings table are Unity's (ReleaseBuildSettingsTests, EditMode only). -->
+    <Compile Include="../../Assets/_Project/Scripts/Editor/Release/*.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/ReleaseBuildTests.cs" />
   </ItemGroup>
 </Project>
