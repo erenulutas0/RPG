@@ -197,13 +197,14 @@
     <Compile Include="HeroSkillsResearch.cs" />
     <!-- docs/55 P0's local arena (2026-11-18): the integer duel core and its rules, builds, rivals, ladder, save and
          telemetry fields (Cryptforge.Arena, an assembly of its own in Unity), the profile's bridge and the save's file; its
-         EditMode tests in every plain run. -->
+         EditMode tests in every plain run, and the balance research on demand. -->
     <Compile Include="../../Assets/_Project/Scripts/Arena/**/*.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/ArenaProfileBuild.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Save/ArenaSaveStore.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/DuelCoreTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/ArenaBuildTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/ArenaLadderTests.cs" />
+    <Compile Include="ArenaBalanceResearch.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackMotionTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackSpacingTests.cs" />
