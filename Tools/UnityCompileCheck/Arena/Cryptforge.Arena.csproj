@@ -1,0 +1,25 @@
+<!--
+  The arena's assembly as Unity builds it (Assets/_Project/Scripts/Arena/Cryptforge.Arena.asmdef, noEngineReferences):
+  the arena's sources alone, with no UnityEngine and no game assembly to lean on, so a stray engine type or a reach into
+  the game's code fails here as it would in Unity and in a server module (docs/55 section 5.1). UnityCompileCheck.csproj
+  references it the way Unity's Project.Gameplay and Project.EditModeTests reference the asmdef, and leaves the folder
+  out of its own glob.
+
+    dotnet build Tools/UnityCompileCheck/UnityCompileCheck.csproj -p:UnityLibrary=E:/MobileGame/Library
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <AssemblyName>Cryptforge.Arena</AssemblyName>
+    <RootNamespace>Cryptforge.Arena</RootNamespace>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../../Assets/_Project/Scripts/Arena/**/*.cs" />
+  </ItemGroup>
+</Project>
