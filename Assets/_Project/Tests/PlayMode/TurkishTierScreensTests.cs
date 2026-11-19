@@ -196,12 +196,12 @@ namespace Cryptforge.Tests
             var problems = new List<string>();
             string inferno = TierText.Name(DifficultyTier.Inferno);
 
-            // The HUD: the tier before the floor line, the compact gold grouped the Turkish way.
+            // The HUD: the tier before the floor line; the compact gold count stays ungrouped (b792ee07).
             setup.Run.AddGold(1250);
             yield return null;
             Text floor = GameObject.Find("Floor Label").GetComponent<Text>();
             Assert.That(floor.text, Does.StartWith(TierText.Named(DifficultyTier.Inferno) + TierText.Separator));
-            Assert.That(GameObject.Find("Gold Count").GetComponent<Text>().text, Is.EqualTo("1.250"));
+            Assert.That(GameObject.Find("Gold Count").GetComponent<Text>().text, Is.EqualTo("1250"));
             Transform hud = GameObject.Find("HUD Canvas").transform;
             CheckAtEachHeight((RectTransform)hud.Find("Safe Area"), hud, "HUD", problems);
             NoEnglish(hud, "HUD", problems);
