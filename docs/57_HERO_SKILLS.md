@@ -1028,6 +1028,19 @@ cohort's pooled completion with all three skills at a ceiling of **60 %**. What 
   glyph's slow, each a candidate on a fresh block (13.8).
 - **The Editor's parity with the skills on** (13.5, still the lead's): `skills.txt` `3` or a forged profile on seeds 11-66.
 
+
+### 14.8 The lead's answers (2026-11-19)
+
+1. **The floor-clear rule stays.** Floor 2's first clear opens skill 2 and floor 3's opens skill 3, for the whole
+   profile; the Forge then forges each per hero. That is section 12's "the first clear opens and the Forge forges".
+2. **Skill 3 comes after skill 2.** One step at a time, and 500 gold after 300.
+3. **The Skills tab beside the weapons header stays for now.** The owner judges it on the captures (14.7) and on the S23.
+4. **A skill's button stays hidden until its floor is cleared.** The first runs keep the HUD to one button while the
+   player learns the game (docs/27: the first minute first). The button appears locked when its floor is cleared, and the
+   Forge's gold plate points the way.
+5. **The easing re-read** at the 60 % pooled-clumsy ceiling (13.8) waits for a per-pilot campaign model, in which the
+   skills join after the clear and the gold, not from the first frame. It is the lead's next balance task, on the next
+   fresh block from seed 11601.
 ## How to re-run
 
     dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~HeroSkillDuelTests"
