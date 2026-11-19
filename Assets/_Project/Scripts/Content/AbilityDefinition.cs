@@ -40,6 +40,8 @@ namespace Cryptforge.Content
         public float Duration => _duration;
         public float Amount => _amount;
         public Sprite Icon => _icon;
+        // The description's English with its placeholders, for AbilityText to write in the language the game speaks.
+        public string DescriptionFormat => _descriptionFormat ?? string.Empty;
         public string Description => string.Format(CultureInfo.InvariantCulture, _descriptionFormat ?? string.Empty, _damage, _radius,
             _cooldown, _duration, _amount);
 

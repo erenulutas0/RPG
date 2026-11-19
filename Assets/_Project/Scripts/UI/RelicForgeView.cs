@@ -88,9 +88,10 @@ namespace Cryptforge.UI
                 _heroChoice = gameObject.AddComponent<HeroChoiceView>();
                 _heroChoice.Initialize(_setup, _text, _startButton, _startLabel);
             }
-            // docs/54 phase 4: the Anvil's and the Bag's buttons beside the nameplate, and the panel they open.
+            // docs/54 phase 4: the Anvil's and the Bag's buttons beside the nameplate, and the panel they open; docs/57 phase 4:
+            // the Skills tab's at the right end of the weapons' header.
             _anvil = gameObject.AddComponent<AnvilView>();
-            _anvil.Initialize(_setup, _titleLabel, _startLabel);
+            _anvil.Initialize(_setup, _titleLabel, _startLabel, _weaponsHeaderLabel);
             _setup.Profile.Changed += OnProfileChanged;
             Loc.Changed += OnLanguageChanged;
             _subscribed = true;
@@ -173,6 +174,7 @@ namespace Cryptforge.UI
                     relics.GoldNeededFor(relic));
             }
 
+            _anvil.RefreshSkillsEntry();
             SetInteractable(false);
             _inputEnabledAt = Time.unscaledTime + _inputDelay;
             _awaitingInputDelay = true;

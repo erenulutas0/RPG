@@ -100,6 +100,7 @@ anvil.tab.forge	Forge	Ocak	Tab back to the Relic Forge.
 anvil.tab.anvil	Anvil	Örs	Tab and the forge's entry button (186 px).
 anvil.tab.efsun	Efsun	Efsun	Tab.
 anvil.tab.bag	Bag	Çanta	Tab and the forge's entry button (186 px).
+anvil.tab.skills	Skills	Yetenekler	Tab, and the forge's entry at the right end of the weapons header (186 px): the hero's skills (docs/57 phase 4).
 anvil.wallet_gold	Gold {gold}	Altın {gold}	Wallet row, inside a colour tag kept in the code.
 anvil.piece.empty	Empty	Boş	An empty equipment slot.
 anvil.piece.nothing_equipped	Nothing equipped	Kuşanılmış eşya yok	Big card with no piece.
@@ -157,6 +158,15 @@ anvil.bag.empty	Items drop from bosses, elites and the walk-out. Each is kept, e
 anvil.bag.full	The bag is full: a new drop melts at once. Melt or inherit to make room.	Çanta dolu: yeni düşen eşya hemen erir. Yer açmak için erit ya da aktar.	Bag detail.
 anvil.bag.hint	Tap an item to equip, melt, inherit from or upgrade it.	Kuşanmak, eritmek, aktarmak ya da güçlendirmek için bir eşyaya dokun.	Bag detail.
 anvil.bag.upgrade	Upgrade	Güçlendir	Bag button: the Anvil tab on this item.
+
+# ---- The Forge's Skills tab (AnvilView.Skills, docs/57 phase 4)
+skills.title	Hero Skills	Kahraman Yetenekleri	The panel's title on the Skills tab.
+skills.hero	{0}: the Forge forges each skill once, for this hero	{0}: Ocak her yeteneği bu kahraman için bir kez döver	The line above the three cards. {0} the hero (the forge's hero chooser).
+skills.own	Ready from the first run	İlk seferden beri hazır	Skill 1's state: the hero's own ability.
+skills.forged	Forged: yours in every run	Dövüldü: her seferde seninle	A forged skill's state.
+skills.needs_earlier	Forge {0} first	Önce {0} dövülmeli	Skill 3's state before skill 2 is forged. {0} skill 2's name; passive in Turkish, so no suffix rides on the name.
+skills.locked	Locked: clear floor {0}	Kilitli: {0}. katı temizle	A skill not yet opened. {0} the floor (2 or 3); "2." is the Turkish ordinal.
+skills.note	A floor cleared with any hero, on any difficulty, opens its skill for every hero.	Herhangi bir kahramanla, herhangi bir zorlukta temizlenen kat, yeteneğini her kahraman için açar.	Under the three cards: the unlock rule.
 
 # ---- Gear words (GearText)
 gear.stat.damage	Damage	Hasar	Stat.
@@ -346,18 +356,18 @@ item_spore_locket.name	Spore Locket	Spor Madalyonu	Amulet.
 item_cinder_ring.name	Cinder Ring	Kül Yüzüğü	Ring.
 item_mirror_ring.name	Mirror Ring	Ayna Yüzüğü	Ring.
 item_gloam_signet.name	Gloam Signet	Loş Mühür	Ring (a signet).
-ability_forge_burst.name	Forge Burst	Ocak Patlaması	The Vanguard's ability; not on screen yet (hero skills).
-ability_forge_burst.description	{0:0} damage to every enemy within {1:0.#} units, ready every {2:0}s	{1:0.#} birim içindeki her düşmana {0:0} hasar, her {2:0} sn'de hazır	Not on screen yet.
-ability_crucible_vent.name	Crucible Vent	Pota Ağzı	The Arcanist's ability; not on screen yet.
-ability_crucible_vent.description	Every burning enemy within {1:0.#} units erupts for {0:0} damage per Burn stack, ready every {2:0}s	{1:0.#} birim içinde yanan her düşman, Yanma yığını başına {0:0} hasarla patlar; her {2:0} sn'de hazır	Not on screen yet.
-ability_iron_resolve.name	Iron Resolve	Demir İrade	The Vanguard's skill 2 (docs/57); not on screen yet (hero skills phase 3).
-ability_iron_resolve.description	+{4:0} armour for {3:0}s: half of every blow on a bare hero, ready every {2:0}s	{3:0} sn boyunca +{4:0} zırh: zırhsız bir kahramana gelen her darbeyi yarıya indirir, her {2:0} sn'de hazır	{4} armour, {3} seconds, {2} cooldown. Not on screen yet.
-ability_shield_rush.name	Shield Rush	Kalkan Hücumu	The Vanguard's skill 3 (docs/57); not on screen yet.
-ability_shield_rush.description	Charge {4:0} units along the stick, {0:0} damage to every enemy in the way and a short daze, ready every {2:0}s	Kolun yönünde {4:0} birim hücum: yoldaki her düşmana {0:0} hasar ve kısa bir sersemlik, her {2:0} sn'de hazır	{4} distance, {0} damage, {2} cooldown; the stick is the movement joystick. Not on screen yet.
-ability_flame_sigil.name	Flame Sigil	Alev Mührü	The Arcanist's skill 2 (docs/57); not on screen yet.
-ability_flame_sigil.description	A glyph of {1:0.#} units for {3:0}s: enemies inside walk {4:0%} slower and burn double, ready every {2:0}s	{3:0} sn boyunca {1:0.#} birimlik bir mühür: içindeki düşmanlar {4:%0} daha yavaş yürür ve iki kat yanar, her {2:0} sn'de hazır	{1} radius, {3} seconds, {4} slow, {2} cooldown. Not on screen yet.
-ability_cinder_ward.name	Cinder Ward	Kül Siperi	The Arcanist's skill 3 (docs/57); not on screen yet.
-ability_cinder_ward.description	A ward of {4:0%} of your health for {3:0}s; whoever strikes it catches fire, ready every {2:0}s	{3:0} sn boyunca canının {4:%0} kadar bir siper; ona vuran alev alır, her {2:0} sn'de hazır	{4} of the hero's health, {3} seconds, {2} cooldown. Not on screen yet.
+ability_forge_burst.name	Forge Burst	Ocak Patlaması	The Vanguard's skill 1; the Forge's Skills tab (docs/57 phase 4).
+ability_forge_burst.description	{0:0} damage to every enemy within {1:0.#} units, ready every {2:0}s	{1:0.#} birim içindeki her düşmana {0:0} hasar, her {2:0} sn'de hazır	The Forge's Skills tab.
+ability_crucible_vent.name	Crucible Vent	Pota Ağzı	The Arcanist's skill 1; the Forge's Skills tab.
+ability_crucible_vent.description	Every burning enemy within {1:0.#} units erupts for {0:0} damage per Burn stack, ready every {2:0}s	{1:0.#} birim içinde yanan her düşman, Yanma yığını başına {0:0} hasarla patlar; her {2:0} sn'de hazır	The Forge's Skills tab.
+ability_iron_resolve.name	Iron Resolve	Demir İrade	The Vanguard's skill 2 (docs/57); the Forge's Skills tab.
+ability_iron_resolve.description	+{4:0} armour for {3:0}s: half of every blow on a bare hero, ready every {2:0}s	{3:0} sn boyunca +{4:0} zırh: zırhsız bir kahramana gelen her darbeyi yarıya indirir, her {2:0} sn'de hazır	{4} armour, {3} seconds, {2} cooldown. The Forge's Skills tab.
+ability_shield_rush.name	Shield Rush	Kalkan Hücumu	The Vanguard's skill 3 (docs/57); the Forge's Skills tab.
+ability_shield_rush.description	Charge {4:0} units along the stick, {0:0} damage to every enemy in the way and a short daze, ready every {2:0}s	Kolun yönünde {4:0} birim hücum: yoldaki her düşmana {0:0} hasar ve kısa bir sersemlik, her {2:0} sn'de hazır	{4} distance, {0} damage, {2} cooldown; the stick is the movement joystick. The Forge's Skills tab.
+ability_flame_sigil.name	Flame Sigil	Alev Mührü	The Arcanist's skill 2 (docs/57); the Forge's Skills tab.
+ability_flame_sigil.description	A glyph of {1:0.#} units for {3:0}s: enemies inside walk {4:0%} slower and burn double, ready every {2:0}s	{3:0} sn boyunca {1:0.#} birimlik bir mühür: içindeki düşmanlar {4:%0} daha yavaş yürür ve iki kat yanar, her {2:0} sn'de hazır	{1} radius, {3} seconds, {4} slow, {2} cooldown. The Forge's Skills tab.
+ability_cinder_ward.name	Cinder Ward	Kül Siperi	The Arcanist's skill 3 (docs/57); the Forge's Skills tab.
+ability_cinder_ward.description	A ward of {4:0%} of your health for {3:0}s; whoever strikes it catches fire, ready every {2:0}s	{3:0} sn boyunca canının {4:%0} kadar bir siper; ona vuran alev alır, her {2:0} sn'de hazır	{4} of the hero's health, {3} seconds, {2} cooldown. The Forge's Skills tab.
 
 # ---- The arena (docs/55 section 11): ArenaText, the arena screen's words
 arena.title	Arena	Arena	The arena screen's title; also the map choice's entry button.
