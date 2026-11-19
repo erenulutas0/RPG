@@ -3128,3 +3128,45 @@ CombatChecks 798. docs/48 holds both rounds.
 (`VaultsEnemiesResearch`, `DescentSimulation.Vaults`); the default batch is byte-identical. Two rounds (docs/50,
 Measured): the Mirror Sentry `t45-h125-c2-f50` is the one to build (the Daggers +83 %, clumsy completion 40.8 %); the
 Glass Regent at share 7.0 (49 / 46 s on seeds 201-400); the Silver Wisp and the Faceless Clerk move nothing and wait.
+
+## 2026-11-19 - The Glass Regent's bite and the skills, phases 1-2
+
+`c653050e` (docs/50): a beat whose lane goes down with the hero within 1.5 of the Regent holds no rod through the cast;
+confirmed on seeds 2001-5200. `81ceb11b` (docs/57 section 13): skills 2 and 3 of both heroes in the core, the
+simulation and the scene, off by default (`development/skills.txt`); candidate c1 confirmed on seeds 8401-11600 as an
+easing. `bec8da6b` / `3f45838b`: the four skills' icons and their names with Turkish.
+
+## 2026-11-19 - The difficulty tiers
+
+`a63aa408` (docs/54 section 21): Forged, Tempered, Inferno and Abyssal through one `FloorScaling` body, opened in a chain
+by a completed Descent; save version 5 (per-tier records, a v4 migration); the map choice's tier row and the tier on the
+HUD. The lead's decisions are `4b919dd1`.
+
+## 2026-11-19 - The arena, P0
+
+`5a158a4e` (docs/55 section 10): the rung handicap on ranked rivals (73.9 % to 50.1 %), three open offers, the arena
+save version 2. `e7035506` (section 11): the view - build screen, training ladder, playback from the log, result with its
+why, 90 table rows with Turkish, `Run-ArenaProof.ps1`. `58507bee`: the arena plays at x2 first. Answers: `9391c1ab`.
+
+## 2026-11-19 - Localisation pass 2
+
+`d8ac8dd6` (docs/60 section 7): the tier names and hints, the map choice, the HUD and the result in the table with their
+Turkish, `Loc.Numbers`, the language toggle on the map choice, `TurkishTierScreensTests`, `Run-TierUiProof.ps1 -Language`.
+`b792ee07`, `3299a99f`: the HUD's compact gold stays ungrouped. `eb0406bd`: the map choice's toggle test tolerates the
+panel's input delay.
+
+## 2026-11-19 - The monetisation scaffold and the economy model
+
+`8a0435ea` (docs/58 section 7): the reward-offer rule and coordinator, the entitlement cache, `IAnalytics`,
+`SessionClock`; no SDK, no view. `b3cf6bb9` (docs/58 section 4a): `gear_economy.py --video`; the x1.5 is kept.
+
+## 2026-11-19 - The release pipeline, the store drafts and graphics
+
+`83299faa` (docs/61): the release AAB, the version file, the 16 KB and manifest report. `3dc14a9e`: the release build
+writes a setting only when its value differs. `ef429641` (docs/store): the policy, KVKK, Data safety, IARC, listing and
+reviewer drafts. `c103839f` (StoreListing/): the icon, the adaptive layers and the feature graphic. `989eb0e5`: docs/23's
+runbook names the APK, 61,419,957 bytes, SHA-256 5A47661C...
+
+Open: hero skills phases 3-4 (docs/57 section 14) are on `lead-integrate-10`, not main; the S23 device row, the app icon
+and productName in PlayerSettings, the owner's review lists and the next balance read (docs/57 13.8) are in docs/41's
+2026-11-19 (night) status.
