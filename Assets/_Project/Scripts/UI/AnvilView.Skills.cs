@@ -20,9 +20,9 @@ namespace Cryptforge.UI
         // The page under the wallet: the hero's line, the three cards and the note.
         private const float SkillsTop = 338f;
         private const float SkillCardTop = 84f;
-        private const float SkillCardHeight = 300f;
+        private const float SkillCardHeight = 340f;
         private const float SkillCardGap = 28f;
-        private const float SkillIconSize = 220f;
+        private const float SkillIconSize = 240f;
         private const int SkillPaintSlot = 6;
         private static readonly Color StateForged = new Color32(137, 213, 180, 255);
         private static readonly Color StateWaiting = new Color32(145, 188, 225, 255);
@@ -132,11 +132,11 @@ namespace Cryptforge.UI
             icon.sizeDelta = new Vector2(SkillIconSize, SkillIconSize);
             float left = 40f + SkillIconSize + 34f;
             card.Name = Label(rect, name + " Name", _nameSource, 44, TextAnchor.MiddleLeft);
-            InCard(card.Name.rectTransform, left, 26f, 36f, 64f);
+            InCard(card.Name.rectTransform, left, 30f, 36f, 64f);
             card.Info = Label(rect, name + " Description", _descriptionSource, 30, TextAnchor.UpperLeft);
-            InCard(card.Info.rectTransform, left, 98f, 36f, 116f);
+            InCard(card.Info.rectTransform, left, 104f, 36f, 140f);
             card.Level = Label(rect, name + " State", _descriptionSource, 32, TextAnchor.MiddleLeft);
-            InCard(card.Level.rectTransform, left, 222f, 36f, 56f);
+            InCard(card.Level.rectTransform, left, 256f, 36f, 56f);
             return card;
         }
 
