@@ -2253,3 +2253,68 @@ an APK of it are still to run.
 
 Still the owner's (the phone): the V0.1 device rows - the owner's play and the S23 frame time - and the APK install
 by docs/23's runbook (be7b2b14's APK, 3B4DDAB7...).
+
+## Status 2026-11-19 (night): the night's merges - the arena, the tiers, Turkish, the skills, the release path
+
+Since the last status (the foundry's Descent, 2026-11-12) the night of 2026-11-18/19 brought the work below onto main
+(`git log --first-parent 43c9b80c..989eb0e5`, 01:02 to 03:48 on 2026-11-19). Each piece is named by the merge that
+carries it and the document that holds its numbers.
+
+**What reached main:**
+- **The Glass Regent's standing bite** (`c653050e`, docs/50): a beat whose lane goes down with the hero within 1.5 of the
+  Regent holds no rod through the cast. Confirmed on seeds 2001-5200 (clumsy -0.25, careful +1.06, first-card +1.34,
+  standing -1.12 against the Warden). V0.1: the Vaults' elite fight is one step closer to a read of skill.
+- **Hero skills, phases 1-2** (`81ceb11b`, docs/57 section 13): skills 2 and 3 of both heroes in the core, the
+  simulation and the scene, **off by default** (`development/skills.txt` turns them on). Candidate c1 confirmed on seeds
+  8401-11600 as an easing (clumsy +15.00, careful +1.45, first-card +3.88, standing +4.33). The lead accepted the easing
+  with a ceiling (section 13.8): skills 2-3 open only after the first clear and the Forge; above 60 % pooled clumsy
+  completion the ward is trimmed first. The four skills' icons (`bec8da6b`) and their names in the table with Turkish
+  (`3f45838b`) are in, not yet wired to the HUD.
+- **The difficulty tiers** (`a63aa408`, docs/54 section 21): Forged, Tempered (x1.08 health / x1.02 damage, x1.25
+  rewards, +10 item luck), Inferno (x1.15 / x1.10, x1.5, +20) and Abyssal (x1.20 / x1.14, x2, +30) through one
+  `FloorScaling` body, each opened by completing a Descent on the tier below; save version 5. Forged is today's run to
+  the bit. The lead's decisions (`4b919dd1`) accepted the easings; the tier row is judged on the capture.
+- **The arena, P0** (`5a158a4e`, `e7035506`, docs/55 sections 10-11): the integer core as its own assembly, a rung
+  handicap on generated ranked rivals (measured 73.9 % down to 50.1 %), three open offers, the arena's save version 2;
+  then the view - the build screen, the training ladder and the open offers, the playback from the duel's log (x1/x2,
+  skip, watch again), the result with its why, 90 table rows with Turkish. It plays at x2 first (`58507bee`). Local
+  only, no backend (docs/55 section 9).
+- **Localisation passes 1-2** (`d8ac8dd6`, docs/60): the tier names, the map choice, the HUD and the result in the
+  table with their Turkish, numbers through `Loc.Numbers`, the language toggle on the map choice too. This is docs/59
+  decision 1 (Turkish and English at release). `b792ee07` keeps the HUD's compact gold ungrouped in English.
+- **The monetisation scaffold** (`8a0435ea`, docs/58 section 7): `IRewardedVideo`, `IStoreEntitlements`, `IAdConsent`
+  with offline fakes, the reward-offer rule and coordinator (saved before the video, credited once by run id, one
+  retry, 10 gold minimum), the `IAnalytics` seam and `SessionClock`. No SDK, no view. **The economy model**
+  (`b3cf6bb9`, docs/58 section 4a, `gear_economy.py --video`): the lead keeps the video's x1.5; the free player keeps
+  docs/54's road, a full watcher reaches +9 and the full set about a third sooner.
+- **The release pipeline** (`83299faa`, docs/61): a release AAB signed outside Unity, `Tools/Release/version.txt`,
+  ProjectSettings guarded (`3dc14a9e` writes a setting only when its value differs), the 16 KB and manifest report.
+- **The store and policy drafts** (`ef429641`, docs/store): the privacy policy and the KVKK disclosure in Turkish and
+  English, the Data safety and IARC answers, the two listings, the reviewers' notes. **The store graphics**
+  (`c103839f`, StoreListing/): a 512 icon, the adaptive layers, a 1024x500 feature graphic. Outside Assets, nothing ships.
+- **docs/23's runbook** (`989eb0e5`) names the APK with the arena's screen and the tier screens in Turkish: 61,419,957
+  bytes, SHA-256 5A47661C...
+
+**What each piece means for the V0.1 path and the first release (docs/59):** the V0.1 build now carries the tiers and
+the arena on top of the Descent, with the skills' core in but dark. For the release, docs/59's engineering list has the
+release build (docs/61), the Turkish and English text (docs/60), the monetisation seams (docs/58) and the policy and
+store drafts (docs/store); what it still lacks is the SDKs themselves, the owner's accounts, the upload key and the
+Play Console forms (docs/61 section 7).
+
+**On a branch, not on main:** hero skills phases 3-4 (docs/57 section 14: the HUD's three buttons, the Forge's Skills
+tab, save version 6) are on `lead-integrate-10`, in its full Unity gate. Until that gate passes and it merges, the
+skills stay off by default on main.
+
+**Still open:**
+- **The owner's review lists:** docs/60 section 9, the glossary questions (hero names, XP or TP, "Sefer", the relic,
+  amulet and forge words, the percent sign, and pass 2's tier names and phrasing); the docs/store README's placeholders
+  (`{{DEVELOPER_NAME}}`, `{{CONTACT_EMAIL}}`, `{{POSTAL_ADDRESS}}`, `{{POLICY_URL}}`, `{{WEBSITE_URL}}`,
+  `{{EFFECTIVE_DATE}}`) and its legal `[[CHECK]]` / `[[KONTROL]]` questions for a lawyer or an SMMM; docs/55 11.9
+  (the arena's questions: the pace, the lane's figure, the Shield Rush's opening, the past-hero rule, the Turkish words;
+  11.10 holds the lead's answers); docs/57 14.8 (on `lead-integrate-10`).
+- **The device row on the S23:** not installed tonight, at the owner's request. The V0.1 device rows (the owner's play and
+  the S23 frame time) stay open, and docs/23's APK is the one to install.
+- **ProjectSettings, for the owner's OK:** the app icon is not set in PlayerSettings (the StoreListing/ layers are
+  drafts), and the productName is still "Project Cryptforge".
+- **The next balance read:** docs/57 13.8, on fresh seeds from 11601, with the skills live and the unlock as built
+  (the standing and auto-farmer cohorts of docs/54 section 21 are read on the same block).
