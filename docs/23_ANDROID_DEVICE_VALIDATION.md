@@ -2404,6 +2404,7 @@ report (steps 7-8) only read, so they need no focus check.
    ```
    The folder holds no `pull.txt`, so the batch report never reads it.
 4. **Install the APK and check its hash.** The APK is `Builds/Android/Cryptforge-Prototype.apk`, the clean build of
+   main 78c379af with the arena's button on the map choice (P0's arena opens from the title row's left) on top of
    main dd166c31 with Cinder Ward's redrawn icon on top of
    main 8ba5496e with the heroes' skills 2 and 3 playable (docs/57 14: floor 2's and floor 3's first clears open them,
    the Forge's Skills tab forges them for 300 and 500 gold, the HUD's three buttons; save version 6) on top of
@@ -2439,8 +2440,8 @@ report (steps 7-8) only read, so they need no focus check.
    with a point on every locale; Gradle's 10 MB of holes gone; 36,819,361 bytes). Check the file
    itself, never a hash written down earlier:
    ```
-   (Get-FileHash Builds/Android/Cryptforge-Prototype.apk -Algorithm SHA256).Hash   # 53C866365130D208... on 2026-11-19 04:56
-   (Get-Item Builds/Android/Cryptforge-Prototype.apk).Length                        # 61620061
+   (Get-FileHash Builds/Android/Cryptforge-Prototype.apk -Algorithm SHA256).Hash   # A8C088A39F06017A... on 2026-11-19 05:30
+   (Get-Item Builds/Android/Cryptforge-Prototype.apk).Length                        # 61619861
    adb install -r Builds/Android/Cryptforge-Prototype.apk
    ```
    `install -r` keeps the profile and the telemetry. `Cryptforge-Prototype-679df68d.apk` (47 MB, DA3D13FD...) and the
