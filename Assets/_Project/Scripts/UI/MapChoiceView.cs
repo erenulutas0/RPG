@@ -35,6 +35,8 @@ namespace Cryptforge.UI
     // Every word is the language's (docs/60 pass 2), a hero's through HeroText and a tier's through TierText, and the
     // language toggle stands in the title's band (the game's start; the pause overlay has the other): a tap writes the
     // panel's words again at once, and the run then starts in a scene loaded in that language (CombatSetup.StartOnMap).
+    // The arena's entry (docs/55 section 11.5) mirrors the toggle at the band's left, the title centred between them: a tap
+    // opens P0's arena (ArenaScreen, its canvas above this one), and closing it leaves the panel open as it was.
     public sealed class MapChoiceView : MonoBehaviour
     {
         public const string CanvasName = "Map Choice";
@@ -73,11 +75,14 @@ namespace Cryptforge.UI
         private const float TextLeft = 350f;
         private const float FitMargin = 16f;
         // The language toggle (docs/60 pass 2; the pause overlay has the other): in the title's band at its right, so the
-        // panel keeps its 1900 units, the title taking the band's left beside it.
+        // panel keeps its 1900 units. The Arena button (docs/55 section 11.5) is its mirror at the band's left, the same
+        // size on the same plate, and the title stands centred between the two, 352 wide: its best fit may take it to two
+        // lines, and it fits at its smallest size (the Turkish tests measure it).
         private const float LanguageWidth = 260f;
         private const float LanguageHeight = 84f;
         private const float LanguageGap = 20f;
         private const int LanguageFontSize = 32;
+        public const string ArenaButtonName = "Arena Button";
 
         // The panel's words, in the language the game speaks (docs/60).
         public static string MapTitle => Loc.Text("map.title", "Choose your map");
@@ -116,6 +121,8 @@ namespace Cryptforge.UI
         private readonly List<TierCard> _tierCards = new List<TierCard>(DifficultyTiers.Count);
         private Text _tierDetail;
         private LanguageToggleView _language;
+        private Button _arena;
+        private Text _arenaLabel;
         private bool _listening;
         private ChoiceCardArtSet _art;
         private Text _title;
@@ -189,6 +196,9 @@ namespace Cryptforge.UI
         public DifficultyTier SelectedTier { get; private set; }
         // The language toggle in the title's band (docs/60), for tests and captures.
         public LanguageToggleView LanguageToggle => _language;
+        // The arena's entry at the band's left (docs/55 section 11.5) and the word it shows, for tests and captures.
+        public Button ArenaButton => _arena;
+        public string ArenaLabelText => _arenaLabel != null ? _arenaLabel.text : string.Empty;
         public float InputEnabledAt => _inputEnabledAt;
 
         public void Initialize(CombatSetup setup, HeroMovementInput movement)
@@ -261,13 +271,14 @@ namespace Cryptforge.UI
             surface.color = new Color(.09f, .08f, .11f, .97f);
             surface.raycastTarget = true;
 
-            // The title in the band's left, the language toggle at its right (docs/60).
+            // The title in the band's middle, the Arena button at its left (docs/55 section 11.5), the language toggle at its
+            // right (docs/60).
             Text title = Label(surface.transform, "Map Choice Title", titleSource, fallback, 56, TextAnchor.MiddleCenter);
             RectTransform titleRect = title.rectTransform;
             titleRect.anchorMin = new Vector2(0f, 1f);
             titleRect.anchorMax = new Vector2(1f, 1f);
             titleRect.pivot = new Vector2(.5f, 1f);
-            titleRect.offsetMin = new Vector2(CardInset, -(TitleTop + TitleHeight));
+            titleRect.offsetMin = new Vector2(CardInset + LanguageWidth + LanguageGap, -(TitleTop + TitleHeight));
             titleRect.offsetMax = new Vector2(-(CardInset + LanguageWidth + LanguageGap), -TitleTop);
             LocalisedLabel.Bind(title, () => heroRow ? HeroAndMapTitle : MapTitle);
             _title = title;
@@ -277,6 +288,7 @@ namespace Cryptforge.UI
             _language = LanguageToggleView.Create(surfaceRect, descriptionSource, LanguageFontSize, Vector2.one, Vector2.one,
                 Vector2.one, new Vector2(-CardInset, -(TitleTop + (TitleHeight - LanguageHeight) / 2f)),
                 new Vector2(LanguageWidth, LanguageHeight));
+            AddArenaButton(surfaceRect, descriptionSource, fallback);
 
             FloorDefinition floor = _setup.Encounters != null ? _setup.Encounters.Floor : null;
             for (int number = DescentStart.FirstFloor; number <= DescentStart.DeepestStart && floor != null; number++)
@@ -313,6 +325,50 @@ namespace Cryptforge.UI
             RefreshHeroCards();
             RefreshTierCards();
             RefreshMapCards();
+        }
+
+        // The arena's entry (docs/55 section 11.5): the language toggle's mirror at the title band's left - its size, its
+        // plate (LanguageToggleView.PaintPlate), its label's style and inset - naming the arena in the language the game
+        // speaks ("Arena" in both).
+        private void AddArenaButton(RectTransform surface, Text labelStyle, Font fallback)
+        {
+            var buttonObject = new GameObject(ArenaButtonName, typeof(RectTransform), typeof(Image), typeof(Button));
+            buttonObject.layer = surface.gameObject.layer;
+            var rect = (RectTransform)buttonObject.transform;
+            rect.SetParent(surface, false);
+            rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0f, 1f);
+            rect.anchoredPosition = new Vector2(CardInset, -(TitleTop + (TitleHeight - LanguageHeight) / 2f));
+            rect.sizeDelta = new Vector2(LanguageWidth, LanguageHeight);
+            _arena = buttonObject.GetComponent<Button>();
+            _arena.targetGraphic = buttonObject.GetComponent<Image>();
+            LanguageToggleView.PaintPlate(_arena);
+
+            _arenaLabel = Label(rect, ArenaButtonName + " Label", labelStyle, fallback, LanguageFontSize, TextAnchor.MiddleCenter);
+            Stretch(_arenaLabel.rectTransform, new Vector2(24f, 10f), new Vector2(-24f, -10f));
+            LocalisedLabel.Bind(_arenaLabel, () => ArenaText.Title);
+            _arena.onClick.AddListener(OpenArena);
+        }
+
+        // The Arena button tapped, after the input delay and while no map is chosen: P0's arena opens over the panel, its
+        // canvas (ArenaScreen.SortingOrder, 110) above this one's 100 and taking every touch. The panel holds the run
+        // meanwhile, as it does while the player chooses.
+        public void OpenArena()
+        {
+            if (_chosen || !IsOpen || Time.unscaledTime < _inputEnabledAt)
+                return;
+            if (ArenaScreen.Current != null && ArenaScreen.Current.IsOpen)
+                return;
+            ArenaScreen.Open(_setup, OnArenaClosed);
+        }
+
+        // The arena closed: the panel stands as it was, its input delay begun again - the arena's Close sits over this
+        // band's left, so a second tap on it cannot open the arena again or reach another control.
+        private void OnArenaClosed()
+        {
+            if (!IsOpen || _chosen)
+                return;
+            _inputEnabledAt = Time.unscaledTime + InputDelay;
+            SetInteractable(false);
         }
 
         // A tier's card in the row: its name, its reward and its state, the row's cards sharing the surface's inner width.
@@ -718,6 +774,8 @@ namespace Cryptforge.UI
                 _tierCards[i].Button.interactable = interactable && _setup.IsTierOpen(_tierCards[i].Tier);
             if (_language != null)
                 _language.Button.interactable = interactable;
+            if (_arena != null)
+                _arena.interactable = interactable;
         }
 
         // A hero card tapped, after the input delay: a playable hero becomes the run's, and the profile remembers it as the

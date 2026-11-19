@@ -10,7 +10,7 @@ using UnityEngine.SceneManagement;
 
 namespace Cryptforge.UI
 {
-    // The arena's development entry until the map choice carries its button (docs/55 section 11): any text in
+    // The arena's development entry, beside the map choice's Arena button (docs/55 section 11.5): any text in
     // <profile folder>/development/arena.txt opens the arena over the gameplay scene as it loads - over the map choice,
     // which holds the run - in the Editor and a development build only, as development/skills.txt arms the skills. "open"
     // as its first word opens the open arena's offers, anything else the training ladder. A release build never looks,
