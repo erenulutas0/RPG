@@ -39,6 +39,42 @@ namespace Cryptforge.Art
             return canvas;
         }
 
+        // A padlock: the mark over a locked skill button's dimmed icon (docs/57 section 5.2) - a brass body with a dark
+        // keyhole under a steel shackle, outlined, on a LockSize square.
+        public const int LockSize = 18;
+
+        private static readonly string[] LockMap =
+        {
+            "......SSSSSS......",
+            ".....SsssssS......",
+            "....Ss.....sS.....",
+            "....Ss.....sS.....",
+            "....Ss.....sS.....",
+            "....Ss.....sS.....",
+            "..BBBBBBBBBBBBBB..",
+            "..BbbbbbbbbbbbbB..",
+            "..BbbbbbkkbbbbbB..",
+            "..BbbbbkkkkbbbbB..",
+            "..BbbbbbkkbbbbbB..",
+            "..BbbbbbkkbbbbbB..",
+            "..BbbbbbkkbbbbbB..",
+            "..BbbbbbbbbbbbbB..",
+            "..BBBBBBBBBBBBBB..",
+        };
+
+        public static PixelCanvas DrawLock()
+        {
+            var canvas = new PixelCanvas(LockSize, LockSize);
+            var palette = new System.Collections.Generic.Dictionary<char, Rgba>
+            {
+                ['S'] = PixelPalette.SteelDark, ['s'] = PixelPalette.SilverLight,
+                ['B'] = PixelPalette.BrassDark, ['b'] = PixelPalette.BrassLight, ['k'] = PixelPalette.Outline
+            };
+            canvas.BlitMap(LockMap, palette, 0, 1);
+            canvas.Outline(PixelPalette.Outline);
+            return canvas;
+        }
+
         // The ring a floor circle of radiusTexels makes on screen: an ellipse twice as wide as it is tall, dashed so it
         // reads as a marker rather than a wall. Centred on the canvas; the hero's feet go at that centre.
         public static PixelCanvas DrawRangeRing(int radiusTexels)

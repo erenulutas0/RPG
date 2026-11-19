@@ -19,6 +19,21 @@ namespace Cryptforge.Tests
             Assert.That(glyph.CountVisible(), Is.InRange(60, 200));
         }
 
+        // docs/57 section 5.2: the padlock over a locked skill button.
+        [Test]
+        public void TheLockIsAnOutlinedPadlock()
+        {
+            PixelCanvas padlock = AbilityArt.DrawLock();
+            Assert.That((padlock.Width, padlock.Height), Is.EqualTo((AbilityArt.LockSize, AbilityArt.LockSize)));
+            Assert.That(padlock.Get(3, 8), Is.EqualTo(PixelPalette.BrassLight), "A brass body.");
+            Assert.That(padlock.Get(8, 7), Is.EqualTo(PixelPalette.Outline), "A dark keyhole in it.");
+            Assert.That(padlock.Get(6, 14), Is.EqualTo(PixelPalette.SilverLight), "A steel shackle above it.");
+            Assert.That(padlock.Get(8, 12), Is.EqualTo(Rgba.Transparent), "Open inside the shackle.");
+            Assert.That(padlock.Get(2, 0), Is.EqualTo(PixelPalette.Outline), "Outlined.");
+            Assert.That(padlock.Get(0, 0), Is.EqualTo(Rgba.Transparent), "Transparent corners.");
+            Assert.That(padlock.CountVisible(), Is.InRange(150, 250));
+        }
+
         [Test]
         public void TheRangeRingIsADashedIsometricEllipseAroundAClearCentre()
         {

@@ -114,7 +114,7 @@ namespace Cryptforge.Tests
             forge.Open();
             yield return null;
             var problems = new List<string>();
-            foreach (AnvilView.Tab tab in new[] { AnvilView.Tab.Anvil, AnvilView.Tab.Efsun, AnvilView.Tab.Bag })
+            foreach (AnvilView.Tab tab in new[] { AnvilView.Tab.Anvil, AnvilView.Tab.Efsun, AnvilView.Tab.Bag, AnvilView.Tab.Skills })
             {
                 forge.Anvil.Open(tab);
                 yield return new WaitForSecondsRealtime(AnvilView.InputDelay + .1f);

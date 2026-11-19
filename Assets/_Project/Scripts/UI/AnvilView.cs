@@ -32,14 +32,16 @@ namespace Cryptforge.UI
     //     (the Anvil tab on that item).
     // Its words are the language's (Loc, docs/60) and every number is written in that language's format (GearText); the
     // panel writes itself again when the language changes. The Anvil service (CombatSetup.Anvil) does every change.
-    public sealed class AnvilView : MonoBehaviour
+    public sealed partial class AnvilView : MonoBehaviour
     {
         public enum Tab
         {
             Forge = 0,
             Anvil = 1,
             Efsun = 2,
-            Bag = 3
+            Bag = 3,
+            // docs/57 phase 4: the hero's skills, forged here (AnvilView.Skills.cs).
+            Skills = 4
         }
 
         public const string CanvasName = "Anvil";
@@ -75,7 +77,7 @@ namespace Cryptforge.UI
         private const float TileGap = 10f;
 
         // The tabs' and the slots' names for their objects, English whatever the language (tests and captures find them).
-        private static readonly string[] TabNames = { "Forge", "Anvil", "Efsun", "Bag" };
+        private static readonly string[] TabNames = { "Forge", "Anvil", "Efsun", "Bag", "Skills" };
         private static readonly string[] SlotNames = { "Weapon", "Armour", "Amulet", "Ring" };
         // The tabs' words on screen.
         private static readonly LocText[] TabWords =
@@ -83,7 +85,8 @@ namespace Cryptforge.UI
             new LocText("anvil.tab.forge", "Forge"),
             new LocText("anvil.tab.anvil", "Anvil"),
             new LocText("anvil.tab.efsun", "Efsun"),
-            new LocText("anvil.tab.bag", "Bag")
+            new LocText("anvil.tab.bag", "Bag"),
+            new LocText("anvil.tab.skills", "Skills")
         };
         private static readonly Color Gold = new Color32(238, 191, 108, 255);
         private static readonly Color Muted = new Color32(163, 167, 183, 255);
@@ -110,8 +113,8 @@ namespace Cryptforge.UI
         private Text _title;
         private Text _wallet;
         private Text _boosters;
-        private readonly Button[] _tabs = new Button[4];
-        private readonly Text[] _tabLabels = new Text[4];
+        private readonly Button[] _tabs = new Button[5];
+        private readonly Text[] _tabLabels = new Text[5];
         private readonly PieceCard[] _pieces = new PieceCard[4];
         private GameObject _anvilPage;
         private GameObject _efsunPage;
@@ -255,9 +258,9 @@ namespace Cryptforge.UI
         public Button UpgradeButton => _upgrade;
         public ItemInstance BagPick => _bagPick;
 
-        // RelicForgeView, as the forge starts: the two entry buttons beside the forge's nameplate. The panel is built the
-        // first time one opens it.
-        internal void Initialize(CombatSetup setup, Text forgeTitle, Text forgeLabelSource)
+        // RelicForgeView, as the forge starts: the two entry buttons beside the forge's nameplate, and the skills' at the end
+        // of skillsRow (the weapons' header). The panel is built the first time one opens it.
+        internal void Initialize(CombatSetup setup, Text forgeTitle, Text forgeLabelSource, Text skillsRow = null)
         {
             _setup = setup;
             var choices = FindFirstObjectByType<RunChoiceView>(FindObjectsInactive.Include);
@@ -279,6 +282,8 @@ namespace Cryptforge.UI
                 BagEntry = Entry(forgeTitle, BagEntryName, TabWords[(int)Tab.Bag], true, () => Open(Tab.Bag));
                 AnvilEntry = Entry(forgeTitle, AnvilEntryName, TabWords[(int)Tab.Anvil], false, () => Open(Tab.Anvil));
             }
+            if (skillsRow != null)
+                SkillsEntry = RowEntry(skillsRow, SkillsEntryName, TabWords[(int)Tab.Skills], () => Open(Tab.Skills));
             Loc.Changed += OnLanguageChanged;
         }
 
@@ -435,11 +440,11 @@ namespace Cryptforge.UI
 
             _title = Label(surface.transform, "Anvil Title", _titleSource, 56, TextAnchor.MiddleCenter);
             Row(_title.rectTransform, TitleTop, TitleHeight, 140f);
-            LocalisedLabel.Bind(_title, () => Loc.Text("anvil.title", "The Anvil"));
+            LocalisedLabel.Bind(_title, Title);
             if (_cards != null)
                 _painter = new ChoiceCardPainter(_cards, backdrop, surface, _title);
 
-            float tabWidth = (SurfaceWidth - 2 * Inset - 3 * 14f) / 4f;
+            float tabWidth = (SurfaceWidth - 2 * Inset - (_tabs.Length - 1) * 14f) / _tabs.Length;
             for (int i = 0; i < _tabs.Length; i++)
             {
                 var tab = (Tab)i;
@@ -474,6 +479,7 @@ namespace Cryptforge.UI
             BuildAnvilPage((RectTransform)_anvilPage.transform, pageHeight);
             BuildEfsunPage((RectTransform)_efsunPage.transform, pageHeight);
             BuildBagPage((RectTransform)_bagPage.transform, pageHeight);
+            BuildSkillsPage(surface.transform);
         }
 
         private void BuildAnvilPage(RectTransform page, float height)
@@ -639,20 +645,34 @@ namespace Cryptforge.UI
                 Paint(_tabs[i], active);
                 _tabLabels[i].color = active ? Bright : Muted;
             }
+            _title.text = Title();
             _wallet.text = Wallet(gear);
             _boosters.text = Boosters(gear);
+            // The skills' tab has no piece to work on: the boosters and the equipped row give its page their room.
+            bool skills = Current == Tab.Skills;
+            _boosters.gameObject.SetActive(!skills);
             for (int i = 0; i < _pieces.Length; i++)
-                ShowPiece(i);
+            {
+                _pieces[i].Button.gameObject.SetActive(!skills);
+                if (!skills)
+                    ShowPiece(i);
+            }
             _anvilPage.SetActive(Current == Tab.Anvil);
             _efsunPage.SetActive(Current == Tab.Efsun);
             _bagPage.SetActive(Current == Tab.Bag);
+            _skillsPage.SetActive(skills);
             if (Current == Tab.Anvil)
                 ShowAnvil();
             else if (Current == Tab.Efsun)
                 ShowEfsun();
-            else
+            else if (Current == Tab.Bag)
                 ShowBag();
+            else
+                ShowSkills();
         }
+
+        // The panel's title: the Anvil's, or the skills' on their tab.
+        private string Title() => Current == Tab.Skills ? Loc.Text("skills.title", "Hero Skills") : Loc.Text("anvil.title", "The Anvil");
 
         private string Wallet(ProfileGear gear)
         {

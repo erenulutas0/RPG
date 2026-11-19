@@ -21,4 +21,4 @@ MonoBehaviour:
   _kind: 2
   _duration: 4
   _amount: 100
-  _icon: {fileID: 0}
+  _icon: {fileID: 21300000, guid: 0898423dbb0140aeaa55b7e51e1c4458, type: 3}

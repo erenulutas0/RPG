@@ -15,6 +15,12 @@ and confirmed once on the fresh block 8401-11600 under docs/56's rule: every coh
 and sections 0-12 are the proposal of 2026-11-17, with the measured numbers marked where phase 2 replaced the modelled
 ones.
 
+**Status 2026-11-19: phases 3 and 4 are built (section 14).** The skills are playable: floor 2's first clear opens skill 2
+and floor 3's opens skill 3, the Forge's new Skills tab forges each per hero for 300 and 500 gold, and the HUD shows
+three buttons at section 5.2's anchors (a skill locked until forged). Save version 6 holds what was forged. The
+simulation keeps its skills off by default, so the default batch is byte-identical; the easing re-read with the unlock as
+built (13.8, decision 1) is the lead's next read.
+
 Nothing in the game is built: no code under `Assets/`, no asset, scene, setting or package changed. One research file
 is added and the duel core grows: `Tools/CombatChecks/HeroSkillsResearch.cs` (the six skills as numbers, a cheap pinned
 test in every plain `dotnet test`, and two reports run by name) and six skill kinds, Ember Memory's burn, a bold policy
@@ -575,8 +581,8 @@ Vitality), not more buttons. P2b's tapped skills are these three buttons, laid o
 | 0 (this branch) | The design, the duel's six skills, the Descent read | - | this document |
 | 1. Core and simulation (**done 2026-11-18**, section 13.1) | `AbilityKind` gains Guard, Rush, Sigil, Ward; `HeroDefinition` three abilities, `AbilityController` three slots; `HeroDash` (one body with docs/46's dash), `SlowStatus` (read by `PackMotion`), `SigilZone` (on `BurnRule`'s clock), the guard as a timed armour modifier, the ward as a pool in `HealthState`, build scaling; the assets; `FoundryLevers.Skills`, the pilot's rules and `TimesTheSkills`; EditMode and parity tests | **5** | skills off: the default batch byte-identical, every test green; the parity table for skills on |
 | 2. Measurement (**done 2026-11-18**, sections 13.2-13.4) | section 6.2's rows for each skill and for all three, both heroes, seeds 1-400, both hands; tuning; this document's numbers replaced by measured ones | **2-3** | the rows pass, or the lead chooses which bind |
-| 3. HUD, art, telemetry | three `AbilityButtonView` slots (section 5.2), the reveal's hold over all three, four icons (`build_ability_icons.py`'s family), four effect strips (`build_skill_vfx.py`), the Rush's puppet clip; section 5.3's events | **3** | a PlayMode flow fires each slot; telemetry in the log |
-| 4. Unlock and the Forge | save version 6 (opened and forged skills per hero, migration adds empties; version 5 went to docs/54's difficulty tiers), the first-clear opening, the Forge's skills tab with the 300 / 500 prices, the result screen's unlock line | **2** | a profile opens and forges skill 2 after a floor-2 clear; `ProfileStoreTests` round-trip and migrate |
+| 3. HUD, art, telemetry (**buttons and icons built 2026-11-19**, section 14; the four effect strips, the Rush's clip and section 5.3's events open) | three `AbilityButtonView` slots (section 5.2), the reveal's hold over all three, four icons (`build_ability_icons.py`'s family), four effect strips (`build_skill_vfx.py`), the Rush's puppet clip; section 5.3's events | **3** | a PlayMode flow fires each slot; telemetry in the log |
+| 4. Unlock and the Forge (**built 2026-11-19**, section 14, but the result screen's line) | save version 6 (opened and forged skills per hero, migration adds empties; version 5 went to docs/54's difficulty tiers), the first-clear opening, the Forge's skills tab with the 300 / 500 prices, the result screen's unlock line | **2** | a profile opens and forges skill 2 after a floor-2 clear; `ProfileStoreTests` round-trip and migrate |
 | 5. Device | the owner plays both heroes with three skills on the S23: mis-taps, frame time, and whether it is more fun | **1** + the owner | the owner's verdict, telemetry read |
 | 6. Ranks (later) | ranks I-V, save, the Forge's rank strip, the simulation's rank lever, the power index note | **2-3** | rank V inside section 4.3's +2-4 % |
 | Arena (in docs/55 P0) | the duel's kinds move into `Cryptforge.Arena`; per-hero coefficients by round-robin; dealt boons | inside P0's 12-15 | P0's own gate |
@@ -881,6 +887,146 @@ are read against.
    already met.
 4. **Scaling the Rush by the whole loadout** waits for the ranks (later), where a skill's numbers are reopened anyway.
 5. **The standing Vanguard needs nothing:** +120 of 3,200 on the fresh block.
+
+## 14. Phases 3-4, built (2026-11-19)
+
+The owner's answers (section 12) as built: the six skills as designed, three buttons for two-handed play with no
+automatic skills, ranks later, and the unlock below. Nothing of the simulation moves: `FoundryLevers.Skills` stays 1, and
+the default batch is byte-identical (14.6). What is not built: section 5.3's telemetry events, the four effect strips and
+the Rush's puppet clip (phase 3's art), the result screen's unlock line and 5.2's one-line toast (14.7).
+
+### 14.1 The unlock rule as built
+
+Section 12's words, the owner's: **floor 2's first clear opens skill 2, floor 3's first clear opens skill 3, and the Forge
+forges each for 300 and 500 gold.** Precisely (`Progression/HeroSkillUnlock.cs`):
+- **Opened for the profile, not the hero:** a skill opens once `PlayerProfile.DeepestFloorCleared` reaches its floor - a
+  clear on any difficulty tier, with either hero, from any map start (the record docs/53's map starts already read;
+  section 4.1's recommendation). A floor is cleared once its gate boss has fallen and the hero has stood at the opened
+  gate (`EncounterController.FloorCleared`, `CombatSetup.OnFloorCleared`), so the first Descent that clears floor 2 opens
+  skill 2 for the next visit to the Forge - and shows its button locked on the HUD at once.
+- **Forged per hero:** the Forge's Skills tab forges skill 2 for 300 gold and skill 3 for 500 for the hero the next run
+  plays. **Skill 3 waits on skill 2** (the lead's "then"): a hero carries one, then two, then three new buttons, never a
+  third without the second. Skill 1 is every hero's own.
+- **Gold earned in play:** the price is the profile's gold, which runs bank; nothing is sold for money (docs/58's rule).
+- Not "a completed Descent": the task's parenthesis named one, but section 12 names floors 2 and 3, and 13.8's decision
+  1 (the first Descents are not eased) holds with either - a first clear of floor 2 is already past the first Descent's
+  hardest floor for the clumsy cohort (its deaths are on floor 1, section 2). If the lead prefers the completed Descent,
+  it is one line (`HeroSkillUnlock.IsOpen` reading `Tiers.HasCompleted` for both slots).
+
+| Status (`SkillForgeStatus`) | When | The card says (en / tr) | Its look |
+|---|---|---|---|
+| Forged | skill 1 always; 2 and 3 once bought | "Ready from the first run" / "İlk seferden beri hazır"; "Forged: yours in every run" / "Dövüldü: her seferde seninle" | the gold card |
+| Affordable | open, skill 2 forged for skill 3, gold enough | "Forge for 300 gold" / "300 altına döv" (the Relic Forge's own words) | the blue card; a tap forges |
+| Too expensive | as above, gold short | "500 gold: need 450 more" / "500 altın: 450 daha gerekli" | the grey card |
+| Waiting on skill 2 | skill 3 open, skill 2 not forged | "Forge Iron Resolve first" / "Önce Alev Mührü dövülmeli" | the grey card |
+| Locked | its floor not cleared | "Locked: clear floor 3" / "Kilitli: 3. katı temizle" | the plain card, the icon dimmed |
+
+### 14.2 What phases 3 and 4 built
+
+| Where | What |
+|---|---|
+| `Data/Abilities/Ability_IronResolve`, `_ShieldRush`, `_FlameSigil`, `_CinderWard` | their painted icons (`Art/UI/UI_Icon_*_v1.png`), wired as the Forge Burst and the Vent carry theirs; the importer settings match (a single sprite, no mipmaps, 256 on the phone) |
+| `Progression/HeroSkillUnlock.cs` | the rule: opening floors, prices, skill 3 after skill 2, `StatusOf` |
+| `Core/ProfileSkills.cs`, `Core/PlayerProfile.cs` | per hero, skills 2 and 3 forged; `HasForgedSkill`, `SkillStatusOf`, `GoldNeededForSkill`, `TryForgeSkill` (the price spent and the skill recorded as one change, the save's trigger) |
+| `Save/ProfileSaveData.cs`, `ProfileMigration.cs`, `ProfileSkillsSave.cs`, `ProfileStore.cs` | **save version 6**: `heroSkills` (`hero`, `skillTwo`, `skillThree`; a hero with nothing forged is not written); 5 -> 6 adds an empty list whatever the profile has cleared; `ProfileSkills.Restore` repairs a damaged save as `ProfileTiers.Restore` does (14.4) |
+| `Core/CombatSetup.cs` | `CarriesSkill(slot)`: skills 2 and 3 when forged for the run's hero, or where `development/skills.txt` asks (the Editor's and a development build's reads still force them on); `StartSkills` reads it; `NextRunHero` for the Forge |
+| `UI/AbilityButtonView.cs`, `Art/AbilityArt.cs` | the HUD's three buttons (14.3) and the padlock glyph |
+| `UI/BossRevealView.cs`, `UI/RevealSkip.cs` | the reveal greys all three; a tap on any shown button skips it (`HeldButtons`) |
+| `UI/HeroMovementInput.cs` | the stick follows its own finger (14.3) |
+| `UI/AnvilView.cs`, `UI/AnvilView.Skills.cs`, `UI/RelicForgeView.cs` | the Forge's Skills tab and its entry (14.5) |
+| `Content/AbilityText.cs`, `Content/AbilityDefinition.cs` | an ability's name and description in the language the game speaks (`<id>.name`, `<id>.description`, numbers in `Loc.Numbers`) |
+| `Resources/Localisation/Strings.txt` | `anvil.tab.skills` and `skills.*` with their Turkish (docs/60's rules: no suffix on a placeholder, "Önce {0} dövülmeli" in the passive, "{0}. katı" the ordinal); the six abilities' rows on screen; Cinder Ward is "Kül Siperi" |
+
+### 14.3 The HUD
+
+- **Section 5.2's anchors, unchanged:** skill 1 the scene's 234-unit button at (-40, 68); skills 2 and 3 copies of it made in
+  code, 176 units, anchored bottom-right with pivot (1, 0) at **(-90, 341)** and **(-306, 160)** - centres (902, 429) and
+  (686, 248) on the 1080-wide canvas, on the arc 245 units from skill 1's centre. A copy carries the scene button's parts as
+  the painted HUD dressed them (ring, cooldown band, icon well, countdown), scaled by 176/234 about its pivot, behind
+  skill 1 in the draw order, its parts renamed (`Skill 2 Button`, `Skill 2 Icon`, ...) so a search for the scene's button
+  still finds slot 1 alone.
+- **Three states.** *Live* (the run carries the skill): its own icon, the cooldown band draining, the countdown, a tap that
+  fires it. *Locked* (its floor cleared, not forged for this hero): the icon dimmed under a padlock, no tap - the lead's
+  locked state and the owner's "each appearing when it opens" together. *Nothing* before its floor's first clear: a new
+  player sees one button, then two, then three. A floor cleared mid-run shows its skill's button locked at once.
+- **Two hands** (the owner's answer 4): the cluster stays in the right 45 % of the bottom quarter, the left thumb's stick
+  everywhere else. `HeroMovementInput` read touch 0 alone, so a right thumb that touched a button first held the stick
+  until it lifted, and a steering finger that lifted while the other was down could hand its place to it; the stick now
+  follows its own finger (a touch that begins off the UI takes it, wherever it stands in the touch list, until it
+  lifts). One finger reads as before. **Shield Rush** fires along the stick's steer at the tap (`TryUse(slot, heading)`);
+  with no finger down, toward the nearest enemy (`AbilityController.Rush`, as phase 1 built it).
+- **The boss's reveal** greys all three, and a tap on any shown button skips it (`BossRevealView.HeldButtons`).
+- Not built: 5.2's one-line toast on the first run with a new button, and section 5.3's events (`ability_used`'s slot,
+  `ability_refused`, `stick_on_button`, `ability_wasted`); phase 5's device session needs them to count mis-taps.
+
+### 14.4 Save version 6
+
+`heroSkills: [{"hero": "hero_vanguard", "skillTwo": true, "skillThree": false}]`. Version 5 migrates with nothing forged
+(the gold untouched: a veteran opens its skills at the Forge with the gold it has). Repairs on load
+(`ProfileSkills.Restore`, never throws): a missing record or an empty hero id dropped; a repeated hero's later records
+dropped (the first wins); a skill whose floor the profile has not cleared, or skill 3 without skill 2, not kept, so a
+damaged save never hands a hero what it did not earn; a hero left with nothing not written; a hero id the roster no
+longer knows kept, as the unlocked heroes are.
+
+### 14.5 The Forge's Skills tab
+
+The Relic Forge's panel is full (title, status, three weapon cards, two relic cards, the start row), so the skills live
+where docs/54 phase 4 put the Forge's other pages: a fifth tab of the Forge's panel (Forge, Anvil, Efsun, Bag, **Skills**),
+its entry at the right end of the weapons' header row (the header's words stand at its left), on the forge's primary
+plate while a skill of the next run's hero waits affordable - the forge calls the player to it after the clear. The tab
+shows the hero the forge's chooser has chosen, its three skills on cards in the choice cards' painted look (14.1's
+table), the wallet above them and the rule under them ("A floor cleared with any hero, on any difficulty, opens its skill
+for every hero."); the boosters and the equipped row give the page their room. A tap on an affordable card forges, as a
+tap forges a relic; the input delay after each change is the Anvil's.
+
+### 14.6 The default batch
+
+`FOUNDRY_SEEDS=200 FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_REALISM=typical FOUNDRY_FLOORS=2`,
+`TheFoundryFloorOverASeedBatch`, on this branch's final code against the merged base (`review-fixes`, b3cf6bb9), this
+12-thread machine: `foundry-batch.csv`, `foundry-batch-floor2.csv`, `foundry-cohorts-floor2.csv`, `foundry-cohorts.md`
+and `foundry-gate.md` **byte-identical**; in `foundry-batch.md` only the clock in its header and the wall-seconds column
+differ. Nothing the simulation reads moved: the skills' bodies are untouched, `FoundryLevers.Skills` stays 1, and the
+profile's forged skills reach only the scene's run (`CombatSetup.CarriesSkill`). CombatChecks green (1,085, `Başarılı`;
+1,077 before), the Unity compile check 0 errors.
+
+### 14.7 For the lead: the Unity filters, the captures, the next read
+
+**EditMode** (new or changed): `HeroSkillUnlockTests` (also in CombatChecks), `ProfileStoreTests` (version 6: the round
+trip, a version 5 file, a damaged file; the written version asserts now 6), `AbilityArtTests` (the padlock),
+`DifficultyTierTests.VersionFourMigratesItsDepthToForged`, `WeaponForgeTests`, `LocalisationAssetTests` (the ability rows'
+English against the assets).
+
+**PlayMode** (new): `SkillButtonsFlowTests` (a new player's one button; a locked slot; a forged slot live at its anchor,
+firing and cooling; a floor cleared mid-run; the development file), `SkillForgeFlowTests` (forge skill 2, saved, live on
+the next run's HUD; skill 3 after skill 2 and its gold; a new profile's locked cards; Ilya's three in Turkish, fitted).
+Changed: `RelicForgeFlowTests.ForgePanelIsOpaqueAndFitsTheShortestPortraitScreenWithoutOverlaps` (the entry on the
+header's row), `TurkishScreensTests.TheAnvilsTabsFitInTurkish` (the Skills tab). Worth re-running for regressions:
+`HeroSkillsFlowTests`, `AbilityFlowTests`, `CinderArcanistTests`, `GateBossFlowTests`, `RevealSkipTests`,
+`AnvilFlowTests`, `PaintedHudFlowTests`, `ArtHudFlowTests`, `PauseFlowTests`, `MapChoiceFlowTests` (its deeper profiles
+now show a locked skill button).
+
+    pwsh -File Tools/Run-UnityTests.ps1 -Platform EditMode -SkipApk -Filter "Cryptforge.Tests.HeroSkillUnlockTests;Cryptforge.Tests.ProfileStoreTests;Cryptforge.Tests.AbilityArtTests;Cryptforge.Tests.DifficultyTierTests;Cryptforge.Tests.WeaponForgeTests;Cryptforge.Tests.LocalisationAssetTests"
+    pwsh -File Tools/Run-UnityTests.ps1 -Platform PlayMode -SkipApk -Filter "Cryptforge.Tests.SkillButtonsFlowTests;Cryptforge.Tests.SkillForgeFlowTests;Cryptforge.Tests.RelicForgeFlowTests;Cryptforge.Tests.TurkishScreensTests;Cryptforge.Tests.HeroSkillsFlowTests;Cryptforge.Tests.AbilityFlowTests;Cryptforge.Tests.GateBossFlowTests;Cryptforge.Tests.AnvilFlowTests"
+
+**Captures worth taking** (the device, or the Editor at 1080 x 2340): the HUD with a profile that cleared floor 3 and
+forged skill 2 (skill 2 live, skill 3 locked under its padlock) - the arc against both thumbs, the copies' painted rings at
+176 units, the countdown's size; the same during the boss's reveal (all three greyed); the Relic Forge with the Skills
+entry on its primary plate; the Skills tab for each hero in English and Turkish (the descriptions' wrap, Kül Siperi's
+card).
+
+**The next balance read** (13.8, decision 1; the lead's): the confirmation again with the unlock as built, the clumsy
+cohort's pooled completion with all three skills at a ceiling of **60 %**. What it must model and check:
+- **The unlock's timing, not skills from the first frame:** phase 2's `c1` read gave every run all three skills; as built a
+  player has none until a run clears floor 2, then skill 2 only after banking 300 gold, skill 3 after floor 3 and 500 more.
+  The read is a campaign per pilot - runs 1..N on fresh seeds, the skills entering at the run after the clear that opens
+  them and the gold that buys them (gear_economy.py's per-player streams are the model) - reporting the clumsy pooled
+  completion over the runs once all three are forged, and how many runs that takes per cohort.
+- **Per hero:** the Forge forges per hero, so a player who switches heroes carries the skills of one; read each hero's own
+  campaign.
+- **The bounds:** docs/56's rule for clumsy, careful and first-card; the bosses' 45-65 s and the 13-16 minute Descent with
+  the skills live; if the clumsy pooled completion passes 60 %, the ward first (its size, then its window), then the
+  glyph's slow, each a candidate on a fresh block (13.8).
+- **The Editor's parity with the skills on** (13.5, still the lead's): `skills.txt` `3` or a forged profile on seeds 11-66.
 
 ## How to re-run
 

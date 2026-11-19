@@ -73,7 +73,8 @@ namespace Cryptforge.Save
             return new PlayerProfile(best.gold, best.ownedRelicIds, best.equippedRelicId, best.deepestFloorCleared,
                 best.ownedWeaponIds, best.equippedWeaponId, best.unlockedHeroIds, best.selectedHeroId,
                 ProfileGear.Restore(ProfileGearSave.ToSnapshot(best)),
-                ProfileTiers.Restore(ProfileTiersSave.ToSnapshot(best), best.deepestFloorCleared));
+                ProfileTiers.Restore(ProfileTiersSave.ToSnapshot(best), best.deepestFloorCleared),
+                ProfileSkills.Restore(ProfileSkillsSave.ToSnapshot(best), best.deepestFloorCleared));
         }
 
         public void Save(PlayerProfile profile)
@@ -96,6 +97,7 @@ namespace Cryptforge.Save
             };
             ProfileGearSave.Write(profile.Gear.Snapshot(), data);
             ProfileTiersSave.Write(profile.Tiers.Snapshot(), data);
+            ProfileSkillsSave.Write(profile.Skills.Snapshot(), data);
 
             System.IO.Directory.CreateDirectory(Directory);
             using (var stream = new FileStream(_tempPath, FileMode.Create, FileAccess.Write, FileShare.None))

@@ -355,6 +355,7 @@ namespace Cryptforge.Tests
                 Canvas.ForceUpdateCanvases();
                 var spans = new List<(string Name, float Bottom, float Top)>();
                 RectTransform chooser = null;
+                RectTransform skills = null;
                 var entries = new List<RectTransform>();
                 foreach (RectTransform child in safeArea)
                 {
@@ -371,6 +372,12 @@ namespace Cryptforge.Tests
                     if (child.name == AnvilView.BagEntryName || child.name == AnvilView.AnvilEntryName)
                     {
                         entries.Add(child);
+                        continue;
+                    }
+                    // The Skills tab's entry (docs/57 phase 4) shares the weapons' header row at its right end: below.
+                    if (child.name == AnvilView.SkillsEntryName)
+                    {
+                        skills = child;
                         continue;
                     }
                     child.GetWorldCorners(corners);
@@ -418,6 +425,21 @@ namespace Cryptforge.Tests
                     Assert.That(clear, Is.True, entry.name + " overlaps the title.");
                     Assert.That(entryMax.y - entryMin.y, Is.GreaterThanOrEqualTo(44f), entry.name + " is a thumb's target.");
                 }
+                // The skills' entry: inside the safe area, on the weapons' header row, clear of its words, a thumb's target.
+                Assert.That(skills, Is.Not.Null, "The Skills tab's entry beside the weapons' header.");
+                var header = safeArea.Find("Weapons Header").GetComponent<Text>();
+                var headerCorners = new Vector3[4];
+                header.rectTransform.GetWorldCorners(headerCorners);
+                Vector3 headerMin = safeArea.InverseTransformPoint(headerCorners[0]);
+                Vector3 headerMax = safeArea.InverseTransformPoint(headerCorners[2]);
+                skills.GetWorldCorners(corners);
+                Vector3 skillsMin = safeArea.InverseTransformPoint(corners[0]);
+                Vector3 skillsMax = safeArea.InverseTransformPoint(corners[2]);
+                Assert.That(skillsMax.x, Is.LessThanOrEqualTo(safeArea.rect.xMax + .5f));
+                Assert.That(skillsMin.y, Is.GreaterThanOrEqualTo(headerMin.y - .5f), "On the weapons' header row.");
+                Assert.That(skillsMax.y, Is.LessThanOrEqualTo(headerMax.y + .5f), "On the weapons' header row.");
+                Assert.That(skillsMin.x, Is.GreaterThanOrEqualTo(headerMin.x + header.preferredWidth - .5f), "Clear of the header's words.");
+                Assert.That(skillsMax.y - skillsMin.y, Is.GreaterThanOrEqualTo(44f), "A thumb's target.");
                 Assert.That(spans[0].Bottom, Is.GreaterThanOrEqualTo(-.5f));
                 Assert.That(spans[spans.Count - 1].Top, Is.LessThanOrEqualTo(height + .5f), spans[spans.Count - 1].Name);
                 for (int i = 1; i < spans.Count; i++)

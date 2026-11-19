@@ -22,6 +22,8 @@ namespace Cryptforge.UI
         private Vector3 _home;
         private bool _skip;
         private AbilityButtonView _abilityButton;
+        // The skill buttons beside it (docs/57 section 5.2: slots 2 and 3, where they show), and the held ones' rects.
+        private readonly RectTransform[] _held = new RectTransform[3];
         public bool IsRevealing { get; private set; }
         // How far the camera has turned toward the boss (0 at the hero, 1 at the gate), for tests and the HUD.
         public float Turn { get; private set; }
@@ -29,6 +31,22 @@ namespace Cryptforge.UI
         // it skips the reveal as one on the floor does (RevealSkip). Null without one, or once it answers its own taps again.
         internal RectTransform HeldButton =>
             _abilityButton != null && _abilityButton.IsHeld ? _abilityButton.ButtonRect : null;
+        // Every button the reveal greys - the ability's and the skills' shown beside it (docs/57: a tap on any skips) - or
+        // null when none is held.
+        internal RectTransform[] HeldButtons
+        {
+            get
+            {
+                bool any = false;
+                for (int slot = 1; slot <= _held.Length; slot++)
+                {
+                    AbilityButtonView button = _abilityButton != null ? _abilityButton.SkillButton(slot) : null;
+                    _held[slot - 1] = button != null && button.IsHeld ? button.ButtonRect : null;
+                    any |= _held[slot - 1] != null;
+                }
+                return any ? _held : null;
+            }
+        }
 
         public void Initialize(CombatSetup setup, HeroMovementInput movement)
         {
@@ -50,8 +68,17 @@ namespace Cryptforge.UI
             var boss = _setup.Encounters.GateBoss;
             if (boss == null) boss = _setup.Encounters.CurrentEnemy;
             if (_follow == null || boss == null) return;
-            // The button the reveal greys, found once a reveal: a tap on it is the reveal's (HeldButton).
-            _abilityButton = FindFirstObjectByType<AbilityButtonView>();
+            // The buttons the reveal greys, found once a reveal from the scene's own (slot 1), which holds the skills' copies:
+            // a tap on any is the reveal's (HeldButtons).
+            _abilityButton = null;
+            foreach (AbilityButtonView view in FindObjectsByType<AbilityButtonView>(FindObjectsSortMode.None))
+            {
+                if (view.Slot == 1)
+                {
+                    _abilityButton = view;
+                    break;
+                }
+            }
             StartCoroutine(Reveal(boss));
         }
 
@@ -87,7 +114,7 @@ namespace Cryptforge.UI
         // paused screen latched the skip for the moment play resumed.
         private void LateUpdate()
         {
-            if (IsRevealing && !_skip && RevealSkip.ThisFrame(IsPaused, HeldButton)) _skip = true;
+            if (IsRevealing && !_skip && RevealSkip.ThisFrame(IsPaused, HeldButtons)) _skip = true;
         }
 
         private bool IsPaused => Time.timeScale <= 0f || (_setup != null && _setup.Pause != null && _setup.Pause.IsFrozen);
