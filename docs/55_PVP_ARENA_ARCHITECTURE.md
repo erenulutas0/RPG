@@ -994,7 +994,16 @@ LocalisedLabel.Bind(arenaLabel, () => ArenaText.Title);             // "Arena" i
 ```
 
 The map choice holds the run, and the arena's canvas sits above it and takes every touch, so nothing else is needed.
-Until that button exists, **`development/arena.txt`** opens the arena:
+
+**Built (2026-11-19).** `MapChoiceView` now carries the entry:
+- "Arena" (`ArenaText.Title`) sits at the title band's left, a mirror of the language toggle: its 260 x 84, its plate and
+  its label's style. The title is centred between the two, and the panel keeps its 1900 units.
+- Like every other control, it takes taps only after the panel's input delay.
+- It calls `ArenaScreen.Open(_setup, closed)`. The `closed` callback starts the panel's input delay again: the arena's
+  Close sits over the same corner, so a double tap would otherwise reopen the arena.
+- `Tests/PlayMode/MapChoiceArenaEntryTests.cs` (2 tests) covers it.
+
+The development file stays for development starts. **`development/arena.txt`** opens the arena:
 - any text in `<profile folder>/development/arena.txt` opens it as the gameplay scene loads, a frame after the scene's
   Start, over the map choice; it works in the Editor and development builds only, as `development/skills.txt` does;
 - "open" as the first word opens the open arena, anything else the training ladder;

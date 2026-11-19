@@ -49,7 +49,7 @@ namespace Cryptforge.UI
             var view = root.AddComponent<LanguageToggleView>();
             view._button = root.GetComponent<Button>();
             view._button.targetGraphic = root.GetComponent<Image>();
-            view.Paint();
+            PaintPlate(view._button);
 
             var labelObject = new GameObject(ObjectName + " Label", typeof(RectTransform));
             labelObject.layer = root.layer;
@@ -85,10 +85,11 @@ namespace Cryptforge.UI
             LocalisationRuntime.Choose(Loc.Language == Language.Turkish ? Language.English : Language.Turkish);
         }
 
-        // The forge's secondary plate when the painted screens are on, else a plain dark plate.
-        private void Paint()
+        // The forge's secondary plate when the painted screens are on, else a plain dark plate. The map choice's Arena
+        // button, the toggle's mirror in the title's band, stands on it too.
+        internal static void PaintPlate(Button button)
         {
-            var image = (Image)_button.targetGraphic;
+            var image = (Image)button.targetGraphic;
             var screens = FindFirstObjectByType<ScreenArtView>(FindObjectsInactive.Include);
             ScreenArtSet art = screens != null && screens.Art != null && screens.Art.IsValid ? screens.Art : null;
             if (art == null)
@@ -100,8 +101,8 @@ namespace Cryptforge.UI
             image.sprite = art.Secondary;
             image.type = Image.Type.Sliced;
             image.color = Color.white;
-            _button.transition = Selectable.Transition.SpriteSwap;
-            _button.spriteState = new SpriteState { pressedSprite = art.SecondaryPressed, disabledSprite = art.SecondaryDisabled };
+            button.transition = Selectable.Transition.SpriteSwap;
+            button.spriteState = new SpriteState { pressedSprite = art.SecondaryPressed, disabledSprite = art.SecondaryDisabled };
         }
 
         private void OnDestroy()
