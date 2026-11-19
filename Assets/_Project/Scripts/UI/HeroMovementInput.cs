@@ -30,6 +30,8 @@ namespace Cryptforge.UI
         private HeroMotion _motion;
         private Vector2 _dragStart;
         private bool _dragging;
+        // The finger that holds the stick; -1 for none (or the mouse's drag).
+        private int _fingerId = -1;
         private Vector2 _heldSteer;
         private Vector2 _steer;
 
@@ -103,23 +105,58 @@ namespace Cryptforge.UI
                 transform.position = new Vector3(_motion.X, ArenaFloor.WorldY(_motion.Y), transform.position.z);
         }
 
+        // The stick follows its own finger (docs/57 section 5.2, two-handed play: the left thumb steers while the right one
+        // taps the skill buttons): a touch that begins off the UI while no finger steers takes the stick, wherever it
+        // stands in the touch list, and keeps it until it lifts - a tap on a button with the other thumb, before or during
+        // the steer, neither starts, moves nor ends it. With one finger this is the stick as it always read touch 0.
         private void ReadDrag()
         {
             if (Input.touchCount > 0)
             {
-                Touch touch = Input.GetTouch(0);
-                if (touch.phase == TouchPhase.Began && !OverUi(touch.fingerId))
+                if (_dragging && _fingerId >= 0)
                 {
-                    _dragging = true;
-                    _dragStart = touch.position;
+                    bool found = false;
+                    for (int i = 0; i < Input.touchCount; i++)
+                    {
+                        Touch held = Input.GetTouch(i);
+                        if (held.fingerId != _fingerId)
+                            continue;
+                        found = true;
+                        if (held.phase == TouchPhase.Ended || held.phase == TouchPhase.Canceled)
+                            _dragging = false;
+                        else
+                            _dragCurrent = held.position;
+                        break;
+                    }
+                    if (!found)
+                        _dragging = false;
                 }
-                else if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
+                else if (_fingerId < 0)
                 {
+                    // A drag the mouse began (the Editor) ends when touches arrive.
                     _dragging = false;
                 }
-                if (_dragging)
-                    _dragCurrent = touch.position;
+                if (!_dragging)
+                {
+                    _fingerId = -1;
+                    for (int i = 0; i < Input.touchCount; i++)
+                    {
+                        Touch touch = Input.GetTouch(i);
+                        if (touch.phase != TouchPhase.Began || OverUi(touch.fingerId))
+                            continue;
+                        _dragging = true;
+                        _fingerId = touch.fingerId;
+                        _dragStart = touch.position;
+                        _dragCurrent = touch.position;
+                        break;
+                    }
+                }
                 return;
+            }
+            if (_fingerId >= 0)
+            {
+                _dragging = false;
+                _fingerId = -1;
             }
 
             if (Input.GetMouseButtonDown(0) && !OverUi(-1))

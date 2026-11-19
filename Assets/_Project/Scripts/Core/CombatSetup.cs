@@ -445,19 +445,31 @@ namespace Cryptforge.Core
                 string.Join("; ", _profileStore.LastLoadProblems), this);
         }
 
+        // Whether this run carries the hero's skill slot (docs/57 phase 4): skill 1 always; skills 2 and 3 once the Forge has
+        // forged them for this hero (PlayerProfile.HasForgedSkill, after the first clears of floors 2 and 3), or where a
+        // development file asks (DevelopmentStart.SkillSlots: "2" or "3", the Editor's measurement with the skills on and a
+        // device session's; never in a release build).
+        public bool CarriesSkill(int slot)
+        {
+            if (slot == 1)
+                return true;
+            if (Hero == null || !HeroSkillUnlock.IsForgeable(slot) || Hero.SkillAt(slot) == null)
+                return false;
+            return DevelopmentStart.SkillSlots() >= slot || Profile.HasForgedSkill(Hero.Id, slot);
+        }
+
+        // The hero the next run plays, as the forge's hero chooser has chosen it (the Forge's skills tab shows its skills).
+        public HeroDefinition NextRunHero => ChooseHero();
+
         // A failed write keeps the in-memory profile; the next change tries again.
-        // docs/57's skills 2 and 3: before phase 4 opens them (the first clears, the Forge), a run carries them only where a
-        // development file asks (DevelopmentStart.SkillSlots: the Editor's measurement with the skills on, a device session).
+        // docs/57's skills 2 and 3, where the run carries them (CarriesSkill: forged at the Forge, or a development file).
         // Their cooldowns take the gear's line as the first's did (GearStats.Apply), and what they reach is handed over: the
         // guard's armour onto the hero's sheet, the first weapon the Rush's damage scales by, the stick and the dash, the
         // gate boss, the burns the glyph and the ward's strikers catch - as the simulation's run wires them.
         private void StartSkills(HeroMovementInput movement)
         {
-            int slots = DevelopmentStart.SkillSlots();
-            if (slots <= 1)
-                return;
-            AbilityRuntime second = Hero.SkillAt(2) != null ? Hero.SkillAt(2).CreateRuntime() : null;
-            AbilityRuntime third = slots >= 3 && Hero.SkillAt(3) != null ? Hero.SkillAt(3).CreateRuntime() : null;
+            AbilityRuntime second = CarriesSkill(2) ? Hero.SkillAt(2).CreateRuntime() : null;
+            AbilityRuntime third = CarriesSkill(3) ? Hero.SkillAt(3).CreateRuntime() : null;
             if (second == null && third == null)
                 return;
             float cooldown = GearStats.Factor(Gear, GearStat.AbilityCooldown);
@@ -483,7 +495,8 @@ namespace Cryptforge.Core
                 if (context.Source is Health striker && striker.IsAlive)
                     _ability.Ignite(striker, SkillRule.WardStacks);
             };
-            Debug.Log($"[Skills] the run carries skills 1-{slots} (development/skills.txt)");
+            Debug.Log($"[Skills] the run carries skill 1{(second != null ? ", 2" : string.Empty)}{(third != null ? ", 3" : string.Empty)}" +
+                $" ({(DevelopmentStart.SkillSlots() > 1 ? "development/skills.txt" : "forged at the Forge")})");
         }
 
         private void ApplyHeroStats()

@@ -18,10 +18,11 @@ namespace Cryptforge.UI
     {
         private static readonly Func<int, TouchPhase> InputTouchPhase = index => Input.GetTouch(index).phase;
         private static readonly Func<int, bool> InputTouchOverUi = index => OverUi(Input.GetTouch(index).fingerId);
-        private static readonly Func<int, bool> InputTouchOnHeld = index => IsOn(_held, Input.GetTouch(index).position);
-        // The held button of the ThisFrame call under way, for InputTouchOnHeld: a field, so reading a frame allocates
+        private static readonly Func<int, bool> InputTouchOnHeld = index => IsOnAny(_held, Input.GetTouch(index).position);
+        // The held buttons of the ThisFrame call under way, for InputTouchOnHeld: fields, so reading a frame allocates
         // nothing.
-        private static RectTransform _held;
+        private static RectTransform[] _held;
+        private static readonly RectTransform[] OneHeld = new RectTransform[1];
 
         // This frame's input, as the legacy Input reads it; paused whether the game stands paused; heldButton the button the
         // presentation holds greyed (BossRevealView.HeldButton: the ability button), or null. Read it once the EventSystem
@@ -29,18 +30,41 @@ namespace Cryptforge.UI
         // is not yet known to be over a button.
         public static bool ThisFrame(bool paused, RectTransform heldButton = null)
         {
+            OneHeld[0] = heldButton;
+            bool skips = ThisFrame(paused, heldButton != null ? OneHeld : null);
+            OneHeld[0] = null;
+            return skips;
+        }
+
+        // As above with every button the presentation holds greyed (BossRevealView.HeldButtons: the ability's and the
+        // skills' beside it, docs/57; null entries are none), or null for none: a tap on any of them skips.
+        public static bool ThisFrame(bool paused, RectTransform[] heldButtons)
+        {
             if (paused)
                 return false;
             bool mouse = Input.GetMouseButtonDown(0);
             int touches = Input.touchCount;
             bool mouseAlone = mouse && touches == 0;
-            bool held = heldButton != null;
-            _held = heldButton;
+            bool held = heldButtons != null;
+            _held = heldButtons;
             bool skips = Skips(touches, InputTouchPhase, InputTouchOverUi, held ? InputTouchOnHeld : null, mouse,
-                mouseAlone && OverUi(-1), mouseAlone && held && IsOn(heldButton, Input.mousePosition),
+                mouseAlone && OverUi(-1), mouseAlone && held && IsOnAny(heldButtons, Input.mousePosition),
                 Input.GetKeyDown(KeyCode.Space), false);
             _held = null;
             return skips;
+        }
+
+        // Whether a screen point lies on any of these UI elements (IsOn); null entries and a null list are on nothing.
+        internal static bool IsOnAny(RectTransform[] elements, Vector2 screenPoint)
+        {
+            if (elements == null)
+                return false;
+            for (int i = 0; i < elements.Length; i++)
+            {
+                if (IsOn(elements[i], screenPoint))
+                    return true;
+            }
+            return false;
         }
 
         // touchCount touches on the screen, phaseOf each one's phase this frame; mousePressed and spacePressed whether the
