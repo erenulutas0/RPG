@@ -31,7 +31,7 @@ namespace Cryptforge.Tests
         {
             Time.timeScale = 1f;
             Scene gameplay = SceneManager.GetActiveScene();
-            SceneManager.SetActiveScene(SceneManager.CreateScene("Skill Forge Test Cleanup"));
+            SceneManager.SetActiveScene(SceneManager.CreateScene("Skill Forge Test Cleanup " + System.Guid.NewGuid().ToString("N")));
             if (gameplay.path == ScenePath)
                 yield return SceneManager.UnloadSceneAsync(gameplay);
             TestProfile.End();

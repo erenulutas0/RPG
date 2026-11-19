@@ -28,7 +28,7 @@ namespace Cryptforge.Tests
         {
             Time.timeScale = 1f;
             Scene scene = SceneManager.GetActiveScene();
-            SceneManager.SetActiveScene(SceneManager.CreateScene("Skill buttons cleanup"));
+            SceneManager.SetActiveScene(SceneManager.CreateScene("Skill buttons cleanup " + System.Guid.NewGuid().ToString("N")));
             yield return SceneManager.UnloadSceneAsync(scene);
             TestProfile.End();
         }

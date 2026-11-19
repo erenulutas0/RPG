@@ -495,8 +495,10 @@ namespace Cryptforge.Core
                 if (context.Source is Health striker && striker.IsAlive)
                     _ability.Ignite(striker, SkillRule.WardStacks);
             };
-            Debug.Log($"[Skills] the run carries skill 1{(second != null ? ", 2" : string.Empty)}{(third != null ? ", 3" : string.Empty)}" +
-                $" ({(DevelopmentStart.SkillSlots() > 1 ? "development/skills.txt" : "forged at the Forge")})");
+            // Said only when the development file forces the skills; a forged skill is the game working as it should.
+            if (DevelopmentStart.SkillSlots() > 1)
+                Debug.Log($"[Skills] the run carries skill 1{(second != null ? ", 2" : string.Empty)}{(third != null ? ", 3" : string.Empty)}" +
+                    " (development/skills.txt)");
         }
 
         private void ApplyHeroStats()
