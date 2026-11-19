@@ -21,9 +21,9 @@ its glyph painted out):
     steel-blue speed streaks behind it and the strike's white flare at its leading edge.
   - Flame Sigil (Ilya, docs/57 3.2): a furnace glyph on the floor - an ember ring in perspective notched with white-hot
     runes round an inner ring, the floor inside it lit, and a curling flame rising from its centre with two small ones.
-  - Cinder Ward (Ilya): a dome of ash-white hexagonal plates (laid on the sphere, so they crowd toward its edge) whose
-    seams glow ember, on a burning base ring, with a whirl of cinders round it - an orbit's ember trail crossing in
-    front, swelling to a bright cinder at its head.
+  - Cinder Ward (Ilya): Ilya hooded in her ash robe, a dark silhouette rimmed in ember, inside a ward of three ember
+    strokes wheeling round her, each swelling to a white-hot cinder at its head, the space within lit. (Its first
+    paint, a dome of ash hexagonal plates, read as a shell at 64 px; skill-icons-02 of 2026-11-19.)
 
 The Vanguard's two glow the Forge Burst's blue and are rimmed in its blue; Ilya's two glow and are rimmed in the
 Crucible Vent's ember and crimson. Deterministic: the same script paints the same bytes (the inpainted field, minutes to
@@ -331,89 +331,95 @@ def flame_sigil(g):
     sparkle(g, cx + 22, 38, 1, FLAME[5], emit=1.2, core=FLAME[6])
 
 
-def hex_edge(u, v):
-    """Distance from (u, v) to the nearest edge of its cell in a pointy-top hexagonal tiling of unit circumradius."""
-    q = (math.sqrt(3) / 3 * u - v / 3)
-    r = 2.0 / 3 * v
-    x, z = q, r
-    y = -x - z
-    rx, ry, rz = np.round(x), np.round(y), np.round(z)
-    dx, dy, dz = np.abs(rx - x), np.abs(ry - y), np.abs(rz - z)
-    rx = np.where((dx > dy) & (dx > dz), -ry - rz, rx)
-    rz = np.where(~((dx > dy) & (dx > dz)) & ~(dy > dz), -rx - ry, rz)
-    hx = math.sqrt(3) * (rx + rz / 2)
-    hy = 1.5 * rz
-    ox, oy = u - hx, v - hy
-    proj = np.maximum(np.abs(ox), np.maximum(np.abs(ox * 0.5 + oy * math.sqrt(3) / 2),
-                                             np.abs(ox * 0.5 - oy * math.sqrt(3) / 2)))
-    return math.sqrt(3) / 2 - proj, rx, rz
+def comet_arc(cx, cy, head, span, r_head, r_tail, w_head, w_tail):
+    """One stroke of a whirl round (cx, cy): an arc running clockwise (y down) to its head at `head` degrees, `span`
+    degrees long, its radius easing from r_tail to r_head and its half width swelling from w_tail to a round head of
+    w_head. Extra: t (0 at the tail, 1 at the head) and s (-1 inside to 1 outside, across the stroke)."""
+    hx = cx + r_head * math.cos(math.radians(head))
+    hy = cy + r_head * math.sin(math.radians(head))
 
+    def f(x, y):
+        dx, dy = x - cx, y - cy
+        r = np.hypot(dx, dy)
+        back = (head - np.degrees(np.arctan2(dy, dx))) % 360.0
+        on = back <= span
+        t = np.clip(1.0 - back / span, 0, 1)
+        rc = r_tail + (r_head - r_tail) * t
+        w = w_tail + (w_head - w_tail) * t ** 1.4
+        s = (r - rc) / w
+        cap = np.hypot(x - hx, y - hy) <= w_head
+        inside = (on & (np.abs(s) <= 1)) | cap
+        return inside, dict(t=np.where(on, t, 1.0), s=np.where(on, s, 0.0))
 
-HEX_DEG = 19.0
+    return f, (hx, hy)
 
 
 def cinder_ward(g):
-    """A dome of ash-white hexagonal plates, its seams glowing ember, on a burning ring, cinders whirling round it."""
-    cx, base, rx, ry = 48.0, 70.0, 28.0, 38.0
-    orbit_c, orx, ory, tilt = (48.0, 57.0), 40.0, 9.5, -14.0
+    """Ilya hooded in her ash robe, warded by a whirl of three ember strokes, each swelling to a white-hot cinder at its
+    head, round a space lit from within."""
+    cx, cy = 48.0, 49.0
+    r_out = 31.0
 
-    def orbit_point(deg):
-        a = math.radians(deg)
-        x, y = orx * math.cos(a), ory * math.sin(a)
-        b = math.radians(tilt)
-        return orbit_c[0] + x * math.cos(b) - y * math.sin(b), orbit_c[1] + x * math.sin(b) + y * math.cos(b)
+    # The warded space glows, brightest toward the ward's edge (a bubble's rim), drawn as light on the field.
+    xs = (np.arange(N * lib.UP, dtype=np.float32) + 0.5) / lib.UP
+    X, Y = np.meshgrid(xs, xs)
+    d = np.hypot(X - cx, Y - cy) / (r_out - 6.0)
+    fade = np.clip((1.04 - d) / 0.16, 0, 1)
+    g.field += np.array([1.0, 0.42, 0.12], np.float32) * ((0.27 + 0.30 * np.clip(d, 0, 1) ** 2.2) * fade)[..., None]
 
-    def cinder(deg, r, ramp=FLAME, emit=1.3):
-        x, y = orbit_point(deg)
-        pts = [(x, y - r * 1.25), (x + r, y), (x, y + r * 1.25), (x - r, y)]
-        m = part(g, polygon(pts), colours(ramp, 4), ramp, inline=2, emit=emit)
-        if r >= 2.2:
-            g.paint(mask_of(ellipse(x, y, r * 0.45)) & m, ramp[6], separate=False, emit=emit)
-        return m
+    # The ward: three comet strokes wheeling clockwise, a short gap between each tail and the head before it.
+    heads = []
+    for head in (-58.0, 62.0, 182.0):
+        arc, hp = comet_arc(cx, cy, head, 104.0, r_out - 2.6, r_out - 6.2, 3.9, 1.2)
+        m = mask_of(arc)
+        _, e = arc(CX, CY)
+        t, s = e["t"], e["s"]
+        tone = 3 + (t > 0.30) + (t > 0.66)
+        tone = np.where((np.abs(s) < 0.45) & (t > 0.15), tone + 1, tone)
+        tone = np.where(s > 0.62, tone - 1, tone)
+        part(g, m, colours(FLAME, tone), FLAME, inline=2, emit=1.25)
+        heads.append(hp)
 
-    # The far half of the orbit, behind the dome: a few dim cinders.
-    for deg, r in ((-160, 1.4), (-125, 1.6), (-55, 1.6)):
-        cinder(deg, r, emit=0.9)
+    # The cinder at each stroke's head: a white-hot diamond.
+    for hx, hy in heads:
+        r = 4.0
+        pts = [(hx, hy - r * 1.25), (hx + r, hy), (hx, hy + r * 1.25), (hx - r, hy)]
+        m = part(g, polygon(pts), colours(FLAME, 5), FLAME, inline=3, separate=False, emit=1.5)
+        g.paint(mask_of(ellipse(hx, hy, 1.6)) & m, FLAME[6], separate=False, emit=1.6)
 
-    # The base ring, burning.
-    br = ring(cx, base, rx - 1.0, rx + 7.0, squash=0.24)
-    bm = mask_of(br) & (CY >= base - 1.6)
-    _, e = br(CX, CY)
-    part(g, bm, colours(FLAME, np.where(e["r"] < 0.45, 5, 3)), FLAME, inline=1, emit=1.0)
+    # Ilya inside it: a hooded ash robe in silhouette against the lit space, its edge caught in the ward's ember light.
+    # Drawn at its own size, then drawn in a little (k) so the lit space shows all round it.
+    k = 0.88
 
-    # The dome: hexagonal ash plates laid on the sphere (so they crowd toward its edge), their seams lit from inside.
-    dome = ellipse(cx, base, rx, ry)
-    dm = mask_of(dome) & (CY < base)
-    _, e = dome(CX, CY)
-    nx, ny = e["nx"], e["ny"]
-    nz = np.sqrt(np.clip(1 - nx * nx - ny * ny, 0, 1))
-    lat = np.degrees(np.arcsin(np.clip(-ny, -1, 1)))
-    lon = np.degrees(np.arctan2(nx, np.maximum(nz, 1e-3)))
-    edge, hq, hr = hex_edge(lon / HEX_DEG, (lat - 4.0) / HEX_DEG)
-    seam = edge < 0.13 + 0.07 * (np.abs(lon) / 90.0)
-    toward = -(nx * lib.LXY[0] + ny * lib.LXY[1])
-    plate_var = ((hq * 7 + hr * 3) % 3 == 0) * 0.45
-    tone = np.round(4.1 + 1.8 * (0.72 * toward + 0.38 * (nz - 0.55)) + plate_var).astype(int)
-    # Each plate's lower edge a tone darker, so the plates read as raised scales and not as a flat print.
-    below, _, _ = hex_edge(lon / HEX_DEG, (lat - 4.0 + 3.0) / HEX_DEG)
-    tone = np.where((below < 0.13) & ~seam, tone - 1, tone)
-    part(g, dm, colours(ASH, tone), ASH, inline=1)
-    sm = seam & dm & ~edge_of(dm)
-    g.paint(sm, colours(FLAME, np.where(toward > 0.1, 5, 4)), separate=False, emit=0.75)
+    def P(x, y):
+        return cx + (x - cx) * k, cy - 0.6 + (y - cy) * k
 
-    # The near half of the orbit, over the dome: a trail of cinders and flakes growing to its bright head.
-    # The orbit's trail: a thin ember streak swelling toward the head.
-    streak = np.zeros((N, N), bool)
-    for a in np.linspace(176.0, 44.0, 90):
-        x, y = orbit_point(a)
-        r = 0.45 + 0.85 * (1 - (a - 44.0) / 132.0)
-        streak |= mask_of(ellipse(x, y, r))
-    part(g, streak, colours(FLAME, 4), FLAME, inline=None, separate=False, emit=0.8)
-    trail = [(172, 0.9, ASH), (150, 1.2, ASH), (126, 1.6, FLAME), (100, 1.9, FLAME), (72, 2.4, FLAME),
-             (38, 3.3, FLAME)]
-    for deg, r, ramp in trail:
-        cinder(deg, r, ramp=ramp, emit=1.4 if ramp is FLAME else 0.5)
-    sparkle(g, *orbit_point(-10), 1, FLAME[5], emit=1.2, core=FLAME[6])
+    hood = lib.union(ellipse(*P(cx, 41.4), 6.2 * k, 6.8 * k),
+                     polygon([P(42.0, 40.6), P(54.0, 40.6), P(50.8, 32.0)]))
+    robe = lib.union(ellipse(*P(cx, 51.0), 10.4 * k, 5.0 * k),
+                     polygon([P(x, y) for x, y in ((37.8, 51.4), (58.2, 51.4), (60.6, 66.0), (54.0, 67.6),
+                                                    (48.0, 66.6), (42.0, 67.6), (35.4, 66.0))]))
+    body = mask_of(lib.union(hood, robe))
+    tone = np.where(CX < cx - 3.0, 2, 1)
+    cols = colours(ASH, tone)
+    lit_edge = edge_of(body) & ((CX < cx - 1.0) & (CY < P(0, 58.0)[1]))
+    cols[edge_of(body)] = FLAME[3]
+    cols[lit_edge] = FLAME[4]
+    g.paint(body, cols, separate=True, emit=0.0)
+    g.emit[edge_of(body)] = FLAME[3] * 0.5
+    # The face, shadowed in the hood, and the fold down the front of the robe.
+    face = mask_of(ellipse(*P(cx + 0.6, 42.4), 3.3, 3.8)) & body & ~edge_of(body)
+    g.paint(face, np.array([20, 8, 12], np.float32) / 255.0, separate=False)
+    g.dot(*P(cx - 0.9, 42.5), FLAME[5], 1.2)
+    g.dot(*P(cx + 2.1, 42.5), FLAME[5], 1.2)
+    fold = (np.abs(CX + 0.5 - cx - 0.5) < 0.6) & (CY > P(0, 54.0)[1]) & body & ~edge_of(body, 2)
+    g.paint(fold, ASH[0], separate=False)
+
+    # Loose cinders flung off the whirl.
+    sparkle(g, cx + 30, 24, 1, FLAME[5], emit=1.2, core=FLAME[6])
+    sparkle(g, cx - 31, 72, 1, FLAME[5], emit=1.2, core=FLAME[6])
+    g.dot(cx + 34, 79, FLAME[4], 1.0)
+    g.dot(cx - 35, 19, FLAME[4], 1.0)
 
 
 GLYPHS = {
