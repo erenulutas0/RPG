@@ -59,7 +59,7 @@ namespace Cryptforge.Tests
             Assert.That(loaded.OwnedWeaponIds, Is.EqualTo(new[] { "weapon_staff" }));
             Assert.That(loaded.EquippedWeaponId, Is.EqualTo("weapon_staff"));
             string json = File.ReadAllText(Path.Combine(_directory, ProfileStore.FileName));
-            Assert.That(json, Does.Contain("\"saveVersion\": 5").And.Contain("\"gold\": 120").And.Contain("\"equippedWeaponId\": \"weapon_staff\""));
+            Assert.That(json, Does.Contain("\"saveVersion\": 6").And.Contain("\"gold\": 120").And.Contain("\"equippedWeaponId\": \"weapon_staff\""));
             Assert.That(File.Exists(Path.Combine(_directory, ProfileStore.TempFileName)), Is.False);
         }
 
@@ -115,7 +115,7 @@ namespace Cryptforge.Tests
             store.Save(profile);
 
             string json = File.ReadAllText(path);
-            Assert.That(json, Does.Contain("\"saveVersion\": 5").And.Contain("\"revision\": 6").And.Contain("\"gold\": 30"));
+            Assert.That(json, Does.Contain("\"saveVersion\": 6").And.Contain("\"revision\": 6").And.Contain("\"gold\": 30"));
             Assert.That(File.ReadAllText(Path.Combine(_directory, ProfileStore.BackupFileName)), Does.Contain("\"saveVersion\": 1"),
                 "The version 1 file stays behind as the backup.");
             PlayerProfile reloaded = new ProfileStore(_directory).Load();
@@ -274,7 +274,7 @@ namespace Cryptforge.Tests
             store.Save(profile);
 
             string json = File.ReadAllText(Path.Combine(_directory, ProfileStore.FileName));
-            Assert.That(json, Does.Contain("\"saveVersion\": 5").And.Contain("\"itemId\": \"item_cinder_ring\"")
+            Assert.That(json, Does.Contain("\"saveVersion\": 6").And.Contain("\"itemId\": \"item_cinder_ring\"")
                 .And.Contain("\"weaponId\": \"weapon_sword\"").And.Contain("\"anvilSeed\": 77"));
             PlayerProfile loaded = new ProfileStore(_directory).Load();
             Assert.That(loaded.Gold, Is.EqualTo(profile.Gold));
@@ -300,7 +300,7 @@ namespace Cryptforge.Tests
             Assert.That(profile.Gear.AnvilSeed, Is.Zero, "Seeded on the first draw.");
             profile.Deposit(1);
             store.Save(profile);
-            Assert.That(File.ReadAllText(path), Does.Contain("\"saveVersion\": 5").And.Contain("\"items\": []"));
+            Assert.That(File.ReadAllText(path), Does.Contain("\"saveVersion\": 6").And.Contain("\"items\": []"));
         }
 
         // Version 5 (docs/54 section 21): each difficulty tier's record and the tier chosen survive the JSON round trip.
@@ -318,7 +318,7 @@ namespace Cryptforge.Tests
             store.Save(profile);
 
             string json = File.ReadAllText(Path.Combine(_directory, ProfileStore.FileName));
-            Assert.That(json, Does.Contain("\"saveVersion\": 5").And.Contain("\"tierProgress\"").And.Contain("\"tier\": \"inferno\"")
+            Assert.That(json, Does.Contain("\"saveVersion\": 6").And.Contain("\"tierProgress\"").And.Contain("\"tier\": \"inferno\"")
                 .And.Contain("\"selectedTier\": 2").And.Contain("\"highestTierCompleted\": 2"));
             PlayerProfile loaded = new ProfileStore(_directory).Load();
             Assert.That(loaded.Tiers.Selected, Is.EqualTo(DifficultyTier.Inferno));
@@ -331,7 +331,7 @@ namespace Cryptforge.Tests
         }
 
         // A version 4 save (the tiers stored ahead of their build) loads with its depth record as Forged's: the owner's
-        // Descents walked out of open Tempered; a profile short of the finale opens nothing new. Written back as version 5.
+        // Descents walked out of open Tempered; a profile short of the finale opens nothing new. Written back as version 6.
         [Test]
         public void AVersionFourProfileCarriesItsDepthToForged()
         {
@@ -348,7 +348,7 @@ namespace Cryptforge.Tests
             Assert.That(veteran.Tiers.Selected, Is.EqualTo(DifficultyTier.Forged));
             veteran.Deposit(1);
             store.Save(veteran);
-            Assert.That(File.ReadAllText(path), Does.Contain("\"saveVersion\": 5").And.Contain("\"tier\": \"forged\"")
+            Assert.That(File.ReadAllText(path), Does.Contain("\"saveVersion\": 6").And.Contain("\"tier\": \"forged\"")
                 .And.Contain("\"highestTierCompleted\": 1"));
 
             File.WriteAllText(path, "{\"saveVersion\":4,\"revision\":40,\"gold\":5,\"deepestFloorCleared\":2,\"selectedTier\":3}");
@@ -382,6 +382,86 @@ namespace Cryptforge.Tests
                 Is.EqualTo((0, false)), "Tempered is not open: its record goes");
             Assert.That(profile.Tiers.Selected, Is.EqualTo(DifficultyTier.Forged));
             Assert.That(profile.Tiers.IsMapOpen(3, DifficultyTier.Forged), Is.True);
+        }
+
+        // Version 6 (docs/57 phase 4): each hero's forged skills survive the JSON round trip, and a hero with none is not
+        // written.
+        [Test]
+        public void ForgedSkillsRoundTripThroughVersionSix()
+        {
+            var store = new ProfileStore(_directory);
+            PlayerProfile profile = store.Load();
+            profile.RecordFloorCleared(3);
+            profile.Deposit(1200);
+            Assert.That(profile.TryForgeSkill("hero_vanguard", 2), Is.True);
+            Assert.That(profile.TryForgeSkill("hero_vanguard", 3), Is.True);
+            Assert.That(profile.TryForgeSkill("hero_cinder_arcanist", 2), Is.True);
+            Assert.That(profile.Gold, Is.EqualTo(100), "300 + 500 + 300 spent.");
+            store.Save(profile);
+
+            string json = File.ReadAllText(Path.Combine(_directory, ProfileStore.FileName));
+            Assert.That(json, Does.Contain("\"saveVersion\": 6").And.Contain("\"heroSkills\"")
+                .And.Contain("\"hero\": \"hero_cinder_arcanist\"").And.Contain("\"skillThree\": true"));
+            PlayerProfile loaded = new ProfileStore(_directory).Load();
+            Assert.That(loaded.HasForgedSkill("hero_vanguard", 2) && loaded.HasForgedSkill("hero_vanguard", 3), Is.True);
+            Assert.That(loaded.HasForgedSkill("hero_cinder_arcanist", 2), Is.True);
+            Assert.That(loaded.HasForgedSkill("hero_cinder_arcanist", 3), Is.False);
+            Assert.That(loaded.SkillStatusOf("hero_cinder_arcanist", 3), Is.EqualTo(SkillForgeStatus.TooExpensive));
+            Assert.That(loaded.Skills.HeroCount, Is.EqualTo(2));
+            Assert.That(loaded.Gold, Is.EqualTo(100));
+        }
+
+        // A version 5 save (the tiers' build) gains the skills with nothing forged, whatever it has cleared: the Forge offers
+        // each skill its floor has opened. Written back as version 6.
+        [Test]
+        public void AVersionFiveProfileForgesNothing()
+        {
+            string path = Path.Combine(_directory, ProfileStore.FileName);
+            File.WriteAllText(path, "{\"saveVersion\":5,\"revision\":8,\"gold\":900,\"deepestFloorCleared\":4,\"items\":[]," +
+                "\"tierProgress\":[{\"tier\":\"forged\",\"deepestFloorCleared\":4,\"completed\":true}],\"selectedTier\":0}");
+            var store = new ProfileStore(_directory);
+            PlayerProfile veteran = store.Load();
+            Assert.That(store.LastLoadStatus, Is.EqualTo(ProfileLoadStatus.Loaded));
+            Assert.That(veteran.Skills.HeroCount, Is.Zero);
+            Assert.That(veteran.HasForgedSkill("hero_vanguard", 1), Is.True, "Skill 1 is the hero's own.");
+            Assert.That(veteran.HasForgedSkill("hero_vanguard", 2), Is.False);
+            Assert.That(veteran.SkillStatusOf("hero_vanguard", 2), Is.EqualTo(SkillForgeStatus.Affordable));
+            Assert.That(veteran.SkillStatusOf("hero_vanguard", 3), Is.EqualTo(SkillForgeStatus.NeedsEarlierSkill));
+            Assert.That(veteran.Gold, Is.EqualTo(900), "The gold is untouched.");
+            veteran.Deposit(1);
+            store.Save(veteran);
+            Assert.That(File.ReadAllText(path), Does.Contain("\"saveVersion\": 6").And.Contain("\"heroSkills\": []"));
+        }
+
+        // Damaged skills in a readable version 6 save are repaired, never rejected (ProfileSkills.Restore): a record with no
+        // hero dropped, a repeated hero's later record dropped, a skill whose floor is not cleared not forged, skill 3 without
+        // skill 2 not forged, a hero left with nothing not kept; a hero id the roster does not know is kept.
+        [Test]
+        public void DamagedSkillsInAReadableSaveAreRepaired()
+        {
+            string path = Path.Combine(_directory, ProfileStore.FileName);
+            File.WriteAllText(path,
+                "{\"saveVersion\":6,\"revision\":3,\"gold\":20,\"deepestFloorCleared\":2,\"heroSkills\":[" +
+                "{\"hero\":\"\",\"skillTwo\":true,\"skillThree\":true}," +
+                "{\"hero\":\"hero_vanguard\",\"skillTwo\":true,\"skillThree\":true}," +
+                "{\"hero\":\"hero_vanguard\",\"skillTwo\":false,\"skillThree\":false}," +
+                "{\"hero\":\"hero_cinder_arcanist\",\"skillTwo\":false,\"skillThree\":true}," +
+                "{\"hero\":\"hero_riftblade\",\"skillTwo\":true,\"skillThree\":false}]}");
+            var store = new ProfileStore(_directory);
+            PlayerProfile profile = store.Load();
+            Assert.That(store.LastLoadStatus, Is.EqualTo(ProfileLoadStatus.Loaded));
+            Assert.That(profile.HasForgedSkill("hero_vanguard", 2), Is.True, "the first record wins");
+            Assert.That(profile.HasForgedSkill("hero_vanguard", 3), Is.False, "floor 3 is not cleared");
+            Assert.That(profile.HasForgedSkill("hero_cinder_arcanist", 3), Is.False, "skill 3 waits on skill 2");
+            Assert.That(profile.HasForgedSkill("hero_riftblade", 2), Is.True, "a hero the roster may not know is kept");
+            Assert.That(profile.Skills.HeroCount, Is.EqualTo(2), "the empty id and the Arcanist's nothing are dropped");
+
+            File.WriteAllText(path,
+                "{\"saveVersion\":6,\"revision\":9,\"gold\":20,\"deepestFloorCleared\":1,\"heroSkills\":[" +
+                "{\"hero\":\"hero_vanguard\",\"skillTwo\":true,\"skillThree\":true}]}");
+            PlayerProfile early = new ProfileStore(_directory).Load();
+            Assert.That(early.HasForgedSkill("hero_vanguard", 2), Is.False, "floor 2 is not cleared: nothing was earned");
+            Assert.That(early.Skills.HeroCount, Is.Zero);
         }
 
         // Damaged gear in a readable version 4 save is repaired, never rejected (ProfileGear.Restore).

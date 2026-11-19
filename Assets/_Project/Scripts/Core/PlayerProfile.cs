@@ -12,8 +12,8 @@ namespace Cryptforge.Core
     }
 
     // Permanent progress between runs: banked gold, forged relics and weapons, what is equipped, the heroes unlocked and
-    // chosen, the depth record, the gear (docs/54: items, basma, efsun, floor materials and boosters) and the difficulty
-    // tiers' records with the tier chosen for the next run (docs/54 section 21).
+    // chosen, the depth record, the gear (docs/54: items, basma, efsun, floor materials and boosters), the difficulty
+    // tiers' records with the tier chosen for the next run (docs/54 section 21) and each hero's forged skills (docs/57).
     // Every successful change raises Changed exactly once, which is the save trigger.
     public sealed class PlayerProfile
     {
@@ -33,6 +33,8 @@ namespace Cryptforge.Core
         // Each difficulty tier's record and the tier chosen for the next run (docs/54 section 21). Forged's record is the
         // depth record above at the least: every run before the tiers was a Forged run.
         public ProfileTiers Tiers { get; }
+        // Each hero's forged skills 2 and 3 (docs/57 phase 4); TryForgeSkill buys one.
+        public ProfileSkills Skills { get; }
         public IReadOnlyList<string> OwnedRelicIds => _ownedRelicIds;
         public IReadOnlyList<string> OwnedWeaponIds => _ownedWeaponIds;
         // Heroes unlocked by play; the heroes open from the start are never stored.
@@ -45,6 +47,7 @@ namespace Cryptforge.Core
         {
             Gear = new ProfileGear();
             Tiers = new ProfileTiers();
+            Skills = new ProfileSkills();
         }
 
         // Restores saved progress. Damaged values are repaired instead of rejected so a hand-edited or partially
@@ -52,13 +55,15 @@ namespace Cryptforge.Core
         public PlayerProfile(int gold, IEnumerable<string> ownedRelicIds, string equippedRelicId, int deepestFloorCleared,
             IEnumerable<string> ownedWeaponIds = null, string equippedWeaponId = null,
             IEnumerable<string> unlockedHeroIds = null, string selectedHeroId = null, ProfileGear gear = null,
-            ProfileTiers tiers = null)
+            ProfileTiers tiers = null, ProfileSkills skills = null)
         {
             Gear = gear ?? new ProfileGear();
             Gold = Math.Max(0, gold);
             DeepestFloorCleared = Math.Max(0, deepestFloorCleared);
             Tiers = tiers ?? new ProfileTiers();
             Tiers.Reconcile(DeepestFloorCleared);
+            // ProfileSkills.Restore has already repaired the skills against the depth record (ProfileStore).
+            Skills = skills ?? new ProfileSkills();
             AddUnique(_ownedRelicIds, ownedRelicIds);
             AddUnique(_ownedWeaponIds, ownedWeaponIds);
             EquippedRelicId = Owns(equippedRelicId) ? equippedRelicId : null;
@@ -302,6 +307,36 @@ namespace Cryptforge.Core
                 return false;
             if (DescentStart.FinaleFloor > DeepestFloorCleared)
                 DeepestFloorCleared = DescentStart.FinaleFloor;
+            Changed?.Invoke();
+            return true;
+        }
+
+        // Whether the hero carries the skill slot: skill 1 always, skills 2 and 3 once the Forge has forged them.
+        public bool HasForgedSkill(string heroId, int slot) => Skills.IsForged(heroId, slot);
+
+        // What the Forge shows for the hero's skill slot (HeroSkillUnlock.StatusOf): forged, locked until its floor's first
+        // clear (any tier, any hero), waiting on skill 2, or affordable or not.
+        public SkillForgeStatus SkillStatusOf(string heroId, int slot) =>
+            HeroSkillUnlock.StatusOf(slot, DeepestFloorCleared, Skills.IsForged(heroId, slot),
+                Skills.IsForged(heroId, HeroSkillUnlock.Requires(slot)), Gold);
+
+        // The gold still needed to forge the hero's skill slot; 0 once it is forged or affordable.
+        public int GoldNeededForSkill(string heroId, int slot) =>
+            Skills.IsForged(heroId, slot) ? 0 : Math.Max(0, HeroSkillUnlock.Price(slot) - Gold);
+
+        // The Forge forges the hero's skill 2 or 3 (docs/57 section 12): open (its floor cleared), skill 3 after skill 2,
+        // not yet forged and affordable - the price spent and the skill recorded as one change. False, and nothing spent,
+        // otherwise.
+        public bool TryForgeSkill(string heroId, int slot)
+        {
+            if (string.IsNullOrEmpty(heroId))
+                throw new ArgumentException("A hero id is required.", nameof(heroId));
+            if (!HeroSkillUnlock.IsForgeable(slot))
+                throw new ArgumentOutOfRangeException(nameof(slot));
+            if (SkillStatusOf(heroId, slot) != SkillForgeStatus.Affordable)
+                return false;
+            Gold -= HeroSkillUnlock.Price(slot);
+            Skills.Forge(heroId, slot);
             Changed?.Invoke();
             return true;
         }

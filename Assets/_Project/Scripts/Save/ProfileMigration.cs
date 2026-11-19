@@ -65,6 +65,12 @@ namespace Cryptforge.Save
                     data.saveVersion = 5;
                     goto case 5;
                 case 5:
+                    // Version 5 predates the heroes' skills 2 and 3 (docs/57 phase 4): nothing is forged, whatever floors
+                    // the profile has cleared; the Forge offers each skill its floor has opened.
+                    data.heroSkills = new HeroSkillsSaveData[0];
+                    data.saveVersion = 6;
+                    goto case 6;
+                case 6:
                     return data;
                 default:
                     return null;

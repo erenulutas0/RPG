@@ -73,6 +73,7 @@
     <Compile Include="../../Assets/_Project/Scripts/Core/ProfileGear.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/GearSnapshot.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/ProfileTiers.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Core/ProfileSkills.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/RunPause.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/FrameStats.cs" />
     <!-- The development autopilot's drop detour, one body for the scene's autopilot and the foundry simulation's copy. -->
@@ -101,6 +102,7 @@
     <Compile Include="../../Assets/_Project/Scripts/Save/ProfileMigration.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Save/ProfileGearSave.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Save/ProfileTiersSave.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Save/ProfileSkillsSave.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/CombatStateTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/RewardTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/UpgradeTests.cs" />
@@ -299,6 +301,8 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/ProfileGearTests.cs" />
     <!-- docs/54 phase 6: the difficulty tiers (Progression/DifficultyTier.cs, Core/ProfileTiers.cs, Save/ProfileTiersSave.cs). -->
     <Compile Include="../../Assets/_Project/Tests/EditMode/DifficultyTierTests.cs" />
+    <!-- docs/57 phase 4: the skills' unlock and the Forge (Progression/HeroSkillUnlock.cs, Core/ProfileSkills.cs, Save/ProfileSkillsSave.cs). -->
+    <Compile Include="../../Assets/_Project/Tests/EditMode/HeroSkillUnlockTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/AnvilTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/RunLootTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/GearTextTests.cs" />

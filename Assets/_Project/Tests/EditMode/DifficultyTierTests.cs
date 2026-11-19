@@ -284,7 +284,7 @@ namespace Cryptforge.Tests
         public void VersionFourMigratesItsDepthToForged()
         {
             ProfileSaveData veteran = ProfileMigration.Upgrade(new ProfileSaveData { saveVersion = 4, revision = 3, gold = 39491, deepestFloorCleared = 4 });
-            Assert.That(veteran.saveVersion, Is.EqualTo(5));
+            Assert.That(veteran.saveVersion, Is.EqualTo(ProfileSaveData.CurrentVersion), "through 5 (the tiers) to the current");
             Assert.That(veteran.gold, Is.EqualTo(39491));
             Assert.That(veteran.tierProgress.Select(t => (t.tier, t.deepestFloorCleared, t.completed)), Is.EqualTo(new[]
             {

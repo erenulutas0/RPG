@@ -8,8 +8,8 @@ namespace Cryptforge.Save
     public sealed class ProfileSaveData
     {
         // Version 2 added forged weapons; version 3 added heroes (docs/45); version 4 added gear (docs/54); version 5 added
-        // the difficulty tiers' records (docs/54 section 21).
-        public const int CurrentVersion = 5;
+        // the difficulty tiers' records (docs/54 section 21); version 6 added the heroes' forged skills (docs/57 phase 4).
+        public const int CurrentVersion = 6;
 
         public int saveVersion;
         // Increases with every save; loading prefers the readable file with the highest revision.
@@ -52,6 +52,19 @@ namespace Cryptforge.Save
 
         // Version 5 (docs/54 section 21): each difficulty tier's record by its id.
         public TierProgressSaveData[] tierProgress;
+
+        // Version 6 (docs/57 phase 4): each hero's forged skills 2 and 3; a hero with none forged is not written.
+        public HeroSkillsSaveData[] heroSkills;
+    }
+
+    // A hero's forged skills: its id ("hero_vanguard", "hero_cinder_arcanist") and whether the Forge has forged its skill 2
+    // and its skill 3 (docs/57 section 12: 300 and 500 gold, once floors 2 and 3 have been cleared).
+    [Serializable]
+    public sealed class HeroSkillsSaveData
+    {
+        public string hero;
+        public bool skillTwo;
+        public bool skillThree;
     }
 
     // A difficulty tier's record: its id ("forged", "tempered", "inferno", "abyssal"), the deepest floor a run on it has
