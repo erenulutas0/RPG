@@ -1,13 +1,21 @@
-"""The Vanguard rebuilt in Ilya's Blender pipeline (a pilot, 2026-11-22): a reproducible stylised plate knight, rig,
-animation and sprite render, in the style, camera and sprite contract of BuildBlenderArcanist.py.
+"""The Vanguard rebuilt in Ilya's Blender pipeline (2026-11-22): a reproducible stylised plate knight, rig, animation
+and sprite render, in the style, camera and sprite contract of BuildBlenderArcanist.py. The game's Vanguard since
+2026-11-22 (PackVanguardSprites.py packs these frames into its RenderedCharacterArtSet).
 
-Run with Blender 4.5 LTS, headless:
+Look pass 2 (after the pilot, against the painted master): a deeper navy plate with a hard-edged sheen band and a white
+core highlight (the toon group's Sheen and Spec Power); taller and more heroic - longer legs with the thigh showing
+under a shorter tabard, the helm a tenth smaller (tall(), SHRINK); deeper, sharper cape pleats; a flinch about half as
+big again; the idle sword posed per facing so it reads in every one (IDLE_BLADE), the still blade's flat to the camera;
+the buckler turned out so its face shows from the side; and a crescent smear, solid and white at its leading edge,
+fading toward its tail.
 
-    blender --background --factory-startup --python Tools/ArtReview/BuildBlenderVanguard.py -- [options]
+Run with Blender 4.5 LTS, headless (the pass 2 render, about six minutes on the CPU):
+
+    blender --background --factory-startup --python Tools/ArtReview/BuildBlenderVanguard.py -- --out TestResults/vanguard-render2
 
 Options after the "--":
     --out DIR        raw frames and frames.json (default TestResults/vanguard-render, git-ignored)
-    --blend PATH     the saved scene (default ArtDirection/2026-11-22/vanguard-blender-01/vanguard.blend)
+    --blend PATH     the saved scene (default ArtDirection/2026-11-22/vanguard-blender-02/vanguard.blend)
     --facings LIST   a comma-separated subset of south,south-east,east,north-east,north,north-west,west,south-west
     --clips LIST     a comma-separated subset of idle,walk,walk-strike,strike,cast,hit,death,shield-rush
     --samples N      Cycles samples per render pixel (default 10)
@@ -53,7 +61,7 @@ def option(name, default=None):
 
 
 OUT = Path(option('--out', str(ROOT / 'TestResults/vanguard-render'))).resolve()
-BLEND = Path(option('--blend', str(ROOT / 'ArtDirection/2026-11-22/vanguard-blender-01/vanguard.blend'))).resolve()
+BLEND = Path(option('--blend', str(ROOT / 'ArtDirection/2026-11-22/vanguard-blender-02/vanguard.blend'))).resolve()
 SAMPLES = int(option('--samples', 10))
 PREVIEW = bool(option('--preview', False))
 PREVIEW_FRAME = option('--frame')
@@ -69,10 +77,10 @@ ELEVATION = math.radians(30)
 HEIGHT = 1 / math.cos(ELEVATION)
 FACINGS = [('south', 270), ('south-east', 315), ('east', 0), ('north-east', 45), ('north', 90),
            ('north-west', 135), ('west', 180), ('south-west', 225)]
-# The run is driven by distance. The legs are shorter than Ilya's, so a cycle of two steps covers 0.9 floor units
-# (Ilya 1.2): RenderedCharacterArtSet's StrideLength is per set. Each foot is planted DUTY of the cycle, sliding back
-# at the floor's speed; the rest is a short flight, a trot.
-STRIDE = 0.9
+# The run is driven by distance. The legs are shorter than Ilya's, so a cycle of two steps covers 1.0 floor units
+# (Ilya 1.2; the pilot's shorter legs 0.9): RenderedCharacterArtSet's StrideLength is per set. Each foot is planted DUTY
+# of the cycle, sliding back at the floor's speed; the rest is a short flight, a trot.
+STRIDE = 1.0
 DUTY = 0.4
 CLIPS = {  # frames, frames a second, loops: RenderedMotion's timings (Ilya's art set), then the Rush
     'idle': (8, 5.0, True),
@@ -174,7 +182,9 @@ def build_toon_group():
             ('Glow', 'NodeSocketColor', (0, 0, 0, 1)), ('Spec', 'NodeSocketFloat', 0.0),
             ('Spec Color', 'NodeSocketColor', (1, 1, 1, 1)), ('Rim', 'NodeSocketFloat', 0.35),
             ('Occlusion', 'NodeSocketFloat', 1.0), ('Band Shift', 'NodeSocketFloat', 0.0),
-            ('Glint', 'NodeSocketFloat', 0.0)]:
+            ('Glint', 'NodeSocketFloat', 0.0), ('Spec Power', 'NodeSocketFloat', 48.0),
+            ('Sheen', 'NodeSocketFloat', 0.0), ('Sheen Color', 'NodeSocketColor', (1, 1, 1, 1)),
+            ('Sheen Power', 'NodeSocketFloat', 10.0)]:
         socket = io.new_socket(name, in_out='INPUT', socket_type=kind)
         socket.default_value = default
     io.new_socket('Color', in_out='OUTPUT', socket_type='NodeSocketColor')
@@ -299,7 +309,12 @@ def build_toon_group():
     warm_rim_colour.outputs[0].default_value = lin('#FF9C55')
     colour = add_colour(colour, warm_rim_colour.outputs[0], math_node('MULTIPLY', warm_rim, 0.55))
     half = math_node('MAXIMUM', dot(normal, vec(HALF)), 0.0)
-    spec = math_node('MULTIPLY', step(math_node('POWER', half, 48.0), 0.35, 0.55), gi.outputs['Spec'])
+    # Pass 2's sheen: a hard-edged band of a paler tint round the highlight, where the painted plates carry their broad
+    # streak, laid over the bands (never in a closed crevice); then the white core, hard-edged too.
+    sheen = math_node('MULTIPLY', step(math_node('POWER', half, gi.outputs['Sheen Power']), 0.5, 0.56),
+                      gi.outputs['Sheen'])
+    colour = mix(math_node('MULTIPLY', sheen, math_node('SUBTRACT', 1.0, closed)), colour, gi.outputs['Sheen Color'])
+    spec = math_node('MULTIPLY', step(math_node('POWER', half, gi.outputs['Spec Power']), 0.42, 0.5), gi.outputs['Spec'])
     colour = add_colour(colour, gi.outputs['Spec Color'], spec)
     glint_colour = n.new('ShaderNodeRGB')
     glint_colour.outputs[0].default_value = lin('#FFFDF0')
@@ -318,8 +333,9 @@ TOON = build_toon_group()
 
 PALETTES = {
     # light, mid, shadow, deep - sampled from the painted Vanguard (front-idle-v1.png): its lit plates #6E98FD,
-    # #446AD2, its shadowed ones #22326A, its deepest #0A1E55.
-    'plate': ('#7299FA', '#3A5ECC', '#1F3082', '#0A1442'),
+    # #446AD2, its shadowed ones #22326A, its deepest #0A1E55. Pass 2 sits a step deeper, a navy steel, and leaves the
+    # brightness to the sheen and the highlight (PLATE_SHINE), as the painting does.
+    'plate': ('#5584E6', '#2749AA', '#15256C', '#071038'),
     # The cape and the tabard: the same blue as cloth, deeper and less bright, so the plate reads in front of it.
     'cape': ('#3F55B0', '#253784', '#162155', '#090E2A'),
     'cape-lining': ('#2C3A7A', '#1C275A', '#131A3D', '#090C20'),
@@ -334,6 +350,10 @@ PALETTES = {
     'slit': ('#1A1D33', '#10121F', '#0A0B14', '#05060B'),
 }
 OUTLINE = '#120F1D'
+# The plate's shine (pass 2): a broad pale-blue sheen with a hard edge where the painting lays its streak, a small hard
+# white core inside it, the glint and a cool rim on the edges turned from the key.
+PLATE_SHINE = dict(spec=1.25, spec_color='#F4F8FF', spec_power=110.0, sheen=0.9, sheen_color='#8FAEF7',
+                   sheen_power=9.0, glint=1.4, rim=0.62)
 
 
 class Shading:
@@ -365,7 +385,8 @@ class Shading:
         node.outputs[0].default_value = v
         return node.outputs[0], node
 
-    def toon(self, palette, spec=0.0, spec_color='#FFF4D6', rim=0.35, band_shift=0.0, occlusion=True, glint=0.0):
+    def toon(self, palette, spec=0.0, spec_color='#FFF4D6', rim=0.35, band_shift=0.0, occlusion=True, glint=0.0,
+             spec_power=48.0, sheen=0.0, sheen_color='#FFFFFF', sheen_power=10.0):
         light, mid, shadow, deep = PALETTES[palette] if isinstance(palette, str) else palette
         g = self.nodes.new('ShaderNodeGroup')
         g.node_tree = TOON
@@ -374,6 +395,10 @@ class Shading:
         g.inputs['Shadow'].default_value = lin(shadow)
         g.inputs['Deep'].default_value = lin(deep)
         g.inputs['Spec'].default_value = spec
+        g.inputs['Spec Power'].default_value = spec_power
+        g.inputs['Sheen'].default_value = sheen
+        g.inputs['Sheen Color'].default_value = lin(sheen_color)
+        g.inputs['Sheen Power'].default_value = sheen_power
         g.inputs['Glint'].default_value = glint
         g.inputs['Spec Color'].default_value = lin(spec_color)
         g.inputs['Rim'].default_value = rim
@@ -472,10 +497,10 @@ def build_materials():
     m = MATERIALS
     m['outline'] = outline_material()
     # Blue steel: the painted plates' hard white highlight on every round plane turned to the key, and a glint.
-    m['plate'] = plain('Blue steel plate', 'plate', spec=0.95, spec_color='#E2ECFF', glint=1.3, rim=0.45,
-                       band_shift=-0.08)
-    m['silver'] = plain('Silver edging', 'silver', spec=0.8, spec_color='#FFFFFF', glint=1.2, rim=0.4)
-    m['gold'] = plain('Gold trim', 'gold', spec=1.15, spec_color='#FFF1C4', glint=1.5, rim=0.3)
+    m['plate'] = plain('Blue steel plate', 'plate', band_shift=-0.04, **PLATE_SHINE)
+    m['silver'] = plain('Silver edging', 'silver', spec=0.9, spec_color='#FFFFFF', spec_power=70.0, glint=1.2, rim=0.4)
+    m['gold'] = plain('Gold trim', 'gold', spec=1.15, spec_color='#FFF1C4', spec_power=60.0, sheen=0.55,
+                      sheen_color='#FFD27A', sheen_power=14.0, glint=1.5, rim=0.3)
     m['leather'] = plain('Belt leather', 'leather', spec=0.18, spec_color='#E8C49A', rim=0.25)
     m['grip'] = plain('Grip leather', 'grip', spec=0.1, rim=0.2)
     m['slit'] = plain('Visor recess', 'slit', rim=0.0)
@@ -505,8 +530,8 @@ def build_materials():
     u, v = s.uv()
     edge = s.math('MAXIMUM', s.math('MAXIMUM', s.math('LESS_THAN', u, 0.07), s.math('GREATER_THAN', u, 0.93)),
                   s.math('LESS_THAN', v, 0.16))
-    colour = s.mix(edge, s.toon('plate', spec=0.95, spec_color='#E2ECFF', glint=1.3, rim=0.45, band_shift=-0.08),
-                   s.toon('silver', spec=0.8, spec_color='#FFFFFF', glint=1.0))
+    colour = s.mix(edge, s.toon('plate', band_shift=-0.04, **PLATE_SHINE),
+                   s.toon('silver', spec=0.9, spec_color='#FFFFFF', spec_power=70.0, glint=1.0))
     m['tasset'] = s.finish(s.mix(s.backfacing(), colour, s.toon('plate', rim=0.0, band_shift=-0.25)))
 
     # The visor's light: a blue glow, hot white at its core; its strength flickers and dies with the knight.
@@ -534,16 +559,31 @@ def build_materials():
     s.links.new(s.noise(18.0, 1.0), ramp.inputs[0])
     m['blade'] = s.finish(s.mix(heat, steel, ramp.outputs[0]), s.math('MULTIPLY_ADD', heat, 0.35, 1.0))
 
-    # The sword's arc: a pale steel smear, half see-through, on the strike's and the Burst's fast frames only.
+    # The sword's arc, on the strike's and the Burst's fast frames only. Pass 2: a crescent that is solid and nearly
+    # white along its leading edge and the blade's path, thinning to a cool see-through tint toward its tail (the oldest
+    # samples, u 0) and toward the hilt (v 0), so it reads as speed rather than a grey slab.
     s = Shading('Swing smear')
+    u, v = s.uv()
+    edge = s.nodes.new('ShaderNodeRGB')
+    edge.name = 'Smear colour'
+    edge.outputs[0].default_value = lin('#F4F8FF')
+    tail = s.nodes.new('ShaderNodeRGB')
+    tail.name = 'Smear tail'
+    tail.outputs[0].default_value = lin('#7FA6F0')
+    along = s.step(u, 0.0, 0.85)
+    across = s.step(v, 0.15, 0.97)
+    colour = s.mix(s.math('MULTIPLY', along, across), tail.outputs[0], edge.outputs[0])
     emit = s.nodes.new('ShaderNodeEmission')
-    tint = s.nodes.new('ShaderNodeRGB')
-    tint.name = 'Smear colour'
-    tint.outputs[0].default_value = lin('#E6F0FF')
-    s.links.new(tint.outputs[0], emit.inputs['Color'])
+    s.links.new(colour, emit.inputs['Color'])
+    emit.inputs['Strength'].default_value = 1.0
+    # Opacity: the newest third nearly solid at the outer edge, a bright rim along it, the rest fading out - strong
+    # enough to hold on the Foundry's stone at the phone's size.
+    body = s.math('MULTIPLY', s.math('POWER', along, 1.05), s.math('MULTIPLY_ADD', across, 0.72, 0.22))
+    rim = s.math('MULTIPLY', s.step(v, 0.8, 0.93), s.math('MULTIPLY_ADD', along, 0.7, 0.25))
+    alpha = s.math('MINIMUM', s.math('MAXIMUM', body, rim), 0.95)
     transparent = s.nodes.new('ShaderNodeBsdfTransparent')
     mix = s.nodes.new('ShaderNodeMixShader')
-    mix.inputs['Fac'].default_value = 0.44
+    s.links.new(alpha, mix.inputs['Fac'])
     s.links.new(transparent.outputs[0], mix.inputs[1])
     s.links.new(emit.outputs[0], mix.inputs[2])
     s.links.new(mix.outputs[0], s.out.inputs['Surface'])
@@ -563,6 +603,10 @@ OCCLUDERS = []
 
 def new_object(name, verts, faces, uvs=None, bone=None, material=None, contour=True, subdivide=0, occluder=False,
                smooth_shade=True):
+    # Written in the pilot's design units; pass 2's proportions are applied here, once (SHRINK, then tall()).
+    if SHRINK is not None:
+        verts = [SHRINK[0] + (Vector(v) - SHRINK[0]) * SHRINK[1] for v in verts]
+    verts = [tall(v) for v in verts]
     mesh = bpy.data.meshes.new(name)
     mesh.from_pydata([tuple(v) for v in verts], [], faces)
     mesh.update()
@@ -736,8 +780,44 @@ def side_point(v, side):
 
 
 # ---- Measurements (design units: feet on z = 0, facing -Y, the knight's left is +X) ----
-# Short legs, a barrel chest and a big helm sunk between the pauldrons: about 1.27 to the crest's top.
+# The pilot's: short legs, a barrel chest and a big helm sunk between the pauldrons. Every table and pose below stays in
+# these design units; pass 2's proportions map them once (tall(), SHRINK) where geometry, bones and targets are made.
 ANKLE_Z, KNEE_Z, HIP_Z = 0.075, 0.25, 0.43
+# Pass 2 (after the painted master): taller and more heroic, still beside Ilya - the shin and the thigh each about a
+# fifth longer, everything above the hips lifted by what they gained, and the helm drawn a tenth smaller about its rim
+# (build_helm), about 4.4 helms tall where the pilot stood 3.9.
+TALL_KNEE, TALL_HIP = 0.284, 0.498
+LIFT = TALL_HIP - HIP_Z
+HELM_SCALE = 0.9
+SHRINK = None       # (centre, factor) while a part is built smaller about a point (the helm)
+
+
+def tall_z(z):
+    """Design height to pass 2's: the floor and the feet as they were, the shin and the thigh stretched, the rest lifted."""
+    if z <= ANKLE_Z:
+        return z
+    if z <= KNEE_Z:
+        return ANKLE_Z + (z - ANKLE_Z) * (TALL_KNEE - ANKLE_Z) / (KNEE_Z - ANKLE_Z)
+    if z <= HIP_Z:
+        return TALL_KNEE + (z - KNEE_Z) * (TALL_HIP - TALL_KNEE) / (HIP_Z - KNEE_Z)
+    return z + LIFT
+
+
+def design_z(z):
+    """tall_z's inverse."""
+    if z <= ANKLE_Z:
+        return z
+    if z <= TALL_KNEE:
+        return ANKLE_Z + (z - ANKLE_Z) * (KNEE_Z - ANKLE_Z) / (TALL_KNEE - ANKLE_Z)
+    if z <= TALL_HIP:
+        return KNEE_Z + (z - TALL_KNEE) * (HIP_Z - KNEE_Z) / (TALL_HIP - TALL_KNEE)
+    return z - LIFT
+
+
+def tall(v):
+    v = Vector(v)
+    return V(v.x, v.y, tall_z(v.z))
+
 HIP_X = 0.088
 WAIST_Z = 0.495
 SHOULDER = V(0.175, 0.0, 0.79)
@@ -758,7 +838,7 @@ HELM = [(0.85, 0.116, 0.12, 0.004, 0.0), (0.878, 0.139, 0.145, 0.0, 0.011), (0.9
         (1.142, 0.01, 0.011, 0.01, 0.0)]
 # The cape: z, radius across, radius deep, centre y, the arc it spans round the back (degrees). Hung from the
 # shoulders behind the pauldrons; its sides fall behind the arms.
-CAPE = [(0.25, 0.34, 0.2, 0.13, 178), (0.34, 0.32, 0.19, 0.122, 174), (0.45, 0.295, 0.178, 0.112, 170),
+CAPE = [(0.21, 0.35, 0.205, 0.134, 178), (0.34, 0.32, 0.19, 0.122, 174), (0.45, 0.295, 0.178, 0.112, 170),
         (0.56, 0.268, 0.163, 0.1, 166), (0.67, 0.245, 0.15, 0.088, 166), (0.76, 0.224, 0.134, 0.07, 178),
         (0.82, 0.19, 0.112, 0.05, 198), (0.855, 0.14, 0.09, 0.035, 212)]
 
@@ -792,7 +872,7 @@ def build_legs():
              material='mail', occluder=True, subdivide=1)
         # Cuisse: a plate over the front of the thigh, gold banded above the knee.
         rings = [oval(x, -0.004, z, r, r * 0.96, 14, start=-90 - 88, end=-90 + 88, closed=False)
-                 for z, r in [(0.29, 0.075), (0.33, 0.082), (0.38, 0.084), (0.42, 0.079)]]
+                 for z, r in [(0.285, 0.077), (0.33, 0.086), (0.38, 0.088), (0.42, 0.082)]]
         loft('Cuisse ' + s, rings, closed=False, bone=thigh, material='plate', subdivide=1)
         band('Cuisse band ' + s, V(x, -0.004, 0.288), V(0, 0, 1), [(0.079, -0.011), (0.086, -0.006), (0.086, 0.006),
                                                                   (0.079, 0.011)], bone=thigh, material='gold')
@@ -851,7 +931,7 @@ def build_torso():
         boss('Strap boss ' + ('L' if side > 0 else 'R'), p, n + V(0, 0, 0.3), 0.028, 0.016, bone='chest',
              material='gold')
     # Chain mail at the neck, under the helm's rim.
-    loft('Gorget mail', [oval(0, 0.004, z, r, r * 0.92, 18) for z, r in ((0.84, 0.1), (0.9, 0.086))],
+    loft('Gorget mail', [oval(0, 0.004, z, r, r * 0.92, 18) for z, r in ((0.84, 0.095), (0.9, 0.08))],
          bone='neck', material='mail', occluder=True)
     # The belt: brown leather with three gold bosses at the front.
     path = oval(0, 0.0, WAIST_Z, 0.163, 0.124, 32)
@@ -865,17 +945,17 @@ def build_torso():
 def build_skirt():
     # Mail skirt round the hips; over it at the front a blue tabard panel edged in silver, and a plate tasset over
     # each hip edged in silver.
-    rings = [oval(0, 0.012, z, rx, rx * 0.7, 24) for z, rx in ((0.33, 0.19), (0.38, 0.181), (0.44, 0.166), (0.5, 0.152))]
+    rings = [oval(0, 0.012, z, rx, rx * 0.7, 24) for z, rx in ((0.355, 0.184), (0.4, 0.176), (0.45, 0.164), (0.5, 0.152))]
     loft('Mail skirt', rings, bone='*skirt', material='mail', occluder=True, subdivide=1)
     rings = [oval(0, 0.0, z, rx, ry, 10, start=-90 - 27, end=-90 + 27, closed=False)
-             for z, rx, ry in ((0.262, 0.206, 0.17), (0.31, 0.203, 0.166), (0.37, 0.195, 0.157), (0.43, 0.181, 0.144),
+             for z, rx, ry in ((0.3, 0.204, 0.168), (0.34, 0.201, 0.164), (0.39, 0.193, 0.155), (0.44, 0.18, 0.143),
                                (0.49, 0.165, 0.13))]
     loft('Tabard', rings, closed=False, bone='*tabard', material='tabard', subdivide=1)
     for side in (-1, 1):
         s = 'L' if side > 0 else 'R'
         a0, a1 = (-90 + 28, -90 + 104) if side > 0 else (-90 - 104, -90 - 28)
         rings = [oval(0, 0.0, z, rx, ry, 12, start=a0, end=a1, closed=False)
-                 for z, rx, ry in ((0.345, 0.215, 0.166), (0.39, 0.207, 0.16), (0.44, 0.192, 0.146), (0.488, 0.174, 0.132))]
+                 for z, rx, ry in ((0.37, 0.212, 0.164), (0.41, 0.204, 0.158), (0.45, 0.19, 0.145), (0.488, 0.174, 0.132))]
         loft('Tasset ' + s, rings, closed=False, bone='tasset.' + s, material='tasset', subdivide=1)
 
 
@@ -948,6 +1028,8 @@ def helm_point(phi_degrees):
 
 
 def build_helm():
+    global SHRINK
+    SHRINK = (V(0, 0, 0.86), HELM_SCALE)
     rings = [oval(0, cy, z, rx, ry, 32, keel=keel) for z, rx, ry, cy, keel in HELM]
     loft('Helm', rings, cap_start=True, cap_end=True, bone='head', material='plate', occluder=True, subdivide=2)
     # Silver: the rim of the helm, and the painted visor's frame - a brow bar over the slit, a side bar down each
@@ -983,21 +1065,32 @@ def build_helm():
     for side in (-1, 1):
         p, n = surface_point(HELM, 0.961, 72 * side, 0.004)
         boss('Visor boss ' + ('L' if side > 0 else 'R'), p, n, 0.03, 0.016, bone='head', material='gold')
+    SHRINK = None
+
+
+def cape_pleat(a, t):
+    """The cape's fold at angle a (radians round the back), t from 0 at the shoulders to 1 at the hem: a sharpened
+    cosine (narrow ridges between rounder hollows, four or five across the back) over a faster ripple and a slow swing,
+    so no two folds match. Pass 2: deeper at the hem, and already gathered under the shoulders."""
+    r = math.cos(11 * a + 0.4 + 0.7 * t)
+    ridge = math.copysign(abs(r) ** 0.5, r)
+    return 0.6 * ridge + 0.26 * math.cos(19 * a + 1.9 - 0.5 * t) + 0.14 * math.cos(5 * a + 1.0)
 
 
 def build_cape():
     rings = []
-    count = 40
+    count = 64
     for k, (z, rx, ry, cy, span) in enumerate(CAPE):
         t = 1 - k / (len(CAPE) - 1)            # 1 at the hem, 0 at the top
+        amp = 0.03 + 0.2 * t ** 0.8
         # Vertical folds, deepening toward the hem, so the key picks them out in painted stripes (Ilya's robe).
-        wobble = (lambda a, t=t: 0.11 * t ** 0.9 * (0.55 * math.cos(7 * a + 0.4) + 0.3 * math.cos(13 * a + 1.9)
-                                                   + 0.15 * math.cos(3 * a + 1.0)))
+        wobble = (lambda a, t=t, amp=amp: amp * cape_pleat(a, t))
         ring = oval(0, cy, z, rx, ry, count, start=90 - span / 2, end=90 + span / 2, closed=False, wobble=wobble)
         if k == 0:
             for i, p in enumerate(ring):
                 a = math.radians(90 - span / 2 + span * i / (count - 1))
-                p.z += 0.012 * math.sin(7 * a + 0.5) + 0.02 * (1 - math.sin(a))   # a ragged hem, shorter at the sides
+                # The hem hangs lower under each ridge and rides up at the sides.
+                p.z += -0.018 * cape_pleat(a, 1.0) + 0.024 * (1 - math.sin(a))
         rings.append(ring)
     loft('Cape', rings, closed=False, bone='*cape', material='cape', occluder=True, subdivide=2)
 
@@ -1077,6 +1170,12 @@ def build_smear():
     faces = [(2 * i, 2 * i + 1, 2 * i + 3, 2 * i + 2) for i in range(n - 1)]
     mesh = bpy.data.meshes.new('Swing smear')
     mesh.from_pydata([tuple(v) for v in verts], [], faces)
+    # u along the sweep (0 the oldest sample, 1 the blade now), v across it (0 toward the hilt, 1 the tip's path).
+    layer = mesh.uv_layers.new(name='UVMap')
+    for poly in mesh.polygons:
+        for loop_index in poly.loop_indices:
+            index = mesh.loops[loop_index].vertex_index
+            layer.data[loop_index].uv = ((index // 2) / (n - 1), float(index % 2))
     mesh.materials.append(MATERIALS['smear'])
     obj = bpy.data.objects.new('Swing smear', mesh)
     collection.objects.link(obj)
@@ -1110,8 +1209,8 @@ eb = arm_data.edit_bones
 
 def bone(name, head, tail, parent=None):
     b = eb.new(name)
-    b.head = Vector(head)
-    b.tail = Vector(tail)
+    b.head = tall(head)
+    b.tail = tall(tail)
     if parent:
         b.parent = eb[parent]
     b.use_connect = False
@@ -1142,9 +1241,9 @@ for side, s in ((1, 'L'), (-1, 'R')):
     bone('foot.' + s, (HIP_X * side, 0.004, ANKLE_Z), (HIP_X * side, -0.1, 0.02), 'shin.' + s)
     bone('tasset.' + s, (0.12 * side, -0.07, 0.49), (0.16 * side, -0.1, 0.35), 'pelvis')
 bone('tabard1', (0, -0.13, 0.48), (0, -0.16, 0.37), 'pelvis')
-bone('tabard2', (0, -0.16, 0.37), (0, -0.2, 0.27), 'tabard1')
+bone('tabard2', (0, -0.16, 0.37), (0, -0.2, 0.3), 'tabard1')
 for col, degrees in CAPE_COLUMNS.items():
-    top, mid, hem = cape_anchor(0.8, degrees), cape_anchor(0.52, degrees), cape_anchor(0.25, degrees)
+    top, mid, hem = cape_anchor(0.8, degrees), cape_anchor(0.5, degrees), cape_anchor(0.21, degrees)
     bone('cape%s1' % col, top, mid, 'chest')
     bone('cape%s2' % col, mid, hem, 'cape%s1' % col)
 bone('sword', SWORD_GRIP, SWORD_GRIP + V(0, -0.1, 0), 'hand.R')
@@ -1174,6 +1273,7 @@ for pb in RIG.pose.bones:
 # ---- Weights: the plate rides its bone rigidly; cloth and mail are weighted from the geometry ----
 def weights_for(name, co):
     x, y, z = co
+    z = design_z(z)
     key = INFO[name]['bone']
     if not key.startswith('*'):
         return {key: 1.0}
@@ -1189,7 +1289,7 @@ def weights_for(name, co):
         return {'pelvis': 1 - legs, 'thigh.L': legs * left, 'thigh.R': legs * (1 - left)}
     if key == '*tabard':
         top = smooth(0.43, 0.48, z)
-        upper = smooth(0.3, 0.42, z)
+        upper = smooth(0.33, 0.42, z)
         return {'pelvis': top, 'tabard1': (1 - top) * upper, 'tabard2': (1 - top) * (1 - upper)}
     if key == '*cape':
         cy = table_ring(CAPE, z)[2]
@@ -1198,7 +1298,7 @@ def weights_for(name, co):
             ang += 360
         shares = {col: math.exp(-((ang - c) / 42) ** 2) for col, c in CAPE_COLUMNS.items()}
         total = sum(shares.values()) + 1e-6
-        t = (0.84 - z) / (0.84 - 0.25)
+        t = (0.84 - z) / (0.84 - 0.21)
         chest = 1 - smooth(0.0, 0.2, t)
         low = smooth(0.38, 0.78, t)
         w = {'chest': chest}
@@ -1298,7 +1398,8 @@ class Pose:
         self.hands = {}           # 'L'/'R' -> (fist target, 3x3 world rotation of the hand, elbow pole)
         self.glow = {'eye': 1.0, 'blade': 0.0}
         self.smear = None         # [(base, tip)] in the rig's space, oldest first, or None
-        self.smear_colour = '#E6F0FF'
+        self.smear_colour = '#F4F8FF'
+        self.smear_tail = '#7FA6F0'
 
     def add(self, bone_name, m):
         self.rot[bone_name] = m @ self.rot.get(bone_name, Matrix.Identity(3))
@@ -1376,7 +1477,7 @@ class Solver:
         l2 = (ankle0 - knee0).length
         yawm = rot(z=yaw)
         pole = yawm @ V(0, -1, 0.15)
-        knee, ankle, hinge = two_bone(hip, Vector(target), l1, l2, pole)
+        knee, ankle, hinge = two_bone(hip, tall(target), l1, l2, pole)
         rest_pole = V(0, -1, 0.15)
         _, _, rest_hinge = two_bone(REST['thigh.' + s].to_translation(), ankle0, l1, l2, rest_pole)
         W_thigh = frame_from(knee - hip, hinge) @ frame_from(knee0 - REST['thigh.' + s].to_translation(), rest_hinge).transposed()
@@ -1394,8 +1495,8 @@ class Solver:
         l2 = (wr0 - el0).length
         # The target is the fist's centre (on the sword's grip, behind the buckler's boss); the wrist follows from the
         # hand's own rotation.
-        fist0 = FIST_L if s == 'L' else FIST_R
-        wrist_target = Vector(target) - hand_rot @ (fist0 - wr0)
+        fist0 = tall(FIST_L if s == 'L' else FIST_R)
+        wrist_target = tall(target) - hand_rot @ (fist0 - wr0)
         elbow, wrist, hinge = two_bone(shoulder, wrist_target, l1, l2, Vector(pole))
         rest_pole = V(0.3 if s == 'L' else -0.3, 1, -0.1)
         _, _, rest_hinge = two_bone(sh0, wr0, l1, l2, rest_pole)
@@ -1404,15 +1505,29 @@ class Solver:
         return {'upper_arm.' + s: W_upper, 'forearm.' + s: W_fore, 'hand.' + s: hand_rot}
 
 
-def held(direction, toward, roll=0.0):
+def toward_camera():
+    """The camera's direction in the rig's space for the facing being posed, as a surface normal (the rig's height
+    stretch taken out): what a flat that faces the camera points along."""
+    degrees = dict(FACINGS)[FACING_NOW]
+    n = Matrix.Rotation(-math.radians(degrees - 270), 3, 'Z') @ TOWARD
+    return V(n.x, n.y, n.z * HEIGHT).normalized()
+
+
+def held(direction, toward, roll=0.0, flat=False):
     """The right hand's rotation holding the sword's blade along direction, its edges in the plane that holds the
-    forearm (toward: from the fist toward the elbow, roughly), rolled about the blade by roll degrees."""
+    forearm (toward: from the fist toward the elbow, roughly), rolled about the blade by roll degrees. flat (pass 2)
+    turns the blade about itself so its flat faces the camera as far as it can: a still blade seen edge-on is a dark
+    hair at the phone's size."""
     d = Vector(direction).normalized()
     w = Vector(toward) - d * Vector(toward).dot(d)
     if w.length < 1e-5:
         w = V(0, 0, 1) - d * d.z
     w.normalize()
-    if roll:
+    if flat:
+        across = toward_camera().cross(d)
+        if across.length > 1e-3:
+            w = across.normalized() if across.dot(w) >= 0 else -across.normalized()
+    elif roll:
         w = Matrix.Rotation(math.radians(roll), 3, d) @ w
     F1 = Matrix((d.cross(w), d, w)).transposed()
     F0 = Matrix((V(-1, 0, 0), V(0, -1, 0), V(0, 0, 1))).transposed()
@@ -1450,13 +1565,13 @@ def rig_matrix():
 
 
 def forge_world(solver):
-    return rig_matrix() @ (solver.G['sword'] @ BLADE_MID)
+    return rig_matrix() @ (solver.G['sword'] @ tall(BLADE_MID))
 
 
 def blade_ends(pose):
     solver = Solver(pose)
     solver.solve()
-    return solver.G['sword'] @ BLADE_BASE, solver.G['sword'] @ BLADE_TIP
+    return solver.G['sword'] @ tall(BLADE_BASE), solver.G['sword'] @ tall(BLADE_TIP)
 
 
 def apply(pose):
@@ -1476,13 +1591,21 @@ def apply(pose):
     if pose.smear:
         n = len(pose.smear)
         for i in range(SMEAR_SAMPLES + 1):
-            base, tip = pose.smear[min(i, n - 1)]     # a shorter sweep repeats its last sample: empty quads
-            t = min(i, n - 1) / (n - 1)
-            inner = base.lerp(tip, 0.12 + 0.68 * (1 - t) ** 1.3)
+            # The strip's points spread over the samples, however few (the overshoot's short tail), so its shading's u
+            # runs from the oldest to the newest whatever the sweep.
+            t = i / SMEAR_SAMPLES
+            f = t * (n - 1)
+            j = min(int(f), n - 2) if n > 1 else 0
+            w = f - j if n > 1 else 0.0
+            base = pose.smear[j][0].lerp(pose.smear[min(j + 1, n - 1)][0], w)
+            tip = pose.smear[j][1].lerp(pose.smear[min(j + 1, n - 1)][1], w)
+            # A crescent: narrow at the tail, reaching from near the hilt to past the tip at the blade.
+            inner = base.lerp(tip, 0.14 + 0.66 * (1 - t) ** 1.2)
             mesh.vertices[2 * i].co = inner
-            mesh.vertices[2 * i + 1].co = tip + (tip - base).normalized() * 0.012
+            mesh.vertices[2 * i + 1].co = tip + (tip - base).normalized() * 0.02
         SMEAR.hide_render = False
         MATERIALS['smear'].node_tree.nodes['Smear colour'].outputs[0].default_value = lin(pose.smear_colour)
+        MATERIALS['smear'].node_tree.nodes['Smear tail'].outputs[0].default_value = lin(pose.smear_tail)
     else:
         for v in mesh.vertices:
             v.co = V(0, 0, 0)
@@ -1503,16 +1626,31 @@ def forge_screen(pose):
 # The clips. Every function returns a Pose for a frame; the base stance is shared.
 # ---------------------------------------------------------------------------------------------------------------------
 SHOULDER_R = mirror_x(SHOULDER)
-# The idle sword points out to the right and a little back, down 30 degrees: on screen the painting's diagonal in the
-# front three-quarter facings, and never hanging plumb like a cane in the side ones.
-SWORD_REST = V(-0.248, -0.085, 0.49)     # the right fist in the stance
-SWORD_DIR_REST = blade_direction(az=-112, el=-30)
-SHIELD_REST = V(0.236, -0.105, 0.5)      # the left fist: the buckler at the hip, turned forward and out
-SHIELD_N_REST = V(0.22, -0.97, 0.02)
+# The idle sword (pass 2), held low at the right hip, is posed for the camera in each facing. A blade at one fixed bearing
+# points at the camera in one facing or another (the five that show the right hand are 45 degrees apart) and stands
+# there plumb like a cane, and in the west it hides behind the body: the pilot's, out to the right and a little back,
+# did both, in the east and the west. So it points out to the right in the facings that see it across (the painting's
+# diagonal), and forward, ahead of the knight, in the east and the west (and between, in the south-west); its flat
+# turned to the camera (held's flat). The facings switch whole on screen, so the change never shows as a swing.
+FACING_NOW = 'south'     # the facing being posed (set_facing)
+IDLE_BLADE = {'south': (-92, -28), 'south-east': (-90, -28), 'east': (-24, -26), 'north-east': (-92, -28),
+              'north': (-95, -28), 'north-west': (-92, -28), 'west': (-24, -20), 'south-west': (-48, -24)}
+
+
+def sword_rest():
+    """The right fist and the blade's direction in the stance, for the facing being posed."""
+    az, el = IDLE_BLADE[FACING_NOW]
+    return V(-0.245, -0.06 if az <= -60 else -0.1, 0.5), blade_direction(az=az, el=el)
+
+# The left fist: the buckler at the hip, turned out to its side as well as forward (pass 2), so its face shows in the
+# west facing instead of its edge, and still reads round from the front.
+SHIELD_REST = V(0.25, -0.09, 0.52)
+SHIELD_N_REST = V(0.6, -0.79, 0.08).normalized()
 
 
 def guard_hands(p, breath=0.0):
-    p.hands['R'] = (SWORD_REST + V(0, 0, 0.004 * breath), held(SWORD_DIR_REST, SHOULDER_R - SWORD_REST, roll=-35),
+    fist, blade = sword_rest()
+    p.hands['R'] = (fist + V(0, 0, 0.004 * breath), held(blade, SHOULDER_R - fist, flat=True),
                     (-0.6, 0.8, -0.2))
     p.hands['L'] = (SHIELD_REST + V(0, 0, 0.005 * breath), braced(SHIELD_N_REST, V(0.05, 0.3, 1)), (0.7, 0.7, -0.3))
 
@@ -1597,9 +1735,9 @@ def walk(k, n):
     # The sword arm swings against its leg, the blade trailing low; the buckler is carried forward, swinging less.
     fist = V(-0.25, 0.0 + 0.085 * swing, 0.5 + 0.02 * (1 - abs(swing)))
     d = blade_direction(az=-150 + 35 * (1 - swing) / 2, el=-42)
-    p.hands['R'] = (fist, held(d, SHOULDER_R - fist), (-0.6, 0.9, -0.2))
-    fist = V(0.21, -0.13 - 0.045 * swing, 0.55 + 0.012 * abs(swing))
-    p.hands['L'] = (fist, braced(V(0.42, -0.9, 0.05), V(0.1, 0.5, 1)), (0.8, 0.6, -0.3))
+    p.hands['R'] = (fist, held(d, SHOULDER_R - fist, flat=True), (-0.6, 0.9, -0.2))
+    fist = V(0.215, -0.13 - 0.045 * swing, 0.55 + 0.012 * abs(swing))
+    p.hands['L'] = (fist, braced(V(0.55, -0.83, 0.06), V(0.1, 0.5, 1)), (0.8, 0.6, -0.3))
     return p
 
 
@@ -1730,28 +1868,33 @@ def cast(k, n):
     p.glow['eye'] = 1.0 + 0.4 * blown
     if k in (1, 2):
         p.smear = swept(cast_upper, CAST_KEYS[k - 1], key, stance)
-        p.smear_colour = '#FFC890'
+        p.smear_colour = '#FFE6B8'
+        p.smear_tail = '#FF7A2E'
     return p
 
 
 def hit(k, n):
-    """A flinch: the chest snaps back and the helm turns from the blow, the buckler comes up, the sword arm flies out;
-    the cape whips forward a beat late and the visor flares; then back to the stance."""
-    amount = [1.0, 0.7, 0.28][k]
-    whip = [0.4, 1.0, 0.45][k]
+    """A flinch (pass 2: about half as big again, so it reads at the phone's size): the blow throws the chest and the
+    helm back and to the side and the knees give, the back foot braces, the buckler snaps up before the visor and the
+    sword arm flies out and up; the cape whips forward a beat late and the visor flares; then back toward the stance."""
+    amount = [1.0, 0.74, 0.3][k]
+    whip = [0.45, 1.0, 0.5][k]
     p = stance()
-    p.offset = V(0, 0.038 * amount, -0.016 * amount - 0.012)
-    p.add('pelvis', rot(x=-4 * amount))
-    p.add('spine', rot(x=-9 * amount))
-    p.add('chest', rot(x=-11 * amount, y=4 * amount))
-    p.add('head', rot(x=-14 * amount, z=16 * amount))
-    fist = SWORD_REST + V(-0.05, 0.07, 0.07) * amount
-    d = SWORD_DIR_REST.lerp(blade_direction(az=-70, el=-20), amount)
-    p.hands['R'] = (fist, held(d, SHOULDER_R - fist), (-0.6, 0.8, -0.2))
-    fist = SHIELD_REST.lerp(V(0.11, -0.21, 0.7), amount)
-    p.hands['L'] = (fist, braced(SHIELD_N_REST.lerp(V(0.22, -0.94, 0.25), amount), V(0.5, 0.4, -0.2)), (0.9, 0.3, -0.3))
-    cape(p, back=-8 * whip, flutter=-0.5 * whip, torso=-24 * amount)
-    p.glow['eye'] = 1.0 + 0.7 * amount
+    p.offset = V(0.012 * amount, 0.062 * amount, -0.042 * amount - 0.012)
+    p.feet['L'] = (V(0.112, 0.018 + 0.05 * amount, ANKLE_Z), 0, 12)
+    p.add('pelvis', rot(x=-7 * amount, y=-3 * amount))
+    p.add('spine', rot(x=-13 * amount, z=6 * amount))
+    p.add('chest', rot(x=-15 * amount, y=6 * amount, z=8 * amount))
+    p.add('neck', rot(x=-6 * amount))
+    p.add('head', rot(x=-20 * amount, y=-8 * amount, z=22 * amount))
+    fist, blade = sword_rest()
+    fist = fist + V(-0.09, 0.1, 0.13) * amount
+    d = blade.lerp(blade_direction(az=-100, el=12), amount)
+    p.hands['R'] = (fist, held(d, SHOULDER_R - fist, flat=True), (-0.6, 0.8, -0.2))
+    fist = SHIELD_REST.lerp(V(0.1, -0.22, 0.78), amount)
+    p.hands['L'] = (fist, braced(SHIELD_N_REST.lerp(V(0.25, -0.93, 0.27), amount), V(0.5, 0.4, -0.2)), (0.9, 0.3, -0.3))
+    cape(p, back=-12 * whip, flutter=-0.7 * whip, torso=-34 * amount)
+    p.glow['eye'] = 1.0 + 0.9 * amount
     return p
 
 
@@ -1760,11 +1903,12 @@ def death(k, n):
     to the floor still in its fist, the buckler drops face up beside it, and the visor's light goes out. A heap
     rather than a body laid out, so it reads from every facing; the root never moves."""
     keys = [
+        # Pass 2's longer legs kneel lower: the drops are the pilot's scaled to the thigh.
         dict(drop=0.0, back=1.0, slump=0.0, fall=0.0, eye=1.0),
-        dict(drop=0.07, back=0.35, slump=0.2, fall=0.2, eye=0.8),
-        dict(drop=0.16, back=0.0, slump=0.5, fall=0.5, eye=0.55),
-        dict(drop=0.215, back=0.0, slump=0.8, fall=0.82, eye=0.25),
-        dict(drop=0.24, back=0.0, slump=1.0, fall=1.0, eye=0.04),
+        dict(drop=0.083, back=0.35, slump=0.2, fall=0.2, eye=0.8),
+        dict(drop=0.19, back=0.0, slump=0.5, fall=0.5, eye=0.55),
+        dict(drop=0.255, back=0.0, slump=0.8, fall=0.82, eye=0.25),
+        dict(drop=0.285, back=0.0, slump=1.0, fall=1.0, eye=0.04),
     ]
     c = keys[k]
     p = stance()
@@ -1776,18 +1920,19 @@ def death(k, n):
     p.add('chest', rot(x=-8 * c['back'] + 20 * slump, z=-6 * slump))
     p.add('neck', rot(x=10 * slump))
     p.add('head', rot(x=-12 * c['back'] + 16 * slump, z=-10 * slump, y=8 * slump))
-    kneel = smooth(0.05, 0.22, drop)
+    kneel = smooth(0.06, 0.26, drop)
     for s, x in (('R', -0.1), ('L', 0.1)):
         p.feet[s] = (V(x, lerp(-0.02, 0.14, kneel), lerp(ANKLE_Z, 0.045, kneel)), lerp(0, 72, kneel), 0)
-    fist = SWORD_REST.lerp(V(-0.27, -0.16, 0.052), fall) + V(0, 0.04, 0.05) * c['back']
-    d = turn(held(SWORD_DIR_REST, SHOULDER_R - SWORD_REST, roll=-35), held(V(-0.5, -0.86, 0.0), V(0, 0, 1), roll=90),
+    rest, blade = sword_rest()
+    fist = rest.lerp(V(-0.27, -0.16, 0.052), fall) + V(0, 0.04, 0.05) * c['back']
+    d = turn(held(blade, SHOULDER_R - rest, flat=True), held(V(-0.5, -0.86, 0.0), V(0, 0, 1), roll=90),
              smooth(0.0, 1.0, fall))
     p.hands['R'] = (fist, d, (-0.6, 0.8, -0.2))
     fist = SHIELD_REST.lerp(V(0.27, -0.04, 0.1), fall)
     p.hands['L'] = (fist, turn(braced(SHIELD_N_REST, V(0.05, 0.3, 1)), braced(V(0.45, -0.25, 0.86), V(-0.3, 0.6, 0.1)),
                                smooth(0.0, 1.0, fall)), (0.7, 0.7, -0.3))
     # The cape settles over the back as the chest bows; the floor flattens what reaches it.
-    pool = smooth(0.04, 0.24, drop)
+    pool = smooth(0.05, 0.285, drop)
     cape(p, back=6, flutter=-0.4 * c['back'], spread=12 * pool, torso=-22 * c['back'] + 50 * slump)
     p.add('tabard1', rot(x=-20 * pool))
     p.add('tabard2', rot(x=-18 * pool))
@@ -1898,7 +2043,9 @@ camera.rotation_euler = (math.pi / 2 - ELEVATION, 0, 0)
 
 
 def set_facing(degrees):
+    global FACING_NOW
     RIG.rotation_euler = (0, 0, math.radians(degrees - 270))
+    FACING_NOW = next(f for f, d in FACINGS if d == degrees)
 
 
 def render_all():
@@ -1942,6 +2089,7 @@ def render_all():
 def bake_actions():
     """One action per clip on the rig, so the .blend can be scrubbed; the frame loop itself poses directly."""
     RIG.animation_data_create()
+    set_facing(270)
     for clip, (frames, fps, loops) in CLIPS.items():
         action = bpy.data.actions.new('Vanguard ' + clip)
         action.use_fake_user = True
