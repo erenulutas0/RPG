@@ -87,8 +87,8 @@ namespace Cryptforge.Tests
             Assert.That(DifficultyTiers.IsDefined(4), Is.False);
             Assert.That(DifficultyTiers.IsDefined(-1), Is.False);
             Assert.That(DifficultyTiers.UnlockHint(DifficultyTier.Forged), Is.Empty);
-            Assert.That(DifficultyTiers.UnlockHint(DifficultyTier.Tempered), Is.EqualTo("Complete the Descent on Forged"));
-            Assert.That(DifficultyTiers.UnlockHint(DifficultyTier.Abyssal), Is.EqualTo("Complete the Descent on Inferno"));
+            Assert.That(DifficultyTiers.UnlockHint(DifficultyTier.Tempered), Is.EqualTo("Complete the Ascent on Forged"));
+            Assert.That(DifficultyTiers.UnlockHint(DifficultyTier.Abyssal), Is.EqualTo("Complete the Ascent on Inferno"));
             Assert.Throws<ArgumentOutOfRangeException>(() => DifficultyTiers.EnemyHealth((DifficultyTier)4));
         }
 

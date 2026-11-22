@@ -108,9 +108,9 @@ namespace Cryptforge.Tests
             Assert.That(view.TierRewardAt(forged), Is.EqualTo("Rewards x1"));
             Assert.That(view.TierStateAt(forged), Is.EqualTo(MapChoiceView.SelectedText));
             Assert.That(view.TierDetailText, Does.StartWith("Forged:"));
-            Assert.That(view.TierStateAt(SlotOf(view, DifficultyTier.Tempered)), Is.EqualTo("Locked: Complete the Descent on Forged"));
-            Assert.That(view.TierStateAt(SlotOf(view, DifficultyTier.Inferno)), Is.EqualTo("Locked: Complete the Descent on Tempered"));
-            Assert.That(view.TierStateAt(SlotOf(view, DifficultyTier.Abyssal)), Is.EqualTo("Locked: Complete the Descent on Inferno"));
+            Assert.That(view.TierStateAt(SlotOf(view, DifficultyTier.Tempered)), Is.EqualTo("Locked: Complete the Ascent on Forged"));
+            Assert.That(view.TierStateAt(SlotOf(view, DifficultyTier.Inferno)), Is.EqualTo("Locked: Complete the Ascent on Tempered"));
+            Assert.That(view.TierStateAt(SlotOf(view, DifficultyTier.Abyssal)), Is.EqualTo("Locked: Complete the Ascent on Inferno"));
             Assert.That(view.TierRewardAt(SlotOf(view, DifficultyTier.Abyssal)), Is.EqualTo("Rewards x2"));
             for (int i = 0; i < view.TierCardCount; i++)
             {

@@ -34,13 +34,15 @@ Anvil strikes every piece, not only the weapon. Corrected:
 
 ## 3. Full description (4,000 at most)
 
-**Counts:** the base text below is **2,121** characters. Two paragraphs are added only if their feature ships in the
-release: the skills paragraph (+117) and the arena paragraph (+157). With both: **2,395**.
+**Counts:** the base text below is **2,125** characters. Two paragraphs are added only if their feature ships in the
+release: the skills paragraph (+117) and the arena paragraph (+157). With both: **2,399**. (2026-11-22: the first
+paragraph says the hero climbs, "Kat kat yukarı tırmanırken", where it said "Ocağın derinliklerinde": the hero always
+climbs, docs/44 section 1 and docs/60 section 10.)
 
 ### 3.1 Base text
 
 ```text
-Cryptforge, dikey ekranda oynanan, tek oyunculu bir aksiyon roguelite oyunu. Ocağın derinliklerinde sürüler üstüne gelir: sen dayanır, güçlenir, ganimetini sağ salim çıkarmaya çalışırsın. Sonra eşyanı Örs'te +9'a kadar basarsın. Eşyan asla kırılmaz.
+Cryptforge, dikey ekranda oynanan, tek oyunculu bir aksiyon roguelite oyunu. Kat kat yukarı tırmanırken sürüler üstüne gelir: sen dayanır, güçlenir, ganimetini sağ salim çıkarmaya çalışırsın. Sonra eşyanı Örs'te +9'a kadar basarsın. Eşyan asla kırılmaz.
 
 Sefer
 - Kahramanın kendi saldırır. Sol başparmağınla yönünü seçer, sağ başparmağınla yeteneğini kullanırsın. Oyun iki elle oynanır.
@@ -90,7 +92,8 @@ Arena
 | Claim | Source |
 |---|---|
 | Two-handed; the hero attacks on their own | docs/57 section 12 answer 4; `prototype.wave_format` "combat is automatic" |
-| The floors' order | `MapChoiceView` texts (docs/60 section 7): the Foundry "where every Descent begins", the Gardens "the last floor before the Final Swarm" |
+| The floors' order | `MapChoiceView` texts (docs/60 section 7): the Foundry "where every Ascent begins", the Gardens "the last floor before the Final Swarm" |
+| The hero climbs floor by floor | docs/44 section 1 ("the hero always climbs", the owner, 2026-10-20 and 2026-11-22); docs/60 section 10; the checkpoint's "Çık ya da Tırman" |
 | A death costs part of the floor's gold; items are always kept | docs/54 ("death loses half of the dying floor's gold", "items are always kept on a death"); `anvil.bag.empty` |
 | +3 always holds; the memory makes a strike certain; a miss keeps the level | `anvil.breakdown.safe`, `anvil.memory.*`, `anvil.breakdown.miss`; docs/58 section 2 |
 | The chance is shown | `anvil.chance_caption`; docs/58 section 2 ("the chance on the button is the chance used") |

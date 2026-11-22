@@ -34,10 +34,10 @@ namespace Cryptforge.UI
             _ => Loc.Text("tier.forged", "Forged")
         };
 
-        // How a locked tier is opened ("Complete the Descent on Forged"); empty for Forged, which is always open.
+        // How a locked tier is opened ("Complete the Ascent on Forged"); empty for Forged, which is always open.
         public static string UnlockHint(DifficultyTier tier) =>
             DifficultyTiers.TryBelow(tier, out DifficultyTier below)
-                ? Loc.Format("tier.unlock_hint", "Complete the Descent on {0}", Name(below))
+                ? Loc.Format("tier.unlock_hint", "Complete the Ascent on {0}", Name(below))
                 : string.Empty;
 
         // What the tier pays, as a multiplier: "x1", "x1.25", "x1.5", "x2" - in the language's numbers.

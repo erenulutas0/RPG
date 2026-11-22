@@ -75,7 +75,7 @@ prototype.forge_hint_complete_format	Forge gold {0}: everything is forged	Ocak a
 prototype.forge_hint_relics_complete_format	Forge gold {0}: every relic is forged	Ocak altını {0}: tüm kalıntılar dövüldü	Result.
 prototype.forge_button_label	Relic Forge	Kalıntı Ocağı	Result button opening the forge.
 prototype.forge_title	Relic Forge	Kalıntı Ocağı	Forge nameplate, 600 px.
-prototype.forge_status_format	Gold {0}  |  Highest floor cleared: {1}	Altın {0}  |  En yüksek temizlenen kat: {1}	Forge. {0} gold, {1} deepest floor cleared.
+prototype.forge_status_format	Gold {0}  |  Highest floor cleared: {1}	Altın {0}  |  En yüksek temizlenen kat: {1}	Forge. {0} gold, {1} highest floor cleared.
 prototype.forge_weapons_header	Weapons: carry one	Silahlar: birini taşı	Forge header.
 prototype.forge_relics_header	Relics: equip one	Kalıntılar: birini kuşan	Forge header.
 prototype.unlock_forge_format	Forge for {0} gold	{0} altına döv	Forge card state. {0} price.
@@ -89,8 +89,8 @@ prototype.pause_hint	Combat waits until you resume	Sen dönene kadar savaş bekl
 prototype.resume_label	Resume	Devam et	Pause overlay button.
 map.unlock_hint	Clear floor {0} to unlock	Açmak için {0}. katı temizle	Map choice, a locked map. {0} floor number; "1." is the Turkish ordinal.
 
-# ---- Catch-up auto-pick (a deeper start)
-catchup.auto_pick	Auto-pick {count} level-ups	{count} seviyeyi otomatik seç	Level-up panel button on a deeper start.
+# ---- Catch-up auto-pick (a higher start)
+catchup.auto_pick	Auto-pick {count} level-ups	{count} seviyeyi otomatik seç	Level-up panel button on a higher start.
 catchup.summary	Auto-picked {taken} level-ups	Otomatik seçilen seviye: {taken}	Summary line; the cards follow after ": ".
 catchup.summary_of	Auto-picked {taken} level-ups of {levels}	Otomatik seçilen seviye: {taken} / {levels}	When the player picked some by hand.
 
@@ -466,10 +466,10 @@ tier.forged	Forged	Dövülmüş	Difficulty tier 1 (docs/54 section 21): the tier
 tier.tempered	Tempered	Su Verilmiş	Tier 2. Tempered steel is "su verilmiş çelik", the step after forging; "Tavlanmış" was avoided: "tavlamak" is also slang for conning someone (docs/60 pass 2).
 tier.inferno	Inferno	Cehennem	Tier 3.
 tier.abyssal	Abyssal	Uçurum	Tier 4, the deepest. The abyss, as "aralarında uçurum var".
-tier.unlock_hint	Complete the Descent on {0}	İniş'i {0} zorluğunda tamamla	A locked tier's card, after "Kilitli: ". {0} the tier below it (tier.*).
+tier.unlock_hint	Complete the Ascent on {0}	Tırmanış'ı {0} zorluğunda tamamla	A locked tier's card, after "Kilitli: ". {0} the tier below it (tier.*). The Ascent (Tırmanış) is a proper noun: its suffix takes an apostrophe (docs/60 section 10).
 tier.reward	x{0:0.##}	x{0:0.##}	A tier's reward multiplier (gold, floor materials, boosters): x1, x1.25, x1.5, x2. The same pattern in both; the decimal comma comes from the numbers.
 tier.card_reward	Rewards {0}	Ödül {0}	Map choice, a tier card under its name. {0} the multiplier (tier.reward).
-tier.detail_forged	{0}: the Descent as it was first forged; rewards x1\nBuilt for no gear. Your gear: {1:+0.#}%	{0}: İniş ilk dövüldüğü gibi; ödül x1\nEkipman gerekmez. Ekipmanın: +%{1:0.#}	Map choice, the line under the tier row with Forged chosen. {0} Forged's name (tier.forged), {1} the chosen hero's gear power in percent; the sign goes before the number: "+%14,7".
+tier.detail_forged	{0}: the Ascent as it was first forged; rewards x1\nBuilt for no gear. Your gear: {1:+0.#}%	{0}: Tırmanış ilk dövüldüğü gibi; ödül x1\nEkipman gerekmez. Ekipmanın: +%{1:0.#}	Map choice, the line under the tier row with Forged chosen. {0} Forged's name (tier.forged), {1} the chosen hero's gear power in percent; the sign goes before the number: "+%14,7".
 tier.detail	{0}: foes {1:+0.#}% health, {2:+0.#}% damage; rewards {3}; item luck +{4:0}\nBuilt for gear {5:+0}% ({6}). Your gear: {7:+0.#}%	{0}: düşman canı +%{1:0.#}, hasarı +%{2:0.#}; ödül {3}; eşya şansı +{4:0}\nÖnerilen ekipman +%{5:0} ({6}). Ekipmanın: +%{7:0.#}	Map choice, the line under the tier row. {0} the tier, {1} and {2} the enemies' extra health and damage in percent, {3} its reward (tier.reward), {4} its item luck, {5} the gear power it is built for in percent, {6} that gear (tier.set_*), {7} the chosen hero's gear power.
 tier.set_tempered	a +5 set	+5 set	The gear a tier is built for, in tier.detail's brackets: every piece at +5.
 tier.set_inferno	a +9 set	+9 set	Every piece at +9.
@@ -481,10 +481,10 @@ map.tap_to_choose	Tap to choose	Seçmek için dokun	Map choice: an open hero's o
 map.locked	Locked	Kilitli	Map choice: a locked hero, tier or map, before its hint ("Kilitli: ...").
 map.hero_weapon	Weapon: {0}	Silah: {0}	Map choice hero card. {0} the hero's weapon.
 map.hero_name	{0}\n<size=26>{1}</size>	{0}\n<size=26>{1}</size>	Map choice hero card: {0} the hero, {1} the character's own name. The same in both.
-map.flavour_1	Lava-lit halls where every Descent begins. The Forge Warden keeps the gate.	Her İniş'in başladığı, lavla aydınlanan salonlar. Kapıyı Ocak Bekçisi tutar.	Map card, floor 1 (Dökümhane).
+map.flavour_1	Lava-lit halls where every Ascent begins. The Forge Warden keeps the gate.	Her Tırmanış'ın başladığı, lavla aydınlanan salonlar. Kapıyı Ocak Bekçisi tutar.	Map card, floor 1 (Dökümhane).
 map.flavour_2	Frozen vaults of quicksilver. Mirror Sentries turn your blows back on you.	Donmuş cıva mahzenleri. Ayna Nöbetçileri darbelerini sana geri çevirir.	Map card, floor 2 (Cıva Mahzenleri).
 map.flavour_3	A dusk garden grown over the ash. The last floor before the Final Swarm.	Küllerin üstünde büyümüş bir alacakaranlık bahçesi. Son Sürü'den önceki son kat.	Map card, floor 3 (Loş Bahçeler).
-map.start_catch_up	Floor {0}. Start at level {1}: choose {1} level-ups first.	Kat {0}. {1}. seviyeden başla: önce {1} seviye seç.	Map card, a deeper start. {0} floor, {1} the level the hero starts at; "31." is the Turkish ordinal; "seviye seç" as the catch-up's button says it.
-map.start_fresh	Floor {0}. A fresh hero, the whole Descent ahead.	Kat {0}. Taze bir kahraman, önünde koca bir İniş.	Map card, floor 1. {0} floor.
+map.start_catch_up	Floor {0}. Start at level {1}: choose {1} level-ups first.	Kat {0}. {1}. seviyeden başla: önce {1} seviye seç.	Map card, a higher start. {0} floor, {1} the level the hero starts at; "31." is the Turkish ordinal; "seviye seç" as the catch-up's button says it.
+map.start_fresh	Floor {0}. A fresh hero, the whole Ascent ahead.	Kat {0}. Taze bir kahraman, önünde koca bir Tırmanış.	Map card, floor 1. {0} floor.
 result.loot_nothing	nothing	hiçbir şey	Result loot line: what was banked when the run banked nothing but lost loot ("Ganimet: hiçbir şey  |  kayıp: ...").
 result.loot_pieces	{0} pieces (see the Bag)	{0} eşya (Çanta'ya bak)	Result loot line when the full line would not fit. {0} the count of items and materials; no plural after a number.

@@ -29,7 +29,7 @@ namespace Cryptforge.Tests
         // The English the tiers' views wrote before pass 2; none may show in Turkish.
         private static readonly string[] English =
         {
-            "Forged", "Tempered", "Inferno", "Abyssal", "Descent", "Rewards", "Locked", "Selected", "Tap to choose", "Weapon:",
+            "Forged", "Tempered", "Inferno", "Abyssal", "Ascent", "Rewards", "Locked", "Selected", "Tap to choose", "Weapon:",
             "Built for", "Your gear", "Choose your", "Floor ", "Room "
         };
 
@@ -268,8 +268,8 @@ namespace Cryptforge.Tests
                 Assert.That(view.TitleText, Is.EqualTo("Choose your hero and map"), "The open panel speaks English at once.");
                 Assert.That(view.TierNameAt(tempered), Is.EqualTo("Tempered"));
                 Assert.That(view.TierRewardAt(tempered), Is.EqualTo("Rewards x1.25"));
-                Assert.That(view.TierStateAt(abyssal), Is.EqualTo("Locked: Complete the Descent on Inferno"));
-                Assert.That(view.TierDetailText, Does.StartWith("Forged: the Descent as it was first forged"));
+                Assert.That(view.TierStateAt(abyssal), Is.EqualTo("Locked: Complete the Ascent on Inferno"));
+                Assert.That(view.TierDetailText, Does.StartWith("Forged: the Ascent as it was first forged"));
                 Assert.That(view.NameAt(0), Is.EqualTo("The Foundry"));
                 Assert.That(view.HeroRoleAt(0), Is.EqualTo(view.HeroAt(0).Role));
                 Assert.That(setup.LanguageChangedSinceLoad, Is.True);
