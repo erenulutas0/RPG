@@ -1,0 +1,9667 @@
+{
+ "art_set": {
+  "file": "VanguardRenderedArtSet.asset",
+  "guid": "8b48ec336b49447c8818c41a1b38f2e5"
+ },
+ "atlases": [
+  {
+   "file": "CHR_VanguardBlender_0.png",
+   "guid": "70a38847f312439d8388806fb1249714",
+   "size": [
+    1024,
+    1024
+   ],
+   "sprites": 57,
+   "sha256": "4d04d0445accecf34c3b263e1e1c4bc2cb814755c302d1b546a03f0c4a13d3aa"
+  },
+  {
+   "file": "CHR_VanguardBlender_1.png",
+   "guid": "ff90eba473634bf1b34248dbcc7a5f99",
+   "size": [
+    1024,
+    976
+   ],
+   "sprites": 60,
+   "sha256": "ff63a7d94ed7a2562838ea7a7a21b4c5fb9140859b4969c0425bd25bd0ebe9d6"
+  },
+  {
+   "file": "CHR_VanguardBlender_2.png",
+   "guid": "6f8b24f439e44c548a44e2e09e6eae3b",
+   "size": [
+    1024,
+    952
+   ],
+   "sprites": 62,
+   "sha256": "5b5b93ff29b0e93a1fab6a246393c2cf1faf73b810eed9b12277855b7f452bf7"
+  },
+  {
+   "file": "CHR_VanguardBlender_3.png",
+   "guid": "6172892c7a0d4cb8be64cd6d03869674",
+   "size": [
+    1024,
+    1020
+   ],
+   "sprites": 64,
+   "sha256": "c3094f2cbb234f70abce296c6b62efd777ad1be485bacb1f24e96e1f4782620c"
+  },
+  {
+   "file": "CHR_VanguardBlender_4.png",
+   "guid": "8e01d5d97c2341db9497c2a99116dfa7",
+   "size": [
+    1024,
+    1024
+   ],
+   "sprites": 66,
+   "sha256": "f4373a1085a30d4bb237c78076b9ae8116c19867cdb0543ae45b01868cc5ff03"
+  },
+  {
+   "file": "CHR_VanguardBlender_5.png",
+   "guid": "a82f4028ab874efcbfac869fa21a9645",
+   "size": [
+    1216,
+    748
+   ],
+   "sprites": 59,
+   "sha256": "10b68edacb5130a2f09ee70a28bb2271c87480bbc3aab0242dd9e7f19ddb2376"
+  }
+ ],
+ "pixels_per_unit": 100,
+ "canvas": [
+  220,
+  250
+ ],
+ "pivot": [
+  110,
+  45
+ ],
+ "stride": 1.0,
+ "facings": [
+  "south",
+  "south-east",
+  "east",
+  "north-east",
+  "north",
+  "north-west",
+  "west",
+  "south-west"
+ ],
+ "kept_on_their_texture": {
+  "vanguard_idle_south_0": "Assets/_Project/Data/Heroes/Hero_Vanguard.asset"
+ },
+ "memory": {
+  "astc_4x4_bytes": 6025472,
+  "rgba32_bytes": 24101888,
+  "frame_texels": 5721166,
+  "fill": 0.949
+ },
+ "frames": [
+  {
+   "name": "vanguard_idle_south_0",
+   "atlas": 1,
+   "rect": [
+    559,
+    839,
+    129,
+    137
+   ],
+   "pivot": [
+    0.627907,
+    0.087591
+   ],
+   "crop": [
+    29,
+    80,
+    158,
+    217
+   ],
+   "forge": [
+    -0.53708,
+    0.3877
+   ],
+   "heat": 0.0,
+   "source": "south/idle_0.png"
+  },
+  {
+   "name": "vanguard_idle_south_1",
+   "atlas": 1,
+   "rect": [
+    448,
+    564,
+    129,
+    137
+   ],
+   "pivot": [
+    0.627907,
+    0.087591
+   ],
+   "crop": [
+    29,
+    80,
+    158,
+    217
+   ],
+   "forge": [
+    -0.53708,
+    0.39053
+   ],
+   "heat": 0.0,
+   "source": "south/idle_1.png"
+  },
+  {
+   "name": "vanguard_idle_south_2",
+   "atlas": 1,
+   "rect": [
+    577,
+    702,
+    129,
+    137
+   ],
+   "pivot": [
+    0.627907,
+    0.087591
+   ],
+   "crop": [
+    29,
+    80,
+    158,
+    217
+   ],
+   "forge": [
+    -0.53708,
+    0.3917
+   ],
+   "heat": 0.0,
+   "source": "south/idle_2.png"
+  },
+  {
+   "name": "vanguard_idle_south_3",
+   "atlas": 1,
+   "rect": [
+    688,
+    839,
+    129,
+    137
+   ],
+   "pivot": [
+    0.627907,
+    0.087591
+   ],
+   "crop": [
+    29,
+    80,
+    158,
+    217
+   ],
+   "forge": [
+    -0.53708,
+    0.39053
+   ],
+   "heat": 0.0,
+   "source": "south/idle_3.png"
+  },
+  {
+   "name": "vanguard_idle_south_4",
+   "atlas": 1,
+   "rect": [
+    577,
+    565,
+    129,
+    137
+   ],
+   "pivot": [
+    0.627907,
+    0.087591
+   ],
+   "crop": [
+    29,
+    80,
+    158,
+    217
+   ],
+   "forge": [
+    -0.53708,
+    0.3877
+   ],
+   "heat": 0.0,
+   "source": "south/idle_4.png"
+  },
+  {
+   "name": "vanguard_idle_south_5",
+   "atlas": 1,
+   "rect": [
+    582,
+    428,
+    129,
+    137
+   ],
+   "pivot": [
+    0.627907,
+    0.087591
+   ],
+   "crop": [
+    29,
+    80,
+    158,
+    217
+   ],
+   "forge": [
+    -0.53708,
+    0.38488
+   ],
+   "heat": 0.0,
+   "source": "south/idle_5.png"
+  },
+  {
+   "name": "vanguard_idle_south_6",
+   "atlas": 1,
+   "rect": [
+    636,
+    291,
+    129,
+    137
+   ],
+   "pivot": [
+    0.627907,
+    0.087591
+   ],
+   "crop": [
+    29,
+    80,
+    158,
+    217
+   ],
+   "forge": [
+    -0.53708,
+    0.3837
+   ],
+   "heat": 0.0,
+   "source": "south/idle_6.png"
+  },
+  {
+   "name": "vanguard_idle_south_7",
+   "atlas": 1,
+   "rect": [
+    707,
+    154,
+    129,
+    137
+   ],
+   "pivot": [
+    0.627907,
+    0.087591
+   ],
+   "crop": [
+    29,
+    80,
+    158,
+    217
+   ],
+   "forge": [
+    -0.53708,
+    0.38488
+   ],
+   "heat": 0.0,
+   "source": "south/idle_7.png"
+  },
+  {
+   "name": "vanguard_idle_south-east_0",
+   "atlas": 1,
+   "rect": [
+    101,
+    3,
+    95,
+    139
+   ],
+   "pivot": [
+    0.568421,
+    0.107914
+   ],
+   "crop": [
+    56,
+    81,
+    151,
+    220
+   ],
+   "forge": [
+    -0.33747,
+    0.20144
+   ],
+   "heat": 0.0,
+   "source": "south-east/idle_0.png"
+  },
+  {
+   "name": "vanguard_idle_south-east_1",
+   "atlas": 1,
+   "rect": [
+    104,
+    142,
+    95,
+    139
+   ],
+   "pivot": [
+    0.568421,
+    0.107914
+   ],
+   "crop": [
+    56,
+    81,
+    151,
+    220
+   ],
+   "forge": [
+    -0.33747,
+    0.20427
+   ],
+   "heat": 0.0,
+   "source": "south-east/idle_1.png"
+  },
+  {
+   "name": "vanguard_idle_south-east_2",
+   "atlas": 0,
+   "rect": [
+    698,
+    44,
+    95,
+    140
+   ],
+   "pivot": [
+    0.568421,
+    0.107143
+   ],
+   "crop": [
+    56,
+    80,
+    151,
+    220
+   ],
+   "forge": [
+    -0.33747,
+    0.20544
+   ],
+   "heat": 0.0,
+   "source": "south-east/idle_2.png"
+  },
+  {
+   "name": "vanguard_idle_south-east_3",
+   "atlas": 1,
+   "rect": [
+    108,
+    281,
+    95,
+    139
+   ],
+   "pivot": [
+    0.568421,
+    0.107914
+   ],
+   "crop": [
+    56,
+    81,
+    151,
+    220
+   ],
+   "forge": [
+    -0.33747,
+    0.20427
+   ],
+   "heat": 0.0,
+   "source": "south-east/idle_3.png"
+  },
+  {
+   "name": "vanguard_idle_south-east_4",
+   "atlas": 1,
+   "rect": [
+    111,
+    420,
+    95,
+    139
+   ],
+   "pivot": [
+    0.568421,
+    0.107914
+   ],
+   "crop": [
+    56,
+    81,
+    151,
+    220
+   ],
+   "forge": [
+    -0.33747,
+    0.20144
+   ],
+   "heat": 0.0,
+   "source": "south-east/idle_4.png"
+  },
+  {
+   "name": "vanguard_idle_south-east_5",
+   "atlas": 1,
+   "rect": [
+    114,
+    559,
+    95,
+    139
+   ],
+   "pivot": [
+    0.568421,
+    0.107914
+   ],
+   "crop": [
+    56,
+    81,
+    151,
+    220
+   ],
+   "forge": [
+    -0.33747,
+    0.19861
+   ],
+   "heat": 0.0,
+   "source": "south-east/idle_5.png"
+  },
+  {
+   "name": "vanguard_idle_south-east_6",
+   "atlas": 1,
+   "rect": [
+    115,
+    698,
+    95,
+    139
+   ],
+   "pivot": [
+    0.568421,
+    0.107914
+   ],
+   "crop": [
+    56,
+    81,
+    151,
+    220
+   ],
+   "forge": [
+    -0.33747,
+    0.19744
+   ],
+   "heat": 0.0,
+   "source": "south-east/idle_6.png"
+  },
+  {
+   "name": "vanguard_idle_south-east_7",
+   "atlas": 1,
+   "rect": [
+    118,
+    837,
+    95,
+    139
+   ],
+   "pivot": [
+    0.568421,
+    0.107914
+   ],
+   "crop": [
+    56,
+    81,
+    151,
+    220
+   ],
+   "forge": [
+    -0.33747,
+    0.19861
+   ],
+   "heat": 0.0,
+   "source": "south-east/idle_7.png"
+  },
+  {
+   "name": "vanguard_idle_east_0",
+   "atlas": 2,
+   "rect": [
+    128,
+    680,
+    112,
+    136
+   ],
+   "pivot": [
+    0.4375,
+    0.088235
+   ],
+   "crop": [
+    61,
+    81,
+    173,
+    217
+   ],
+   "forge": [
+    0.37178,
+    0.2399
+   ],
+   "heat": 0.0,
+   "source": "east/idle_0.png"
+  },
+  {
+   "name": "vanguard_idle_east_1",
+   "atlas": 2,
+   "rect": [
+    129,
+    816,
+    112,
+    136
+   ],
+   "pivot": [
+    0.4375,
+    0.088235
+   ],
+   "crop": [
+    61,
+    81,
+    173,
+    217
+   ],
+   "forge": [
+    0.37178,
+    0.24273
+   ],
+   "heat": 0.0,
+   "source": "east/idle_1.png"
+  },
+  {
+   "name": "vanguard_idle_east_2",
+   "atlas": 2,
+   "rect": [
+    114,
+    0,
+    112,
+    136
+   ],
+   "pivot": [
+    0.4375,
+    0.088235
+   ],
+   "crop": [
+    61,
+    81,
+    173,
+    217
+   ],
+   "forge": [
+    0.37178,
+    0.2439
+   ],
+   "heat": 0.0,
+   "source": "east/idle_2.png"
+  },
+  {
+   "name": "vanguard_idle_east_3",
+   "atlas": 2,
+   "rect": [
+    235,
+    544,
+    111,
+    136
+   ],
+   "pivot": [
+    0.432432,
+    0.088235
+   ],
+   "crop": [
+    62,
+    81,
+    173,
+    217
+   ],
+   "forge": [
+    0.37178,
+    0.24273
+   ],
+   "heat": 0.0,
+   "source": "east/idle_3.png"
+  },
+  {
+   "name": "vanguard_idle_east_4",
+   "atlas": 2,
+   "rect": [
+    228,
+    136,
+    110,
+    136
+   ],
+   "pivot": [
+    0.427273,
+    0.088235
+   ],
+   "crop": [
+    63,
+    81,
+    173,
+    217
+   ],
+   "forge": [
+    0.37178,
+    0.2399
+   ],
+   "heat": 0.0,
+   "source": "east/idle_4.png"
+  },
+  {
+   "name": "vanguard_idle_east_5",
+   "atlas": 2,
+   "rect": [
+    701,
+    142,
+    110,
+    135
+   ],
+   "pivot": [
+    0.427273,
+    0.088889
+   ],
+   "crop": [
+    63,
+    82,
+    173,
+    217
+   ],
+   "forge": [
+    0.37178,
+    0.23707
+   ],
+   "heat": 0.0,
+   "source": "east/idle_5.png"
+  },
+  {
+   "name": "vanguard_idle_east_6",
+   "atlas": 2,
+   "rect": [
+    576,
+    682,
+    110,
+    135
+   ],
+   "pivot": [
+    0.427273,
+    0.088889
+   ],
+   "crop": [
+    63,
+    82,
+    173,
+    217
+   ],
+   "forge": [
+    0.37178,
+    0.2359
+   ],
+   "heat": 0.0,
+   "source": "east/idle_6.png"
+  },
+  {
+   "name": "vanguard_idle_east_7",
+   "atlas": 2,
+   "rect": [
+    240,
+    680,
+    111,
+    136
+   ],
+   "pivot": [
+    0.432432,
+    0.088235
+   ],
+   "crop": [
+    62,
+    81,
+    173,
+    217
+   ],
+   "forge": [
+    0.37178,
+    0.23707
+   ],
+   "heat": 0.0,
+   "source": "east/idle_7.png"
+  },
+  {
+   "name": "vanguard_idle_north-east_0",
+   "atlas": 2,
+   "rect": [
+    909,
+    143,
+    113,
+    134
+   ],
+   "pivot": [
+    0.460177,
+    0.067164
+   ],
+   "crop": [
+    58,
+    80,
+    171,
+    214
+   ],
+   "forge": [
+    0.41499,
+    0.24033
+   ],
+   "heat": 0.0,
+   "source": "north-east/idle_0.png"
+  },
+  {
+   "name": "vanguard_idle_north-east_1",
+   "atlas": 3,
+   "rect": [
+    139,
+    886,
+    113,
+    134
+   ],
+   "pivot": [
+    0.460177,
+    0.067164
+   ],
+   "crop": [
+    58,
+    80,
+    171,
+    214
+   ],
+   "forge": [
+    0.41499,
+    0.24315
+   ],
+   "heat": 0.0,
+   "source": "north-east/idle_1.png"
+  },
+  {
+   "name": "vanguard_idle_north-east_2",
+   "atlas": 3,
+   "rect": [
+    252,
+    886,
+    112,
+    134
+   ],
+   "pivot": [
+    0.455357,
+    0.067164
+   ],
+   "crop": [
+    59,
+    80,
+    171,
+    214
+   ],
+   "forge": [
+    0.41499,
+    0.24433
+   ],
+   "heat": 0.0,
+   "source": "north-east/idle_2.png"
+  },
+  {
+   "name": "vanguard_idle_north-east_3",
+   "atlas": 2,
+   "rect": [
+    914,
+    818,
+    110,
+    134
+   ],
+   "pivot": [
+    0.445455,
+    0.067164
+   ],
+   "crop": [
+    61,
+    80,
+    171,
+    214
+   ],
+   "forge": [
+    0.41499,
+    0.24315
+   ],
+   "heat": 0.0,
+   "source": "north-east/idle_3.png"
+  },
+  {
+   "name": "vanguard_idle_north-east_4",
+   "atlas": 3,
+   "rect": [
+    699,
+    886,
+    109,
+    134
+   ],
+   "pivot": [
+    0.440367,
+    0.067164
+   ],
+   "crop": [
+    62,
+    80,
+    171,
+    214
+   ],
+   "forge": [
+    0.41499,
+    0.24033
+   ],
+   "heat": 0.0,
+   "source": "north-east/idle_4.png"
+  },
+  {
+   "name": "vanguard_idle_north-east_5",
+   "atlas": 3,
+   "rect": [
+    808,
+    886,
+    108,
+    134
+   ],
+   "pivot": [
+    0.435185,
+    0.067164
+   ],
+   "crop": [
+    63,
+    80,
+    171,
+    214
+   ],
+   "forge": [
+    0.41499,
+    0.2375
+   ],
+   "heat": 0.0,
+   "source": "north-east/idle_5.png"
+  },
+  {
+   "name": "vanguard_idle_north-east_6",
+   "atlas": 3,
+   "rect": [
+    501,
+    620,
+    109,
+    133
+   ],
+   "pivot": [
+    0.440367,
+    0.067669
+   ],
+   "crop": [
+    62,
+    81,
+    171,
+    214
+   ],
+   "forge": [
+    0.41499,
+    0.23633
+   ],
+   "heat": 0.0,
+   "source": "north-east/idle_6.png"
+  },
+  {
+   "name": "vanguard_idle_north-east_7",
+   "atlas": 3,
+   "rect": [
+    588,
+    886,
+    111,
+    134
+   ],
+   "pivot": [
+    0.45045,
+    0.067164
+   ],
+   "crop": [
+    60,
+    80,
+    171,
+    214
+   ],
+   "forge": [
+    0.41499,
+    0.2375
+   ],
+   "heat": 0.0,
+   "source": "north-east/idle_7.png"
+  },
+  {
+   "name": "vanguard_idle_north_0",
+   "atlas": 3,
+   "rect": [
+    106,
+    753,
+    129,
+    133
+   ],
+   "pivot": [
+    0.372093,
+    0.052632
+   ],
+   "crop": [
+    62,
+    79,
+    191,
+    212
+   ],
+   "forge": [
+    0.53614,
+    0.42987
+   ],
+   "heat": 0.0,
+   "source": "north/idle_0.png"
+  },
+  {
+   "name": "vanguard_idle_north_1",
+   "atlas": 3,
+   "rect": [
+    235,
+    753,
+    129,
+    133
+   ],
+   "pivot": [
+    0.372093,
+    0.052632
+   ],
+   "crop": [
+    62,
+    79,
+    191,
+    212
+   ],
+   "forge": [
+    0.53614,
+    0.4327
+   ],
+   "heat": 0.0,
+   "source": "north/idle_1.png"
+  },
+  {
+   "name": "vanguard_idle_north_2",
+   "atlas": 3,
+   "rect": [
+    259,
+    620,
+    129,
+    133
+   ],
+   "pivot": [
+    0.372093,
+    0.052632
+   ],
+   "crop": [
+    62,
+    79,
+    191,
+    212
+   ],
+   "forge": [
+    0.53614,
+    0.43387
+   ],
+   "heat": 0.0,
+   "source": "north/idle_2.png"
+  },
+  {
+   "name": "vanguard_idle_north_3",
+   "atlas": 3,
+   "rect": [
+    364,
+    753,
+    129,
+    133
+   ],
+   "pivot": [
+    0.372093,
+    0.052632
+   ],
+   "crop": [
+    62,
+    79,
+    191,
+    212
+   ],
+   "forge": [
+    0.53614,
+    0.4327
+   ],
+   "heat": 0.0,
+   "source": "north/idle_3.png"
+  },
+  {
+   "name": "vanguard_idle_north_4",
+   "atlas": 3,
+   "rect": [
+    196,
+    220,
+    129,
+    133
+   ],
+   "pivot": [
+    0.372093,
+    0.052632
+   ],
+   "crop": [
+    62,
+    79,
+    191,
+    212
+   ],
+   "forge": [
+    0.53614,
+    0.42987
+   ],
+   "heat": 0.0,
+   "source": "north/idle_4.png"
+  },
+  {
+   "name": "vanguard_idle_north_5",
+   "atlas": 3,
+   "rect": [
+    196,
+    87,
+    129,
+    133
+   ],
+   "pivot": [
+    0.372093,
+    0.052632
+   ],
+   "crop": [
+    62,
+    79,
+    191,
+    212
+   ],
+   "forge": [
+    0.53614,
+    0.42704
+   ],
+   "heat": 0.0,
+   "source": "north/idle_5.png"
+  },
+  {
+   "name": "vanguard_idle_north_6",
+   "atlas": 3,
+   "rect": [
+    325,
+    220,
+    129,
+    133
+   ],
+   "pivot": [
+    0.372093,
+    0.052632
+   ],
+   "crop": [
+    62,
+    79,
+    191,
+    212
+   ],
+   "forge": [
+    0.53614,
+    0.42587
+   ],
+   "heat": 0.0,
+   "source": "north/idle_6.png"
+  },
+  {
+   "name": "vanguard_idle_north_7",
+   "atlas": 3,
+   "rect": [
+    325,
+    87,
+    129,
+    133
+   ],
+   "pivot": [
+    0.372093,
+    0.052632
+   ],
+   "crop": [
+    62,
+    79,
+    191,
+    212
+   ],
+   "forge": [
+    0.53614,
+    0.42704
+   ],
+   "heat": 0.0,
+   "source": "north/idle_7.png"
+  },
+  {
+   "name": "vanguard_idle_north-west_0",
+   "atlas": 2,
+   "rect": [
+    352,
+    816,
+    96,
+    136
+   ],
+   "pivot": [
+    0.427083,
+    0.080882
+   ],
+   "crop": [
+    69,
+    80,
+    165,
+    216
+   ],
+   "forge": [
+    0.34456,
+    0.6201
+   ],
+   "heat": 0.0,
+   "source": "north-west/idle_0.png"
+  },
+  {
+   "name": "vanguard_idle_north-west_1",
+   "atlas": 2,
+   "rect": [
+    346,
+    408,
+    96,
+    136
+   ],
+   "pivot": [
+    0.427083,
+    0.080882
+   ],
+   "crop": [
+    69,
+    80,
+    165,
+    216
+   ],
+   "forge": [
+    0.34456,
+    0.62293
+   ],
+   "heat": 0.0,
+   "source": "north-west/idle_1.png"
+  },
+  {
+   "name": "vanguard_idle_north-west_2",
+   "atlas": 2,
+   "rect": [
+    442,
+    408,
+    96,
+    136
+   ],
+   "pivot": [
+    0.427083,
+    0.080882
+   ],
+   "crop": [
+    69,
+    80,
+    165,
+    216
+   ],
+   "forge": [
+    0.34456,
+    0.6241
+   ],
+   "heat": 0.0,
+   "source": "north-west/idle_2.png"
+  },
+  {
+   "name": "vanguard_idle_north-west_3",
+   "atlas": 2,
+   "rect": [
+    447,
+    544,
+    96,
+    136
+   ],
+   "pivot": [
+    0.427083,
+    0.080882
+   ],
+   "crop": [
+    69,
+    80,
+    165,
+    216
+   ],
+   "forge": [
+    0.34456,
+    0.62293
+   ],
+   "heat": 0.0,
+   "source": "north-west/idle_3.png"
+  },
+  {
+   "name": "vanguard_idle_north-west_4",
+   "atlas": 2,
+   "rect": [
+    445,
+    272,
+    96,
+    136
+   ],
+   "pivot": [
+    0.427083,
+    0.080882
+   ],
+   "crop": [
+    69,
+    80,
+    165,
+    216
+   ],
+   "forge": [
+    0.34456,
+    0.6201
+   ],
+   "heat": 0.0,
+   "source": "north-west/idle_4.png"
+  },
+  {
+   "name": "vanguard_idle_north-west_5",
+   "atlas": 2,
+   "rect": [
+    538,
+    408,
+    96,
+    136
+   ],
+   "pivot": [
+    0.427083,
+    0.080882
+   ],
+   "crop": [
+    69,
+    80,
+    165,
+    216
+   ],
+   "forge": [
+    0.34456,
+    0.61727
+   ],
+   "heat": 0.0,
+   "source": "north-west/idle_5.png"
+  },
+  {
+   "name": "vanguard_idle_north-west_6",
+   "atlas": 2,
+   "rect": [
+    447,
+    136,
+    96,
+    136
+   ],
+   "pivot": [
+    0.427083,
+    0.080882
+   ],
+   "crop": [
+    69,
+    80,
+    165,
+    216
+   ],
+   "forge": [
+    0.34456,
+    0.6161
+   ],
+   "heat": 0.0,
+   "source": "north-west/idle_6.png"
+  },
+  {
+   "name": "vanguard_idle_north-west_7",
+   "atlas": 2,
+   "rect": [
+    541,
+    272,
+    96,
+    136
+   ],
+   "pivot": [
+    0.427083,
+    0.080882
+   ],
+   "crop": [
+    69,
+    80,
+    165,
+    216
+   ],
+   "forge": [
+    0.34456,
+    0.61727
+   ],
+   "heat": 0.0,
+   "source": "north-west/idle_7.png"
+  },
+  {
+   "name": "vanguard_idle_west_0",
+   "atlas": 2,
+   "rect": [
+    0,
+    136,
+    114,
+    136
+   ],
+   "pivot": [
+    0.570175,
+    0.088235
+   ],
+   "crop": [
+    45,
+    81,
+    159,
+    217
+   ],
+   "forge": [
+    -0.38415,
+    0.64055
+   ],
+   "heat": 0.0,
+   "source": "west/idle_0.png"
+  },
+  {
+   "name": "vanguard_idle_west_1",
+   "atlas": 2,
+   "rect": [
+    0,
+    0,
+    114,
+    136
+   ],
+   "pivot": [
+    0.570175,
+    0.088235
+   ],
+   "crop": [
+    45,
+    81,
+    159,
+    217
+   ],
+   "forge": [
+    -0.38415,
+    0.64338
+   ],
+   "heat": 0.0,
+   "source": "west/idle_1.png"
+  },
+  {
+   "name": "vanguard_idle_west_2",
+   "atlas": 2,
+   "rect": [
+    114,
+    136,
+    114,
+    136
+   ],
+   "pivot": [
+    0.570175,
+    0.088235
+   ],
+   "crop": [
+    45,
+    81,
+    159,
+    217
+   ],
+   "forge": [
+    -0.38415,
+    0.64455
+   ],
+   "heat": 0.0,
+   "source": "west/idle_2.png"
+  },
+  {
+   "name": "vanguard_idle_west_3",
+   "atlas": 2,
+   "rect": [
+    115,
+    272,
+    113,
+    136
+   ],
+   "pivot": [
+    0.575221,
+    0.088235
+   ],
+   "crop": [
+    45,
+    81,
+    158,
+    217
+   ],
+   "forge": [
+    -0.38415,
+    0.64338
+   ],
+   "heat": 0.0,
+   "source": "west/idle_3.png"
+  },
+  {
+   "name": "vanguard_idle_west_4",
+   "atlas": 2,
+   "rect": [
+    226,
+    0,
+    112,
+    136
+   ],
+   "pivot": [
+    0.580357,
+    0.088235
+   ],
+   "crop": [
+    45,
+    81,
+    157,
+    217
+   ],
+   "forge": [
+    -0.38415,
+    0.64055
+   ],
+   "heat": 0.0,
+   "source": "west/idle_4.png"
+  },
+  {
+   "name": "vanguard_idle_west_5",
+   "atlas": 2,
+   "rect": [
+    228,
+    272,
+    112,
+    136
+   ],
+   "pivot": [
+    0.580357,
+    0.088235
+   ],
+   "crop": [
+    45,
+    81,
+    157,
+    217
+   ],
+   "forge": [
+    -0.38415,
+    0.63772
+   ],
+   "heat": 0.0,
+   "source": "west/idle_5.png"
+  },
+  {
+   "name": "vanguard_idle_west_6",
+   "atlas": 2,
+   "rect": [
+    234,
+    408,
+    112,
+    136
+   ],
+   "pivot": [
+    0.580357,
+    0.088235
+   ],
+   "crop": [
+    45,
+    81,
+    157,
+    217
+   ],
+   "forge": [
+    -0.38415,
+    0.63655
+   ],
+   "heat": 0.0,
+   "source": "west/idle_6.png"
+  },
+  {
+   "name": "vanguard_idle_west_7",
+   "atlas": 2,
+   "rect": [
+    121,
+    408,
+    113,
+    136
+   ],
+   "pivot": [
+    0.575221,
+    0.088235
+   ],
+   "crop": [
+    45,
+    81,
+    158,
+    217
+   ],
+   "forge": [
+    -0.38415,
+    0.63772
+   ],
+   "heat": 0.0,
+   "source": "west/idle_7.png"
+  },
+  {
+   "name": "vanguard_idle_south-west_0",
+   "atlas": 1,
+   "rect": [
+    442,
+    150,
+    134,
+    137
+   ],
+   "pivot": [
+    0.61194,
+    0.094891
+   ],
+   "crop": [
+    28,
+    81,
+    162,
+    218
+   ],
+   "forge": [
+    -0.54592,
+    0.49255
+   ],
+   "heat": 0.0,
+   "source": "south-west/idle_0.png"
+  },
+  {
+   "name": "vanguard_idle_south-west_1",
+   "atlas": 1,
+   "rect": [
+    502,
+    288,
+    134,
+    137
+   ],
+   "pivot": [
+    0.61194,
+    0.094891
+   ],
+   "crop": [
+    28,
+    81,
+    162,
+    218
+   ],
+   "forge": [
+    -0.54592,
+    0.49538
+   ],
+   "heat": 0.0,
+   "source": "south-west/idle_1.png"
+  },
+  {
+   "name": "vanguard_idle_south-west_2",
+   "atlas": 0,
+   "rect": [
+    325,
+    0,
+    133,
+    138
+   ],
+   "pivot": [
+    0.616541,
+    0.094203
+   ],
+   "crop": [
+    28,
+    80,
+    161,
+    218
+   ],
+   "forge": [
+    -0.54592,
+    0.49655
+   ],
+   "heat": 0.0,
+   "source": "south-west/idle_2.png"
+  },
+  {
+   "name": "vanguard_idle_south-west_3",
+   "atlas": 1,
+   "rect": [
+    206,
+    421,
+    131,
+    138
+   ],
+   "pivot": [
+    0.625954,
+    0.094203
+   ],
+   "crop": [
+    28,
+    80,
+    159,
+    218
+   ],
+   "forge": [
+    -0.54592,
+    0.49538
+   ],
+   "heat": 0.0,
+   "source": "south-west/idle_3.png"
+  },
+  {
+   "name": "vanguard_idle_south-west_4",
+   "atlas": 1,
+   "rect": [
+    656,
+    14,
+    130,
+    137
+   ],
+   "pivot": [
+    0.630769,
+    0.094891
+   ],
+   "crop": [
+    28,
+    81,
+    158,
+    218
+   ],
+   "forge": [
+    -0.54592,
+    0.49255
+   ],
+   "heat": 0.0,
+   "source": "south-west/idle_4.png"
+  },
+  {
+   "name": "vanguard_idle_south-west_5",
+   "atlas": 1,
+   "rect": [
+    448,
+    701,
+    129,
+    137
+   ],
+   "pivot": [
+    0.635659,
+    0.094891
+   ],
+   "crop": [
+    28,
+    81,
+    157,
+    218
+   ],
+   "forge": [
+    -0.54592,
+    0.48972
+   ],
+   "heat": 0.0,
+   "source": "south-west/idle_5.png"
+  },
+  {
+   "name": "vanguard_idle_south-west_6",
+   "atlas": 1,
+   "rect": [
+    576,
+    151,
+    131,
+    137
+   ],
+   "pivot": [
+    0.625954,
+    0.094891
+   ],
+   "crop": [
+    28,
+    81,
+    159,
+    218
+   ],
+   "forge": [
+    -0.54592,
+    0.48855
+   ],
+   "heat": 0.0,
+   "source": "south-west/idle_6.png"
+  },
+  {
+   "name": "vanguard_idle_south-west_7",
+   "atlas": 1,
+   "rect": [
+    524,
+    13,
+    132,
+    137
+   ],
+   "pivot": [
+    0.621212,
+    0.094891
+   ],
+   "crop": [
+    28,
+    81,
+    160,
+    218
+   ],
+   "forge": [
+    -0.54592,
+    0.48972
+   ],
+   "heat": 0.0,
+   "source": "south-west/idle_7.png"
+  },
+  {
+   "name": "vanguard_walk_south_0",
+   "atlas": 1,
+   "rect": [
+    196,
+    3,
+    95,
+    139
+   ],
+   "pivot": [
+    0.536842,
+    0.129496
+   ],
+   "crop": [
+    59,
+    84,
+    154,
+    223
+   ],
+   "forge": [
+    -0.37299,
+    0.49553
+   ],
+   "heat": 0.0,
+   "source": "south/walk_0.png"
+  },
+  {
+   "name": "vanguard_walk_south_1",
+   "atlas": 3,
+   "rect": [
+    555,
+    221,
+    98,
+    133
+   ],
+   "pivot": [
+    0.55102,
+    0.097744
+   ],
+   "crop": [
+    56,
+    85,
+    154,
+    218
+   ],
+   "forge": [
+    -0.39153,
+    0.48302
+   ],
+   "heat": 0.0,
+   "source": "south/walk_1.png"
+  },
+  {
+   "name": "vanguard_walk_south_2",
+   "atlas": 4,
+   "rect": [
+    585,
+    246,
+    106,
+    129
+   ],
+   "pivot": [
+    0.575472,
+    0.046512
+   ],
+   "crop": [
+    49,
+    82,
+    155,
+    211
+   ],
+   "forge": [
+    -0.43136,
+    0.44961
+   ],
+   "heat": 0.0,
+   "source": "south/walk_2.png"
+  },
+  {
+   "name": "vanguard_walk_south_3",
+   "atlas": 2,
+   "rect": [
+    634,
+    412,
+    114,
+    135
+   ],
+   "pivot": [
+    0.587719,
+    0.088889
+   ],
+   "crop": [
+    43,
+    82,
+    157,
+    217
+   ],
+   "forge": [
+    -0.46276,
+    0.38405
+   ],
+   "heat": 0.0,
+   "source": "south/walk_3.png"
+  },
+  {
+   "name": "vanguard_walk_south_4",
+   "atlas": 1,
+   "rect": [
+    0,
+    698,
+    115,
+    139
+   ],
+   "pivot": [
+    0.6,
+    0.129496
+   ],
+   "crop": [
+    41,
+    84,
+    156,
+    223
+   ],
+   "forge": [
+    -0.47293,
+    0.356
+   ],
+   "heat": 0.0,
+   "source": "south/walk_4.png"
+  },
+  {
+   "name": "vanguard_walk_south_5",
+   "atlas": 3,
+   "rect": [
+    450,
+    354,
+    111,
+    133
+   ],
+   "pivot": [
+    0.603604,
+    0.097744
+   ],
+   "crop": [
+    43,
+    85,
+    154,
+    218
+   ],
+   "forge": [
+    -0.46276,
+    0.38405
+   ],
+   "heat": 0.0,
+   "source": "south/walk_5.png"
+  },
+  {
+   "name": "vanguard_walk_south_6",
+   "atlas": 4,
+   "rect": [
+    621,
+    376,
+    105,
+    129
+   ],
+   "pivot": [
+    0.580952,
+    0.046512
+   ],
+   "crop": [
+    49,
+    82,
+    154,
+    211
+   ],
+   "forge": [
+    -0.43136,
+    0.44961
+   ],
+   "heat": 0.0,
+   "source": "south/walk_6.png"
+  },
+  {
+   "name": "vanguard_walk_south_7",
+   "atlas": 2,
+   "rect": [
+    811,
+    142,
+    98,
+    135
+   ],
+   "pivot": [
+    0.55102,
+    0.088889
+   ],
+   "crop": [
+    56,
+    82,
+    154,
+    217
+   ],
+   "forge": [
+    -0.39153,
+    0.48302
+   ],
+   "heat": 0.0,
+   "source": "south/walk_7.png"
+  },
+  {
+   "name": "vanguard_walk_south-east_0",
+   "atlas": 1,
+   "rect": [
+    817,
+    839,
+    114,
+    137
+   ],
+   "pivot": [
+    0.614035,
+    0.124088
+   ],
+   "crop": [
+    40,
+    85,
+    154,
+    222
+   ],
+   "forge": [
+    -0.47448,
+    0.32001
+   ],
+   "heat": 0.0,
+   "source": "south-east/walk_0.png"
+  },
+  {
+   "name": "vanguard_walk_south-east_1",
+   "atlas": 3,
+   "rect": [
+    364,
+    886,
+    112,
+    134
+   ],
+   "pivot": [
+    0.616071,
+    0.104478
+   ],
+   "crop": [
+    41,
+    85,
+    153,
+    219
+   ],
+   "forge": [
+    -0.46161,
+    0.30633
+   ],
+   "heat": 0.0,
+   "source": "south-east/walk_1.png"
+  },
+  {
+   "name": "vanguard_walk_south-east_2",
+   "atlas": 4,
+   "rect": [
+    0,
+    238,
+    107,
+    131
+   ],
+   "pivot": [
+    0.616822,
+    0.068702
+   ],
+   "crop": [
+    44,
+    83,
+    151,
+    214
+   ],
+   "forge": [
+    -0.42252,
+    0.27276
+   ],
+   "heat": 0.0,
+   "source": "south-east/walk_2.png"
+  },
+  {
+   "name": "vanguard_walk_south-east_3",
+   "atlas": 4,
+   "rect": [
+    258,
+    503,
+    99,
+    130
+   ],
+   "pivot": [
+    0.606061,
+    0.053846
+   ],
+   "crop": [
+    50,
+    82,
+    149,
+    212
+   ],
+   "forge": [
+    -0.37201,
+    0.21117
+   ],
+   "heat": 0.0,
+   "source": "south-east/walk_3.png"
+  },
+  {
+   "name": "vanguard_walk_south-east_4",
+   "atlas": 4,
+   "rect": [
+    103,
+    107,
+    102,
+    131
+   ],
+   "pivot": [
+    0.617647,
+    0.083969
+   ],
+   "crop": [
+    47,
+    85,
+    149,
+    216
+   ],
+   "forge": [
+    -0.34782,
+    0.18601
+   ],
+   "heat": 0.0,
+   "source": "south-east/walk_4.png"
+  },
+  {
+   "name": "vanguard_walk_south-east_5",
+   "atlas": 5,
+   "rect": [
+    741,
+    621,
+    106,
+    127
+   ],
+   "pivot": [
+    0.632075,
+    0.055118
+   ],
+   "crop": [
+    43,
+    85,
+    149,
+    212
+   ],
+   "forge": [
+    -0.37202,
+    0.21117
+   ],
+   "heat": 0.0,
+   "source": "south-east/walk_5.png"
+  },
+  {
+   "name": "vanguard_walk_south-east_6",
+   "atlas": 4,
+   "rect": [
+    822,
+    252,
+    108,
+    128
+   ],
+   "pivot": [
+    0.62037,
+    0.046875
+   ],
+   "crop": [
+    43,
+    83,
+    151,
+    211
+   ],
+   "forge": [
+    -0.42252,
+    0.27276
+   ],
+   "heat": 0.0,
+   "source": "south-east/walk_6.png"
+  },
+  {
+   "name": "vanguard_walk_south-east_7",
+   "atlas": 3,
+   "rect": [
+    476,
+    886,
+    112,
+    134
+   ],
+   "pivot": [
+    0.616071,
+    0.089552
+   ],
+   "crop": [
+    41,
+    83,
+    153,
+    217
+   ],
+   "forge": [
+    -0.46161,
+    0.30633
+   ],
+   "heat": 0.0,
+   "source": "south-east/walk_7.png"
+  },
+  {
+   "name": "vanguard_walk_east_0",
+   "atlas": 4,
+   "rect": [
+    0,
+    500,
+    108,
+    131
+   ],
+   "pivot": [
+    0.62963,
+    0.083969
+   ],
+   "crop": [
+    42,
+    85,
+    150,
+    216
+   ],
+   "forge": [
+    -0.29803,
+    0.16002
+   ],
+   "heat": 0.0,
+   "source": "east/walk_0.png"
+  },
+  {
+   "name": "vanguard_walk_east_1",
+   "atlas": 3,
+   "rect": [
+    453,
+    487,
+    110,
+    133
+   ],
+   "pivot": [
+    0.663636,
+    0.090226
+   ],
+   "crop": [
+    37,
+    84,
+    147,
+    217
+   ],
+   "forge": [
+    -0.26129,
+    0.15661
+   ],
+   "heat": 0.0,
+   "source": "east/walk_1.png"
+  },
+  {
+   "name": "vanguard_walk_east_2",
+   "atlas": 1,
+   "rect": [
+    711,
+    428,
+    102,
+    137
+   ],
+   "pivot": [
+    0.666667,
+    0.10219
+   ],
+   "crop": [
+    42,
+    82,
+    144,
+    219
+   ],
+   "forge": [
+    -0.16618,
+    0.15084
+   ],
+   "heat": 0.0,
+   "source": "east/walk_2.png"
+  },
+  {
+   "name": "vanguard_walk_east_3",
+   "atlas": 0,
+   "rect": [
+    597,
+    596,
+    98,
+    141
+   ],
+   "pivot": [
+    0.632653,
+    0.12766
+   ],
+   "crop": [
+    48,
+    82,
+    146,
+    223
+   ],
+   "forge": [
+    -0.06335,
+    0.121
+   ],
+   "heat": 0.0,
+   "source": "east/walk_3.png"
+  },
+  {
+   "name": "vanguard_walk_east_4",
+   "atlas": 0,
+   "rect": [
+    825,
+    604,
+    108,
+    140
+   ],
+   "pivot": [
+    0.62963,
+    0.135714
+   ],
+   "crop": [
+    42,
+    84,
+    150,
+    224
+   ],
+   "forge": [
+    -0.01896,
+    0.11005
+   ],
+   "heat": 0.0,
+   "source": "east/walk_4.png"
+  },
+  {
+   "name": "vanguard_walk_east_5",
+   "atlas": 1,
+   "rect": [
+    337,
+    424,
+    103,
+    138
+   ],
+   "pivot": [
+    0.708738,
+    0.130435
+   ],
+   "crop": [
+    37,
+    85,
+    140,
+    223
+   ],
+   "forge": [
+    -0.06335,
+    0.121
+   ],
+   "heat": 0.0,
+   "source": "east/walk_5.png"
+  },
+  {
+   "name": "vanguard_walk_east_6",
+   "atlas": 2,
+   "rect": [
+    442,
+    0,
+    102,
+    136
+   ],
+   "pivot": [
+    0.666667,
+    0.102941
+   ],
+   "crop": [
+    42,
+    83,
+    144,
+    219
+   ],
+   "forge": [
+    -0.16618,
+    0.15084
+   ],
+   "heat": 0.0,
+   "source": "east/walk_6.png"
+  },
+  {
+   "name": "vanguard_walk_east_7",
+   "atlas": 3,
+   "rect": [
+    0,
+    216,
+    99,
+    134
+   ],
+   "pivot": [
+    0.626263,
+    0.089552
+   ],
+   "crop": [
+    48,
+    83,
+    147,
+    217
+   ],
+   "forge": [
+    -0.26129,
+    0.15661
+   ],
+   "heat": 0.0,
+   "source": "east/walk_7.png"
+  },
+  {
+   "name": "vanguard_walk_north-east_0",
+   "atlas": 0,
+   "rect": [
+    467,
+    257,
+    103,
+    142
+   ],
+   "pivot": [
+    0.621359,
+    0.140845
+   ],
+   "crop": [
+    46,
+    83,
+    149,
+    225
+   ],
+   "forge": [
+    0.05301,
+    0.10928
+   ],
+   "heat": 0.0,
+   "source": "north-east/walk_0.png"
+  },
+  {
+   "name": "vanguard_walk_north-east_1",
+   "atlas": 0,
+   "rect": [
+    572,
+    439,
+    101,
+    141
+   ],
+   "pivot": [
+    0.70297,
+    0.134752
+   ],
+   "crop": [
+    39,
+    83,
+    140,
+    224
+   ],
+   "forge": [
+    0.09209,
+    0.12157
+   ],
+   "heat": 0.0,
+   "source": "north-east/walk_1.png"
+  },
+  {
+   "name": "vanguard_walk_north-east_2",
+   "atlas": 0,
+   "rect": [
+    922,
+    324,
+    99,
+    140
+   ],
+   "pivot": [
+    0.676768,
+    0.114286
+   ],
+   "crop": [
+    43,
+    81,
+    142,
+    221
+   ],
+   "forge": [
+    0.18751,
+    0.15526
+   ],
+   "heat": 0.0,
+   "source": "north-east/walk_2.png"
+  },
+  {
+   "name": "vanguard_walk_north-east_3",
+   "atlas": 1,
+   "rect": [
+    0,
+    3,
+    101,
+    139
+   ],
+   "pivot": [
+    0.623762,
+    0.100719
+   ],
+   "crop": [
+    47,
+    80,
+    148,
+    219
+   ],
+   "forge": [
+    0.28242,
+    0.16637
+   ],
+   "heat": 0.0,
+   "source": "north-east/walk_3.png"
+  },
+  {
+   "name": "vanguard_walk_north-east_4",
+   "atlas": 2,
+   "rect": [
+    241,
+    816,
+    111,
+    136
+   ],
+   "pivot": [
+    0.612613,
+    0.102941
+   ],
+   "crop": [
+    42,
+    83,
+    153,
+    219
+   ],
+   "forge": [
+    0.32101,
+    0.17261
+   ],
+   "heat": 0.0,
+   "source": "north-east/walk_4.png"
+  },
+  {
+   "name": "vanguard_walk_north-east_5",
+   "atlas": 2,
+   "rect": [
+    338,
+    136,
+    109,
+    136
+   ],
+   "pivot": [
+    0.651376,
+    0.102941
+   ],
+   "crop": [
+    39,
+    83,
+    148,
+    219
+   ],
+   "forge": [
+    0.28242,
+    0.16637
+   ],
+   "heat": 0.0,
+   "source": "north-east/walk_5.png"
+  },
+  {
+   "name": "vanguard_walk_north-east_6",
+   "atlas": 0,
+   "rect": [
+    922,
+    184,
+    96,
+    140
+   ],
+   "pivot": [
+    0.666667,
+    0.114286
+   ],
+   "crop": [
+    46,
+    81,
+    142,
+    221
+   ],
+   "forge": [
+    0.18751,
+    0.15526
+   ],
+   "heat": 0.0,
+   "source": "north-east/walk_6.png"
+  },
+  {
+   "name": "vanguard_walk_north-east_7",
+   "atlas": 0,
+   "rect": [
+    504,
+    580,
+    93,
+    143
+   ],
+   "pivot": [
+    0.612903,
+    0.132867
+   ],
+   "crop": [
+    53,
+    81,
+    146,
+    224
+   ],
+   "forge": [
+    0.09209,
+    0.12157
+   ],
+   "heat": 0.0,
+   "source": "north-east/walk_7.png"
+  },
+  {
+   "name": "vanguard_walk_north_0",
+   "atlas": 3,
+   "rect": [
+    100,
+    350,
+    95,
+    134
+   ],
+   "pivot": [
+    0.463158,
+    0.074627
+   ],
+   "crop": [
+    66,
+    81,
+    161,
+    215
+   ],
+   "forge": [
+    0.37299,
+    0.1975
+   ],
+   "heat": 0.0,
+   "source": "north/walk_0.png"
+  },
+  {
+   "name": "vanguard_walk_north_1",
+   "atlas": 4,
+   "rect": [
+    332,
+    633,
+    98,
+    130
+   ],
+   "pivot": [
+    0.44898,
+    0.053846
+   ],
+   "crop": [
+    66,
+    82,
+    164,
+    212
+   ],
+   "forge": [
+    0.39153,
+    0.22173
+   ],
+   "heat": 0.0,
+   "source": "north/walk_1.png"
+  },
+  {
+   "name": "vanguard_walk_north_2",
+   "atlas": 3,
+   "rect": [
+    0,
+    752,
+    106,
+    134
+   ],
+   "pivot": [
+    0.424528,
+    0.059701
+   ],
+   "crop": [
+    65,
+    79,
+    171,
+    213
+   ],
+   "forge": [
+    0.43136,
+    0.28343
+   ],
+   "heat": 0.0,
+   "source": "north/walk_2.png"
+  },
+  {
+   "name": "vanguard_walk_north_3",
+   "atlas": 1,
+   "rect": [
+    332,
+    838,
+    114,
+    138
+   ],
+   "pivot": [
+    0.412281,
+    0.086957
+   ],
+   "crop": [
+    63,
+    79,
+    177,
+    217
+   ],
+   "forge": [
+    0.46276,
+    0.3207
+   ],
+   "heat": 0.0,
+   "source": "north/walk_3.png"
+  },
+  {
+   "name": "vanguard_walk_north_4",
+   "atlas": 3,
+   "rect": [
+    653,
+    222,
+    115,
+    132
+   ],
+   "pivot": [
+    0.4,
+    0.060606
+   ],
+   "crop": [
+    64,
+    81,
+    179,
+    213
+   ],
+   "forge": [
+    0.47293,
+    0.33704
+   ],
+   "heat": 0.0,
+   "source": "north/walk_4.png"
+  },
+  {
+   "name": "vanguard_walk_north_5",
+   "atlas": 5,
+   "rect": [
+    0,
+    245,
+    111,
+    125
+   ],
+   "pivot": [
+    0.396396,
+    0.016
+   ],
+   "crop": [
+    66,
+    82,
+    177,
+    207
+   ],
+   "forge": [
+    0.46276,
+    0.3207
+   ],
+   "heat": 0.0,
+   "source": "north/walk_5.png"
+  },
+  {
+   "name": "vanguard_walk_north_6",
+   "atlas": 3,
+   "rect": [
+    0,
+    618,
+    105,
+    134
+   ],
+   "pivot": [
+    0.419048,
+    0.059701
+   ],
+   "crop": [
+    66,
+    79,
+    171,
+    213
+   ],
+   "forge": [
+    0.43136,
+    0.28343
+   ],
+   "heat": 0.0,
+   "source": "north/walk_6.png"
+  },
+  {
+   "name": "vanguard_walk_north_7",
+   "atlas": 1,
+   "rect": [
+    291,
+    5,
+    98,
+    138
+   ],
+   "pivot": [
+    0.44898,
+    0.086957
+   ],
+   "crop": [
+    66,
+    79,
+    164,
+    217
+   ],
+   "forge": [
+    0.39153,
+    0.22173
+   ],
+   "heat": 0.0,
+   "source": "north/walk_7.png"
+  },
+  {
+   "name": "vanguard_walk_north-west_0",
+   "atlas": 3,
+   "rect": [
+    339,
+    487,
+    114,
+    133
+   ],
+   "pivot": [
+    0.385965,
+    0.082707
+   ],
+   "crop": [
+    66,
+    83,
+    180,
+    216
+   ],
+   "forge": [
+    0.47448,
+    0.37302
+   ],
+   "heat": 0.0,
+   "source": "north-west/walk_0.png"
+  },
+  {
+   "name": "vanguard_walk_north-west_1",
+   "atlas": 5,
+   "rect": [
+    745,
+    246,
+    112,
+    124
+   ],
+   "pivot": [
+    0.383929,
+    0.016129
+   ],
+   "crop": [
+    67,
+    83,
+    179,
+    207
+   ],
+   "forge": [
+    0.46161,
+    0.39842
+   ],
+   "heat": 0.0,
+   "source": "north-west/walk_1.png"
+  },
+  {
+   "name": "vanguard_walk_north-west_2",
+   "atlas": 4,
+   "rect": [
+    478,
+    246,
+    107,
+    129
+   ],
+   "pivot": [
+    0.383178,
+    0.03876
+   ],
+   "crop": [
+    69,
+    81,
+    176,
+    210
+   ],
+   "forge": [
+    0.42252,
+    0.46027
+   ],
+   "heat": 0.0,
+   "source": "north-west/walk_2.png"
+  },
+  {
+   "name": "vanguard_walk_north-west_3",
+   "atlas": 4,
+   "rect": [
+    205,
+    107,
+    100,
+    131
+   ],
+   "pivot": [
+    0.39,
+    0.053435
+   ],
+   "crop": [
+    71,
+    81,
+    171,
+    212
+   ],
+   "forge": [
+    0.37202,
+    0.49359
+   ],
+   "heat": 0.0,
+   "source": "north-west/walk_3.png"
+  },
+  {
+   "name": "vanguard_walk_north-west_4",
+   "atlas": 5,
+   "rect": [
+    950,
+    370,
+    103,
+    126
+   ],
+   "pivot": [
+    0.378641,
+    0.031746
+   ],
+   "crop": [
+    71,
+    83,
+    174,
+    209
+   ],
+   "forge": [
+    0.34782,
+    0.50702
+   ],
+   "heat": 0.0,
+   "source": "north-west/walk_4.png"
+  },
+  {
+   "name": "vanguard_walk_north-west_5",
+   "atlas": 4,
+   "rect": [
+    505,
+    117,
+    106,
+    129
+   ],
+   "pivot": [
+    0.367925,
+    0.054264
+   ],
+   "crop": [
+    71,
+    83,
+    177,
+    212
+   ],
+   "forge": [
+    0.37201,
+    0.49359
+   ],
+   "heat": 0.0,
+   "source": "north-west/walk_5.png"
+  },
+  {
+   "name": "vanguard_walk_north-west_6",
+   "atlas": 2,
+   "rect": [
+    601,
+    817,
+    109,
+    135
+   ],
+   "pivot": [
+    0.376147,
+    0.081481
+   ],
+   "crop": [
+    69,
+    81,
+    178,
+    216
+   ],
+   "forge": [
+    0.42252,
+    0.46027
+   ],
+   "heat": 0.0,
+   "source": "north-west/walk_6.png"
+  },
+  {
+   "name": "vanguard_walk_north-west_7",
+   "atlas": 1,
+   "rect": [
+    336,
+    562,
+    112,
+    138
+   ],
+   "pivot": [
+    0.383929,
+    0.094203
+   ],
+   "crop": [
+    67,
+    80,
+    179,
+    218
+   ],
+   "forge": [
+    0.46161,
+    0.39842
+   ],
+   "heat": 0.0,
+   "source": "north-west/walk_7.png"
+  },
+  {
+   "name": "vanguard_walk_west_0",
+   "atlas": 4,
+   "rect": [
+    0,
+    369,
+    108,
+    131
+   ],
+   "pivot": [
+    0.37037,
+    0.076336
+   ],
+   "crop": [
+    70,
+    84,
+    178,
+    215
+   ],
+   "forge": [
+    0.29803,
+    0.53301
+   ],
+   "heat": 0.0,
+   "source": "west/walk_0.png"
+  },
+  {
+   "name": "vanguard_walk_west_1",
+   "atlas": 5,
+   "rect": [
+    967,
+    246,
+    110,
+    124
+   ],
+   "pivot": [
+    0.336364,
+    0.032258
+   ],
+   "crop": [
+    73,
+    85,
+    183,
+    209
+   ],
+   "forge": [
+    0.26129,
+    0.54814
+   ],
+   "heat": 0.0,
+   "source": "west/walk_1.png"
+  },
+  {
+   "name": "vanguard_walk_west_2",
+   "atlas": 5,
+   "rect": [
+    1077,
+    246,
+    101,
+    124
+   ],
+   "pivot": [
+    0.336634,
+    0.016129
+   ],
+   "crop": [
+    76,
+    83,
+    177,
+    207
+   ],
+   "forge": [
+    0.16618,
+    0.5822
+   ],
+   "heat": 0.0,
+   "source": "west/walk_2.png"
+  },
+  {
+   "name": "vanguard_walk_west_3",
+   "atlas": 5,
+   "rect": [
+    947,
+    621,
+    98,
+    127
+   ],
+   "pivot": [
+    0.367347,
+    0.03937
+   ],
+   "crop": [
+    74,
+    83,
+    172,
+    210
+   ],
+   "forge": [
+    0.06335,
+    0.58375
+   ],
+   "heat": 0.0,
+   "source": "west/walk_3.png"
+  },
+  {
+   "name": "vanguard_walk_west_4",
+   "atlas": 4,
+   "rect": [
+    208,
+    241,
+    108,
+    130
+   ],
+   "pivot": [
+    0.37037,
+    0.076923
+   ],
+   "crop": [
+    70,
+    85,
+    178,
+    215
+   ],
+   "forge": [
+    0.01896,
+    0.58298
+   ],
+   "heat": 0.0,
+   "source": "west/walk_4.png"
+  },
+  {
+   "name": "vanguard_walk_west_5",
+   "atlas": 4,
+   "rect": [
+    0,
+    107,
+    103,
+    131
+   ],
+   "pivot": [
+    0.291262,
+    0.076336
+   ],
+   "crop": [
+    80,
+    84,
+    183,
+    215
+   ],
+   "forge": [
+    0.06335,
+    0.58375
+   ],
+   "heat": 0.0,
+   "source": "west/walk_5.png"
+  },
+  {
+   "name": "vanguard_walk_west_6",
+   "atlas": 3,
+   "rect": [
+    454,
+    88,
+    101,
+    133
+   ],
+   "pivot": [
+    0.336634,
+    0.075188
+   ],
+   "crop": [
+    76,
+    82,
+    177,
+    215
+   ],
+   "forge": [
+    0.16618,
+    0.5822
+   ],
+   "heat": 0.0,
+   "source": "west/walk_6.png"
+  },
+  {
+   "name": "vanguard_walk_west_7",
+   "atlas": 3,
+   "rect": [
+    98,
+    82,
+    98,
+    134
+   ],
+   "pivot": [
+    0.377551,
+    0.08209
+   ],
+   "crop": [
+    73,
+    82,
+    171,
+    216
+   ],
+   "forge": [
+    0.26129,
+    0.54814
+   ],
+   "heat": 0.0,
+   "source": "west/walk_7.png"
+  },
+  {
+   "name": "vanguard_walk_south-west_0",
+   "atlas": 3,
+   "rect": [
+    919,
+    228,
+    103,
+    131
+   ],
+   "pivot": [
+    0.378641,
+    0.083969
+   ],
+   "crop": [
+    71,
+    85,
+    174,
+    216
+   ],
+   "forge": [
+    -0.05301,
+    0.58376
+   ],
+   "heat": 0.0,
+   "source": "south-west/walk_0.png"
+  },
+  {
+   "name": "vanguard_walk_south-west_1",
+   "atlas": 5,
+   "rect": [
+    847,
+    621,
+    100,
+    127
+   ],
+   "pivot": [
+    0.3,
+    0.055118
+   ],
+   "crop": [
+    80,
+    85,
+    180,
+    212
+   ],
+   "forge": [
+    -0.09209,
+    0.58318
+   ],
+   "heat": 0.0,
+   "source": "south-west/walk_1.png"
+  },
+  {
+   "name": "vanguard_walk_south-west_2",
+   "atlas": 4,
+   "rect": [
+    862,
+    509,
+    98,
+    128
+   ],
+   "pivot": [
+    0.316327,
+    0.046875
+   ],
+   "crop": [
+    79,
+    83,
+    177,
+    211
+   ],
+   "forge": [
+    -0.18751,
+    0.57778
+   ],
+   "heat": 0.0,
+   "source": "south-west/walk_2.png"
+  },
+  {
+   "name": "vanguard_walk_south-west_3",
+   "atlas": 3,
+   "rect": [
+    0,
+    350,
+    100,
+    134
+   ],
+   "pivot": [
+    0.37,
+    0.089552
+   ],
+   "crop": [
+    73,
+    83,
+    173,
+    217
+   ],
+   "forge": [
+    -0.28242,
+    0.53838
+   ],
+   "heat": 0.0,
+   "source": "south-west/walk_3.png"
+  },
+  {
+   "name": "vanguard_walk_south-west_4",
+   "atlas": 1,
+   "rect": [
+    706,
+    565,
+    110,
+    137
+   ],
+   "pivot": [
+    0.381818,
+    0.124088
+   ],
+   "crop": [
+    68,
+    85,
+    178,
+    222
+   ],
+   "forge": [
+    -0.32101,
+    0.52043
+   ],
+   "heat": 0.0,
+   "source": "south-west/walk_4.png"
+  },
+  {
+   "name": "vanguard_walk_south-west_5",
+   "atlas": 3,
+   "rect": [
+    916,
+    886,
+    107,
+    134
+   ],
+   "pivot": [
+    0.345794,
+    0.104478
+   ],
+   "crop": [
+    73,
+    85,
+    180,
+    219
+   ],
+   "forge": [
+    -0.28242,
+    0.53838
+   ],
+   "heat": 0.0,
+   "source": "south-west/walk_5.png"
+  },
+  {
+   "name": "vanguard_walk_south-west_6",
+   "atlas": 3,
+   "rect": [
+    930,
+    97,
+    94,
+    131
+   ],
+   "pivot": [
+    0.329787,
+    0.068702
+   ],
+   "crop": [
+    79,
+    83,
+    173,
+    214
+   ],
+   "forge": [
+    -0.18751,
+    0.57778
+   ],
+   "heat": 0.0,
+   "source": "south-west/walk_6.png"
+  },
+  {
+   "name": "vanguard_walk_south-west_7",
+   "atlas": 4,
+   "rect": [
+    305,
+    111,
+    93,
+    130
+   ],
+   "pivot": [
+    0.387097,
+    0.053846
+   ],
+   "crop": [
+    74,
+    82,
+    167,
+    212
+   ],
+   "forge": [
+    -0.09209,
+    0.58318
+   ],
+   "heat": 0.0,
+   "source": "south-west/walk_7.png"
+  },
+  {
+   "name": "vanguard_walk-strike_south_0",
+   "atlas": 2,
+   "rect": [
+    662,
+    547,
+    110,
+    135
+   ],
+   "pivot": [
+    0.563636,
+    0.133333
+   ],
+   "crop": [
+    48,
+    88,
+    158,
+    223
+   ],
+   "forge": [
+    0.17329,
+    0.34106
+   ],
+   "heat": 0.0,
+   "source": "south/walk-strike_0.png"
+  },
+  {
+   "name": "vanguard_walk-strike_south_1",
+   "atlas": 4,
+   "rect": [
+    108,
+    371,
+    109,
+    130
+   ],
+   "pivot": [
+    0.559633,
+    0.1
+   ],
+   "crop": [
+    49,
+    88,
+    158,
+    218
+   ],
+   "forge": [
+    0.17329,
+    0.34106
+   ],
+   "heat": 0.0,
+   "source": "south/walk-strike_1.png"
+  },
+  {
+   "name": "vanguard_walk-strike_south_2",
+   "atlas": 5,
+   "rect": [
+    845,
+    495,
+    105,
+    126
+   ],
+   "pivot": [
+    0.542857,
+    0.047619
+   ],
+   "crop": [
+    53,
+    85,
+    158,
+    211
+   ],
+   "forge": [
+    0.17329,
+    0.34106
+   ],
+   "heat": 0.0,
+   "source": "south/walk-strike_2.png"
+  },
+  {
+   "name": "vanguard_walk-strike_south_3",
+   "atlas": 3,
+   "rect": [
+    676,
+    90,
+    103,
+    132
+   ],
+   "pivot": [
+    0.533981,
+    0.090909
+   ],
+   "crop": [
+    55,
+    85,
+    158,
+    217
+   ],
+   "forge": [
+    0.17329,
+    0.34106
+   ],
+   "heat": 0.0,
+   "source": "south/walk-strike_3.png"
+  },
+  {
+   "name": "vanguard_walk-strike_south_4",
+   "atlas": 2,
+   "rect": [
+    772,
+    547,
+    105,
+    135
+   ],
+   "pivot": [
+    0.542857,
+    0.125926
+   ],
+   "crop": [
+    53,
+    87,
+    158,
+    222
+   ],
+   "forge": [
+    0.17329,
+    0.34106
+   ],
+   "heat": 0.0,
+   "source": "south/walk-strike_4.png"
+  },
+  {
+   "name": "vanguard_walk-strike_south_5",
+   "atlas": 4,
+   "rect": [
+    0,
+    762,
+    109,
+    131
+   ],
+   "pivot": [
+    0.559633,
+    0.099237
+   ],
+   "crop": [
+    49,
+    87,
+    158,
+    218
+   ],
+   "forge": [
+    0.17329,
+    0.34106
+   ],
+   "heat": 0.0,
+   "source": "south/walk-strike_5.png"
+  },
+  {
+   "name": "vanguard_walk-strike_south_6",
+   "atlas": 5,
+   "rect": [
+    735,
+    495,
+    110,
+    126
+   ],
+   "pivot": [
+    0.563636,
+    0.047619
+   ],
+   "crop": [
+    48,
+    85,
+    158,
+    211
+   ],
+   "forge": [
+    0.17329,
+    0.34106
+   ],
+   "heat": 0.0,
+   "source": "south/walk-strike_6.png"
+  },
+  {
+   "name": "vanguard_walk-strike_south_7",
+   "atlas": 3,
+   "rect": [
+    658,
+    356,
+    110,
+    132
+   ],
+   "pivot": [
+    0.563636,
+    0.090909
+   ],
+   "crop": [
+    48,
+    85,
+    158,
+    217
+   ],
+   "forge": [
+    0.17329,
+    0.34106
+   ],
+   "heat": 0.0,
+   "source": "south/walk-strike_7.png"
+  },
+  {
+   "name": "vanguard_walk-strike_south-east_0",
+   "atlas": 2,
+   "rect": [
+    699,
+    2,
+    154,
+    135
+   ],
+   "pivot": [
+    0.467532,
+    0.125926
+   ],
+   "crop": [
+    38,
+    87,
+    192,
+    222
+   ],
+   "forge": [
+    0.51975,
+    0.4846
+   ],
+   "heat": 0.0,
+   "source": "south-east/walk-strike_0.png"
+  },
+  {
+   "name": "vanguard_walk-strike_south-east_1",
+   "atlas": 3,
+   "rect": [
+    653,
+    488,
+    155,
+    132
+   ],
+   "pivot": [
+    0.470968,
+    0.106061
+   ],
+   "crop": [
+    37,
+    87,
+    192,
+    219
+   ],
+   "forge": [
+    0.51975,
+    0.4846
+   ],
+   "heat": 0.0,
+   "source": "south-east/walk-strike_1.png"
+  },
+  {
+   "name": "vanguard_walk-strike_south-east_2",
+   "atlas": 4,
+   "rect": [
+    109,
+    763,
+    152,
+    130
+   ],
+   "pivot": [
+    0.460526,
+    0.069231
+   ],
+   "crop": [
+    40,
+    84,
+    192,
+    214
+   ],
+   "forge": [
+    0.51975,
+    0.4846
+   ],
+   "heat": 0.0,
+   "source": "south-east/walk-strike_2.png"
+  },
+  {
+   "name": "vanguard_walk-strike_south-east_3",
+   "atlas": 4,
+   "rect": [
+    866,
+    765,
+    149,
+    128
+   ],
+   "pivot": [
+    0.449664,
+    0.054688
+   ],
+   "crop": [
+    43,
+    84,
+    192,
+    212
+   ],
+   "forge": [
+    0.51975,
+    0.4846
+   ],
+   "heat": 0.0,
+   "source": "south-east/walk-strike_3.png"
+  },
+  {
+   "name": "vanguard_walk-strike_south-east_4",
+   "atlas": 4,
+   "rect": [
+    321,
+    374,
+    153,
+    129
+   ],
+   "pivot": [
+    0.464052,
+    0.077519
+   ],
+   "crop": [
+    39,
+    86,
+    192,
+    215
+   ],
+   "forge": [
+    0.51975,
+    0.4846
+   ],
+   "heat": 0.0,
+   "source": "south-east/walk-strike_4.png"
+  },
+  {
+   "name": "vanguard_walk-strike_south-east_5",
+   "atlas": 5,
+   "rect": [
+    487,
+    370,
+    156,
+    125
+   ],
+   "pivot": [
+    0.474359,
+    0.056
+   ],
+   "crop": [
+    36,
+    87,
+    192,
+    212
+   ],
+   "forge": [
+    0.51975,
+    0.4846
+   ],
+   "heat": 0.0,
+   "source": "south-east/walk-strike_5.png"
+  },
+  {
+   "name": "vanguard_walk-strike_south-east_6",
+   "atlas": 5,
+   "rect": [
+    1045,
+    622,
+    154,
+    126
+   ],
+   "pivot": [
+    0.467532,
+    0.047619
+   ],
+   "crop": [
+    38,
+    85,
+    192,
+    211
+   ],
+   "forge": [
+    0.51975,
+    0.4846
+   ],
+   "heat": 0.0,
+   "source": "south-east/walk-strike_6.png"
+  },
+  {
+   "name": "vanguard_walk-strike_south-east_7",
+   "atlas": 3,
+   "rect": [
+    710,
+    754,
+    152,
+    132
+   ],
+   "pivot": [
+    0.460526,
+    0.090909
+   ],
+   "crop": [
+    40,
+    85,
+    192,
+    217
+   ],
+   "forge": [
+    0.51975,
+    0.4846
+   ],
+   "heat": 0.0,
+   "source": "south-east/walk-strike_7.png"
+  },
+  {
+   "name": "vanguard_walk-strike_east_0",
+   "atlas": 3,
+   "rect": [
+    848,
+    623,
+    162,
+    131
+   ],
+   "pivot": [
+    0.432099,
+    0.076336
+   ],
+   "crop": [
+    40,
+    84,
+    202,
+    215
+   ],
+   "forge": [
+    0.56174,
+    0.70858
+   ],
+   "heat": 0.0,
+   "source": "east/walk-strike_0.png"
+  },
+  {
+   "name": "vanguard_walk-strike_east_1",
+   "atlas": 3,
+   "rect": [
+    808,
+    490,
+    167,
+    131
+   ],
+   "pivot": [
+    0.449102,
+    0.076336
+   ],
+   "crop": [
+    35,
+    84,
+    202,
+    215
+   ],
+   "forge": [
+    0.56174,
+    0.70858
+   ],
+   "heat": 0.0,
+   "source": "east/walk-strike_1.png"
+  },
+  {
+   "name": "vanguard_walk-strike_east_2",
+   "atlas": 2,
+   "rect": [
+    854,
+    413,
+    163,
+    134
+   ],
+   "pivot": [
+    0.435583,
+    0.074627
+   ],
+   "crop": [
+    39,
+    81,
+    202,
+    215
+   ],
+   "forge": [
+    0.56174,
+    0.70858
+   ],
+   "heat": 0.0,
+   "source": "east/walk-strike_2.png"
+  },
+  {
+   "name": "vanguard_walk-strike_east_3",
+   "atlas": 2,
+   "rect": [
+    543,
+    137,
+    158,
+    135
+   ],
+   "pivot": [
+    0.417722,
+    0.081481
+   ],
+   "crop": [
+    44,
+    81,
+    202,
+    216
+   ],
+   "forge": [
+    0.56174,
+    0.70858
+   ],
+   "heat": 0.0,
+   "source": "east/walk-strike_3.png"
+  },
+  {
+   "name": "vanguard_walk-strike_east_4",
+   "atlas": 0,
+   "rect": [
+    698,
+    184,
+    164,
+    132
+   ],
+   "pivot": [
+    0.439024,
+    0.075758
+   ],
+   "crop": [
+    38,
+    83,
+    202,
+    215
+   ],
+   "forge": [
+    0.56174,
+    0.70858
+   ],
+   "heat": 0.0,
+   "source": "east/walk-strike_4.png"
+  },
+  {
+   "name": "vanguard_walk-strike_east_5",
+   "atlas": 5,
+   "rect": [
+    0,
+    370,
+    167,
+    125
+   ],
+   "pivot": [
+    0.449102,
+    0.032
+   ],
+   "crop": [
+    35,
+    84,
+    202,
+    209
+   ],
+   "forge": [
+    0.56174,
+    0.70858
+   ],
+   "heat": 0.0,
+   "source": "east/walk-strike_5.png"
+  },
+  {
+   "name": "vanguard_walk-strike_east_6",
+   "atlas": 5,
+   "rect": [
+    167,
+    370,
+    162,
+    125
+   ],
+   "pivot": [
+    0.432099,
+    0.016
+   ],
+   "crop": [
+    40,
+    82,
+    202,
+    207
+   ],
+   "forge": [
+    0.56174,
+    0.70858
+   ],
+   "heat": 0.0,
+   "source": "east/walk-strike_6.png"
+  },
+  {
+   "name": "vanguard_walk-strike_east_7",
+   "atlas": 4,
+   "rect": [
+    710,
+    765,
+    156,
+    128
+   ],
+   "pivot": [
+    0.410256,
+    0.039062
+   ],
+   "crop": [
+    46,
+    82,
+    202,
+    210
+   ],
+   "forge": [
+    0.56174,
+    0.70858
+   ],
+   "heat": 0.0,
+   "source": "east/walk-strike_7.png"
+  },
+  {
+   "name": "vanguard_walk-strike_north-east_0",
+   "atlas": 4,
+   "rect": [
+    611,
+    118,
+    147,
+    128
+   ],
+   "pivot": [
+    0.380952,
+    0.03125
+   ],
+   "crop": [
+    54,
+    81,
+    201,
+    209
+   ],
+   "forge": [
+    0.27468,
+    0.88181
+   ],
+   "heat": 0.0,
+   "source": "north-east/walk-strike_0.png"
+  },
+  {
+   "name": "vanguard_walk-strike_north-east_1",
+   "atlas": 3,
+   "rect": [
+    768,
+    225,
+    151,
+    131
+   ],
+   "pivot": [
+    0.397351,
+    0.053435
+   ],
+   "crop": [
+    50,
+    81,
+    201,
+    212
+   ],
+   "forge": [
+    0.27468,
+    0.88181
+   ],
+   "heat": 0.0,
+   "source": "north-east/walk-strike_1.png"
+  },
+  {
+   "name": "vanguard_walk-strike_north-east_2",
+   "atlas": 0,
+   "rect": [
+    793,
+    45,
+    152,
+    139
+   ],
+   "pivot": [
+    0.401316,
+    0.086331
+   ],
+   "crop": [
+    49,
+    78,
+    201,
+    217
+   ],
+   "forge": [
+    0.27468,
+    0.88181
+   ],
+   "heat": 0.0,
+   "source": "north-east/walk-strike_2.png"
+  },
+  {
+   "name": "vanguard_walk-strike_north-east_3",
+   "atlas": 0,
+   "rect": [
+    673,
+    884,
+    151,
+    140
+   ],
+   "pivot": [
+    0.397351,
+    0.092857
+   ],
+   "crop": [
+    50,
+    78,
+    201,
+    218
+   ],
+   "forge": [
+    0.27468,
+    0.88181
+   ],
+   "heat": 0.0,
+   "source": "north-east/walk-strike_3.png"
+  },
+  {
+   "name": "vanguard_walk-strike_north-east_4",
+   "atlas": 1,
+   "rect": [
+    862,
+    292,
+    153,
+    136
+   ],
+   "pivot": [
+    0.405229,
+    0.080882
+   ],
+   "crop": [
+    48,
+    80,
+    201,
+    216
+   ],
+   "forge": [
+    0.27468,
+    0.88181
+   ],
+   "heat": 0.0,
+   "source": "north-east/walk-strike_4.png"
+  },
+  {
+   "name": "vanguard_walk-strike_north-east_5",
+   "atlas": 5,
+   "rect": [
+    1045,
+    496,
+    152,
+    126
+   ],
+   "pivot": [
+    0.401316,
+    0.015873
+   ],
+   "crop": [
+    49,
+    81,
+    201,
+    207
+   ],
+   "forge": [
+    0.27468,
+    0.88181
+   ],
+   "heat": 0.0,
+   "source": "north-east/walk-strike_5.png"
+  },
+  {
+   "name": "vanguard_walk-strike_north-east_6",
+   "atlas": 4,
+   "rect": [
+    0,
+    893,
+    147,
+    131
+   ],
+   "pivot": [
+    0.380952,
+    0.038168
+   ],
+   "crop": [
+    54,
+    79,
+    201,
+    210
+   ],
+   "forge": [
+    0.27468,
+    0.88181
+   ],
+   "heat": 0.0,
+   "source": "north-east/walk-strike_6.png"
+  },
+  {
+   "name": "vanguard_walk-strike_north-east_7",
+   "atlas": 3,
+   "rect": [
+    195,
+    353,
+    144,
+    133
+   ],
+   "pivot": [
+    0.368056,
+    0.052632
+   ],
+   "crop": [
+    57,
+    79,
+    201,
+    212
+   ],
+   "forge": [
+    0.27468,
+    0.88181
+   ],
+   "heat": 0.0,
+   "source": "north-east/walk-strike_7.png"
+  },
+  {
+   "name": "vanguard_walk-strike_north_0",
+   "atlas": 3,
+   "rect": [
+    339,
+    354,
+    111,
+    133
+   ],
+   "pivot": [
+    0.432432,
+    0.06015
+   ],
+   "crop": [
+    62,
+    80,
+    173,
+    213
+   ],
+   "forge": [
+    -0.17329,
+    0.9028
+   ],
+   "heat": 0.0,
+   "source": "north/walk-strike_0.png"
+  },
+  {
+   "name": "vanguard_walk-strike_north_1",
+   "atlas": 5,
+   "rect": [
+    523,
+    621,
+    109,
+    127
+   ],
+   "pivot": [
+    0.440367,
+    0.015748
+   ],
+   "crop": [
+    62,
+    80,
+    171,
+    207
+   ],
+   "forge": [
+    -0.17329,
+    0.9028
+   ],
+   "heat": 0.0,
+   "source": "north/walk-strike_1.png"
+  },
+  {
+   "name": "vanguard_walk-strike_north_2",
+   "atlas": 2,
+   "rect": [
+    748,
+    412,
+    106,
+    135
+   ],
+   "pivot": [
+    0.45283,
+    0.059259
+   ],
+   "crop": [
+    62,
+    78,
+    168,
+    213
+   ],
+   "forge": [
+    -0.17329,
+    0.9028
+   ],
+   "heat": 0.0,
+   "source": "north/walk-strike_2.png"
+  },
+  {
+   "name": "vanguard_walk-strike_north_3",
+   "atlas": 1,
+   "rect": [
+    0,
+    142,
+    104,
+    139
+   ],
+   "pivot": [
+    0.461538,
+    0.086331
+   ],
+   "crop": [
+    62,
+    78,
+    166,
+    217
+   ],
+   "forge": [
+    -0.17329,
+    0.9028
+   ],
+   "heat": 0.0,
+   "source": "north/walk-strike_3.png"
+  },
+  {
+   "name": "vanguard_walk-strike_north_4",
+   "atlas": 3,
+   "rect": [
+    604,
+    753,
+    106,
+    133
+   ],
+   "pivot": [
+    0.45283,
+    0.06015
+   ],
+   "crop": [
+    62,
+    80,
+    168,
+    213
+   ],
+   "forge": [
+    -0.17329,
+    0.9028
+   ],
+   "heat": 0.0,
+   "source": "north/walk-strike_4.png"
+  },
+  {
+   "name": "vanguard_walk-strike_north_5",
+   "atlas": 5,
+   "rect": [
+    632,
+    621,
+    109,
+    127
+   ],
+   "pivot": [
+    0.440367,
+    0.015748
+   ],
+   "crop": [
+    62,
+    80,
+    171,
+    207
+   ],
+   "forge": [
+    -0.17329,
+    0.9028
+   ],
+   "heat": 0.0,
+   "source": "north/walk-strike_5.png"
+  },
+  {
+   "name": "vanguard_walk-strike_north_6",
+   "atlas": 2,
+   "rect": [
+    637,
+    277,
+    111,
+    135
+   ],
+   "pivot": [
+    0.432432,
+    0.059259
+   ],
+   "crop": [
+    62,
+    78,
+    173,
+    213
+   ],
+   "forge": [
+    -0.17329,
+    0.9028
+   ],
+   "heat": 0.0,
+   "source": "north/walk-strike_6.png"
+  },
+  {
+   "name": "vanguard_walk-strike_north_7",
+   "atlas": 1,
+   "rect": [
+    0,
+    420,
+    111,
+    139
+   ],
+   "pivot": [
+    0.432432,
+    0.086331
+   ],
+   "crop": [
+    62,
+    78,
+    173,
+    217
+   ],
+   "forge": [
+    -0.17329,
+    0.9028
+   ],
+   "heat": 0.0,
+   "source": "north/walk-strike_7.png"
+  },
+  {
+   "name": "vanguard_walk-strike_north-west_0",
+   "atlas": 3,
+   "rect": [
+    105,
+    619,
+    154,
+    133
+   ],
+   "pivot": [
+    0.532468,
+    0.082707
+   ],
+   "crop": [
+    28,
+    83,
+    182,
+    216
+   ],
+   "forge": [
+    -0.51975,
+    0.75927
+   ],
+   "heat": 0.0,
+   "source": "north-west/walk-strike_0.png"
+  },
+  {
+   "name": "vanguard_walk-strike_north-west_1",
+   "atlas": 5,
+   "rect": [
+    202,
+    246,
+    155,
+    124
+   ],
+   "pivot": [
+    0.529032,
+    0.016129
+   ],
+   "crop": [
+    28,
+    83,
+    183,
+    207
+   ],
+   "forge": [
+    -0.51975,
+    0.75927
+   ],
+   "heat": 0.0,
+   "source": "north-west/walk-strike_1.png"
+  },
+  {
+   "name": "vanguard_walk-strike_north-west_2",
+   "atlas": 4,
+   "rect": [
+    854,
+    637,
+    152,
+    128
+   ],
+   "pivot": [
+    0.539474,
+    0.039062
+   ],
+   "crop": [
+    28,
+    82,
+    180,
+    210
+   ],
+   "forge": [
+    -0.51975,
+    0.75927
+   ],
+   "heat": 0.0,
+   "source": "north-west/walk-strike_2.png"
+  },
+  {
+   "name": "vanguard_walk-strike_north-west_3",
+   "atlas": 4,
+   "rect": [
+    357,
+    504,
+    150,
+    129
+   ],
+   "pivot": [
+    0.546667,
+    0.046512
+   ],
+   "crop": [
+    28,
+    82,
+    178,
+    211
+   ],
+   "forge": [
+    -0.51975,
+    0.75927
+   ],
+   "heat": 0.0,
+   "source": "north-west/walk-strike_3.png"
+  },
+  {
+   "name": "vanguard_walk-strike_north-west_4",
+   "atlas": 5,
+   "rect": [
+    643,
+    370,
+    153,
+    125
+   ],
+   "pivot": [
+    0.535948,
+    0.032
+   ],
+   "crop": [
+    28,
+    84,
+    181,
+    209
+   ],
+   "forge": [
+    -0.51975,
+    0.75927
+   ],
+   "heat": 0.0,
+   "source": "north-west/walk-strike_4.png"
+  },
+  {
+   "name": "vanguard_walk-strike_north-west_5",
+   "atlas": 4,
+   "rect": [
+    706,
+    508,
+    156,
+    128
+   ],
+   "pivot": [
+    0.525641,
+    0.054688
+   ],
+   "crop": [
+    28,
+    84,
+    184,
+    212
+   ],
+   "forge": [
+    -0.51975,
+    0.75927
+   ],
+   "heat": 0.0,
+   "source": "north-west/walk-strike_5.png"
+  },
+  {
+   "name": "vanguard_walk-strike_north-west_6",
+   "atlas": 2,
+   "rect": [
+    544,
+    2,
+    155,
+    135
+   ],
+   "pivot": [
+    0.529032,
+    0.081481
+   ],
+   "crop": [
+    28,
+    81,
+    183,
+    216
+   ],
+   "forge": [
+    -0.51975,
+    0.75927
+   ],
+   "heat": 0.0,
+   "source": "north-west/walk-strike_6.png"
+  },
+  {
+   "name": "vanguard_walk-strike_north-west_7",
+   "atlas": 1,
+   "rect": [
+    203,
+    282,
+    152,
+    138
+   ],
+   "pivot": [
+    0.539474,
+    0.101449
+   ],
+   "crop": [
+    28,
+    81,
+    180,
+    219
+   ],
+   "forge": [
+    -0.51975,
+    0.75927
+   ],
+   "heat": 0.0,
+   "source": "north-west/walk-strike_7.png"
+  },
+  {
+   "name": "vanguard_walk-strike_west_0",
+   "atlas": 4,
+   "rect": [
+    316,
+    242,
+    162,
+    129
+   ],
+   "pivot": [
+    0.567901,
+    0.077519
+   ],
+   "crop": [
+    18,
+    86,
+    180,
+    215
+   ],
+   "forge": [
+    -0.56174,
+    0.53529
+   ],
+   "heat": 0.0,
+   "source": "west/walk-strike_0.png"
+  },
+  {
+   "name": "vanguard_walk-strike_west_1",
+   "atlas": 5,
+   "rect": [
+    745,
+    124,
+    167,
+    122
+   ],
+   "pivot": [
+    0.550898,
+    0.032787
+   ],
+   "crop": [
+    18,
+    87,
+    185,
+    209
+   ],
+   "forge": [
+    -0.56174,
+    0.53529
+   ],
+   "heat": 0.0,
+   "source": "west/walk-strike_1.png"
+  },
+  {
+   "name": "vanguard_walk-strike_west_2",
+   "atlas": 5,
+   "rect": [
+    912,
+    124,
+    163,
+    122
+   ],
+   "pivot": [
+    0.564417,
+    0.016393
+   ],
+   "crop": [
+    18,
+    85,
+    181,
+    207
+   ],
+   "forge": [
+    -0.56174,
+    0.53529
+   ],
+   "heat": 0.0,
+   "source": "west/walk-strike_2.png"
+  },
+  {
+   "name": "vanguard_walk-strike_west_3",
+   "atlas": 5,
+   "rect": [
+    329,
+    370,
+    158,
+    125
+   ],
+   "pivot": [
+    0.582278,
+    0.04
+   ],
+   "crop": [
+    18,
+    85,
+    176,
+    210
+   ],
+   "forge": [
+    -0.56174,
+    0.53529
+   ],
+   "heat": 0.0,
+   "source": "west/walk-strike_3.png"
+  },
+  {
+   "name": "vanguard_walk-strike_west_4",
+   "atlas": 5,
+   "rect": [
+    0,
+    621,
+    164,
+    127
+   ],
+   "pivot": [
+    0.560976,
+    0.070866
+   ],
+   "crop": [
+    18,
+    87,
+    182,
+    214
+   ],
+   "forge": [
+    -0.56174,
+    0.53529
+   ],
+   "heat": 0.0,
+   "source": "west/walk-strike_4.png"
+  },
+  {
+   "name": "vanguard_walk-strike_west_5",
+   "atlas": 4,
+   "rect": [
+    687,
+    636,
+    167,
+    128
+   ],
+   "pivot": [
+    0.550898,
+    0.078125
+   ],
+   "crop": [
+    18,
+    87,
+    185,
+    215
+   ],
+   "forge": [
+    -0.56174,
+    0.53529
+   ],
+   "heat": 0.0,
+   "source": "west/walk-strike_5.png"
+  },
+  {
+   "name": "vanguard_walk-strike_west_6",
+   "atlas": 3,
+   "rect": [
+    862,
+    755,
+    162,
+    131
+   ],
+   "pivot": [
+    0.567901,
+    0.076336
+   ],
+   "crop": [
+    18,
+    84,
+    180,
+    215
+   ],
+   "forge": [
+    -0.56174,
+    0.53529
+   ],
+   "heat": 0.0,
+   "source": "west/walk-strike_6.png"
+  },
+  {
+   "name": "vanguard_walk-strike_west_7",
+   "atlas": 3,
+   "rect": [
+    693,
+    621,
+    155,
+    132
+   ],
+   "pivot": [
+    0.593548,
+    0.083333
+   ],
+   "crop": [
+    18,
+    84,
+    173,
+    216
+   ],
+   "forge": [
+    -0.56174,
+    0.53529
+   ],
+   "heat": 0.0,
+   "source": "west/walk-strike_7.png"
+  },
+  {
+   "name": "vanguard_walk-strike_south-west_0",
+   "atlas": 4,
+   "rect": [
+    474,
+    375,
+    147,
+    129
+   ],
+   "pivot": [
+    0.619048,
+    0.085271
+   ],
+   "crop": [
+    19,
+    87,
+    166,
+    216
+   ],
+   "forge": [
+    -0.27468,
+    0.36206
+   ],
+   "heat": 0.0,
+   "source": "south-west/walk-strike_0.png"
+  },
+  {
+   "name": "vanguard_walk-strike_south-west_1",
+   "atlas": 5,
+   "rect": [
+    357,
+    246,
+    150,
+    124
+   ],
+   "pivot": [
+    0.606667,
+    0.056452
+   ],
+   "crop": [
+    19,
+    88,
+    169,
+    212
+   ],
+   "forge": [
+    -0.27468,
+    0.36206
+   ],
+   "heat": 0.0,
+   "source": "south-west/walk-strike_1.png"
+  },
+  {
+   "name": "vanguard_walk-strike_south-west_2",
+   "atlas": 5,
+   "rect": [
+    796,
+    370,
+    152,
+    125
+   ],
+   "pivot": [
+    0.598684,
+    0.048
+   ],
+   "crop": [
+    19,
+    86,
+    171,
+    211
+   ],
+   "forge": [
+    -0.27468,
+    0.36206
+   ],
+   "heat": 0.0,
+   "source": "south-west/walk-strike_2.png"
+  },
+  {
+   "name": "vanguard_walk-strike_south-west_3",
+   "atlas": 3,
+   "rect": [
+    856,
+    359,
+    151,
+    131
+   ],
+   "pivot": [
+    0.602649,
+    0.091603
+   ],
+   "crop": [
+    19,
+    86,
+    170,
+    217
+   ],
+   "forge": [
+    -0.27468,
+    0.36206
+   ],
+   "heat": 0.0,
+   "source": "south-west/walk-strike_3.png"
+  },
+  {
+   "name": "vanguard_walk-strike_south-west_4",
+   "atlas": 2,
+   "rect": [
+    853,
+    8,
+    152,
+    134
+   ],
+   "pivot": [
+    0.598684,
+    0.126866
+   ],
+   "crop": [
+    19,
+    88,
+    171,
+    222
+   ],
+   "forge": [
+    -0.27468,
+    0.36206
+   ],
+   "heat": 0.0,
+   "source": "south-west/walk-strike_4.png"
+  },
+  {
+   "name": "vanguard_walk-strike_south-west_5",
+   "atlas": 3,
+   "rect": [
+    779,
+    94,
+    151,
+    131
+   ],
+   "pivot": [
+    0.602649,
+    0.10687
+   ],
+   "crop": [
+    19,
+    88,
+    170,
+    219
+   ],
+   "forge": [
+    -0.27468,
+    0.36206
+   ],
+   "heat": 0.0,
+   "source": "south-west/walk-strike_5.png"
+  },
+  {
+   "name": "vanguard_walk-strike_south-west_6",
+   "atlas": 4,
+   "rect": [
+    430,
+    634,
+    147,
+    129
+   ],
+   "pivot": [
+    0.619048,
+    0.069767
+   ],
+   "crop": [
+    19,
+    85,
+    166,
+    214
+   ],
+   "forge": [
+    -0.27468,
+    0.36206
+   ],
+   "heat": 0.0,
+   "source": "south-west/walk-strike_6.png"
+  },
+  {
+   "name": "vanguard_walk-strike_south-west_7",
+   "atlas": 4,
+   "rect": [
+    874,
+    125,
+    144,
+    127
+   ],
+   "pivot": [
+    0.631944,
+    0.055118
+   ],
+   "crop": [
+    19,
+    85,
+    163,
+    212
+   ],
+   "forge": [
+    -0.27468,
+    0.36206
+   ],
+   "heat": 0.0,
+   "source": "south-west/walk-strike_7.png"
+  },
+  {
+   "name": "vanguard_strike_south_0",
+   "atlas": 1,
+   "rect": [
+    389,
+    7,
+    135,
+    137
+   ],
+   "pivot": [
+    0.644444,
+    0.10219
+   ],
+   "crop": [
+    23,
+    82,
+    158,
+    219
+   ],
+   "forge": [
+    -0.3154,
+    0.42321
+   ],
+   "heat": 0.0,
+   "source": "south/strike_0.png"
+  },
+  {
+   "name": "vanguard_strike_south_1",
+   "atlas": 2,
+   "rect": [
+    338,
+    0,
+    104,
+    136
+   ],
+   "pivot": [
+    0.538462,
+    0.102941
+   ],
+   "crop": [
+    54,
+    83,
+    158,
+    219
+   ],
+   "forge": [
+    0.17329,
+    0.34106
+   ],
+   "heat": 0.0,
+   "source": "south/strike_1.png"
+  },
+  {
+   "name": "vanguard_strike_south_2",
+   "atlas": 2,
+   "rect": [
+    0,
+    544,
+    123,
+    136
+   ],
+   "pivot": [
+    0.487805,
+    0.102941
+   ],
+   "crop": [
+    50,
+    83,
+    173,
+    219
+   ],
+   "forge": [
+    0.35885,
+    0.35404
+   ],
+   "heat": 0.0,
+   "source": "south/strike_2.png"
+  },
+  {
+   "name": "vanguard_strike_south_3",
+   "atlas": 1,
+   "rect": [
+    765,
+    291,
+    97,
+    137
+   ],
+   "pivot": [
+    0.505155,
+    0.10219
+   ],
+   "crop": [
+    61,
+    82,
+    158,
+    219
+   ],
+   "forge": [
+    0.01385,
+    0.18398
+   ],
+   "heat": 0.0,
+   "source": "south/strike_3.png"
+  },
+  {
+   "name": "vanguard_strike_south_4",
+   "atlas": 1,
+   "rect": [
+    213,
+    838,
+    119,
+    138
+   ],
+   "pivot": [
+    0.596639,
+    0.101449
+   ],
+   "crop": [
+    39,
+    81,
+    158,
+    219
+   ],
+   "forge": [
+    -0.47802,
+    0.27888
+   ],
+   "heat": 0.0,
+   "source": "south/strike_4.png"
+  },
+  {
+   "name": "vanguard_strike_south-east_0",
+   "atlas": 0,
+   "rect": [
+    802,
+    316,
+    120,
+    140
+   ],
+   "pivot": [
+    0.675,
+    0.121429
+   ],
+   "crop": [
+    29,
+    82,
+    149,
+    222
+   ],
+   "forge": [
+    0.1634,
+    0.39173
+   ],
+   "heat": 0.0,
+   "source": "south-east/strike_0.png"
+  },
+  {
+   "name": "vanguard_strike_south-east_1",
+   "atlas": 0,
+   "rect": [
+    824,
+    884,
+    146,
+    140
+   ],
+   "pivot": [
+    0.438356,
+    0.121429
+   ],
+   "crop": [
+    46,
+    82,
+    192,
+    222
+   ],
+   "forge": [
+    0.51975,
+    0.4846
+   ],
+   "heat": 0.0,
+   "source": "south-east/strike_1.png"
+  },
+  {
+   "name": "vanguard_strike_south-east_2",
+   "atlas": 0,
+   "rect": [
+    694,
+    744,
+    147,
+    140
+   ],
+   "pivot": [
+    0.428571,
+    0.121429
+   ],
+   "crop": [
+    47,
+    82,
+    194,
+    222
+   ],
+   "forge": [
+    0.51993,
+    0.53604
+   ],
+   "heat": 0.0,
+   "source": "south-east/strike_2.png"
+  },
+  {
+   "name": "vanguard_strike_south-east_3",
+   "atlas": 0,
+   "rect": [
+    804,
+    464,
+    118,
+    140
+   ],
+   "pivot": [
+    0.516949,
+    0.121429
+   ],
+   "crop": [
+    49,
+    82,
+    167,
+    222
+   ],
+   "forge": [
+    0.33355,
+    0.25593
+   ],
+   "heat": 0.0,
+   "source": "south-east/strike_3.png"
+  },
+  {
+   "name": "vanguard_strike_south-east_4",
+   "atlas": 0,
+   "rect": [
+    600,
+    741,
+    94,
+    141
+   ],
+   "pivot": [
+    0.574468,
+    0.120567
+   ],
+   "crop": [
+    56,
+    81,
+    150,
+    222
+   ],
+   "forge": [
+    -0.23002,
+    0.13224
+   ],
+   "heat": 0.0,
+   "source": "south-east/strike_4.png"
+  },
+  {
+   "name": "vanguard_strike_east_0",
+   "atlas": 1,
+   "rect": [
+    440,
+    425,
+    142,
+    137
+   ],
+   "pivot": [
+    0.422535,
+    0.094891
+   ],
+   "crop": [
+    50,
+    81,
+    192,
+    218
+   ],
+   "forge": [
+    0.54648,
+    0.53875
+   ],
+   "heat": 0.0,
+   "source": "east/strike_0.png"
+  },
+  {
+   "name": "vanguard_strike_east_1",
+   "atlas": 1,
+   "rect": [
+    199,
+    143,
+    153,
+    138
+   ],
+   "pivot": [
+    0.398693,
+    0.094203
+   ],
+   "crop": [
+    49,
+    80,
+    202,
+    218
+   ],
+   "forge": [
+    0.56174,
+    0.70858
+   ],
+   "heat": 0.0,
+   "source": "east/strike_1.png"
+  },
+  {
+   "name": "vanguard_strike_east_2",
+   "atlas": 1,
+   "rect": [
+    209,
+    560,
+    127,
+    138
+   ],
+   "pivot": [
+    0.464567,
+    0.094203
+   ],
+   "crop": [
+    51,
+    80,
+    178,
+    218
+   ],
+   "forge": [
+    0.37644,
+    0.72169
+   ],
+   "heat": 0.0,
+   "source": "east/strike_2.png"
+  },
+  {
+   "name": "vanguard_strike_east_3",
+   "atlas": 1,
+   "rect": [
+    786,
+    17,
+    128,
+    137
+   ],
+   "pivot": [
+    0.453125,
+    0.094891
+   ],
+   "crop": [
+    52,
+    81,
+    180,
+    218
+   ],
+   "forge": [
+    0.45786,
+    0.41983
+   ],
+   "heat": 0.0,
+   "source": "east/strike_3.png"
+  },
+  {
+   "name": "vanguard_strike_east_4",
+   "atlas": 0,
+   "rect": [
+    515,
+    737,
+    85,
+    143
+   ],
+   "pivot": [
+    0.658824,
+    0.132867
+   ],
+   "crop": [
+    54,
+    81,
+    139,
+    224
+   ],
+   "forge": [
+    0.15272,
+    0.11623
+   ],
+   "heat": 0.0,
+   "source": "east/strike_4.png"
+  },
+  {
+   "name": "vanguard_strike_north-east_0",
+   "atlas": 3,
+   "rect": [
+    189,
+    486,
+    150,
+    133
+   ],
+   "pivot": [
+    0.386667,
+    0.052632
+   ],
+   "crop": [
+    52,
+    79,
+    202,
+    212
+   ],
+   "forge": [
+    0.60944,
+    0.77815
+   ],
+   "heat": 0.0,
+   "source": "north-east/strike_0.png"
+  },
+  {
+   "name": "vanguard_strike_north-east_1",
+   "atlas": 2,
+   "rect": [
+    877,
+    548,
+    139,
+    134
+   ],
+   "pivot": [
+    0.345324,
+    0.052239
+   ],
+   "crop": [
+    62,
+    78,
+    201,
+    212
+   ],
+   "forge": [
+    0.27468,
+    0.88181
+   ],
+   "heat": 0.0,
+   "source": "north-east/strike_1.png"
+  },
+  {
+   "name": "vanguard_strike_north-east_2",
+   "atlas": 0,
+   "rect": [
+    943,
+    750,
+    77,
+    134
+   ],
+   "pivot": [
+    0.545455,
+    0.052239
+   ],
+   "crop": [
+    68,
+    78,
+    145,
+    212
+   ],
+   "forge": [
+    0.01244,
+    0.80223
+   ],
+   "heat": 0.0,
+   "source": "north-east/strike_2.png"
+  },
+  {
+   "name": "vanguard_strike_north-east_3",
+   "atlas": 3,
+   "rect": [
+    561,
+    354,
+    97,
+    133
+   ],
+   "pivot": [
+    0.546392,
+    0.052632
+   ],
+   "crop": [
+    57,
+    79,
+    154,
+    212
+   ],
+   "forge": [
+    0.31396,
+    0.57968
+   ],
+   "heat": 0.0,
+   "source": "north-east/strike_3.png"
+  },
+  {
+   "name": "vanguard_strike_north-east_4",
+   "atlas": 3,
+   "rect": [
+    555,
+    89,
+    121,
+    132
+   ],
+   "pivot": [
+    0.46281,
+    0.05303
+   ],
+   "crop": [
+    54,
+    80,
+    175,
+    212
+   ],
+   "forge": [
+    0.446,
+    0.24023
+   ],
+   "heat": 0.0,
+   "source": "north-east/strike_4.png"
+  },
+  {
+   "name": "vanguard_strike_north_0",
+   "atlas": 1,
+   "rect": [
+    824,
+    703,
+    135,
+    136
+   ],
+   "pivot": [
+    0.355556,
+    0.066176
+   ],
+   "crop": [
+    62,
+    78,
+    197,
+    214
+   ],
+   "forge": [
+    0.3154,
+    0.96969
+   ],
+   "heat": 0.0,
+   "source": "north/strike_0.png"
+  },
+  {
+   "name": "vanguard_strike_north_1",
+   "atlas": 2,
+   "rect": [
+    340,
+    272,
+    105,
+    136
+   ],
+   "pivot": [
+    0.457143,
+    0.066176
+   ],
+   "crop": [
+    62,
+    78,
+    167,
+    214
+   ],
+   "forge": [
+    -0.17329,
+    0.9028
+   ],
+   "heat": 0.0,
+   "source": "north/strike_1.png"
+  },
+  {
+   "name": "vanguard_strike_north_2",
+   "atlas": 1,
+   "rect": [
+    898,
+    430,
+    124,
+    136
+   ],
+   "pivot": [
+    0.508065,
+    0.066176
+   ],
+   "crop": [
+    47,
+    78,
+    171,
+    214
+   ],
+   "forge": [
+    -0.35885,
+    0.73048
+   ],
+   "heat": 0.0,
+   "source": "north/strike_2.png"
+  },
+  {
+   "name": "vanguard_strike_north_3",
+   "atlas": 2,
+   "rect": [
+    351,
+    680,
+    97,
+    136
+   ],
+   "pivot": [
+    0.494845,
+    0.066176
+   ],
+   "crop": [
+    62,
+    78,
+    159,
+    214
+   ],
+   "forge": [
+    -0.01385,
+    0.64184
+   ],
+   "heat": 0.0,
+   "source": "north/strike_3.png"
+  },
+  {
+   "name": "vanguard_strike_north_4",
+   "atlas": 2,
+   "rect": [
+    543,
+    547,
+    119,
+    135
+   ],
+   "pivot": [
+    0.403361,
+    0.066667
+   ],
+   "crop": [
+    62,
+    79,
+    181,
+    214
+   ],
+   "forge": [
+    0.47802,
+    0.4316
+   ],
+   "heat": 0.0,
+   "source": "north/strike_4.png"
+  },
+  {
+   "name": "vanguard_strike_north-west_0",
+   "atlas": 1,
+   "rect": [
+    210,
+    699,
+    120,
+    138
+   ],
+   "pivot": [
+    0.325,
+    0.086957
+   ],
+   "crop": [
+    71,
+    79,
+    191,
+    217
+   ],
+   "forge": [
+    -0.1634,
+    1.00117
+   ],
+   "heat": 0.0,
+   "source": "north-west/strike_0.png"
+  },
+  {
+   "name": "vanguard_strike_north-west_1",
+   "atlas": 1,
+   "rect": [
+    355,
+    287,
+    147,
+    137
+   ],
+   "pivot": [
+    0.557823,
+    0.087591
+   ],
+   "crop": [
+    28,
+    80,
+    175,
+    217
+   ],
+   "forge": [
+    -0.51975,
+    0.75927
+   ],
+   "heat": 0.0,
+   "source": "north-west/strike_1.png"
+  },
+  {
+   "name": "vanguard_strike_north-west_2",
+   "atlas": 1,
+   "rect": [
+    816,
+    566,
+    148,
+    136
+   ],
+   "pivot": [
+    0.567568,
+    0.088235
+   ],
+   "crop": [
+    26,
+    81,
+    174,
+    217
+   ],
+   "forge": [
+    -0.51993,
+    0.54848
+   ],
+   "heat": 0.0,
+   "source": "north-west/strike_2.png"
+  },
+  {
+   "name": "vanguard_strike_north-west_3",
+   "atlas": 1,
+   "rect": [
+    706,
+    702,
+    118,
+    137
+   ],
+   "pivot": [
+    0.483051,
+    0.087591
+   ],
+   "crop": [
+    53,
+    80,
+    171,
+    217
+   ],
+   "forge": [
+    -0.33355,
+    0.56989
+   ],
+   "heat": 0.0,
+   "source": "north-west/strike_3.png"
+  },
+  {
+   "name": "vanguard_strike_north-west_4",
+   "atlas": 1,
+   "rect": [
+    914,
+    17,
+    94,
+    137
+   ],
+   "pivot": [
+    0.425532,
+    0.087591
+   ],
+   "crop": [
+    70,
+    80,
+    164,
+    217
+   ],
+   "forge": [
+    0.23002,
+    0.57824
+   ],
+   "heat": 0.0,
+   "source": "north-west/strike_4.png"
+  },
+  {
+   "name": "vanguard_strike_west_0",
+   "atlas": 0,
+   "rect": [
+    325,
+    138,
+    142,
+    145
+   ],
+   "pivot": [
+    0.577465,
+    0.089655
+   ],
+   "crop": [
+    28,
+    73,
+    170,
+    218
+   ],
+   "forge": [
+    -0.54648,
+    0.85415
+   ],
+   "heat": 0.0,
+   "source": "west/strike_0.png"
+  },
+  {
+   "name": "vanguard_strike_west_1",
+   "atlas": 2,
+   "rect": [
+    448,
+    817,
+    153,
+    135
+   ],
+   "pivot": [
+    0.601307,
+    0.096296
+   ],
+   "crop": [
+    18,
+    83,
+    171,
+    218
+   ],
+   "forge": [
+    -0.56174,
+    0.53529
+   ],
+   "heat": 0.0,
+   "source": "west/strike_1.png"
+  },
+  {
+   "name": "vanguard_strike_west_2",
+   "atlas": 2,
+   "rect": [
+    448,
+    682,
+    128,
+    135
+   ],
+   "pivot": [
+    0.539062,
+    0.096296
+   ],
+   "crop": [
+    41,
+    83,
+    169,
+    218
+   ],
+   "forge": [
+    -0.37644,
+    0.36284
+   ],
+   "heat": 0.0,
+   "source": "west/strike_2.png"
+  },
+  {
+   "name": "vanguard_strike_west_3",
+   "atlas": 2,
+   "rect": [
+    0,
+    680,
+    128,
+    136
+   ],
+   "pivot": [
+    0.546875,
+    0.095588
+   ],
+   "crop": [
+    40,
+    82,
+    168,
+    218
+   ],
+   "forge": [
+    -0.45786,
+    0.40598
+   ],
+   "heat": 0.0,
+   "source": "west/strike_3.png"
+  },
+  {
+   "name": "vanguard_strike_west_4",
+   "atlas": 1,
+   "rect": [
+    813,
+    428,
+    85,
+    137
+   ],
+   "pivot": [
+    0.341176,
+    0.094891
+   ],
+   "crop": [
+    81,
+    81,
+    166,
+    218
+   ],
+   "forge": [
+    -0.15272,
+    0.59425
+   ],
+   "heat": 0.0,
+   "source": "west/strike_4.png"
+  },
+  {
+   "name": "vanguard_strike_south-west_0",
+   "atlas": 0,
+   "rect": [
+    422,
+    399,
+    150,
+    143
+   ],
+   "pivot": [
+    0.613333,
+    0.083916
+   ],
+   "crop": [
+    18,
+    74,
+    168,
+    217
+   ],
+   "forge": [
+    -0.60944,
+    0.61475
+   ],
+   "heat": 0.0,
+   "source": "south-west/strike_0.png"
+  },
+  {
+   "name": "vanguard_strike_south-west_1",
+   "atlas": 3,
+   "rect": [
+    0,
+    886,
+    139,
+    134
+   ],
+   "pivot": [
+    0.654676,
+    0.089552
+   ],
+   "crop": [
+    19,
+    83,
+    158,
+    217
+   ],
+   "forge": [
+    -0.27468,
+    0.36206
+   ],
+   "heat": 0.0,
+   "source": "south-west/strike_1.png"
+  },
+  {
+   "name": "vanguard_strike_south-west_2",
+   "atlas": 0,
+   "rect": [
+    945,
+    50,
+    77,
+    134
+   ],
+   "pivot": [
+    0.454545,
+    0.089552
+   ],
+   "crop": [
+    75,
+    83,
+    152,
+    217
+   ],
+   "forge": [
+    -0.01244,
+    0.2823
+   ],
+   "heat": 0.0,
+   "source": "south-west/strike_2.png"
+  },
+  {
+   "name": "vanguard_strike_south-west_3",
+   "atlas": 2,
+   "rect": [
+    846,
+    277,
+    97,
+    135
+   ],
+   "pivot": [
+    0.453608,
+    0.088889
+   ],
+   "crop": [
+    66,
+    82,
+    163,
+    217
+   ],
+   "forge": [
+    -0.31396,
+    0.24613
+   ],
+   "heat": 0.0,
+   "source": "south-west/strike_3.png"
+  },
+  {
+   "name": "vanguard_strike_south-west_4",
+   "atlas": 2,
+   "rect": [
+    0,
+    408,
+    121,
+    136
+   ],
+   "pivot": [
+    0.53719,
+    0.088235
+   ],
+   "crop": [
+    45,
+    81,
+    166,
+    217
+   ],
+   "forge": [
+    -0.446,
+    0.47025
+   ],
+   "heat": 0.0,
+   "source": "south-west/strike_4.png"
+  },
+  {
+   "name": "vanguard_cast_south_0",
+   "atlas": 0,
+   "rect": [
+    0,
+    628,
+    83,
+    197
+   ],
+   "pivot": [
+    0.421687,
+    0.071066
+   ],
+   "crop": [
+    75,
+    22,
+    158,
+    219
+   ],
+   "forge": [
+    -0.0787,
+    1.50017
+   ],
+   "heat": 0.45,
+   "source": "south/cast_0.png"
+  },
+  {
+   "name": "vanguard_cast_south_1",
+   "atlas": 0,
+   "rect": [
+    0,
+    825,
+    87,
+    199
+   ],
+   "pivot": [
+    0.436782,
+    0.075377
+   ],
+   "crop": [
+    72,
+    21,
+    159,
+    220
+   ],
+   "forge": [
+    -0.09141,
+    0.70392
+   ],
+   "heat": 0.85,
+   "source": "south/cast_1.png"
+  },
+  {
+   "name": "vanguard_cast_south_2",
+   "atlas": 1,
+   "rect": [
+    930,
+    156,
+    94,
+    136
+   ],
+   "pivot": [
+    0.468085,
+    0.213235
+   ],
+   "crop": [
+    66,
+    98,
+    160,
+    234
+   ],
+   "forge": [
+    -0.06224,
+    0.05481
+   ],
+   "heat": 1.45,
+   "source": "south/cast_2.png"
+  },
+  {
+   "name": "vanguard_cast_south_3",
+   "atlas": 1,
+   "rect": [
+    352,
+    144,
+    90,
+    138
+   ],
+   "pivot": [
+    0.455556,
+    0.166667
+   ],
+   "crop": [
+    69,
+    90,
+    159,
+    228
+   ],
+   "forge": [
+    -0.14045,
+    0.10006
+   ],
+   "heat": 0.75,
+   "source": "south/cast_3.png"
+  },
+  {
+   "name": "vanguard_cast_south_4",
+   "atlas": 0,
+   "rect": [
+    933,
+    604,
+    86,
+    140
+   ],
+   "pivot": [
+    0.44186,
+    0.128571
+   ],
+   "crop": [
+    72,
+    83,
+    158,
+    223
+   ],
+   "forge": [
+    -0.27654,
+    0.14226
+   ],
+   "heat": 0.25,
+   "source": "south/cast_4.png"
+  },
+  {
+   "name": "vanguard_cast_south-east_0",
+   "atlas": 0,
+   "rect": [
+    87,
+    832,
+    95,
+    192
+   ],
+   "pivot": [
+    0.568421,
+    0.083333
+   ],
+   "crop": [
+    56,
+    29,
+    151,
+    221
+   ],
+   "forge": [
+    -0.18481,
+    1.44559
+   ],
+   "heat": 0.45,
+   "source": "south-east/cast_0.png"
+  },
+  {
+   "name": "vanguard_cast_south-east_1",
+   "atlas": 0,
+   "rect": [
+    0,
+    433,
+    108,
+    195
+   ],
+   "pivot": [
+    0.509259,
+    0.092308
+   ],
+   "crop": [
+    55,
+    28,
+    163,
+    223
+   ],
+   "forge": [
+    0.32862,
+    0.75305
+   ],
+   "heat": 0.85,
+   "source": "south-east/cast_1.png"
+  },
+  {
+   "name": "vanguard_cast_south-east_2",
+   "atlas": 4,
+   "rect": [
+    393,
+    893,
+    119,
+    131
+   ],
+   "pivot": [
+    0.529412,
+    0.175573
+   ],
+   "crop": [
+    47,
+    97,
+    166,
+    228
+   ],
+   "forge": [
+    0.24235,
+    0.09211
+   ],
+   "heat": 1.45,
+   "source": "south-east/cast_2.png"
+  },
+  {
+   "name": "vanguard_cast_south-east_3",
+   "atlas": 2,
+   "rect": [
+    346,
+    544,
+    101,
+    136
+   ],
+   "pivot": [
+    0.594059,
+    0.154412
+   ],
+   "crop": [
+    50,
+    90,
+    151,
+    226
+   ],
+   "forge": [
+    0.1696,
+    0.1061
+   ],
+   "heat": 0.75,
+   "source": "south-east/cast_3.png"
+  },
+  {
+   "name": "vanguard_cast_south-east_4",
+   "atlas": 0,
+   "rect": [
+    329,
+    345,
+    93,
+    145
+   ],
+   "pivot": [
+    0.569892,
+    0.158621
+   ],
+   "crop": [
+    57,
+    83,
+    150,
+    228
+   ],
+   "forge": [
+    0.03382,
+    0.09199
+   ],
+   "heat": 0.25,
+   "source": "south-east/cast_4.png"
+  },
+  {
+   "name": "vanguard_cast_east_0",
+   "atlas": 0,
+   "rect": [
+    140,
+    92,
+    89,
+    175
+   ],
+   "pivot": [
+    0.662921,
+    0.068571
+   ],
+   "crop": [
+    51,
+    42,
+    140,
+    217
+   ],
+   "forge": [
+    -0.18267,
+    1.36948
+   ],
+   "heat": 0.45,
+   "source": "east/cast_0.png"
+  },
+  {
+   "name": "vanguard_cast_east_1",
+   "atlas": 0,
+   "rect": [
+    0,
+    63,
+    140,
+    180
+   ],
+   "pivot": [
+    0.392857,
+    0.072222
+   ],
+   "crop": [
+    55,
+    38,
+    195,
+    218
+   ],
+   "forge": [
+    0.55615,
+    0.93629
+   ],
+   "heat": 0.85,
+   "source": "east/cast_1.png"
+  },
+  {
+   "name": "vanguard_cast_east_2",
+   "atlas": 4,
+   "rect": [
+    874,
+    0,
+    150,
+    125
+   ],
+   "pivot": [
+    0.406667,
+    0.104
+   ],
+   "crop": [
+    49,
+    93,
+    199,
+    218
+   ],
+   "forge": [
+    0.40498,
+    0.22618
+   ],
+   "heat": 1.45,
+   "source": "east/cast_2.png"
+  },
+  {
+   "name": "vanguard_cast_east_3",
+   "atlas": 4,
+   "rect": [
+    512,
+    893,
+    118,
+    131
+   ],
+   "pivot": [
+    0.516949,
+    0.099237
+   ],
+   "crop": [
+    49,
+    87,
+    167,
+    218
+   ],
+   "forge": [
+    0.38031,
+    0.21999
+   ],
+   "heat": 0.75,
+   "source": "east/cast_3.png"
+  },
+  {
+   "name": "vanguard_cast_east_4",
+   "atlas": 2,
+   "rect": [
+    710,
+    817,
+    106,
+    135
+   ],
+   "pivot": [
+    0.518868,
+    0.096296
+   ],
+   "crop": [
+    55,
+    83,
+    161,
+    218
+   ],
+   "forge": [
+    0.32437,
+    0.16617
+   ],
+   "heat": 0.25,
+   "source": "east/cast_4.png"
+  },
+  {
+   "name": "vanguard_cast_north-east_0",
+   "atlas": 0,
+   "rect": [
+    295,
+    686,
+    91,
+    157
+   ],
+   "pivot": [
+    0.637363,
+    0.038217
+   ],
+   "crop": [
+    52,
+    54,
+    143,
+    211
+   ],
+   "forge": [
+    -0.07352,
+    1.31642
+   ],
+   "heat": 0.45,
+   "source": "north-east/cast_0.png"
+  },
+  {
+   "name": "vanguard_cast_north-east_1",
+   "atlas": 0,
+   "rect": [
+    109,
+    267,
+    125,
+    177
+   ],
+   "pivot": [
+    0.456,
+    0.039548
+   ],
+   "crop": [
+    53,
+    35,
+    178,
+    212
+   ],
+   "forge": [
+    0.45789,
+    1.14631
+   ],
+   "heat": 0.85,
+   "source": "north-east/cast_1.png"
+  },
+  {
+   "name": "vanguard_cast_north-east_2",
+   "atlas": 0,
+   "rect": [
+    368,
+    542,
+    136,
+    144
+   ],
+   "pivot": [
+    0.477941,
+    0.048611
+   ],
+   "crop": [
+    45,
+    68,
+    181,
+    212
+   ],
+   "forge": [
+    0.33037,
+    0.37847
+   ],
+   "heat": 1.45,
+   "source": "north-east/cast_2.png"
+  },
+  {
+   "name": "vanguard_cast_north-east_3",
+   "atlas": 4,
+   "rect": [
+    507,
+    505,
+    116,
+    129
+   ],
+   "pivot": [
+    0.543103,
+    0.054264
+   ],
+   "crop": [
+    47,
+    83,
+    163,
+    212
+   ],
+   "forge": [
+    0.36823,
+    0.37502
+   ],
+   "heat": 0.75,
+   "source": "north-east/cast_3.png"
+  },
+  {
+   "name": "vanguard_cast_north-east_4",
+   "atlas": 4,
+   "rect": [
+    630,
+    893,
+    117,
+    131
+   ],
+   "pivot": [
+    0.470085,
+    0.053435
+   ],
+   "crop": [
+    55,
+    81,
+    172,
+    212
+   ],
+   "forge": [
+    0.42491,
+    0.32135
+   ],
+   "heat": 0.25,
+   "source": "north-east/cast_4.png"
+  },
+  {
+   "name": "vanguard_cast_north_0",
+   "atlas": 0,
+   "rect": [
+    362,
+    867,
+    83,
+    157
+   ],
+   "pivot": [
+    0.578313,
+    0.057325
+   ],
+   "crop": [
+    62,
+    57,
+    145,
+    214
+   ],
+   "forge": [
+    0.0787,
+    1.3175
+   ],
+   "heat": 0.45,
+   "source": "north/cast_0.png"
+  },
+  {
+   "name": "vanguard_cast_north_1",
+   "atlas": 0,
+   "rect": [
+    208,
+    647,
+    87,
+    186
+   ],
+   "pivot": [
+    0.563218,
+    0.048387
+   ],
+   "crop": [
+    61,
+    28,
+    148,
+    214
+   ],
+   "forge": [
+    0.09141,
+    1.26007
+   ],
+   "heat": 0.85,
+   "source": "north/cast_1.png"
+  },
+  {
+   "name": "vanguard_cast_north_2",
+   "atlas": 0,
+   "rect": [
+    234,
+    283,
+    95,
+    161
+   ],
+   "pivot": [
+    0.526316,
+    0.055901
+   ],
+   "crop": [
+    60,
+    53,
+    155,
+    214
+   ],
+   "forge": [
+    0.06224,
+    0.45978
+   ],
+   "heat": 1.45,
+   "source": "north/cast_2.png"
+  },
+  {
+   "name": "vanguard_cast_north_3",
+   "atlas": 3,
+   "rect": [
+    563,
+    487,
+    90,
+    133
+   ],
+   "pivot": [
+    0.544444,
+    0.067669
+   ],
+   "crop": [
+    61,
+    81,
+    151,
+    214
+   ],
+   "forge": [
+    0.14045,
+    0.48037
+   ],
+   "heat": 0.75,
+   "source": "north/cast_3.png"
+  },
+  {
+   "name": "vanguard_cast_north_4",
+   "atlas": 3,
+   "rect": [
+    103,
+    484,
+    86,
+    134
+   ],
+   "pivot": [
+    0.55814,
+    0.067164
+   ],
+   "crop": [
+    62,
+    80,
+    148,
+    214
+   ],
+   "forge": [
+    0.27654,
+    0.46662
+   ],
+   "heat": 0.25,
+   "source": "north/cast_4.png"
+  },
+  {
+   "name": "vanguard_cast_north-west_0",
+   "atlas": 0,
+   "rect": [
+    229,
+    100,
+    96,
+    167
+   ],
+   "pivot": [
+    0.427083,
+    0.071856
+   ],
+   "crop": [
+    69,
+    50,
+    165,
+    217
+   ],
+   "forge": [
+    0.18481,
+    1.37207
+   ],
+   "heat": 0.45,
+   "source": "north-west/cast_0.png"
+  },
+  {
+   "name": "vanguard_cast_north-west_1",
+   "atlas": 0,
+   "rect": [
+    0,
+    243,
+    109,
+    190
+   ],
+   "pivot": [
+    0.486239,
+    0.068421
+   ],
+   "crop": [
+    57,
+    28,
+    166,
+    218
+   ],
+   "forge": [
+    -0.32862,
+    1.21094
+   ],
+   "heat": 0.85,
+   "source": "north-west/cast_1.png"
+  },
+  {
+   "name": "vanguard_cast_north-west_2",
+   "atlas": 0,
+   "rect": [
+    249,
+    490,
+    119,
+    157
+   ],
+   "pivot": [
+    0.470588,
+    0.082803
+   ],
+   "crop": [
+    54,
+    61,
+    173,
+    218
+   ],
+   "forge": [
+    -0.24235,
+    0.42248
+   ],
+   "heat": 1.45,
+   "source": "north-west/cast_2.png"
+  },
+  {
+   "name": "vanguard_cast_north-west_3",
+   "atlas": 2,
+   "rect": [
+    793,
+    682,
+    102,
+    135
+   ],
+   "pivot": [
+    0.401961,
+    0.096296
+   ],
+   "crop": [
+    69,
+    83,
+    171,
+    218
+   ],
+   "forge": [
+    -0.1696,
+    0.47433
+   ],
+   "heat": 0.75,
+   "source": "north-west/cast_3.png"
+  },
+  {
+   "name": "vanguard_cast_north-west_4",
+   "atlas": 1,
+   "rect": [
+    836,
+    154,
+    94,
+    137
+   ],
+   "pivot": [
+    0.425532,
+    0.094891
+   ],
+   "crop": [
+    70,
+    81,
+    164,
+    218
+   ],
+   "forge": [
+    -0.03382,
+    0.51689
+   ],
+   "heat": 0.25,
+   "source": "north-west/cast_4.png"
+  },
+  {
+   "name": "vanguard_cast_west_0",
+   "atlas": 0,
+   "rect": [
+    273,
+    843,
+    89,
+    181
+   ],
+   "pivot": [
+    0.337079,
+    0.066298
+   ],
+   "crop": [
+    80,
+    36,
+    169,
+    217
+   ],
+   "forge": [
+    0.18267,
+    1.44818
+   ],
+   "heat": 0.45,
+   "source": "west/cast_0.png"
+  },
+  {
+   "name": "vanguard_cast_west_1",
+   "atlas": 0,
+   "rect": [
+    108,
+    444,
+    141,
+    188
+   ],
+   "pivot": [
+    0.602837,
+    0.069149
+   ],
+   "crop": [
+    25,
+    30,
+    166,
+    218
+   ],
+   "forge": [
+    -0.55615,
+    1.0277
+   ],
+   "heat": 0.85,
+   "source": "west/cast_1.png"
+  },
+  {
+   "name": "vanguard_cast_west_2",
+   "atlas": 4,
+   "rect": [
+    108,
+    501,
+    150,
+    130
+   ],
+   "pivot": [
+    0.593333,
+    0.1
+   ],
+   "crop": [
+    21,
+    88,
+    171,
+    218
+   ],
+   "forge": [
+    -0.40498,
+    0.28841
+   ],
+   "heat": 1.45,
+   "source": "west/cast_2.png"
+  },
+  {
+   "name": "vanguard_cast_west_3",
+   "atlas": 4,
+   "rect": [
+    747,
+    893,
+    117,
+    131
+   ],
+   "pivot": [
+    0.487179,
+    0.099237
+   ],
+   "crop": [
+    53,
+    87,
+    170,
+    218
+   ],
+   "forge": [
+    -0.38031,
+    0.36044
+   ],
+   "heat": 0.75,
+   "source": "west/cast_3.png"
+  },
+  {
+   "name": "vanguard_cast_west_4",
+   "atlas": 2,
+   "rect": [
+    686,
+    682,
+    107,
+    135
+   ],
+   "pivot": [
+    0.485981,
+    0.096296
+   ],
+   "crop": [
+    58,
+    83,
+    165,
+    218
+   ],
+   "forge": [
+    -0.32437,
+    0.44271
+   ],
+   "heat": 0.25,
+   "source": "west/cast_4.png"
+  },
+  {
+   "name": "vanguard_cast_south-west_0",
+   "atlas": 0,
+   "rect": [
+    182,
+    833,
+    91,
+    191
+   ],
+   "pivot": [
+    0.362637,
+    0.057592
+   ],
+   "crop": [
+    77,
+    25,
+    168,
+    216
+   ],
+   "forge": [
+    0.07352,
+    1.50124
+   ],
+   "heat": 0.45,
+   "source": "south-west/cast_0.png"
+  },
+  {
+   "name": "vanguard_cast_south-west_1",
+   "atlas": 0,
+   "rect": [
+    83,
+    632,
+    125,
+    193
+   ],
+   "pivot": [
+    0.544,
+    0.062176
+   ],
+   "crop": [
+    42,
+    24,
+    167,
+    217
+   ],
+   "forge": [
+    -0.45789,
+    0.81768
+   ],
+   "heat": 0.85,
+   "source": "south-west/cast_1.png"
+  },
+  {
+   "name": "vanguard_cast_south-west_2",
+   "atlas": 5,
+   "rect": [
+    0,
+    495,
+    136,
+    126
+   ],
+   "pivot": [
+    0.522059,
+    0.142857
+   ],
+   "crop": [
+    39,
+    97,
+    175,
+    223
+   ],
+   "forge": [
+    -0.33037,
+    0.13612
+   ],
+   "heat": 1.45,
+   "source": "south-west/cast_2.png"
+  },
+  {
+   "name": "vanguard_cast_south-west_3",
+   "atlas": 5,
+   "rect": [
+    295,
+    621,
+    116,
+    127
+   ],
+   "pivot": [
+    0.456897,
+    0.094488
+   ],
+   "crop": [
+    57,
+    90,
+    173,
+    217
+   ],
+   "forge": [
+    -0.36823,
+    0.20541
+   ],
+   "heat": 0.75,
+   "source": "south-west/cast_3.png"
+  },
+  {
+   "name": "vanguard_cast_south-west_4",
+   "atlas": 2,
+   "rect": [
+    895,
+    683,
+    117,
+    134
+   ],
+   "pivot": [
+    0.529915,
+    0.089552
+   ],
+   "crop": [
+    48,
+    83,
+    165,
+    217
+   ],
+   "forge": [
+    -0.42491,
+    0.28753
+   ],
+   "heat": 0.25,
+   "source": "south-west/cast_4.png"
+  },
+  {
+   "name": "vanguard_hit_south_0",
+   "atlas": 0,
+   "rect": [
+    673,
+    316,
+    129,
+    140
+   ],
+   "pivot": [
+    0.736434,
+    0.085714
+   ],
+   "crop": [
+    15,
+    77,
+    144,
+    217
+   ],
+   "forge": [
+    -0.65385,
+    0.81493
+   ],
+   "heat": 0.0,
+   "source": "south/hit_0.png"
+  },
+  {
+   "name": "vanguard_hit_south_1",
+   "atlas": 0,
+   "rect": [
+    567,
+    116,
+    131,
+    141
+   ],
+   "pivot": [
+    0.717557,
+    0.085106
+   ],
+   "crop": [
+    16,
+    76,
+    147,
+    217
+   ],
+   "forge": [
+    -0.63913,
+    0.70549
+   ],
+   "heat": 0.0,
+   "source": "south/hit_1.png"
+  },
+  {
+   "name": "vanguard_hit_south_2",
+   "atlas": 0,
+   "rect": [
+    673,
+    456,
+    131,
+    140
+   ],
+   "pivot": [
+    0.671756,
+    0.085714
+   ],
+   "crop": [
+    22,
+    77,
+    153,
+    217
+   ],
+   "forge": [
+    -0.58866,
+    0.51167
+   ],
+   "heat": 0.0,
+   "source": "south/hit_2.png"
+  },
+  {
+   "name": "vanguard_hit_south-east_0",
+   "atlas": 1,
+   "rect": [
+    446,
+    838,
+    113,
+    138
+   ],
+   "pivot": [
+    0.690265,
+    0.108696
+   ],
+   "crop": [
+    32,
+    82,
+    145,
+    220
+   ],
+   "forge": [
+    -0.53038,
+    0.56967
+   ],
+   "heat": 0.0,
+   "source": "south-east/hit_0.png"
+  },
+  {
+   "name": "vanguard_hit_south-east_1",
+   "atlas": 1,
+   "rect": [
+    0,
+    559,
+    114,
+    139
+   ],
+   "pivot": [
+    0.649123,
+    0.107914
+   ],
+   "crop": [
+    36,
+    81,
+    150,
+    220
+   ],
+   "forge": [
+    -0.49303,
+    0.46957
+   ],
+   "heat": 0.0,
+   "source": "south-east/hit_1.png"
+  },
+  {
+   "name": "vanguard_hit_south-east_2",
+   "atlas": 0,
+   "rect": [
+    570,
+    258,
+    103,
+    141
+   ],
+   "pivot": [
+    0.61165,
+    0.106383
+   ],
+   "crop": [
+    47,
+    79,
+    150,
+    220
+   ],
+   "forge": [
+    -0.40797,
+    0.30131
+   ],
+   "heat": 0.0,
+   "source": "south-east/hit_2.png"
+  },
+  {
+   "name": "vanguard_hit_east_0",
+   "atlas": 4,
+   "rect": [
+    930,
+    254,
+    90,
+    126
+   ],
+   "pivot": [
+    0.688889,
+    0.095238
+   ],
+   "crop": [
+    48,
+    91,
+    138,
+    217
+   ],
+   "forge": [
+    -0.05622,
+    0.43989
+   ],
+   "heat": 0.0,
+   "source": "east/hit_0.png"
+  },
+  {
+   "name": "vanguard_hit_east_1",
+   "atlas": 4,
+   "rect": [
+    623,
+    506,
+    83,
+    129
+   ],
+   "pivot": [
+    0.578313,
+    0.093023
+   ],
+   "crop": [
+    62,
+    88,
+    145,
+    217
+   ],
+   "forge": [
+    0.06172,
+    0.36029
+   ],
+   "heat": 0.0,
+   "source": "east/hit_1.png"
+  },
+  {
+   "name": "vanguard_hit_east_2",
+   "atlas": 3,
+   "rect": [
+    99,
+    216,
+    97,
+    134
+   ],
+   "pivot": [
+    0.484536,
+    0.089552
+   ],
+   "crop": [
+    63,
+    83,
+    160,
+    217
+   ],
+   "forge": [
+    0.28826,
+    0.25561
+   ],
+   "heat": 0.0,
+   "source": "east/hit_2.png"
+  },
+  {
+   "name": "vanguard_hit_north-east_0",
+   "atlas": 2,
+   "rect": [
+    123,
+    544,
+    112,
+    136
+   ],
+   "pivot": [
+    0.482143,
+    0.154412
+   ],
+   "crop": [
+    56,
+    90,
+    168,
+    226
+   ],
+   "forge": [
+    0.3943,
+    0.50163
+   ],
+   "heat": 0.0,
+   "source": "north-east/hit_0.png"
+  },
+  {
+   "name": "vanguard_hit_north-east_1",
+   "atlas": 4,
+   "rect": [
+    603,
+    764,
+    107,
+    129
+   ],
+   "pivot": [
+    0.439252,
+    0.116279
+   ],
+   "crop": [
+    63,
+    91,
+    170,
+    220
+   ],
+   "forge": [
+    0.40917,
+    0.4279
+   ],
+   "heat": 0.0,
+   "source": "north-east/hit_1.png"
+  },
+  {
+   "name": "vanguard_hit_north-east_2",
+   "atlas": 4,
+   "rect": [
+    577,
+    635,
+    110,
+    129
+   ],
+   "pivot": [
+    0.436364,
+    0.069767
+   ],
+   "crop": [
+    62,
+    85,
+    172,
+    214
+   ],
+   "forge": [
+    0.41955,
+    0.30754
+   ],
+   "heat": 0.0,
+   "source": "north-east/hit_2.png"
+  },
+  {
+   "name": "vanguard_hit_north_0",
+   "atlas": 2,
+   "rect": [
+    0,
+    816,
+    129,
+    136
+   ],
+   "pivot": [
+    0.263566,
+    0.169118
+   ],
+   "crop": [
+    76,
+    92,
+    205,
+    228
+   ],
+   "forge": [
+    0.65385,
+    0.71871
+   ],
+   "heat": 0.0,
+   "source": "north/hit_0.png"
+  },
+  {
+   "name": "vanguard_hit_north_1",
+   "atlas": 4,
+   "rect": [
+    691,
+    248,
+    131,
+    128
+   ],
+   "pivot": [
+    0.282443,
+    0.125
+   ],
+   "crop": [
+    73,
+    93,
+    204,
+    221
+   ],
+   "forge": [
+    0.63852,
+    0.64294
+   ],
+   "heat": 0.0,
+   "source": "north/hit_1.png"
+  },
+  {
+   "name": "vanguard_hit_north_2",
+   "atlas": 5,
+   "rect": [
+    164,
+    621,
+    131,
+    127
+   ],
+   "pivot": [
+    0.328244,
+    0.062992
+   ],
+   "crop": [
+    67,
+    86,
+    198,
+    213
+   ],
+   "forge": [
+    0.58759,
+    0.51084
+   ],
+   "heat": 0.0,
+   "source": "north/hit_2.png"
+  },
+  {
+   "name": "vanguard_hit_north-west_0",
+   "atlas": 3,
+   "rect": [
+    388,
+    620,
+    113,
+    133
+   ],
+   "pivot": [
+    0.309735,
+    0.150376
+   ],
+   "crop": [
+    75,
+    92,
+    188,
+    225
+   ],
+   "forge": [
+    0.53038,
+    0.96397
+   ],
+   "heat": 0.0,
+   "source": "north-west/hit_0.png"
+  },
+  {
+   "name": "vanguard_hit_north-west_1",
+   "atlas": 5,
+   "rect": [
+    320,
+    123,
+    114,
+    123
+   ],
+   "pivot": [
+    0.350877,
+    0.113821
+   ],
+   "crop": [
+    70,
+    96,
+    184,
+    219
+   ],
+   "forge": [
+    0.4947,
+    0.87984
+   ],
+   "heat": 0.0,
+   "source": "north-west/hit_1.png"
+  },
+  {
+   "name": "vanguard_hit_north-west_2",
+   "atlas": 4,
+   "rect": [
+    217,
+    371,
+    104,
+    130
+   ],
+   "pivot": [
+    0.384615,
+    0.084615
+   ],
+   "crop": [
+    70,
+    86,
+    174,
+    216
+   ],
+   "forge": [
+    0.41294,
+    0.72378
+   ],
+   "heat": 0.0,
+   "source": "north-west/hit_2.png"
+  },
+  {
+   "name": "vanguard_hit_west_0",
+   "atlas": 0,
+   "rect": [
+    445,
+    880,
+    90,
+    144
+   ],
+   "pivot": [
+    0.311111,
+    0.090278
+   ],
+   "crop": [
+    82,
+    74,
+    172,
+    218
+   ],
+   "forge": [
+    0.05622,
+    1.09374
+   ],
+   "heat": 0.0,
+   "source": "west/hit_0.png"
+  },
+  {
+   "name": "vanguard_hit_west_1",
+   "atlas": 3,
+   "rect": [
+    610,
+    620,
+    83,
+    133
+   ],
+   "pivot": [
+    0.421687,
+    0.097744
+   ],
+   "crop": [
+    75,
+    85,
+    158,
+    218
+   ],
+   "forge": [
+    -0.06533,
+    1.00999
+   ],
+   "heat": 0.0,
+   "source": "west/hit_1.png"
+  },
+  {
+   "name": "vanguard_hit_west_2",
+   "atlas": 2,
+   "rect": [
+    816,
+    817,
+    98,
+    135
+   ],
+   "pivot": [
+    0.520408,
+    0.096296
+   ],
+   "crop": [
+    59,
+    83,
+    157,
+    218
+   ],
+   "forge": [
+    -0.29692,
+    0.78477
+   ],
+   "heat": 0.0,
+   "source": "west/hit_2.png"
+  },
+  {
+   "name": "vanguard_hit_south-west_0",
+   "atlas": 2,
+   "rect": [
+    0,
+    272,
+    115,
+    136
+   ],
+   "pivot": [
+    0.530435,
+    0.088235
+   ],
+   "crop": [
+    49,
+    81,
+    164,
+    217
+   ],
+   "forge": [
+    -0.42259,
+    1.01787
+   ],
+   "heat": 0.0,
+   "source": "south-west/hit_0.png"
+  },
+  {
+   "name": "vanguard_hit_south-west_1",
+   "atlas": 1,
+   "rect": [
+    330,
+    700,
+    118,
+    138
+   ],
+   "pivot": [
+    0.601695,
+    0.086957
+   ],
+   "crop": [
+    39,
+    79,
+    157,
+    217
+   ],
+   "forge": [
+    -0.481,
+    0.89545
+   ],
+   "heat": 0.0,
+   "source": "south-west/hit_1.png"
+  },
+  {
+   "name": "vanguard_hit_south-west_2",
+   "atlas": 0,
+   "rect": [
+    695,
+    604,
+    130,
+    140
+   ],
+   "pivot": [
+    0.630769,
+    0.092857
+   ],
+   "crop": [
+    28,
+    78,
+    158,
+    218
+   ],
+   "forge": [
+    -0.54512,
+    0.64631
+   ],
+   "heat": 0.0,
+   "source": "south-west/hit_2.png"
+  },
+  {
+   "name": "vanguard_death_south_0",
+   "atlas": 0,
+   "rect": [
+    386,
+    723,
+    129,
+    144
+   ],
+   "pivot": [
+    0.627907,
+    0.083333
+   ],
+   "crop": [
+    29,
+    73,
+    158,
+    217
+   ],
+   "forge": [
+    -0.53708,
+    0.4577
+   ],
+   "heat": 0.0,
+   "source": "south/death_0.png"
+  },
+  {
+   "name": "vanguard_death_south_1",
+   "atlas": 4,
+   "rect": [
+    261,
+    763,
+    129,
+    130
+   ],
+   "pivot": [
+    0.627907,
+    0.092308
+   ],
+   "crop": [
+    29,
+    87,
+    158,
+    217
+   ],
+   "forge": [
+    -0.53953,
+    0.28999
+   ],
+   "heat": 0.0,
+   "source": "south/death_1.png"
+  },
+  {
+   "name": "vanguard_death_south_2",
+   "atlas": 4,
+   "rect": [
+    0,
+    0,
+    124,
+    107
+   ],
+   "pivot": [
+    0.604839,
+    0.121495
+   ],
+   "crop": [
+    35,
+    111,
+    159,
+    218
+   ],
+   "forge": [
+    -0.50517,
+    0.06966
+   ],
+   "heat": 0.0,
+   "source": "south/death_2.png"
+  },
+  {
+   "name": "vanguard_death_south_3",
+   "atlas": 3,
+   "rect": [
+    907,
+    5,
+    110,
+    89
+   ],
+   "pivot": [
+    0.545455,
+    0.157303
+   ],
+   "crop": [
+    50,
+    130,
+    160,
+    219
+   ],
+   "forge": [
+    -0.41388,
+    0.02908
+   ],
+   "heat": 0.0,
+   "source": "south/death_3.png"
+  },
+  {
+   "name": "vanguard_death_south_4",
+   "atlas": 3,
+   "rect": [
+    196,
+    6,
+    104,
+    81
+   ],
+   "pivot": [
+    0.538462,
+    0.197531
+   ],
+   "crop": [
+    54,
+    140,
+    158,
+    221
+   ],
+   "forge": [
+    -0.39087,
+    -0.00638
+   ],
+   "heat": 0.0,
+   "source": "south/death_4.png"
+  },
+  {
+   "name": "vanguard_death_south-east_0",
+   "atlas": 0,
+   "rect": [
+    467,
+    115,
+    100,
+    142
+   ],
+   "pivot": [
+    0.59,
+    0.098592
+   ],
+   "crop": [
+    51,
+    77,
+    151,
+    219
+   ],
+   "forge": [
+    -0.36575,
+    0.26559
+   ],
+   "heat": 0.0,
+   "source": "south-east/death_0.png"
+  },
+  {
+   "name": "vanguard_death_south-east_1",
+   "atlas": 4,
+   "rect": [
+    108,
+    631,
+    91,
+    131
+   ],
+   "pivot": [
+    0.56044,
+    0.10687
+   ],
+   "crop": [
+    59,
+    88,
+    150,
+    219
+   ],
+   "forge": [
+    -0.30964,
+    0.11601
+   ],
+   "heat": 0.0,
+   "source": "south-east/death_1.png"
+  },
+  {
+   "name": "vanguard_death_south-east_2",
+   "atlas": 5,
+   "rect": [
+    950,
+    496,
+    92,
+    125
+   ],
+   "pivot": [
+    0.521739,
+    0.232
+   ],
+   "crop": [
+    62,
+    109,
+    154,
+    234
+   ],
+   "forge": [
+    -0.16151,
+    -0.04668
+   ],
+   "heat": 0.0,
+   "source": "south-east/death_2.png"
+  },
+  {
+   "name": "vanguard_death_south-east_3",
+   "atlas": 5,
+   "rect": [
+    432,
+    21,
+    93,
+    102
+   ],
+   "pivot": [
+    0.483871,
+    0.22549
+   ],
+   "crop": [
+    65,
+    126,
+    158,
+    228
+   ],
+   "forge": [
+    -0.00174,
+    -0.05083
+   ],
+   "heat": 0.0,
+   "source": "south-east/death_3.png"
+  },
+  {
+   "name": "vanguard_death_south-east_4",
+   "atlas": 0,
+   "rect": [
+    229,
+    7,
+    91,
+    93
+   ],
+   "pivot": [
+    0.461538,
+    0.258065
+   ],
+   "crop": [
+    68,
+    136,
+    159,
+    229
+   ],
+   "forge": [
+    0.03857,
+    -0.07935
+   ],
+   "heat": 0.0,
+   "source": "south-east/death_4.png"
+  },
+  {
+   "name": "vanguard_death_east_0",
+   "atlas": 4,
+   "rect": [
+    271,
+    893,
+    122,
+    131
+   ],
+   "pivot": [
+    0.516393,
+    0.083969
+   ],
+   "crop": [
+    47,
+    85,
+    169,
+    216
+   ],
+   "forge": [
+    0.33178,
+    0.2899
+   ],
+   "heat": 0.0,
+   "source": "east/death_0.png"
+  },
+  {
+   "name": "vanguard_death_east_1",
+   "atlas": 5,
+   "rect": [
+    411,
+    621,
+    112,
+    127
+   ],
+   "pivot": [
+    0.428571,
+    0.086614
+   ],
+   "crop": [
+    62,
+    89,
+    174,
+    216
+   ],
+   "forge": [
+    0.38073,
+    0.18321
+   ],
+   "heat": 0.0,
+   "source": "east/death_1.png"
+  },
+  {
+   "name": "vanguard_death_east_2",
+   "atlas": 4,
+   "rect": [
+    505,
+    3,
+    104,
+    114
+   ],
+   "pivot": [
+    0.307692,
+    0.105263
+   ],
+   "crop": [
+    78,
+    103,
+    182,
+    217
+   ],
+   "forge": [
+    0.43697,
+    0.07697
+   ],
+   "heat": 0.0,
+   "source": "east/death_2.png"
+  },
+  {
+   "name": "vanguard_death_east_3",
+   "atlas": 4,
+   "rect": [
+    124,
+    0,
+    97,
+    107
+   ],
+   "pivot": [
+    0.268041,
+    0.168224
+   ],
+   "crop": [
+    84,
+    116,
+    181,
+    223
+   ],
+   "forge": [
+    0.43856,
+    0.06146
+   ],
+   "heat": 0.0,
+   "source": "east/death_3.png"
+  },
+  {
+   "name": "vanguard_death_east_4",
+   "atlas": 5,
+   "rect": [
+    525,
+    22,
+    97,
+    101
+   ],
+   "pivot": [
+    0.268041,
+    0.207921
+   ],
+   "crop": [
+    84,
+    125,
+    181,
+    226
+   ],
+   "forge": [
+    0.44542,
+    0.02089
+   ],
+   "heat": 0.0,
+   "source": "east/death_4.png"
+  },
+  {
+   "name": "vanguard_death_north-east_0",
+   "atlas": 5,
+   "rect": [
+    392,
+    495,
+    116,
+    126
+   ],
+   "pivot": [
+    0.5,
+    0.087302
+   ],
+   "crop": [
+    52,
+    90,
+    168,
+    216
+   ],
+   "forge": [
+    0.3867,
+    0.27618
+   ],
+   "heat": 0.0,
+   "source": "north-east/death_0.png"
+  },
+  {
+   "name": "vanguard_death_north-east_1",
+   "atlas": 5,
+   "rect": [
+    508,
+    495,
+    114,
+    126
+   ],
+   "pivot": [
+    0.438596,
+    0.079365
+   ],
+   "crop": [
+    60,
+    89,
+    174,
+    215
+   ],
+   "forge": [
+    0.43535,
+    0.15938
+   ],
+   "heat": 0.0,
+   "source": "north-east/death_1.png"
+  },
+  {
+   "name": "vanguard_death_north-east_2",
+   "atlas": 5,
+   "rect": [
+    507,
+    246,
+    124,
+    124
+   ],
+   "pivot": [
+    0.370968,
+    0.129032
+   ],
+   "crop": [
+    64,
+    97,
+    188,
+    221
+   ],
+   "forge": [
+    0.53069,
+    0.0783
+   ],
+   "heat": 0.0,
+   "source": "north-east/death_2.png"
+  },
+  {
+   "name": "vanguard_death_north-east_3",
+   "atlas": 4,
+   "rect": [
+    611,
+    0,
+    127,
+    118
+   ],
+   "pivot": [
+    0.314961,
+    0.161017
+   ],
+   "crop": [
+    70,
+    106,
+    197,
+    224
+   ],
+   "forge": [
+    0.57995,
+    0.22877
+   ],
+   "heat": 0.0,
+   "source": "north-east/death_3.png"
+  },
+  {
+   "name": "vanguard_death_north-east_4",
+   "atlas": 5,
+   "rect": [
+    1093,
+    12,
+    123,
+    112
+   ],
+   "pivot": [
+    0.284553,
+    0.1875
+   ],
+   "crop": [
+    75,
+    114,
+    198,
+    226
+   ],
+   "forge": [
+    0.59135,
+    0.23561
+   ],
+   "heat": 0.0,
+   "source": "north-east/death_4.png"
+  },
+  {
+   "name": "vanguard_death_north_0",
+   "atlas": 5,
+   "rect": [
+    136,
+    495,
+    129,
+    126
+   ],
+   "pivot": [
+    0.372093,
+    0.103175
+   ],
+   "crop": [
+    62,
+    92,
+    191,
+    218
+   ],
+   "forge": [
+    0.53614,
+    0.45987
+   ],
+   "heat": 0.0,
+   "source": "north/death_0.png"
+  },
+  {
+   "name": "vanguard_death_north_1",
+   "atlas": 5,
+   "rect": [
+    265,
+    495,
+    127,
+    126
+   ],
+   "pivot": [
+    0.377953,
+    0.071429
+   ],
+   "crop": [
+    62,
+    88,
+    189,
+    214
+   ],
+   "forge": [
+    0.52922,
+    0.35802
+   ],
+   "heat": 0.0,
+   "source": "north/death_1.png"
+  },
+  {
+   "name": "vanguard_death_north_2",
+   "atlas": 5,
+   "rect": [
+    745,
+    3,
+    118,
+    121
+   ],
+   "pivot": [
+    0.415254,
+    0.082645
+   ],
+   "crop": [
+    61,
+    94,
+    179,
+    215
+   ],
+   "forge": [
+    0.47557,
+    0.29299
+   ],
+   "heat": 0.0,
+   "source": "north/death_2.png"
+  },
+  {
+   "name": "vanguard_death_north_3",
+   "atlas": 0,
+   "rect": [
+    458,
+    0,
+    107,
+    115
+   ],
+   "pivot": [
+    0.457944,
+    0.113043
+   ],
+   "crop": [
+    61,
+    103,
+    168,
+    218
+   ],
+   "forge": [
+    0.40248,
+    0.43209
+   ],
+   "heat": 0.0,
+   "source": "north/death_3.png"
+  },
+  {
+   "name": "vanguard_death_north_4",
+   "atlas": 5,
+   "rect": [
+    195,
+    14,
+    104,
+    109
+   ],
+   "pivot": [
+    0.461538,
+    0.119266
+   ],
+   "crop": [
+    62,
+    109,
+    166,
+    218
+   ],
+   "forge": [
+    0.39087,
+    0.43904
+   ],
+   "heat": 0.0,
+   "source": "north/death_4.png"
+  },
+  {
+   "name": "vanguard_death_north-west_0",
+   "atlas": 5,
+   "rect": [
+    1053,
+    370,
+    101,
+    126
+   ],
+   "pivot": [
+    0.405941,
+    0.087302
+   ],
+   "crop": [
+    69,
+    90,
+    170,
+    216
+   ],
+   "forge": [
+    0.37284,
+    0.65596
+   ],
+   "heat": 0.0,
+   "source": "north-west/death_0.png"
+  },
+  {
+   "name": "vanguard_death_north-west_1",
+   "atlas": 5,
+   "rect": [
+    111,
+    245,
+    91,
+    125
+   ],
+   "pivot": [
+    0.43956,
+    0.072
+   ],
+   "crop": [
+    70,
+    89,
+    161,
+    214
+   ],
+   "forge": [
+    0.30895,
+    0.54458
+   ],
+   "heat": 0.0,
+   "source": "north-west/death_1.png"
+  },
+  {
+   "name": "vanguard_death_north-west_2",
+   "atlas": 5,
+   "rect": [
+    0,
+    123,
+    92,
+    122
+   ],
+   "pivot": [
+    0.478261,
+    0.122951
+   ],
+   "crop": [
+    66,
+    98,
+    158,
+    220
+   ],
+   "forge": [
+    0.13554,
+    0.43743
+   ],
+   "heat": 0.0,
+   "source": "north-west/death_2.png"
+  },
+  {
+   "name": "vanguard_death_north-west_3",
+   "atlas": 0,
+   "rect": [
+    567,
+    0,
+    93,
+    116
+   ],
+   "pivot": [
+    0.516129,
+    0.163793
+   ],
+   "crop": [
+    62,
+    108,
+    155,
+    224
+   ],
+   "forge": [
+    -0.01087,
+    0.51671
+   ],
+   "heat": 0.0,
+   "source": "north-west/death_3.png"
+  },
+  {
+   "name": "vanguard_death_north-west_4",
+   "atlas": 5,
+   "rect": [
+    0,
+    16,
+    91,
+    107
+   ],
+   "pivot": [
+    0.538462,
+    0.168224
+   ],
+   "crop": [
+    61,
+    116,
+    152,
+    223
+   ],
+   "forge": [
+    -0.03857,
+    0.512
+   ],
+   "heat": 0.0,
+   "source": "north-west/death_4.png"
+  },
+  {
+   "name": "vanguard_death_west_0",
+   "atlas": 4,
+   "rect": [
+    147,
+    893,
+    124,
+    131
+   ],
+   "pivot": [
+    0.491935,
+    0.083969
+   ],
+   "crop": [
+    49,
+    85,
+    173,
+    216
+   ],
+   "forge": [
+    -0.34415,
+    0.69055
+   ],
+   "heat": 0.0,
+   "source": "west/death_0.png"
+  },
+  {
+   "name": "vanguard_death_west_1",
+   "atlas": 5,
+   "rect": [
+    622,
+    495,
+    113,
+    126
+   ],
+   "pivot": [
+    0.575221,
+    0.087302
+   ],
+   "crop": [
+    45,
+    90,
+    158,
+    216
+   ],
+   "forge": [
+    -0.38697,
+    0.58255
+   ],
+   "heat": 0.0,
+   "source": "west/death_1.png"
+  },
+  {
+   "name": "vanguard_death_west_2",
+   "atlas": 4,
+   "rect": [
+    398,
+    0,
+    102,
+    113
+   ],
+   "pivot": [
+    0.686275,
+    0.115044
+   ],
+   "crop": [
+    40,
+    105,
+    142,
+    218
+   ],
+   "forge": [
+    -0.42484,
+    0.47568
+   ],
+   "heat": 0.0,
+   "source": "west/death_2.png"
+  },
+  {
+   "name": "vanguard_death_west_3",
+   "atlas": 4,
+   "rect": [
+    221,
+    0,
+    96,
+    107
+   ],
+   "pivot": [
+    0.729167,
+    0.196262
+   ],
+   "crop": [
+    40,
+    119,
+    136,
+    226
+   ],
+   "forge": [
+    -0.43499,
+    0.44903
+   ],
+   "heat": 0.0,
+   "source": "west/death_3.png"
+  },
+  {
+   "name": "vanguard_death_west_4",
+   "atlas": 5,
+   "rect": [
+    622,
+    22,
+    97,
+    101
+   ],
+   "pivot": [
+    0.731959,
+    0.237624
+   ],
+   "crop": [
+    39,
+    128,
+    136,
+    229
+   ],
+   "forge": [
+    -0.44542,
+    0.41177
+   ],
+   "heat": 0.0,
+   "source": "west/death_4.png"
+  },
+  {
+   "name": "vanguard_death_south-west_0",
+   "atlas": 0,
+   "rect": [
+    535,
+    882,
+    138,
+    142
+   ],
+   "pivot": [
+    0.57971,
+    0.098592
+   ],
+   "crop": [
+    30,
+    77,
+    168,
+    219
+   ],
+   "forge": [
+    -0.51764,
+    0.55669
+   ],
+   "heat": 0.0,
+   "source": "south-west/death_0.png"
+  },
+  {
+   "name": "vanguard_death_south-west_1",
+   "atlas": 4,
+   "rect": [
+    199,
+    633,
+    133,
+    130
+   ],
+   "pivot": [
+    0.62406,
+    0.107692
+   ],
+   "crop": [
+    27,
+    89,
+    160,
+    219
+   ],
+   "forge": [
+    -0.5518,
+    0.42214
+   ],
+   "heat": 0.0,
+   "source": "south-west/death_1.png"
+  },
+  {
+   "name": "vanguard_death_south-west_2",
+   "atlas": 5,
+   "rect": [
+    299,
+    17,
+    133,
+    106
+   ],
+   "pivot": [
+    0.654135,
+    0.103774
+   ],
+   "crop": [
+    23,
+    110,
+    156,
+    216
+   ],
+   "forge": [
+    -0.58311,
+    0.27172
+   ],
+   "heat": 0.0,
+   "source": "south-west/death_2.png"
+  },
+  {
+   "name": "vanguard_death_south-west_3",
+   "atlas": 3,
+   "rect": [
+    779,
+    4,
+    128,
+    90
+   ],
+   "pivot": [
+    0.6875,
+    0.144444
+   ],
+   "crop": [
+    22,
+    128,
+    150,
+    218
+   ],
+   "forge": [
+    -0.58568,
+    0.23582
+   ],
+   "heat": 0.0,
+   "source": "south-west/death_3.png"
+  },
+  {
+   "name": "vanguard_death_south-west_4",
+   "atlas": 3,
+   "rect": [
+    555,
+    1,
+    123,
+    88
+   ],
+   "pivot": [
+    0.715447,
+    0.204545
+   ],
+   "crop": [
+    22,
+    135,
+    145,
+    223
+   ],
+   "forge": [
+    -0.59135,
+    0.19704
+   ],
+   "heat": 0.0,
+   "source": "south-west/death_4.png"
+  },
+  {
+   "name": "vanguard_shield-rush_south_0",
+   "atlas": 3,
+   "rect": [
+    768,
+    356,
+    88,
+    132
+   ],
+   "pivot": [
+    0.545455,
+    0.113636
+   ],
+   "crop": [
+    62,
+    88,
+    150,
+    220
+   ],
+   "forge": [
+    -0.35157,
+    0.61384
+   ],
+   "heat": 0.0,
+   "source": "south/shield-rush_0.png"
+  },
+  {
+   "name": "vanguard_shield-rush_south_1",
+   "atlas": 5,
+   "rect": [
+    542,
+    123,
+    102,
+    123
+   ],
+   "pivot": [
+    0.519608,
+    0.089431
+   ],
+   "crop": [
+    57,
+    93,
+    159,
+    216
+   ],
+   "forge": [
+    -0.35157,
+    0.61384
+   ],
+   "heat": 0.0,
+   "source": "south/shield-rush_1.png"
+  },
+  {
+   "name": "vanguard_shield-rush_south_2",
+   "atlas": 4,
+   "rect": [
+    390,
+    763,
+    97,
+    130
+   ],
+   "pivot": [
+    0.57732,
+    0.1
+   ],
+   "crop": [
+    54,
+    88,
+    151,
+    218
+   ],
+   "forge": [
+    -0.35157,
+    0.61384
+   ],
+   "heat": 0.0,
+   "source": "south/shield-rush_2.png"
+  },
+  {
+   "name": "vanguard_shield-rush_south_3",
+   "atlas": 5,
+   "rect": [
+    644,
+    123,
+    101,
+    123
+   ],
+   "pivot": [
+    0.594059,
+    0.089431
+   ],
+   "crop": [
+    50,
+    93,
+    151,
+    216
+   ],
+   "forge": [
+    -0.35157,
+    0.61384
+   ],
+   "heat": 0.0,
+   "source": "south/shield-rush_3.png"
+  },
+  {
+   "name": "vanguard_shield-rush_south-east_0",
+   "atlas": 4,
+   "rect": [
+    758,
+    120,
+    116,
+    128
+   ],
+   "pivot": [
+    0.62931,
+    0.085938
+   ],
+   "crop": [
+    37,
+    88,
+    153,
+    216
+   ],
+   "forge": [
+    -0.49707,
+    0.43808
+   ],
+   "heat": 0.0,
+   "source": "south-east/shield-rush_0.png"
+  },
+  {
+   "name": "vanguard_shield-rush_south-east_1",
+   "atlas": 5,
+   "rect": [
+    863,
+    3,
+    116,
+    121
+   ],
+   "pivot": [
+    0.62931,
+    0.057851
+   ],
+   "crop": [
+    37,
+    91,
+    153,
+    212
+   ],
+   "forge": [
+    -0.49707,
+    0.43808
+   ],
+   "heat": 0.0,
+   "source": "south-east/shield-rush_1.png"
+  },
+  {
+   "name": "vanguard_shield-rush_south-east_2",
+   "atlas": 5,
+   "rect": [
+    1075,
+    124,
+    117,
+    122
+   ],
+   "pivot": [
+    0.632479,
+    0.057377
+   ],
+   "crop": [
+    36,
+    90,
+    153,
+    212
+   ],
+   "forge": [
+    -0.49707,
+    0.43808
+   ],
+   "heat": 0.0,
+   "source": "south-east/shield-rush_2.png"
+  },
+  {
+   "name": "vanguard_shield-rush_south-east_3",
+   "atlas": 5,
+   "rect": [
+    202,
+    123,
+    118,
+    123
+   ],
+   "pivot": [
+    0.635593,
+    0.089431
+   ],
+   "crop": [
+    35,
+    93,
+    153,
+    216
+   ],
+   "forge": [
+    -0.49707,
+    0.43808
+   ],
+   "heat": 0.0,
+   "source": "south-east/shield-rush_3.png"
+  },
+  {
+   "name": "vanguard_shield-rush_east_0",
+   "atlas": 3,
+   "rect": [
+    454,
+    221,
+    101,
+    133
+   ],
+   "pivot": [
+    0.584158,
+    0.097744
+   ],
+   "crop": [
+    51,
+    85,
+    152,
+    218
+   ],
+   "forge": [
+    -0.3514,
+    0.26236
+   ],
+   "heat": 0.0,
+   "source": "east/shield-rush_0.png"
+  },
+  {
+   "name": "vanguard_shield-rush_east_1",
+   "atlas": 4,
+   "rect": [
+    0,
+    631,
+    108,
+    131
+   ],
+   "pivot": [
+    0.611111,
+    0.083969
+   ],
+   "crop": [
+    44,
+    85,
+    152,
+    216
+   ],
+   "forge": [
+    -0.3514,
+    0.26236
+   ],
+   "heat": 0.0,
+   "source": "east/shield-rush_1.png"
+  },
+  {
+   "name": "vanguard_shield-rush_east_2",
+   "atlas": 5,
+   "rect": [
+    979,
+    3,
+    114,
+    121
+   ],
+   "pivot": [
+    0.631579,
+    0.033058
+   ],
+   "crop": [
+    38,
+    88,
+    152,
+    209
+   ],
+   "forge": [
+    -0.3514,
+    0.26236
+   ],
+   "heat": 0.0,
+   "source": "east/shield-rush_2.png"
+  },
+  {
+   "name": "vanguard_shield-rush_east_3",
+   "atlas": 5,
+   "rect": [
+    92,
+    124,
+    107,
+    121
+   ],
+   "pivot": [
+    0.607477,
+    0.033058
+   ],
+   "crop": [
+    45,
+    88,
+    152,
+    209
+   ],
+   "forge": [
+    -0.3514,
+    0.26236
+   ],
+   "heat": 0.0,
+   "source": "east/shield-rush_3.png"
+  },
+  {
+   "name": "vanguard_shield-rush_north-east_0",
+   "atlas": 2,
+   "rect": [
+    748,
+    277,
+    98,
+    135
+   ],
+   "pivot": [
+    0.612245,
+    0.088889
+   ],
+   "crop": [
+    50,
+    82,
+    148,
+    217
+   ],
+   "forge": [
+    0.00012,
+    0.18961
+   ],
+   "heat": 0.0,
+   "source": "north-east/shield-rush_0.png"
+  },
+  {
+   "name": "vanguard_shield-rush_north-east_1",
+   "atlas": 1,
+   "rect": [
+    0,
+    281,
+    108,
+    139
+   ],
+   "pivot": [
+    0.648148,
+    0.100719
+   ],
+   "crop": [
+    40,
+    80,
+    148,
+    219
+   ],
+   "forge": [
+    0.00012,
+    0.18961
+   ],
+   "heat": 0.0,
+   "source": "north-east/shield-rush_1.png"
+  },
+  {
+   "name": "vanguard_shield-rush_north-east_2",
+   "atlas": 3,
+   "rect": [
+    493,
+    753,
+    111,
+    133
+   ],
+   "pivot": [
+    0.657658,
+    0.075188
+   ],
+   "crop": [
+    37,
+    82,
+    148,
+    215
+   ],
+   "forge": [
+    0.00012,
+    0.18961
+   ],
+   "heat": 0.0,
+   "source": "north-east/shield-rush_2.png"
+  },
+  {
+   "name": "vanguard_shield-rush_north-east_3",
+   "atlas": 3,
+   "rect": [
+    0,
+    484,
+    103,
+    134
+   ],
+   "pivot": [
+    0.631068,
+    0.074627
+   ],
+   "crop": [
+    45,
+    81,
+    148,
+    215
+   ],
+   "forge": [
+    0.00012,
+    0.18961
+   ],
+   "heat": 0.0,
+   "source": "north-east/shield-rush_3.png"
+  },
+  {
+   "name": "vanguard_shield-rush_north_0",
+   "atlas": 1,
+   "rect": [
+    931,
+    842,
+    88,
+    134
+   ],
+   "pivot": [
+    0.454545,
+    0.067164
+   ],
+   "crop": [
+    70,
+    80,
+    158,
+    214
+   ],
+   "forge": [
+    0.35157,
+    0.26245
+   ],
+   "heat": 0.0,
+   "source": "north/shield-rush_0.png"
+  },
+  {
+   "name": "vanguard_shield-rush_north_1",
+   "atlas": 0,
+   "rect": [
+    841,
+    744,
+    102,
+    140
+   ],
+   "pivot": [
+    0.480392,
+    0.092857
+   ],
+   "crop": [
+    61,
+    78,
+    163,
+    218
+   ],
+   "forge": [
+    0.35157,
+    0.26245
+   ],
+   "heat": 0.0,
+   "source": "north/shield-rush_1.png"
+  },
+  {
+   "name": "vanguard_shield-rush_north_2",
+   "atlas": 4,
+   "rect": [
+    843,
+    380,
+    98,
+    128
+   ],
+   "pivot": [
+    0.418367,
+    0.023438
+   ],
+   "crop": [
+    69,
+    80,
+    167,
+    208
+   ],
+   "forge": [
+    0.35157,
+    0.26245
+   ],
+   "heat": 0.0,
+   "source": "north/shield-rush_2.png"
+  },
+  {
+   "name": "vanguard_shield-rush_north_3",
+   "atlas": 0,
+   "rect": [
+    922,
+    464,
+    102,
+    140
+   ],
+   "pivot": [
+    0.401961,
+    0.092857
+   ],
+   "crop": [
+    69,
+    78,
+    171,
+    218
+   ],
+   "forge": [
+    0.35157,
+    0.26245
+   ],
+   "heat": 0.0,
+   "source": "north/shield-rush_3.png"
+  },
+  {
+   "name": "vanguard_shield-rush_north-west_0",
+   "atlas": 4,
+   "rect": [
+    487,
+    764,
+    116,
+    129
+   ],
+   "pivot": [
+    0.37069,
+    0.054264
+   ],
+   "crop": [
+    67,
+    83,
+    183,
+    212
+   ],
+   "forge": [
+    0.49707,
+    0.43821
+   ],
+   "heat": 0.0,
+   "source": "north-west/shield-rush_0.png"
+  },
+  {
+   "name": "vanguard_shield-rush_north-west_1",
+   "atlas": 4,
+   "rect": [
+    864,
+    893,
+    116,
+    131
+   ],
+   "pivot": [
+    0.37069,
+    0.061069
+   ],
+   "crop": [
+    67,
+    82,
+    183,
+    213
+   ],
+   "forge": [
+    0.49707,
+    0.43821
+   ],
+   "heat": 0.0,
+   "source": "north-west/shield-rush_1.png"
+  },
+  {
+   "name": "vanguard_shield-rush_north-west_2",
+   "atlas": 4,
+   "rect": [
+    726,
+    380,
+    117,
+    128
+   ],
+   "pivot": [
+    0.367521,
+    0.054688
+   ],
+   "crop": [
+    67,
+    84,
+    184,
+    212
+   ],
+   "forge": [
+    0.49707,
+    0.43821
+   ],
+   "heat": 0.0,
+   "source": "north-west/shield-rush_2.png"
+  },
+  {
+   "name": "vanguard_shield-rush_north-west_3",
+   "atlas": 1,
+   "rect": [
+    0,
+    837,
+    118,
+    139
+   ],
+   "pivot": [
+    0.364407,
+    0.100719
+   ],
+   "crop": [
+    67,
+    80,
+    185,
+    219
+   ],
+   "forge": [
+    0.49707,
+    0.43821
+   ],
+   "heat": 0.0,
+   "source": "north-west/shield-rush_3.png"
+  },
+  {
+   "name": "vanguard_shield-rush_west_0",
+   "atlas": 4,
+   "rect": [
+    107,
+    238,
+    101,
+    131
+   ],
+   "pivot": [
+    0.415842,
+    0.091603
+   ],
+   "crop": [
+    68,
+    86,
+    169,
+    217
+   ],
+   "forge": [
+    0.3514,
+    0.61393
+   ],
+   "heat": 0.0,
+   "source": "west/shield-rush_0.png"
+  },
+  {
+   "name": "vanguard_shield-rush_west_1",
+   "atlas": 4,
+   "rect": [
+    758,
+    0,
+    108,
+    120
+   ],
+   "pivot": [
+    0.388889,
+    0.033333
+   ],
+   "crop": [
+    68,
+    89,
+    176,
+    209
+   ],
+   "forge": [
+    0.3514,
+    0.61393
+   ],
+   "heat": 0.0,
+   "source": "west/shield-rush_1.png"
+  },
+  {
+   "name": "vanguard_shield-rush_west_2",
+   "atlas": 5,
+   "rect": [
+    631,
+    246,
+    114,
+    124
+   ],
+   "pivot": [
+    0.368421,
+    0.080645
+   ],
+   "crop": [
+    68,
+    91,
+    182,
+    215
+   ],
+   "forge": [
+    0.3514,
+    0.61393
+   ],
+   "heat": 0.0,
+   "source": "west/shield-rush_2.png"
+  },
+  {
+   "name": "vanguard_shield-rush_west_3",
+   "atlas": 4,
+   "rect": [
+    398,
+    113,
+    107,
+    129
+   ],
+   "pivot": [
+    0.392523,
+    0.085271
+   ],
+   "crop": [
+    68,
+    87,
+    175,
+    216
+   ],
+   "forge": [
+    0.3514,
+    0.61393
+   ],
+   "heat": 0.0,
+   "source": "west/shield-rush_3.png"
+  },
+  {
+   "name": "vanguard_shield-rush_south-west_0",
+   "atlas": 3,
+   "rect": [
+    0,
+    82,
+    98,
+    134
+   ],
+   "pivot": [
+    0.387755,
+    0.126866
+   ],
+   "crop": [
+    72,
+    88,
+    170,
+    222
+   ],
+   "forge": [
+    -0.00012,
+    0.68668
+   ],
+   "heat": 0.0,
+   "source": "south-west/shield-rush_0.png"
+  },
+  {
+   "name": "vanguard_shield-rush_south-west_1",
+   "atlas": 5,
+   "rect": [
+    434,
+    123,
+    108,
+    123
+   ],
+   "pivot": [
+    0.351852,
+    0.089431
+   ],
+   "crop": [
+    72,
+    93,
+    180,
+    216
+   ],
+   "forge": [
+    -0.00012,
+    0.68668
+   ],
+   "heat": 0.0,
+   "source": "south-west/shield-rush_1.png"
+  },
+  {
+   "name": "vanguard_shield-rush_south-west_2",
+   "atlas": 5,
+   "rect": [
+    857,
+    246,
+    110,
+    124
+   ],
+   "pivot": [
+    0.345455,
+    0.112903
+   ],
+   "crop": [
+    72,
+    95,
+    182,
+    219
+   ],
+   "forge": [
+    -0.00012,
+    0.68668
+   ],
+   "heat": 0.0,
+   "source": "south-west/shield-rush_2.png"
+  },
+  {
+   "name": "vanguard_shield-rush_south-west_3",
+   "atlas": 5,
+   "rect": [
+    92,
+    4,
+    103,
+    120
+   ],
+   "pivot": [
+    0.368932,
+    0.058333
+   ],
+   "crop": [
+    72,
+    92,
+    175,
+    212
+   ],
+   "forge": [
+    -0.00012,
+    0.68668
+   ],
+   "heat": 0.0,
+   "source": "south-west/shield-rush_3.png"
+  }
+ ]
+}
