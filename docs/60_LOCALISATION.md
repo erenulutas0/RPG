@@ -123,6 +123,8 @@ to English.
 | Selected / Tap to choose / Locked | Seçildi / Seçmek için dokun / Kilitli | Pass 2 |
 | choose N level-ups (a higher start) | N seviye seç | Pass 2, as the catch-up's own button says it ("{count} seviyeyi otomatik seç") |
 | pieces (the result's bare loot count) | eşya ("12 eşya (Çanta'ya bak)") | Pass 2 |
+| rewarded video / bonus (the result screen's offer) | ödüllü video / bonus ("Video izle: +60 altın", "Video oynatılamadı: bonus yok") | 2026-11-23, docs/58 7.8. "Bonus" is the Turkish game word |
+| Skip reward videos (the store's one product) | Ödüllü videoları atla; owned: "Ödüllü videolar atlanıyor"; the owner's button "Videosuz al: +60 altın" (take it without a video) | 2026-11-23, docs/58 7.8 |
 
 **Proper names stay as they are:** Cryptforge, Ilya Kest, Vanguard (the lead, 2026-11-18). **Cinder Arcanist is kept
 as a proper name in pass 1** for symmetry with Vanguard; if the owner prefers it translated, "Kül Büyücüsü" goes in its
@@ -287,6 +289,12 @@ Pass 2's (2026-11-19):
 
 11. "Tırmanış" for the Ascent, as the victory title already says it ("Tırmanış tamamlandı")? "Yükseliş" is the
     alternative, but it also reads as a rise in rank or prices.
+
+2026-11-23's (the rewarded offer, docs/58 7.8):
+
+12. The skip's owner's button says "Videosuz al: +60 altın" (take it without a video) where the English says "Skip owned:
+    +60 gold"; the pause overlay's entry, once bought, "Ödüllü videolar atlanıyor". Literal alternatives: "Atlama sende:
+    +60 altın", "Ödüllü videoları atla: satın alındı" (a third longer than the English).
 
 ## 10. The Ascent (2026-11-22)
 
