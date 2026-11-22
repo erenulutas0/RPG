@@ -228,7 +228,8 @@ namespace Cryptforge.UI
                 _service.Marked -= OnMarked;
                 _service.Slammed -= OnSlammed;
             }
-            Unbind();
+            // The scene is going: the glow is not hung back under a root that may be going first; it goes with the boss.
+            Unbind(false);
         }
 
         // The mark is down: the tell begins on this very frame (the service's Update, before any look's).
@@ -344,7 +345,7 @@ namespace Cryptforge.UI
         }
 
         // Lets the boss go: its glow back under the root, hidden; the body put back if it still stands.
-        private void Unbind()
+        private void Unbind(bool takeGlowBack = true)
         {
             if (!ReferenceEquals(_boss, null))
                 _boss.Died -= _onDied;
@@ -356,7 +357,7 @@ namespace Cryptforge.UI
             if (_glow != null)
             {
                 _glow.enabled = false;
-                if (_root != null)
+                if (takeGlowBack && _root != null)
                     _glow.transform.SetParent(_root, false);
             }
             _glowSource = null;

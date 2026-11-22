@@ -466,8 +466,10 @@ namespace Cryptforge.UI
                 }
             }
             FindFigure();
+            // A blow on a figure still recoiling carries on from where the recoil stands, back up its rise to the peak,
+            // rather than snapping to rest for a frame: a horde's blows a tenth of a second apart hold the recoil.
+            _hitElapsed = _hitting ? GameFeel.HitAttack * GameFeel.HitSeconds * Recoil : 0f;
             _hitting = true;
-            _hitElapsed = 0f;
             ApplyFigure();
         }
 
@@ -517,8 +519,10 @@ namespace Cryptforge.UI
         private void StartPop()
         {
             FindFigure();
+            // A pop under way (a level, then a pick) rises again from where it stands, as a blow does.
+            float asin = Mathf.Asin(Mathf.Clamp01(Pop)) / Mathf.PI;
+            _popElapsed = _popping ? asin * asin * GameFeel.PopSeconds : 0f;
             _popping = true;
-            _popElapsed = 0f;
             ApplyFigure();
         }
 
@@ -610,7 +614,8 @@ namespace Cryptforge.UI
         // Only on a frame it wrote, so a pause never compounds them.
         private void WeighPaintedFrames(float dt)
         {
-            if (_pose == null || dt <= 0f || !_felt)
+            // Only while its animator draws (HeroLookView ticks it), so a squash never compounds on a weight nobody rewrote.
+            if (_pose == null || dt <= 0f || !_felt || _look == null || !_look.isActiveAndEnabled)
                 return;
             _pose.localScale = Vector3.Scale(_pose.localScale, new Vector3(_scaleX, _scaleY, 1f));
             _pose.localPosition += _offset;
