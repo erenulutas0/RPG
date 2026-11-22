@@ -1748,3 +1748,73 @@ RenderedMotion for the Rush, and an answer for the Staff and Daggers loadouts (t
 
 Evidence/reproduction: ArtDirection/2026-11-22/vanguard-blender-01 (contact sheets, comparisons, GIFs, the .blend and
 the sheet script); the render command is in the script's docstring.
+
+## 2026-11-22 - Blender Vanguard in the game
+
+The owner's decisions (2026-11-22): improve the Blender Vanguard and use it in the game in place of the painted frames
+and the puppet; the Vanguard always starts with its sword and buckler, as Ilya is bound to its Staff, and the weapons a
+run picks up still work.
+
+**Look pass 2** (`Tools/ArtReview/BuildBlenderVanguard.py`, two iterations against the painted master): a deeper navy
+plate (#5584E6 / #2749AA / #15256C / #071038) whose brightness comes from a hard-edged pale-blue sheen band and a small
+hard white core (the toon group gained Sheen, Sheen Color/Power and Spec Power; still the toon group, with its rims);
+taller and more heroic - shin and thigh each about a fifth longer, everything above the hips lifted, the helm a tenth
+smaller (about 4.4 helms tall, the pilot 3.9), the tabard and skirt ending higher so the thigh plate shows; deeper,
+sharper cape pleats with a lower, scalloped hem; a flinch about half as big again (the chest and helm thrown back and
+aside, the knees giving, the buckler up, the sword arm out); the buckler turned out so its face shows in the west
+facing; and a crescent smear, solid and nearly white along its leading edge, fading to a cool see-through tail (the
+Burst's is forge-orange). The idle sword is posed per facing (`IDLE_BLADE`): any fixed bearing points at the camera in
+one of the five facings that show the right hand and stands plumb like a cane (the pilot's did in the east) and hides
+behind the body in the west, so it points out to the right where the camera sees it across and forward, ahead of the
+knight, in the east and the west; a still blade turns its flat to the camera. The facings switch whole, so the change
+never shows as a swing. Stride 1.0 (the pilot 0.9). 368 frames, about six minutes on the CPU.
+
+Verdict: a clear step, not the painted master. The side facings now read the sword and the buckler, the flinch reads at
+the phone's size, the cape has folds, the smear reads as speed, and the plate has the painting's crisp highlights. It is
+still a chunky, short-legged "dark cute" knight beside Ilya - the painting's long legs and narrow waist were not chased
+- and on screen the blue is a saturated royal navy rather than the painting's brighter steel.
+
+Sheets (untracked): `ArtDirection/2026-11-22/vanguard-blender-02` - `compare-stone-phone(-x2).png` and
+`compare-lava-phone(-x2).png` (painted, pilot, pass 2, Ilya at the phone's scale), `pairs-0..4.png` (pilot over pass 2:
+the side facings' idle, the flinch, the cut's smear, the cape), every clip's sheet, strips, south GIFs, the turnaround,
+the .blend and `make_vanguard_sheets.py`.
+
+**Pack**: `Tools/ArtReview/PackVanguardSprites.py` (PackArcanistSprites.py's pipeline and import settings: box filter in
+linear light, one-texel outline, MaxRects, bilinear, no mipmaps, not readable, ASTC 4x4 on Android) writes six pages
+`Assets/_Project/Art/Characters/Vanguard/CHR_VanguardBlender_0..5.png` and `VanguardRenderedArtSet.asset` (fresh GUIDs;
+a rerun is byte-identical); the report is `ArtDirection/2026-11-22/vanguard-blender-pack/frames.json`. Memory: 6,025,472
+texels, 5.75 MB as ASTC 4x4 (fill 95%) - Ilya's set is 4.20 MB; the sword held out widens the frames. Both sets are
+resident in every run (CombatSetup serializes both heroes, and each its set), about 10 MB, and the scene still
+references the painted frames and the puppet (100 textures, about 0.85 MB) for the development comparison.
+
+**Wiring**: `Hero_Vanguard` carries the set (`_renderedArt`), its south idle as the portrait, and
+`_startsWithItsOwnWeaponOnly`. RenderedCharacterAnimator takes the Vanguard over as it does Ilya (HeroLookView.Start):
+the sword and buckler are in the render, the loadout renderers stay dark. The Shield Rush is `RenderedMotion.Dash`, an
+optional motion: a set draws it whole or not at all (Ilya's has none and stays valid; RenderedCharacterArtSet.IsValid
+checks the required seven as before), and the animator plays it on AbilityController.SkillUsed for a Rush, once on its
+clock (4 frames at 13.3/s, docs/57's 0.3 s), over the walk the dash's travel would show. The older looks stay for
+comparison, the Vanguard's alone: `development/puppet.txt` gives it the puppet, `painted-frames.txt` its painted frames.
+`development/start-weapon.txt` (Editor and development builds) starts a run with another weapon: the scene tests and
+parity runs that played the Vanguard with the Staff or the Daggers write it (TestProfile.StartWith).
+
+Consequences to decide on: with both heroes bound to their own weapons the forge's weapon rack never sells anything
+(WeaponShop.NextUnlock is null for both; the "whole forge complete" hint cannot show); Ilya's unlock ("Clear The Foundry
+with the Staff") now needs the Staff from an in-run card; an in-run Staff or Daggers fights unseen in the Vanguard's
+hands (the render holds the sword), as any second weapon already did for Ilya; the arena's duel figure draws the sword
+and buckler whatever the duel's weapon.
+
+**Simulation**: nothing it compiles or reads changed (the hero assets are not among its inputs), so the default batch
+stays byte-identical: FOUNDRY_SEEDS=200 FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_REALISM=typical FOUNDRY_FLOORS=2 on
+the base (316fd76e) and on this branch gave the same foundry-batch.csv, foundry-batch-floor2.csv,
+foundry-cohorts-floor2.csv, foundry-cohorts.md and foundry-gate.md byte for byte, and foundry-batch.md differs only in
+its timestamp and the wall-clock column. No row moves. The simulation still plays the gate's "Vanguard + Staff" and
+"Vanguard + Daggers" rows (FoundryBatch.RunWeapons) and the parity tests' Staff and Daggers starts - starts a player can
+no longer make, kept as the research's and reachable in the scene through start-weapon.txt.
+
+Unity: EditMode `VanguardRenderedArtSetTests`, `CinderArcanistArtSetTests`, `RenderedCharacterArtTests`; PlayMode
+`VanguardRenderedAnimationTests`, `CinderArcanistAnimationTests`, `VanguardAnimationTests`, `PuppetAnimationTests`,
+`CinderArcanistTests`, `RelicForgeFlowTests`, `PaintedScreensFlowTests`, `ArenaViewTests`, `HeroAndMapChoiceFlowTests`,
+`SimulationParityTests`, `DensityProofParityTests`, `StaffSplashTests`, `PaintedFeedbackTests`, `CinderBloomFlowTests`,
+`EliteStepInFlowTests`, `MirrorSentryFlowTests`. To capture on the device: the Vanguard idling, walking and cutting in
+all eight facings on the Foundry's stone (the side facings' sword), a flinch, a Forge Burst, a Shield Rush (skills.txt
+3), a death, and the map choice's and the forge's hero portraits.
