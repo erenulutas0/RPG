@@ -1729,3 +1729,22 @@ rim rhythm. Region 157,434 vertices (+1,784). 457 .NET / 738 EditMode / 164 Play
 bytes, SHA256 DD3B3B99BE4560598E0C4457264476F031A8B13E22726CDFF21D1DDE367FF0CF, NOT INSTALLED.
 
 Evidence/reproduction: ArtDirection/2026-10-23/foundry-rail-rhythm-01.
+
+## 2026-11-22 - Blender Vanguard pilot
+
+A look pilot for the owner, not wired into the game: the Vanguard rebuilt in Ilya's Blender pipeline.
+`Tools/ArtReview/BuildBlenderVanguard.py` builds, rigs, poses and renders a chunky blue-steel knight with the painted
+Vanguard's marks (gold crest, trim and rivet bosses, silver edging, a T visor whose slit glows blue, a dark blue cape,
+mail at the joints, a brown belt) and the Sword loadout's arming sword and round buckler, in Ilya's "dark cute"
+proportions. Everything else is BuildBlenderArcanist.py's: the toon node group, the key and rims, the camera, the eight
+rendered facings, the 2.2 x 2.5 canvas at 4x with the pivot at (110, 45), and frames.json. The clips are RenderedMotion's
+with its timings (idle 8 at 5/s; walk and walk-strike 8 by distance, stride 0.9 for the shorter legs; strike 5 at 20/s;
+cast 5 at 14/s; hit 3 at 20/s; death 5 at 9/s) plus docs/57's Shield Rush (4 at 13.3/s, not a RenderedMotion). The cut
+and the Forge Burst carry a swing smear; the Burst heats the blade forge-orange and lights the plate round it. 368 frames,
+66,306 vertices, about 6.5 minutes on the CPU.
+
+Wiring would still need a pack step (as PackArcanistSprites.py), the art set on Hero_Vanguard's `_renderedArt`, a
+RenderedMotion for the Rush, and an answer for the Staff and Daggers loadouts (the sword and buckler are baked in).
+
+Evidence/reproduction: ArtDirection/2026-11-22/vanguard-blender-01 (contact sheets, comparisons, GIFs, the .blend and
+the sheet script); the render command is in the script's docstring.
