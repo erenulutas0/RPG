@@ -25,7 +25,9 @@ namespace Cryptforge.Tests
 
         [UnityTest] public IEnumerator CaptureOutworks()
         {
-            TestProfile.Begin();Time.timeScale=1;_pinned=Loc.Override;
+            // Every frame a fixed 1/60 s of game time: the long first frame after a batch-mode load cannot walk the hero past
+            // a pad or through half an arc (OutworksFlowTests reads the same way).
+            TestProfile.Begin();Time.timeScale=1;Time.captureDeltaTime=1f/60f;_pinned=Loc.Override;
             Directory.CreateDirectory(Output);
             Directory.CreateDirectory(Path.GetDirectoryName(DevelopmentStart.OutworksPath));
             File.WriteAllText(DevelopmentStart.RegionPreviewPath,"foundry");
@@ -78,6 +80,8 @@ namespace Cryptforge.Tests
             while(!encounter.Leap.IsAirborne&&Time.realtimeSinceStartup<deadline){Heal(health);yield return null;}
             input.Release();
             while(encounter.Leap.IsAirborne&&encounter.Leap.Progress<.45f&&Time.realtimeSinceStartup<deadline){Heal(health);yield return null;}
+            // The coroutine resumes after the Updates and before the LateUpdates: the view lifts the body for this frame first.
+            Object.FindFirstObjectByType<OutworksView>().Refresh();
             Capture(camera,arena,follow,"06-pad-arc");
             while(encounter.Leap.IsAirborne&&Time.realtimeSinceStartup<deadline){Heal(health);yield return null;}
             yield return Frames(setup,health,5);
@@ -136,7 +140,7 @@ namespace Cryptforge.Tests
         }
         [UnityTearDown] public IEnumerator End()
         {
-            Time.timeScale=1;Loc.Override=_pinned;
+            Time.captureDeltaTime=0f;Time.timeScale=1;Loc.Override=_pinned;
             if(_scene.IsValid()&&_scene.isLoaded){SceneManager.SetActiveScene(SceneManager.CreateScene("Outworks capture cleanup"));yield return SceneManager.UnloadSceneAsync(_scene);}
             TestProfile.End();
         }

@@ -16,12 +16,21 @@ namespace Cryptforge.Tests
     // capture into a card offer, the Keeper walks on and its fall hands over the key, a pad carries the hero over the pit
     // untouched, the Bell raises the swarm and opens the stair, and the stair held leads into the floor's first hall on the
     // same clock. Without the file the floor begins with its first hall as shipped.
+    //
+    // Two things about Unity's frame these tests read by. A coroutine's "yield return null" resumes after every Update and
+    // before any LateUpdate: an Update's change (the leap landing, the Keeper walking on, the stair held) is seen at once,
+    // but a view that draws it in its LateUpdate (OutworksView) shows it a frame later - the tests wait that frame (Drawn)
+    // before reading a view. And the first frame after a batch-mode scene load is long, its deltaTime a spike that could
+    // walk the hero past a pad or through half an arc in one step: every frame here is a fixed 1/60 s of game time
+    // (Time.captureDeltaTime, as HordePacingMeasurement plays), so a step is a step.
     public sealed class OutworksFlowTests
     {
-        [UnitySetUp] public IEnumerator Begin(){TestProfile.Begin();Time.timeScale=1;yield return null;}
+        private const float Step = 1f / 60f;
+
+        [UnitySetUp] public IEnumerator Begin(){TestProfile.Begin();Time.timeScale=1;Time.captureDeltaTime=Step;yield return null;}
         [UnityTearDown] public IEnumerator End()
         {
-            Time.timeScale=1;var old=SceneManager.GetActiveScene();
+            Time.captureDeltaTime=0f;Time.timeScale=1;var old=SceneManager.GetActiveScene();
             SceneManager.SetActiveScene(SceneManager.CreateScene("Outworks flow cleanup"));
             yield return SceneManager.UnloadSceneAsync(old);TestProfile.End();
         }
@@ -65,6 +74,12 @@ namespace Cryptforge.Tests
         }
 
         private static void Put(Transform hero,float x,float y)=>hero.position=new Vector3(x,ArenaFloor.WorldY(y),hero.position.z);
+
+        // One frame more, so the views' LateUpdate has drawn what this frame's Updates changed.
+        private static IEnumerator Drawn()
+        {
+            yield return null;
+        }
 
         private static string TelemetryText()
         {
@@ -145,6 +160,9 @@ namespace Cryptforge.Tests
             Assert.That(encounter.EliteLeader,Is.SameAs(keeper),"The Keeper is the elite room's Captain.");
             Assert.That(encounter.Outworks.Keeper,Is.EqualTo(KeeperState.Patrolling));
             Assert.That(encounter.AliveEnemyCount,Is.GreaterThan(1),"It walks with its escort.");
+            // The Keeper walked on in this frame's Update; its lantern is drawn in this frame's LateUpdate.
+            yield return Drawn();
+            Assert.That(encounter.KeeperLeader,Is.SameAs(keeper),"It still stands.");
             Assert.That(setup.GetComponent<OutworksView>().IsLanternShown,Is.True,"Its lantern marks it.");
             keeper.ApplyDamage(new DamageContext(10000000f));
             yield return null;
@@ -194,7 +212,9 @@ namespace Cryptforge.Tests
             Assert.That(movement.Motion.Y,Is.EqualTo(ty).Within(1e-3f));
             Assert.That(movement.transform.position.x,Is.EqualTo(tx).Within(1e-3f),"The hero stands on the landing.");
             Assert.That(encounter.Leap.Launches,Is.EqualTo(1));
-            Assert.That(view.ShownLift,Is.EqualTo(0f));
+            // The leap landed in this frame's Update; the view lowers the body in this frame's LateUpdate.
+            yield return Drawn();
+            Assert.That(view.ShownLift,Is.EqualTo(0f),"Landed, the body stands on its shadow again.");
             LogAssert.NoUnexpectedReceived();
         }
 
@@ -245,6 +265,8 @@ namespace Cryptforge.Tests
                 Assert.That(encounter.OutworksKindOf(encounter.WaveEnemyAt(i)),Is.Null,"No Bell enemy stays.");
             Assert.That(encounter.IsHordeActive,Is.True,"The horde runs on.");
             Assert.That(encounter.FloorClockSeconds,Is.GreaterThanOrEqualTo(OutworksRule.BellSeconds),"On the same floor clock.");
+            // The stair was held in this frame's Update; the view hides the phase in this frame's LateUpdate.
+            yield return Drawn();
             Assert.That(setup.GetComponent<OutworksView>().IsShown,Is.False,"The phase is no longer drawn.");
             LogAssert.NoUnexpectedReceived();
         }
