@@ -40,7 +40,11 @@ namespace Cryptforge.Tests
         {
             TestProfile.Begin(profile);
             if (skills != null)
+            {
                 File.WriteAllText(DevelopmentStart.SkillsPath, skills);
+                // The development file's skills are said in the log (CombatSetup).
+                UnityEngine.TestTools.LogAssert.Expect(LogType.Log, new System.Text.RegularExpressions.Regex(@"^\[Skills\] the run carries"));
+            }
             Time.timeScale = 1;
             Time.captureDeltaTime = 1f / 60;
             yield return SceneManager.LoadSceneAsync(ScenePath);

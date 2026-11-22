@@ -47,6 +47,8 @@ namespace Cryptforge.Tests
             File.WriteAllText(DevelopmentStart.RegionPreviewPath, "foundry");
             if (arcanist)
                 File.WriteAllText(DevelopmentStart.HeroPath, ArcanistId);
+            else
+                File.WriteAllText(DevelopmentStart.PuppetPath, "puppet"); // these tests read the puppet path; the Vanguard renders by default
             Time.captureDeltaTime = 1f / 60f;
             yield return SceneManager.LoadSceneAsync(ScenePath);
             yield return null;
