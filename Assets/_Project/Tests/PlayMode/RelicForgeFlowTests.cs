@@ -64,10 +64,9 @@ namespace Cryptforge.Tests
             Assert.That(Label("Relics Header"), Is.EqualTo("Relics: equip one"));
             Assert.That(WeaponCardText(0, "Name Label"), Is.EqualTo("Sword"));
             Assert.That(WeaponCardText(0, "State Label"), Is.EqualTo("Equipped"), "The starting weapon never needs forging.");
-            Assert.That(WeaponCardText(1, "Name Label"), Is.EqualTo("Staff"));
-            Assert.That(WeaponCardText(1, "State Label"), Is.EqualTo("120 gold: need 120 more"));
-            Assert.That(WeaponCardText(2, "Name Label"), Is.EqualTo("Daggers"));
-            Assert.That(WeaponCard(2).interactable, Is.False);
+            // The Vanguard is bound to its Sword as Ilya to its Staff (the owner, 2026-11-22): nothing else on its rack.
+            Assert.That(WeaponCard(1).gameObject.activeSelf, Is.False, "No Staff for sale.");
+            Assert.That(WeaponCard(2).gameObject.activeSelf, Is.False, "No Daggers for sale.");
 
             Tap(Card(0));
             Tap(WeaponCard(1));
@@ -153,10 +152,10 @@ namespace Cryptforge.Tests
         }
 
         // Ilya carries its own Staff and no other weapon (docs/45), so once every relic is forged its rack holds
-        // nothing to forge: the hint says every relic is forged, not that the whole forge is, since the Vanguard's
-        // rack still sells the Staff.
+        // nothing to forge: the hint says every relic is forged. Since 2026-11-22 the Vanguard is bound to its Sword the
+        // same way, so its rack shows the Sword alone, equipped.
         [UnityTest]
-        public IEnumerator IlyasResultSaysEveryRelicIsForgedWhileTheVanguardStillHasAWeaponToForge()
+        public IEnumerator IlyasResultSaysEveryRelicIsForgedAndTheVanguardsRackHoldsItsSwordAlone()
         {
             const string arcanist = "hero_cinder_arcanist";
             yield return LoadGameplay(new PlayerProfile(500, new[] { "relic_second_wind", "relic_counterweight" },
@@ -172,9 +171,12 @@ namespace Cryptforge.Tests
             Assert.That(_forge.IsOpen, Is.True);
             _forge.HeroChoice.Cycle();
             Assert.That(_setup.Profile.SelectedHeroId, Is.Null, "The Vanguard for the next run.");
-            Assert.That(WeaponCardText(1, "Name Label"), Is.EqualTo("Staff"));
-            Assert.That(WeaponCardText(1, "State Label"), Is.EqualTo("Forge for 120 gold"),
-                "The Vanguard's rack still sells the Staff.");
+            Assert.That(_setup.Weapons.NextUnlock, Is.Null, "The Vanguard's Sword alone, always its own.");
+            Assert.That(WeaponCard(0).gameObject.activeSelf, Is.True);
+            Assert.That(WeaponCardText(0, "Name Label"), Is.EqualTo("Sword"));
+            Assert.That(WeaponCardText(0, "State Label"), Is.EqualTo("Equipped"));
+            Assert.That(WeaponCard(1).gameObject.activeSelf, Is.False, "The Staff is not the Vanguard's to forge.");
+            Assert.That(WeaponCard(2).gameObject.activeSelf, Is.False);
             LogAssert.NoUnexpectedReceived();
         }
 
@@ -223,8 +225,11 @@ namespace Cryptforge.Tests
             Assert.That(Label("Build Label"), Does.StartWith("Build: Sword  |  Second Wind (1x)"));
         }
 
+        // Before 2026-11-22 the Vanguard's rack sold the Staff and the Daggers and the next run carried what it forged.
+        // The Vanguard is bound to its Sword since (the owner): its rack shows the Sword alone, a tap on a hidden card forges
+        // nothing, and the next run carries the Sword.
         [UnityTest]
-        public IEnumerator ForgingTheStaffCarriesItIntoTheNextRunAndTheSwordStaysFree()
+        public IEnumerator TheVanguardsRackOffersItsSwordAloneAndTheNextRunCarriesIt()
         {
             // Decimals follow the current culture, as on the device.
             yield return LoadGameplay(new PlayerProfile(150, null, null, 1));
@@ -236,32 +241,28 @@ namespace Cryptforge.Tests
             yield return new WaitForSecondsRealtime(0.4f);
 
             Assert.That(WeaponCardText(0, "Description Label"), Is.EqualTo("10 damage every 0.8s. Cleaves a second enemy for 60%"));
-            Assert.That(WeaponCardText(1, "Description Label"), Is.EqualTo("11 damage every 1.1s. Blasts every enemy near the target for 75%"));
-            Assert.That(WeaponCardText(1, "State Label"), Is.EqualTo("Forge for 120 gold"));
-            Assert.That(WeaponCardText(2, "Description Label"), Is.EqualTo("6 damage every 0.5s. Crits for 200% once every 3 strikes. Double damage to elites"));
-            Assert.That(WeaponCardText(2, "State Label"), Is.EqualTo("180 gold: need 30 more"));
-
+            Assert.That(WeaponCardText(0, "State Label"), Is.EqualTo("Equipped"));
+            Assert.That(WeaponCard(1).gameObject.activeSelf, Is.False);
+            Assert.That(WeaponCard(2).gameObject.activeSelf, Is.False);
             Tap(WeaponCard(1));
             Tap(WeaponCard(1));
-            Assert.That(_setup.Profile.Gold, Is.EqualTo(30), "Rapid taps forge the Staff once.");
-            Assert.That(_setup.Profile.EquippedWeaponId, Is.EqualTo("weapon_staff"));
-            Assert.That(WeaponCardText(1, "State Label"), Is.EqualTo("Equipped"));
-            Assert.That(WeaponCardText(0, "State Label"), Is.EqualTo("Owned: tap to equip"));
-
-            yield return new WaitForSecondsRealtime(0.4f);
-            Tap(WeaponCard(0));
-            Assert.That(_setup.Profile.EquippedWeaponId, Is.Null, "The Sword is equipped again for free.");
-            Assert.That(_setup.Profile.Gold, Is.EqualTo(30));
-            yield return new WaitForSecondsRealtime(0.4f);
-            Tap(WeaponCard(1));
-            Assert.That(_setup.Profile.EquippedWeaponId, Is.EqualTo("weapon_staff"));
-
-            PlayerProfile saved = TestProfile.ReadSaved();
-            Assert.That(saved.OwnedWeaponIds, Is.EqualTo(new[] { "weapon_staff" }));
-            Assert.That(saved.EquippedWeaponId, Is.EqualTo("weapon_staff"));
+            Assert.That(_setup.Profile.Gold, Is.EqualTo(150), "Nothing forged.");
+            Assert.That(_setup.Profile.OwnedWeaponIds, Is.Empty);
+            Assert.That(_setup.Profile.EquippedWeaponId, Is.Null);
 
             yield return new WaitForSecondsRealtime(0.4f);
             yield return StartRun();
+            Assert.That(_setup.HeroWeapon.Id, Is.EqualTo("weapon_sword"));
+            Assert.That(Label("Weapon Label"), Is.EqualTo("Sword  |  10 damage every 0.80s"));
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // The Staff's blast as the forged Staff's run measured it, the run now started with the Staff by the development
+        // file (the Vanguard's own is the Sword alone since 2026-11-22; a player's run gets the Staff from a card).
+        [UnityTest]
+        public IEnumerator TheStaffBlastsTheMiteThenTheGruntAndTheSwordLoadoutHides()
+        {
+            yield return LoadGameplay(new PlayerProfile(150, null, null, 1), "weapon_staff");
             Assert.That(_setup.HeroWeapon.Id, Is.EqualTo("weapon_staff"));
             Assert.That(_setup.Weapon.Pattern.Behavior, Is.EqualTo(WeaponBehavior.Area));
             Assert.That(Label("Weapon Label"), Is.EqualTo("Staff  |  11 damage every 1.10s"));
@@ -282,7 +283,8 @@ namespace Cryptforge.Tests
         [UnityTest]
         public IEnumerator DaggersCritEveryThirdStrikeAndTheCritFlashesGold()
         {
-            yield return LoadGameplay(new PlayerProfile(0, null, null, 0, new[] { "weapon_daggers" }, "weapon_daggers"));
+            yield return LoadGameplay(new PlayerProfile(0, null, null, 0, new[] { "weapon_daggers" }, "weapon_daggers"),
+                "weapon_daggers");
             Assert.That(Label("Weapon Label"), Is.EqualTo("Daggers  |  6 damage every 0.50s"));
             Assert.That(Object.FindFirstObjectByType<HeroWeaponView>().ShownLoadout.name, Is.EqualTo("Daggers Loadout"));
 
@@ -448,9 +450,11 @@ namespace Cryptforge.Tests
             }
         }
 
-        private IEnumerator LoadGameplay(PlayerProfile seed)
+        // startWeapon: development/start-weapon.txt's weapon (every hero starts with its own alone since 2026-11-22).
+        private IEnumerator LoadGameplay(PlayerProfile seed, string startWeapon = null)
         {
             TestProfile.Begin(seed);
+            TestProfile.StartWith(startWeapon);
             Time.timeScale = 1f;
             yield return SceneManager.LoadSceneAsync(ScenePath);
             // Views format their labels in Start, which runs before the first frame after the load.

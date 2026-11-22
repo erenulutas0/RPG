@@ -454,7 +454,8 @@ namespace Cryptforge.UI
             _playback.Play(_log, names, identities, weapons, art);
         }
 
-        // The run's own art for a hero: its rendered set (Ilya), else the painted Vanguard the scene's hero carries.
+        // The run's own art for a hero: its rendered set (Ilya; the Vanguard since 2026-11-22, its sword and buckler drawn
+        // whatever the duel's weapon, as Ilya's staff is), else the painted Vanguard the scene's hero carries.
         private static DuelSideArt ArtFor(HeroDefinition hero)
         {
             if (hero != null && hero.RenderedArt != null && hero.RenderedArt.IsValid)

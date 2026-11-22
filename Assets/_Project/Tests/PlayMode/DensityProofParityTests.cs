@@ -418,6 +418,9 @@ namespace Cryptforge.Tests
 
             TestProfile.Begin(new PlayerProfile(0, null, null, 0,
                 weaponId != null ? new[] { weaponId } : null, weaponId));
+            // The Vanguard starts with its Sword alone since 2026-11-22: the Staff's and the Daggers' starts are the
+            // development file's.
+            TestProfile.StartWith(weaponId);
             WriteStartFloor(ProofFloorId);
             WriteRunSeed(DevelopmentSeed);
             _previousFrameRate = Application.targetFrameRate;

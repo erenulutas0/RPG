@@ -21,7 +21,9 @@ namespace Cryptforge.Art
 
     // What a pre-rendered character can be doing. The walk is driven by distance, every other motion by time. The walk
     // strike is the walk's legs under the strike's arms: a walking hero keeps its stride while it attacks (the owner,
-    // 2026-10-26: attacks froze the Vanguard's legs and it glided).
+    // 2026-10-26: attacks froze the Vanguard's legs and it glided). The first seven every set draws; the dash is
+    // optional (RenderedCharacterFrames.IsOptional): a hero's dash (HeroDash) - the Vanguard's Shield Rush, docs/57 -
+    // played once on its clock while the hero is thrown along; a set without it shows the walk instead, as before.
     public enum RenderedMotion
     {
         Idle = 0,
@@ -30,7 +32,8 @@ namespace Cryptforge.Art
         Strike = 3,
         Cast = 4,
         Hit = 5,
-        Death = 6
+        Death = 6,
+        Dash = 7
     }
 
     // One motion's timing: its frame count, frames a second (unused by the distance-driven walks) and whether it loops.
@@ -59,7 +62,9 @@ namespace Cryptforge.Art
         // The facings every set draws (south through north on the east side), and all of them with the west three.
         public const int EastFacingCount = 5;
         public const int FacingCount = 8;
-        public const int MotionCount = 7;
+        // Every motion, and the ones every set must draw (the rest, the dash, are optional).
+        public const int MotionCount = 8;
+        public const int RequiredMotionCount = 7;
         public const int SectorCount = 8;
         // Sectors count counter-clockwise from east on the floor: 2 is north (up the screen), 6 south (toward the camera).
         public const int EastSector = 0;
@@ -75,6 +80,10 @@ namespace Cryptforge.Art
         public const float StrikeShareOfInterval = 0.65f;
 
         private const float DegreesPerSector = 360f / SectorCount;
+
+        // A motion a set may leave out (the dash): its clips are drawn whole or not at all.
+        public static bool IsOptional(RenderedMotion motion) =>
+            (int)motion >= RequiredMotionCount && (int)motion < MotionCount;
 
         // The sector a floor direction points in; a zero displacement has none (-1).
         public static int Sector(float floorX, float floorY)
@@ -195,7 +204,8 @@ namespace Cryptforge.Art
     // The rules, as VanguardAnimator's and PuppetAnimator's: travel turns the facing (with a margin), a standing strike
     // faces its target while a walking one keeps the travel facing, a strike never stops the legs (the walk strike), a
     // hit flinches only a hero standing idle (a walking or striking hero only flashes), the Vent's cast plays whole,
-    // death plays once and holds, and a tick without time changes nothing.
+    // death plays once and holds, and a tick without time changes nothing. A dash (a set that draws it) plays once on its
+    // clock over everything but the cast and death, its facing the travel's; the newer of a cast and a dash shows.
     public sealed class RenderedCharacterPlayer
     {
         // Below this a tick's floor travel is standing, as for VanguardAnimator.
@@ -214,18 +224,22 @@ namespace Cryptforge.Art
         private float _strikeRemaining;
         private float _strikeDuration;
         private float _castTime = -1f;
+        private float _dashTime = -1f;
         private float _hitTime = -1f;
         private float _deathTime = -1f;
 
-        // timings: one per RenderedMotion, in its order. strideLength: floor units of one walk cycle (two steps).
-        // westDrawn: the set draws all eight facings, so nothing is mirrored; without it the west mirrors the east.
+        // timings: one per RenderedMotion, in its order - every motion, or the required seven alone (the optional ones
+        // then have no frames). strideLength: floor units of one walk cycle (two steps). westDrawn: the set draws all
+        // eight facings, so nothing is mirrored; without it the west mirrors the east.
         public RenderedCharacterPlayer(RenderedClipTiming[] timings, float strideLength, bool westDrawn = false)
         {
-            if (timings == null || timings.Length != RenderedCharacterFrames.MotionCount)
+            if (timings == null || (timings.Length != RenderedCharacterFrames.MotionCount &&
+                                    timings.Length != RenderedCharacterFrames.RequiredMotionCount))
                 throw new ArgumentException("One timing per rendered motion.", nameof(timings));
             if (!(strideLength > 0f))
                 throw new ArgumentOutOfRangeException(nameof(strideLength));
-            _timings = (RenderedClipTiming[])timings.Clone();
+            _timings = new RenderedClipTiming[RenderedCharacterFrames.MotionCount];
+            Array.Copy(timings, _timings, timings.Length);
             _strideLength = strideLength;
             _westDrawn = westDrawn;
             Show();
@@ -240,7 +254,10 @@ namespace Cryptforge.Art
         public bool IsMoving { get; private set; }
         public bool IsStriking => _strikeRemaining > 0f;
         public bool IsCasting => _castTime >= 0f;
+        public bool IsDashing => _dashTime >= 0f;
         public bool IsDying => _deathTime >= 0f;
+        // Whether the set draws the dash: without it a dash shows the walk.
+        public bool DrawsDash => _timings[(int)RenderedMotion.Dash].Frames > 0;
         public float WalkDistance => _distance;
 
         public RenderedClipTiming Timing(RenderedMotion motion) => _timings[(int)motion];
@@ -280,13 +297,19 @@ namespace Cryptforge.Art
                 if (_castTime >= Timing(RenderedMotion.Cast).Seconds)
                     _castTime = -1f;
             }
+            if (_dashTime >= 0f)
+            {
+                _dashTime += dt;
+                if (_dashTime >= Timing(RenderedMotion.Dash).Seconds)
+                    _dashTime = -1f;
+            }
             if (_hitTime >= 0f)
             {
                 _hitTime += dt;
                 if (_hitTime >= Timing(RenderedMotion.Hit).Seconds)
                     _hitTime = -1f;
             }
-            if (!IsMoving && !IsStriking && !IsCasting && _hitTime < 0f)
+            if (!IsMoving && !IsStriking && !IsCasting && !IsDashing && _hitTime < 0f)
                 _idleTime += dt;
             Show();
         }
@@ -319,14 +342,28 @@ namespace Cryptforge.Art
             if (IsDying)
                 return;
             _castTime = 0f;
+            _dashTime = -1f;
             _hitTime = -1f;
             Show();
         }
 
-        // A hit flinches a hero standing idle; walking, striking or casting it only flashes.
+        // The hero's dash began (the Vanguard's Shield Rush): its clip plays once, over the walk the dash's travel would
+        // otherwise show. False, and nothing changes, for a set that does not draw it or a fallen hero.
+        public bool Dash()
+        {
+            if (IsDying || !DrawsDash)
+                return false;
+            _dashTime = 0f;
+            _castTime = -1f;
+            _hitTime = -1f;
+            Show();
+            return true;
+        }
+
+        // A hit flinches a hero standing idle; walking, striking, casting or dashing it only flashes.
         public void Hit()
         {
-            if (IsDying || IsMoving || IsStriking || IsCasting)
+            if (IsDying || IsMoving || IsStriking || IsCasting || IsDashing)
                 return;
             _hitTime = 0f;
             Show();
@@ -339,6 +376,7 @@ namespace Cryptforge.Art
             _deathTime = 0f;
             _strikeRemaining = 0f;
             _castTime = -1f;
+            _dashTime = -1f;
             _hitTime = -1f;
             IsMoving = false;
             Show();
@@ -350,7 +388,7 @@ namespace Cryptforge.Art
             if (IsDying)
                 return;
             _distance = _standing = _idleTime = _strikeRemaining = 0f;
-            _castTime = _hitTime = -1f;
+            _castTime = _dashTime = _hitTime = -1f;
             IsMoving = false;
             Show();
         }
@@ -368,6 +406,11 @@ namespace Cryptforge.Art
             {
                 Motion = RenderedMotion.Cast;
                 Frame = Timed(RenderedMotion.Cast, _castTime);
+            }
+            else if (IsDashing)
+            {
+                Motion = RenderedMotion.Dash;
+                Frame = Timed(RenderedMotion.Dash, _dashTime);
             }
             else if (IsStriking)
             {

@@ -104,8 +104,9 @@ namespace Cryptforge.Tests
         [UnityTest, Timeout(90000)]
         public IEnumerator TheForgeWearsItsFramesAndEachCardTheFrameOfItsState()
         {
-            // The Vanguard's rack in every state: the Sword it carries, the Staff it owns, the Daggers out of reach (160 of
-            // 180), Second Wind worn and Counterweight ready to forge (150).
+            // The forge's cards in their states: the Sword the Vanguard carries (its rack holds nothing else since
+            // 2026-11-22, an older profile's Staff aside), Second Wind worn and Counterweight ready to forge (150); a relic
+            // out of reach is the next test's.
             yield return Load(new PlayerProfile(160, new[] { "relic_second_wind" }, "relic_second_wind", 2, new[] { "weapon_staff" }));
             yield return OpenForge();
             Transform area = ForgeArea;
@@ -140,8 +141,6 @@ namespace Cryptforge.Tests
             (string card, UnlockStatus state, string words)[] expected =
             {
                 ("Weapon Card 1", UnlockStatus.Equipped, "Equipped"),
-                ("Weapon Card 2", UnlockStatus.Owned, "Owned: tap to equip"),
-                ("Weapon Card 3", UnlockStatus.TooExpensive, "180 gold: need 20 more"),
                 ("Relic Card 1", UnlockStatus.Equipped, "Equipped"),
                 ("Relic Card 2", UnlockStatus.Affordable, "Forge for 150 gold"),
             };
@@ -158,6 +157,8 @@ namespace Cryptforge.Tests
                 Assert.That(accent.color, Is.EqualTo(card.transform.Find("State Label").GetComponent<Text>().color),
                     $"{name}: still in the state's colour.");
             }
+            Assert.That(Card("Weapon Card 2").gameObject.activeSelf || Card("Weapon Card 3").gameObject.activeSelf, Is.False,
+                "The Vanguard's Sword alone on its rack.");
             Assert.That(Card("Weapon Card 1").GetComponent<RectTransform>().anchorMin, Is.EqualTo(new Vector2(0f, .69f)), "Every card where it was.");
             Assert.That(Card("Weapon Card 1").GetComponent<RectTransform>().sizeDelta, Is.EqualTo(new Vector2(-120f, 0f)));
 
@@ -188,8 +189,7 @@ namespace Cryptforge.Tests
             Assert.That(_setup.Profile.EquippedRelicId, Is.EqualTo("relic_counterweight"));
             Assert.That(Card("Relic Card 2").image.sprite, Is.SameAs(_art.CardFor(UnlockStatus.Equipped)), "Worn now.");
             Assert.That(Card("Relic Card 1").image.sprite, Is.SameAs(_art.CardFor(UnlockStatus.Owned)), "Owned, no longer worn.");
-            // Gold 10 now: the Staff is still owned, so nothing else changes its frame.
-            Assert.That(Card("Weapon Card 2").image.sprite, Is.SameAs(_art.CardFor(UnlockStatus.Owned)));
+            Assert.That(Card("Weapon Card 1").image.sprite, Is.SameAs(_art.CardFor(UnlockStatus.Equipped)), "The Sword still carried.");
             AssertNothingPaintedCatchesATap(_forge);
             LogAssert.NoUnexpectedReceived();
         }
@@ -212,7 +212,7 @@ namespace Cryptforge.Tests
         }
 
         [UnityTest, Timeout(90000)]
-        public IEnumerator TheChooserFramesTheChosenHeroAndOneWeaponLeavesTheRackPainted()
+        public IEnumerator TheChooserFramesTheChosenHeroAndEachHerosOneWeaponLeavesTheRackPainted()
         {
             yield return Load();
             yield return OpenForge();
@@ -240,8 +240,9 @@ namespace Cryptforge.Tests
             Assert.That(choice.Current, Is.SameAs(_setup.Heroes[0]));
             Assert.That(_view.HeroPips[0].sprite, Is.SameAs(_art.PipLit), "The Vanguard chosen.");
             Assert.That(_view.HeroPips[1].sprite, Is.SameAs(_art.PipDark));
-            for (int i = 0; i < 3; i++)
-                Assert.That(_view.EmptyPlace(i).activeSelf, Is.False, "His whole rack: no place empty.");
+            // The Vanguard: its Sword alone since 2026-11-22, in the rack's first place, the others painted.
+            Assert.That(_view.EmptyPlace(0).activeSelf, Is.False, "The Sword's own place holds the Sword.");
+            Assert.That(_view.EmptyPlace(1).activeSelf && _view.EmptyPlace(2).activeSelf, Is.True, "The others painted while empty.");
 
             // Ilya: its Staff alone, in the rack's middle place, the others painted.
             choice.Cycle();
@@ -268,12 +269,12 @@ namespace Cryptforge.Tests
             }
             Assert.That(_view.EmptyPlace(1).activeSelf, Is.False, "The Staff's own place holds the Staff.");
 
-            // Back to the Vanguard: its whole rack again.
+            // Back to the Vanguard: its Sword's place again.
             choice.Cycle();
             yield return null;
             Assert.That(_view.HeroPips[0].sprite, Is.SameAs(_art.PipLit));
-            for (int i = 0; i < 3; i++)
-                Assert.That(_view.EmptyPlace(i).activeSelf, Is.False);
+            Assert.That(_view.EmptyPlace(0).activeSelf, Is.False);
+            Assert.That(_view.EmptyPlace(1).activeSelf && _view.EmptyPlace(2).activeSelf, Is.True);
             AssertNothingPaintedCatchesATap(_forge);
             LogAssert.NoUnexpectedReceived();
         }

@@ -140,6 +140,8 @@ namespace Cryptforge.Tests
                 TestProfile.Begin(weaponId.Length > 0
                     ? new PlayerProfile(0, null, null, 0, new[] { weaponId }, weaponId)
                     : null);
+                // Every hero starts with its own weapon only since 2026-11-22: the research's M1 start is the file's.
+                TestProfile.StartWith(weaponId);
                 Directory.CreateDirectory(Path.GetDirectoryName(DevelopmentStart.AutopilotPath));
                 File.WriteAllText(DevelopmentStart.RegionPreviewPath, "foundry");
                 File.WriteAllText(DevelopmentStart.AutopilotPath, mode + (cohort.Length > 0 ? " " + cohort : string.Empty));

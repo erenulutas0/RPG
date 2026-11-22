@@ -33,9 +33,11 @@ namespace Cryptforge.Tests
             TestProfile.End();
         }
 
-        private IEnumerator Load(bool arcanist, PlayerProfile profile = null)
+        // startWeapon: development/start-weapon.txt's weapon (every hero starts with its own alone since 2026-11-22).
+        private IEnumerator Load(bool arcanist, PlayerProfile profile = null, string startWeapon = null)
         {
             TestProfile.Begin(profile);
+            TestProfile.StartWith(startWeapon);
             if (arcanist)
                 File.WriteAllText(DevelopmentStart.HeroPath, ArcanistId);
             Time.timeScale = 1;
@@ -245,19 +247,22 @@ namespace Cryptforge.Tests
             Assert.That(ShownWeaponCards(forge), Is.EqualTo(new[] { "Staff" }), "Not the Vanguard's Sword for 0 gold.");
             forge.HeroChoice.Cycle();
             Assert.That(_setup.Profile.SelectedHeroId, Is.Null, "Back to the default, stored as no choice.");
-            Assert.That(_setup.Weapons.OnlyStartingWeapon, Is.False);
-            Assert.That(ShownWeaponCards(forge), Is.EqualTo(new[] { "Sword", "Staff", "Daggers" }), "The Vanguard's whole rack.");
+            // The Vanguard is bound to its Sword as Ilya to its Staff (the owner, 2026-11-22): its own card alone too.
+            Assert.That(_setup.Weapons.OnlyStartingWeapon, Is.True);
+            Assert.That(_setup.Weapons.Equipped.Id, Is.EqualTo("weapon_sword"));
+            Assert.That(ShownWeaponCards(forge), Is.EqualTo(new[] { "Sword" }), "The Vanguard's own Sword alone.");
             LogAssert.NoUnexpectedReceived();
         }
 
-        // A run played by Ilya carries the Staff even when the profile equips another weapon for the Vanguard.
+        // A run played by Ilya carries the Staff even when the profile holds another weapon equipped (an older profile's
+        // choice for the Vanguard, which starts with its own Sword alone since 2026-11-22).
         [UnityTest]
         public IEnumerator IlyaStartsWithItsStaffWhateverTheProfileEquips()
         {
             yield return Load(true, new PlayerProfile(500, null, null, 0, new[] { "weapon_daggers" }, "weapon_daggers"));
             Assert.That(_setup.Hero.Id, Is.EqualTo(ArcanistId));
             Assert.That(_setup.HeroWeapon.Id, Is.EqualTo("weapon_staff"));
-            Assert.That(TestProfile.ReadSaved().EquippedWeaponId, Is.EqualTo("weapon_daggers"), "The Vanguard's choice stands.");
+            Assert.That(TestProfile.ReadSaved().EquippedWeaponId, Is.EqualTo("weapon_daggers"), "The saved choice stands.");
             LogAssert.NoUnexpectedReceived();
         }
 
@@ -273,10 +278,13 @@ namespace Cryptforge.Tests
             return names.ToArray();
         }
 
+        // The Vanguard starts with its Sword alone since 2026-11-22, so in a player's run the Staff comes from a card; here
+        // the development file starts the run with it, the same weapon carried through The Foundry.
         [UnityTest]
         public IEnumerator ClearingTheFoundryWithTheStaffUnlocksTheArcanist()
         {
-            yield return Load(false, new PlayerProfile(0, null, null, 0, new[] { "weapon_staff" }, "weapon_staff"));
+            yield return Load(false, new PlayerProfile(0, null, null, 0, new[] { "weapon_staff" }, "weapon_staff"), "weapon_staff");
+            Assert.That(_setup.HeroWeapon.Id, Is.EqualTo("weapon_staff"));
             Assert.That(_setup.Profile.HasUnlockedHero(ArcanistId), Is.False);
             _setup.UnlockHeroesForTheFoundry();
             Assert.That(_setup.Profile.HasUnlockedHero(ArcanistId), Is.True, "The Staff carried through The Foundry.");

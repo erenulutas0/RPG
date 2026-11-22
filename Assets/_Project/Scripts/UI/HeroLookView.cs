@@ -1,5 +1,6 @@
 using Cryptforge.Art;
 using Cryptforge.Combat;
+using Cryptforge.Core;
 using UnityEngine;
 
 namespace Cryptforge.UI
@@ -78,15 +79,36 @@ namespace Cryptforge.UI
             ContactShadowView.Attach(transform, _body, .78f, GetComponent<Health>());
         }
 
-        // docs/45: a hero with its own pre-rendered art (Ilya) is drawn by RenderedCharacterAnimator, which disables this
-        // view first; otherwise a requested puppet takes the hero, this view stepping aside first so the two never drive
-        // the body or the weapons at once. Start, because CombatSetup chooses the run's hero in its Awake.
+        // docs/45: a hero with its own pre-rendered art - Ilya, and the Vanguard since 2026-11-22 - is drawn by
+        // RenderedCharacterAnimator, which disables this view first. The Vanguard's older looks stay behind it for
+        // comparison: development/puppet.txt gives it the puppet, this view stepping aside first so the two never drive
+        // the body or the weapons at once, and painted-frames.txt its painted frames, drawn here; a hero without a
+        // (complete) rendered set falls back to the painted frames too. Start, because CombatSetup chooses the run's hero
+        // in its Awake.
         private void Start()
         {
-            if (RenderedCharacterAnimator.TakeOver(this, _body, _weapons, _attack) != null || !_puppetRequested)
+            if (!OlderLookRequested() && RenderedCharacterAnimator.TakeOver(this, _body, _weapons, _attack) != null)
                 return;
-            enabled = false;
-            PuppetAnimator.Attach(gameObject, _body, _weapons, _attack, _litOrb, _puppetArt);
+            if (_puppetRequested)
+            {
+                enabled = false;
+                PuppetAnimator.Attach(gameObject, _body, _weapons, _attack, _litOrb, _puppetArt);
+                return;
+            }
+            if (_painted == null)
+                BuildPainted();
+        }
+
+        // The id of the hero whose older looks these are; a development file asking for them leaves any other hero alone.
+        internal const string VanguardId = "hero_vanguard";
+
+        // Whether a development file asks for the Vanguard's puppet or painted frames, and this run plays the Vanguard.
+        private static bool OlderLookRequested()
+        {
+            if (!PuppetAnimator.PaintedFramesRequested && !PuppetAnimator.PuppetRequested)
+                return false;
+            CombatSetup setup = FindFirstObjectByType<CombatSetup>();
+            return setup != null && setup.Hero != null && setup.Hero.Id == VanguardId;
         }
 
         private void OnEnable()
@@ -204,10 +226,11 @@ namespace Cryptforge.UI
             _body.transform.localScale = Vector3.one;
             _built = true;
             ShowPose(HeroPose.IdleA);
-            // The Vanguard wears the cut-out puppet (docs/45 section 8; the owner, 2026-10-29), handed over in Start once
-            // CombatSetup has chosen the run's hero, so a hero with its own rendered art keeps it. The painted frames stay
-            // behind it: development/painted-frames.txt asks for them, and an incomplete puppet set falls back to them.
-            if (_puppetArt != null && !PuppetAnimator.PaintedFramesRequested)
+            // The Vanguard wears its rendered set (Start hands it over once CombatSetup has chosen the run's hero). Its
+            // older looks are asked for here: development/puppet.txt the cut-out puppet (docs/45 section 8; the owner's
+            // look from 2026-10-29), handed over in Start; painted-frames.txt the painted frames, built now as before the
+            // puppet - and an incomplete puppet set falls back to them.
+            if (_puppetArt != null && PuppetAnimator.PuppetRequested && !PuppetAnimator.PaintedFramesRequested)
             {
                 if (_puppetArt.IsValid)
                 {
@@ -216,11 +239,18 @@ namespace Cryptforge.UI
                 }
                 Debug.LogError("Vanguard puppet art set is incomplete.", this);
             }
-            if (_paintedArt != null)
-            {
-                if (!_paintedArt.IsValid) Debug.LogError("Vanguard painted art set is incomplete.", this);
-                else _painted = new VanguardAnimator(_paintedArt, _body, _weapons, transform, _attack, _litOrb);
-            }
+            if (PuppetAnimator.PaintedFramesRequested || PuppetAnimator.PuppetRequested)
+                BuildPainted();
+        }
+
+        // The painted frames (VanguardAnimator) on the body: asked for in Build, or Start's fallback for a hero without a
+        // rendered set. Never built for a hero the rendered set draws, since it takes the body and the weapons over.
+        private void BuildPainted()
+        {
+            if (_paintedArt == null)
+                return;
+            if (!_paintedArt.IsValid) Debug.LogError("Vanguard painted art set is incomplete.", this);
+            else _painted = new VanguardAnimator(_paintedArt, _body, _weapons, transform, _attack, _litOrb);
         }
 
         private void Update()

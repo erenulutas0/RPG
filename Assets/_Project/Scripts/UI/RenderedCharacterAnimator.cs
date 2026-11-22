@@ -5,9 +5,10 @@ using UnityEngine;
 
 namespace Cryptforge.UI
 {
-    // A hero drawn from a pre-rendered art set (docs/45: Ilya Kest, rendered from one Blender model in eight facings) in
-    // place of HeroLookView's painted Vanguard. HeroLookView hands over in its Start when the run's hero (CombatSetup.Hero)
-    // carries a RenderedCharacterArtSet, and steps aside; without one nothing here runs.
+    // A hero drawn from a pre-rendered art set (docs/45: Ilya Kest, rendered from one Blender model in eight facings; the
+    // Vanguard too since 2026-11-22, docs/08) in place of HeroLookView's painted Vanguard. HeroLookView hands over in its
+    // Start when the run's hero (CombatSetup.Hero) carries a RenderedCharacterArtSet, and steps aside; without one nothing
+    // here runs. A set that draws the dash plays it when the hero's Shield Rush throws it along (AbilityController.SkillUsed).
     //
     // VanguardAnimator's contract, kept: presentation only - it observes the hero's floor displacement, its first
     // weapon's strikes, its ability and its health, and never ticks a weapon, moves the hero or applies damage. The floor
@@ -241,6 +242,15 @@ namespace Cryptforge.UI
             Show();
         }
 
+        // docs/57's Shield Rush throws the hero along its dash: a set that draws the dash (the Vanguard's) plays it over
+        // the walk the travel would show; any other skill, or a set without it, changes nothing here.
+        private void OnSkillUsed(int slot, AbilityRuntime skill)
+        {
+            if (skill == null || skill.Kind != AbilityKind.Rush || !_player.Dash())
+                return;
+            Show();
+        }
+
         private void OnDamaged(DamageContext context)
         {
             _player.Hit();
@@ -260,7 +270,10 @@ namespace Cryptforge.UI
             _attack.Attacked += OnAttacked;
             _attack.Struck += OnStruck;
             if (_ability != null)
+            {
                 _ability.Used += OnUsed;
+                _ability.SkillUsed += OnSkillUsed;
+            }
             if (_health != null)
             {
                 _health.Damaged += OnDamaged;
@@ -279,7 +292,10 @@ namespace Cryptforge.UI
                 _attack.Struck -= OnStruck;
             }
             if (_ability != null)
+            {
                 _ability.Used -= OnUsed;
+                _ability.SkillUsed -= OnSkillUsed;
+            }
             if (_health != null)
             {
                 _health.Damaged -= OnDamaged;

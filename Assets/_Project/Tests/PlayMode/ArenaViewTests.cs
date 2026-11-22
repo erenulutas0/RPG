@@ -53,13 +53,13 @@ namespace Cryptforge.Tests
             Assert.That(_arena.Platform.PlatformRenderer.sprite.texture.filterMode, Is.EqualTo(FilterMode.Point), "Pixel art stays crisp.");
             SpriteRenderer[] sprites = Object.FindObjectsByType<SpriteRenderer>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             Assert.That(sprites.Length, Is.GreaterThan(2), "The hero and the first pack are in the scene.");
-            var puppet = Object.FindFirstObjectByType<PuppetAnimator>();
-            Assert.That(puppet, Is.Not.Null, "The scene's Vanguard wears its painted puppet.");
-            Assert.That(puppet.Art != null && puppet.Art.IsValid, Is.True, "Cut from the imported Vanguard parts.");
+            var drawn = Object.FindFirstObjectByType<RenderedCharacterAnimator>();
+            Assert.That(drawn, Is.Not.Null, "The scene's Vanguard is drawn from its rendered set (since 2026-11-22).");
+            Assert.That(drawn.Art != null && drawn.Art.IsValid, Is.True, "Its Blender-rendered frames.");
             foreach (SpriteRenderer sprite in sprites)
             {
-                // A renderer inside an actor's sorting group draws at the group's place (GroundedSorting): the puppet's
-                // cape sits under its body within the hero's group, never under the arena.
+                // A renderer inside an actor's sorting group draws at the group's place (GroundedSorting): the hero's
+                // drawing sits within the hero's group, never under the arena.
                 var group = sprite.GetComponentInParent<SortingGroup>(true);
                 Assert.That(group != null ? group.sortingLayerID : sprite.sortingLayerID, Is.EqualTo(arena.sortingLayerID), sprite.name);
                 Assert.That(group != null ? group.sortingOrder : sprite.sortingOrder, Is.GreaterThan(arena.sortingOrder), sprite.name);
@@ -68,8 +68,8 @@ namespace Cryptforge.Tests
             SpriteRenderer platform = _arena.Platform.PlatformRenderer;
             foreach (SpriteRenderer sprite in _arena.Backdrop.GetComponentsInChildren<SpriteRenderer>(true))
                 Assert.That(sprite.sortingOrder, Is.LessThan(platform.sortingOrder), sprite.name);
-            Assert.That(puppet.GetComponent<SortingGroup>().sortingOrder, Is.GreaterThan(platform.sortingOrder),
-                "The hero's group, the puppet's parts and all, draws over the platform.");
+            Assert.That(drawn.GetComponent<SortingGroup>().sortingOrder, Is.GreaterThan(platform.sortingOrder),
+                "The hero's group, its drawing and all, draws over the platform.");
         }
 
         // Packs of every size enter round the hero at the centre from all four corners, and every enemy starts on the

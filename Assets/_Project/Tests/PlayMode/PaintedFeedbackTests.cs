@@ -43,6 +43,8 @@ namespace Cryptforge.Tests
         private IEnumerator Load(PlayerProfile profile = null)
         {
             TestProfile.Begin(profile);
+            // The profile's weapon starts the run (the Vanguard's own is the Sword alone since 2026-11-22).
+            TestProfile.StartWith(profile?.EquippedWeaponId);
             Directory.CreateDirectory(Path.GetDirectoryName(DevelopmentStart.StartFloorPath));
             File.WriteAllText(DevelopmentStart.StartFloorPath, "floor_density_proof");
             Time.timeScale = 1;

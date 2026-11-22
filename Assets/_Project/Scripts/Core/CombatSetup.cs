@@ -159,6 +159,9 @@ namespace Cryptforge.Core
             // Before any view: the rack follows the forge's hero chooser before the forge redraws for the same change.
             Profile.Changed += FollowNextHero;
             HeroWeapon = _weapons[Array.IndexOf(weapons, Weapons.Equipped)];
+            // Every hero starts with its own weapon (the Vanguard its Sword since 2026-11-22); in the Editor and a
+            // development build development/start-weapon.txt may start it with another (DevelopmentStart.StartWeaponId).
+            HeroWeapon = DevelopmentStartWeapon() ?? HeroWeapon;
 
             _hero.Initialize(Hero.MaximumHealth);
             // On the foundry a run builds Megabonk's way (docs/42, PR 7): the forge's weapon is the first of up to three,
@@ -594,6 +597,19 @@ namespace Cryptforge.Core
                 }
             }
             return _heroDefinition;
+        }
+
+        // The catalogue's weapon development/start-weapon.txt names; null without the file, outside the Editor and a
+        // development build, or for an id the catalogue lacks.
+        private WeaponDefinition DevelopmentStartWeapon()
+        {
+            string id = DevelopmentStart.StartWeaponId();
+            if (id == null)
+                return null;
+            for (int i = 0; i < _weapons.Length; i++)
+                if (_weapons[i] != null && _weapons[i].Id == id)
+                    return _weapons[i];
+            return null;
         }
 
         // The weapon a hero would carry from this start (the map choice's hero cards): this run's own for the scene's hero;

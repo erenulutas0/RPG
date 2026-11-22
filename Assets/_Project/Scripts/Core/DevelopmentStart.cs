@@ -96,12 +96,32 @@ namespace Cryptforge.Core
         // Development builds and the Editor may play any hero, locked or not, so the owner can try one early.
         public static bool AllHeroesOpen() => Application.isEditor || Debug.isDebugBuild;
 
-        // The Vanguard wears the cut-out puppet (PuppetAnimator; the owner, 2026-10-29). The file existing, whatever it
-        // holds (an empty one from `adb shell touch` counts), gives it back its painted frames (VanguardAnimator), so the
-        // two can be compared. Nothing without the file.
+        // The Vanguard wears its Blender-rendered set (RenderedCharacterAnimator; the owner, 2026-11-22), which replaced the
+        // cut-out puppet (PuppetAnimator, the owner's 2026-10-29 choice) and the painted frames (VanguardAnimator) before
+        // it. The older looks stay for comparison: this file existing, whatever it holds (an empty one from
+        // `adb shell touch` counts), gives the Vanguard back its painted frames; puppet.txt (below) its puppet. They are
+        // the Vanguard's looks alone and leave every other hero as it is. Nothing without the files.
         public const string PaintedFramesFileName = "painted-frames.txt";
         public static string PaintedFramesPath => Path.Combine(ProfileLocation.Resolve(), FolderName, PaintedFramesFileName);
         public static bool PaintedFrames() => (Application.isEditor || Debug.isDebugBuild) && Exists(PaintedFramesPath);
+        public const string PuppetFileName = "puppet.txt";
+        public static string PuppetPath => Path.Combine(ProfileLocation.Resolve(), FolderName, PuppetFileName);
+        public static bool Puppet() => (Application.isEditor || Debug.isDebugBuild) && Exists(PuppetPath);
+
+        // A weapon id in it starts the run's hero with that weapon instead of its own (the Editor or a development build
+        // only). Every hero starts with its own weapon only since 2026-11-22 (the Vanguard its Sword, Ilya its Staff), so
+        // this is how the scene tests that pin the Staff's and the Daggers' runs to the simulation, and the research's
+        // M1 (horde-weapon.txt), still start the Vanguard with them. An unknown id, an empty or a missing file changes
+        // nothing.
+        public const string StartWeaponFileName = "start-weapon.txt";
+        public static string StartWeaponPath => Path.Combine(ProfileLocation.Resolve(), FolderName, StartWeaponFileName);
+        public static string StartWeaponId()
+        {
+            if (!Application.isEditor && !Debug.isDebugBuild)
+                return null;
+            string id = ReadFirstLine(StartWeaponPath)?.Trim();
+            return string.IsNullOrEmpty(id) ? null : id;
+        }
 
         public static string DepthProofPath => Path.Combine(ProfileLocation.Resolve(), FolderName, DepthProofFileName);
 
