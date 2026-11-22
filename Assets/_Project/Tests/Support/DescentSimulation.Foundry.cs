@@ -1647,8 +1647,10 @@ namespace Cryptforge.Tests
 
             public FoundryResult Play()
             {
-                // EncounterController.Initialize: the floor's first wave forms up round the hero before the first frame.
-                AdvanceFloor();
+                // EncounterController.Initialize: the floor's first wave forms up round the hero before the first frame - or,
+                // with the Outworks (docs/62 P0a, DescentSimulation.Outworks.cs), the phase begins before it.
+                if (!BeginOutworks())
+                    AdvanceFloor();
                 FoundryResult first = PlayFloor(), last = first;
                 // CombatSetup.OnFloorCleared opens the checkpoint on a floor with a next one, once the sweep's level-ups are
                 // answered (RunChoices offers them first), and the autopilot answers it with Descend.
@@ -1682,7 +1684,11 @@ namespace Cryptforge.Tests
                 // Riftblade, its dash's step, and the walk fed to its stride.
                 if (!_revealHold && _heroHealth.IsAlive)
                 {
-                    if (_rift == null)
+                    // docs/62 P0a's pad, mid-arc, has the walk step (LeapWalk); never without the Outworks.
+                    if (LeapWalk())
+                    {
+                    }
+                    else if (_rift == null)
                     {
                         // docs/57's Shield Rush, travelling, has the walk step (RushWalk); never at the default levers.
                         if (_rush == null || !RushWalk())
@@ -1690,6 +1696,8 @@ namespace Cryptforge.Tests
                     }
                     else
                         RiftWalk();
+                    // ...and a pad under the hero's feet launches it after the walk (nothing without the Outworks).
+                    LeapLaunch();
                 }
 
                 if (!_revealHold && _heroHealth.IsAlive)
@@ -2034,6 +2042,9 @@ namespace Cryptforge.Tests
                     return;
                 TickHorde();
                 _result.DropsCollected += _drops.CollectNear(HeroX, HeroY);
+                // docs/62 P0a's Outworks phase before the halls (DescentSimulation.Outworks.cs): nothing without it.
+                if (OutworksFrame())
+                    return;
 
                 if (_roomSiteOpen)
                 {
@@ -2555,7 +2566,11 @@ namespace Cryptforge.Tests
                 if (_waveMotion == null || _fight.IsCleared)
                     return;
                 _waveMotion.Held = _pitHeld;
-                _waveMotion.Step(Step, PackGoalX, PackGoalY);
+                // docs/62 P0a's Keeper walks its loop until it turns on the hero (never without the Outworks).
+                if (KeeperPackGoal(out float keeperX, out float keeperY))
+                    _waveMotion.Step(Step, keeperX, keeperY);
+                else
+                    _waveMotion.Step(Step, PackGoalX, PackGoalY);
             }
 
             // EncounterController.TickHorde: the horde stands from the floor's first step to the boss's fall - never on the
@@ -2577,8 +2592,12 @@ namespace Cryptforge.Tests
 
                 _hordeMotion.Held = _pitHeld;
                 _hordeMotion.Step(Step, PackGoalX, PackGoalY);
-                bool bossRoom = _floor.Kinds[_progress.RoomIndex] == RoomKind.Boss;
-                HordeState state = bossRoom && _bossEnraged ? HordeState.Horde : HordeRule.StateFor(HallsCleared(), bossRoom);
+                // docs/62 P0a's Outworks: the state by the phase's clock (never without the Outworks).
+                if (!OutworksHordeState(out HordeState state))
+                {
+                    bool bossRoom = _floor.Kinds[_progress.RoomIndex] == RoomKind.Boss;
+                    state = bossRoom && _bossEnraged ? HordeState.Horde : HordeRule.StateFor(HallsCleared(), bossRoom);
+                }
                 if (state != _horde.State)
                     _horde.SetState(state);
                 _horde.Tick(Step, _hordeAlive, _waveAlive, _hordeSpawns);
@@ -2640,7 +2659,7 @@ namespace Cryptforge.Tests
                 // An overrun floor's horde pays nothing (HordeClock.PaysExperience); otherwise its share.
                 foe.Experience = !HordeClock.PaysExperience(HordeClockNow)
                     ? 0
-                    : TunedHordeExperience.Experience(definition.Experience, _levers.HordeExperienceShare);
+                    : TunedHordeExperience.Experience(definition.Experience, HordeExperienceShareNow);
                 foe.Motion = _hordeMotion;
                 var placement = new EntryPlacement(EntrySides.SideOf(spawn.Ordinal, 0), 0f, x, y);
                 if (slot >= 0)
@@ -2702,6 +2721,8 @@ namespace Cryptforge.Tests
                 // docs/52's Thornling under the ash cannot be struck (DescentSimulation.Gloam.cs).
                 if (!foe.Health.IsAlive || foe.Burrowed)
                     return;
+                // docs/62 P0a: a strike on the Keeper's pack turns it on the hero (nothing without the Outworks).
+                KeeperStruck(foe);
                 float before = foe.Health.Current;
                 if (foe.FirstHitAt < 0f && context.Amount > 0f)
                     foe.FirstHitAt = _seconds;
@@ -3093,6 +3114,10 @@ namespace Cryptforge.Tests
                     _horde?.Fell();
                     _rewards.TryDropKill(foe, foe.Experience, 0, foe.X, foe.Y, _drops);
                 }
+                else if (OutworksFoeDied(foe))
+                {
+                    // docs/62 P0a's Keeper and Bell (DescentSimulation.Outworks.cs); never without the Outworks.
+                }
                 else if (_swarm != null)
                     SwarmFoeDied(foe);
                 else
@@ -3162,6 +3187,12 @@ namespace Cryptforge.Tests
             {
                 if (!_heroHealth.IsAlive || context.Amount == 0f)
                     return;
+                // docs/62 P0a: a hero mid-arc over the pit is out of every blow's reach (the scene's guard on its Health).
+                if (Airborne)
+                {
+                    _result.HitsTurnedAirborne++;
+                    return;
+                }
                 // Phase Dash's guard (the Riftblade, research 2026-11-11), read in this one place every hit on the hero comes
                 // through: within its GuardSeconds from the dash's first step the hit is turned away - an enemy's strike, the
                 // Warden's slam, the pit's spill.
@@ -3250,7 +3281,11 @@ namespace Cryptforge.Tests
                 _result.Killer = _lastHarm;
                 if (_trace != null)
                     Emit($"run_end defeat room={_roomIndex + 1} killer={_lastHarm} level={_run.Level}");
-                if (_swarm != null)
+                if (RecordOutworksDeath())
+                {
+                    // docs/62 P0a's phase: "outworks" or "bell" (never without the Outworks).
+                }
+                else if (_swarm != null)
                     RecordSwarmDeath();
                 else if (_roomSiteOpen)
                     _result.DeathPhase = "walk";
@@ -3936,6 +3971,9 @@ namespace Cryptforge.Tests
                     _doing = PilotDoing.Walk;
                     return true;
                 }
+                // docs/62 P0a: leaving the Outworks, the stair before anything else (never without the Outworks).
+                if (OutworksLeaveGoal(x, y, out gx, out gy, out stop))
+                    return true;
                 // docs/50's sidestep habit (research 2026-11-12): against the Glass Regent's lanes, the nearest spot clear of
                 // them, read as the Warden's mark is read.
                 if (cohort.EscapesMarks && _slamBoss != null && _slamBoss.IsAlive && _slam.IsMarked && SidestepsLanes(cohort) &&
@@ -4089,6 +4127,9 @@ namespace Cryptforge.Tests
                     _doing = PilotDoing.Kite;
                     return true;
                 }
+                // docs/62 P0a: the Outworks' Keeper or nearest anvil after the kite (never without the Outworks).
+                if (OutworksObjectiveGoal(x, y, out gx, out gy, out stop))
+                    return true;
                 // A node fight is drawn to the pit's rim while the pit runs - never in the finale's swarm, where it does not
                 // (DevelopmentAutopilot.Goal reads PitEruptionService.IsRunning) - but not while a guarded band glows: then
                 // the hero waits out of it. StepPit set _pitRunning this frame, before the pilot, and nothing between them
