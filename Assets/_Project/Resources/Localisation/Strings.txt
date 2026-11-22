@@ -266,6 +266,14 @@ enemy_glass_regent.name	Glass Regent	Cam Naibi	Floor 2 boss (naip: regent).
 enemy_mirror_sentry.name	Mirror Sentry	Ayna Nöbetçisi	Floor 2 elite.
 enemy_pollen_wraith.name	Pollen Wraith	Polen Hortlağı	Floor 3 enemy.
 
+# ---- Boss barks (BossBark, BossBarkView; docs/44 section 1.8, docs/64 stage 1): a gate boss's short line on a plate over it for 1.8 s - as it walks out of the gate (spawn), with the first mark of each phase (telegraph) and as it falls (death). Plate at most 640 wide, the line at 34 fitting down to 24, one or two lines
+bark.forge_warden.spawn	Shift's not over.	Vardiya bitmedi.	Forge Warden walks out of the gate. Vardiya: a work shift; the Warden sealed the workers in (docs/44 1.8).
+bark.forge_warden.telegraph	Stand clear of the mark.	İşaretten uzak dur.	Forge Warden, the first slam mark of each phase. An order, as a foreman says it.
+bark.forge_warden.death	Door... was never locked for you.	Kapı... sana hiç kilitli değildi.	Forge Warden falls. Sen: it speaks to the hero.
+bark.glass_regent.spawn	Which one of you is original?	Hanginiz asıl?	Glass Regent walks out of the gate. Asıl: the original, not the copy.
+bark.glass_regent.telegraph	Hold still. I need your face.	Kıpırdama. Yüzün lazım.	Glass Regent, the first lane of each phase. Short and cold, the archivist taking a face.
+bark.glass_regent.death	I kept the wrong one...	Yanlış olanı sakladım...	Glass Regent falls (shatters).
+
 # ---- Hero weapons (<id>.description is the forge card) and their level-up lines
 weapon_sword.name	Sword	Kılıç	Weapon; HUD badge shows up to 5 letters, else 3.
 weapon_sword.description	{0:0} damage every {1:0.0#}s. Cleaves a second enemy for {2:0}%	Her {1:0.0#} sn'de {0:0} hasar. İkinci bir düşmanı %{2:0} biçer	{0} damage, {1} seconds, {2} cleave percent.

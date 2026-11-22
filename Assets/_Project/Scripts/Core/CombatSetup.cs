@@ -316,6 +316,9 @@ namespace Cryptforge.Core
             // The gate boss's body tells its blows, its phase two and its fall (docs/43 section 1): after the mark's view,
             // so the mark's windup is raised before the body's tell reads it. Presentation only.
             gameObject.AddComponent<BossFeelView>().Initialize(Warden);
+            // ...and speaks its lines (docs/44 section 1.8, docs/64 stage 1): a short plate over it as it walks out, with the
+            // first mark of each phase and as it falls, never over the mark. Presentation only.
+            gameObject.AddComponent<BossBarkView>().Initialize(this, Warden);
             gameObject.AddComponent<MirrorGlintView>().Initialize(Mirrors, _encounters, _hero);
             gameObject.AddComponent<RunFeedbackView>().Initialize(Run, Upgrades, _hero, _runFeedbackArt);
             // The game-feel pass on the hero (docs/43 section 1, 2026-11-22): presentation only - it reads the attacker, the

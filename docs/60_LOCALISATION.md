@@ -335,3 +335,27 @@ best-fit size, 14 (Arial's metrics); `TurkishTierScreensTests` check it in the E
 **Tests.** `DifficultyTierTests` and `TierTextTests` (EditMode), `TierChoiceFlowTests` and `TurkishTierScreensTests`
 (PlayMode) assert the new English and Turkish; `TurkishTierScreensTests`' list of English that must not show in Turkish
 names "Ascent". `LocalisationTableTests` hold the table's English equal to the code's.
+
+## 11. The bosses' barks (2026-11-23)
+
+docs/44 section 1.8's spawn, telegraph and death lines for the two gate bosses that ship (docs/64 stage 1), shown as a
+short plate over the boss (`BossBark`, `BossBarkView`). Six rows under `bark.<boss>.<moment>`, the English docs/44's
+word for word. The Turkish keeps each line as short as its English or shorter, in the boss's own voice, and talks to the
+hero as "sen" (style rule 1):
+
+| Key | English | Turkish | Why |
+|---|---|---|---|
+| `bark.forge_warden.spawn` | Shift's not over. | Vardiya bitmedi. | The foreman's word: the Warden sealed a shift in (docs/44 1.5, year -7) |
+| `bark.forge_warden.telegraph` | Stand clear of the mark. | İşaretten uzak dur. | An order; "işaret" is the mark on the floor |
+| `bark.forge_warden.death` | Door... was never locked for you. | Kapı... sana hiç kilitli değildi. | The pause kept where the English has it |
+| `bark.glass_regent.spawn` | Which one of you is original? | Hanginiz asıl? | "Asıl": the original against its copy; two words, as cold as the archivist |
+| `bark.glass_regent.telegraph` | Hold still. I need your face. | Kıpırdama. Yüzün lazım. | "Lazım" over "ihtiyacım var": shorter and colder |
+| `bark.glass_regent.death` | I kept the wrong one... | Yanlış olanı sakladım... | |
+
+**Fit.** The plate is at most 640 of the HUD's 1080 canvas units wide; a line sits at 34 and fits down to 24, on one line
+or two. The longest Turkish (the Warden's death line, 33 characters) should take one line at 34 (about 560 units by
+Arial's average width); the plate wraps it to two otherwise.
+`BossBarkFlowTests.EveryLineFitsItsPlateInTurkish` lays every line in Turkish and checks it with `TurkishScreensTests`'
+fit check; the phone draws Roboto, so the S23 look is the owner's (section 8).
+
+Rootmother Myrr's three lines (docs/64) get their rows when her scene build comes; the drafts are in docs/64 section 1.
