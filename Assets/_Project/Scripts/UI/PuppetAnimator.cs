@@ -8,9 +8,10 @@ namespace Cryptforge.UI
 {
     // The hero as a cut-out puppet (docs/45 section 4 B): one painting per facing, cut into parts and animated by
     // PuppetMotion and PuppetGait, so walk, strike, cast, flinch, death and idle all come from the same pieces with nothing
-    // boiling between frames. The Vanguard's look (the owner, 2026-10-29): HeroLookView hands the hero over and steps
-    // aside unless development/painted-frames.txt asks for the painted frames (DevelopmentStart.PaintedFrames) or the
-    // hero has its own rendered art. Without a PuppetArtSet it builds code-drawn placeholder parts.
+    // boiling between frames. The Vanguard's look from 2026-10-29 until its Blender-rendered set replaced it (2026-11-22);
+    // kept for comparison: development/puppet.txt (DevelopmentStart.Puppet) has HeroLookView hand the Vanguard over to it
+    // and step aside, unless painted-frames.txt asks for the painted frames instead. Without a PuppetArtSet it builds
+    // code-drawn placeholder parts.
     //
     // VanguardAnimator's contract, kept: presentation only - it observes the hero's floor displacement, its first weapon's
     // cooldown and strikes, its ability and its health, and never ticks a weapon, moves the hero or applies damage. A
@@ -103,8 +104,10 @@ namespace Cryptforge.UI
         internal PuppetRig FrontRig => _front;
         internal PuppetRig ActiveRig => _facing.ShownFront ? _front : _rear;
 
-        // Whether this run asked for the painted frames instead: only the Editor and a development build ever look.
+        // Whether this run asked for the Vanguard's painted frames, or this puppet, instead of its rendered set
+        // (development/painted-frames.txt, puppet.txt): only the Editor and a development build ever look.
         public static bool PaintedFramesRequested => DevelopmentStart.PaintedFrames();
+        public static bool PuppetRequested => DevelopmentStart.Puppet();
 
         // Builds the puppet on the hero beside its body. HeroLookView calls it from its own Awake, after building the
         // weapons, and is disabled before this runs so the two never drive the same renderers.

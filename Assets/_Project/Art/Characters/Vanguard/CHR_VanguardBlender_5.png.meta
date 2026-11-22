@@ -1,0 +1,1664 @@
+fileFormatVersion: 2
+guid: a82f4028ab874efcbfac869fa21a9645
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 755259111615785449
+    second: vanguard_walk_south-east_5
+  - first:
+      213: -3537853606857228223
+    second: vanguard_walk_north_5
+  - first:
+      213: 8143474938774680505
+    second: vanguard_walk_north-west_1
+  - first:
+      213: 5487321746384446666
+    second: vanguard_walk_north-west_4
+  - first:
+      213: -149144009458972391
+    second: vanguard_walk_west_1
+  - first:
+      213: -3759604611915145094
+    second: vanguard_walk_west_2
+  - first:
+      213: -3925765196206090200
+    second: vanguard_walk_west_3
+  - first:
+      213: 8802174970960078760
+    second: vanguard_walk_south-west_1
+  - first:
+      213: 1939989328633596586
+    second: vanguard_walk-strike_south_2
+  - first:
+      213: -6987308082738241564
+    second: vanguard_walk-strike_south_6
+  - first:
+      213: 8601331231909381592
+    second: vanguard_walk-strike_south-east_5
+  - first:
+      213: -2188014119030556429
+    second: vanguard_walk-strike_south-east_6
+  - first:
+      213: 1778577273543305546
+    second: vanguard_walk-strike_east_5
+  - first:
+      213: 8410658270788449120
+    second: vanguard_walk-strike_east_6
+  - first:
+      213: 7230701202953750142
+    second: vanguard_walk-strike_north-east_5
+  - first:
+      213: -7169467033401598651
+    second: vanguard_walk-strike_north_1
+  - first:
+      213: 7168666030453365208
+    second: vanguard_walk-strike_north_5
+  - first:
+      213: 3453629367571890412
+    second: vanguard_walk-strike_north-west_1
+  - first:
+      213: 8181486377530504112
+    second: vanguard_walk-strike_north-west_4
+  - first:
+      213: -835507100391732688
+    second: vanguard_walk-strike_west_1
+  - first:
+      213: -4112367141938276250
+    second: vanguard_walk-strike_west_2
+  - first:
+      213: 2581724309540130377
+    second: vanguard_walk-strike_west_3
+  - first:
+      213: -1981436522748580717
+    second: vanguard_walk-strike_west_4
+  - first:
+      213: 2625649643446655851
+    second: vanguard_walk-strike_south-west_1
+  - first:
+      213: 5592871777391914864
+    second: vanguard_walk-strike_south-west_2
+  - first:
+      213: -6404396507769172200
+    second: vanguard_cast_south-west_2
+  - first:
+      213: -453420143042357226
+    second: vanguard_cast_south-west_3
+  - first:
+      213: 6595375815257091231
+    second: vanguard_hit_north_2
+  - first:
+      213: 8561471303072346587
+    second: vanguard_hit_north-west_1
+  - first:
+      213: -2999166276503078701
+    second: vanguard_death_south-east_2
+  - first:
+      213: -8440595410086256857
+    second: vanguard_death_south-east_3
+  - first:
+      213: -3208978135853216720
+    second: vanguard_death_east_1
+  - first:
+      213: 20246641995241416
+    second: vanguard_death_east_4
+  - first:
+      213: 3860094928408443626
+    second: vanguard_death_north-east_0
+  - first:
+      213: -1997427026713157749
+    second: vanguard_death_north-east_1
+  - first:
+      213: -4950613847485481015
+    second: vanguard_death_north-east_2
+  - first:
+      213: 7800047526503384593
+    second: vanguard_death_north-east_4
+  - first:
+      213: 7951017802589976895
+    second: vanguard_death_north_0
+  - first:
+      213: -5976254502134587813
+    second: vanguard_death_north_1
+  - first:
+      213: -3080991108825638811
+    second: vanguard_death_north_2
+  - first:
+      213: 1575606730166290126
+    second: vanguard_death_north_4
+  - first:
+      213: 1995122920079016228
+    second: vanguard_death_north-west_0
+  - first:
+      213: -7081985756020677650
+    second: vanguard_death_north-west_1
+  - first:
+      213: 7065618601644258341
+    second: vanguard_death_north-west_2
+  - first:
+      213: -2446520390370458100
+    second: vanguard_death_north-west_4
+  - first:
+      213: -879582586726857658
+    second: vanguard_death_west_1
+  - first:
+      213: -4532299851533955605
+    second: vanguard_death_west_4
+  - first:
+      213: -5203103979569921234
+    second: vanguard_death_south-west_2
+  - first:
+      213: -5987297275783917097
+    second: vanguard_shield-rush_south_1
+  - first:
+      213: -6711218611508217920
+    second: vanguard_shield-rush_south_3
+  - first:
+      213: 5032366107777036253
+    second: vanguard_shield-rush_south-east_1
+  - first:
+      213: -7849163083526315523
+    second: vanguard_shield-rush_south-east_2
+  - first:
+      213: -9113173569352368604
+    second: vanguard_shield-rush_south-east_3
+  - first:
+      213: -394638524894383187
+    second: vanguard_shield-rush_east_2
+  - first:
+      213: 5089799565703952785
+    second: vanguard_shield-rush_east_3
+  - first:
+      213: 7293938096105501791
+    second: vanguard_shield-rush_west_2
+  - first:
+      213: 5028472321207271140
+    second: vanguard_shield-rush_south-west_1
+  - first:
+      213: 6081163710139194604
+    second: vanguard_shield-rush_south-west_2
+  - first:
+      213: -8075135621135794039
+    second: vanguard_shield-rush_south-west_3
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 0
+  alignment: 9
+  spritePivot: {x: 0.5, y: 0}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 0
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 48
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: vanguard_walk_south-east_5
+      rect:
+        serializedVersion: 2
+        x: 741
+        y: 621
+        width: 106
+        height: 127
+      alignment: 9
+      pivot: {x: 0.63207547, y: 0.05511811}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e0197fd1519e94546bff03feae34c9b4
+      internalID: 755259111615785449
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_walk_north_5
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 245
+        width: 111
+        height: 125
+      alignment: 9
+      pivot: {x: 0.39639640, y: 0.01600000}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a59bbb9870ec66a1bc2e0e875ccd9f81
+      internalID: -3537853606857228223
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_walk_north-west_1
+      rect:
+        serializedVersion: 2
+        x: 745
+        y: 246
+        width: 112
+        height: 124
+      alignment: 9
+      pivot: {x: 0.38392857, y: 0.01612903}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8430a21bd5454821a9ee5ad8167c9a38
+      internalID: 8143474938774680505
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_walk_north-west_4
+      rect:
+        serializedVersion: 2
+        x: 950
+        y: 370
+        width: 103
+        height: 126
+      alignment: 9
+      pivot: {x: 0.37864078, y: 0.03174603}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b60be1c0a7358e9c9c94fd0b3c1ce5de
+      internalID: 5487321746384446666
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_walk_west_1
+      rect:
+        serializedVersion: 2
+        x: 967
+        y: 246
+        width: 110
+        height: 124
+      alignment: 9
+      pivot: {x: 0.33636364, y: 0.03225806}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 74f7ac1735b587fe84598f850dd87402
+      internalID: -149144009458972391
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_walk_west_2
+      rect:
+        serializedVersion: 2
+        x: 1077
+        y: 246
+        width: 101
+        height: 124
+      alignment: 9
+      pivot: {x: 0.33663366, y: 0.01612903}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: df1d15e9b7430e411c29769b8dbdb0f6
+      internalID: -3759604611915145094
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_walk_west_3
+      rect:
+        serializedVersion: 2
+        x: 947
+        y: 621
+        width: 98
+        height: 127
+      alignment: 9
+      pivot: {x: 0.36734694, y: 0.03937008}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 31fc20113a4021ef46724eb5b975ab63
+      internalID: -3925765196206090200
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_walk_south-west_1
+      rect:
+        serializedVersion: 2
+        x: 847
+        y: 621
+        width: 100
+        height: 127
+      alignment: 9
+      pivot: {x: 0.30000000, y: 0.05511811}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7c98b645f84592a91e3f37ec21e40761
+      internalID: 8802174970960078760
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_walk-strike_south_2
+      rect:
+        serializedVersion: 2
+        x: 845
+        y: 495
+        width: 105
+        height: 126
+      alignment: 9
+      pivot: {x: 0.54285714, y: 0.04761905}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e2521788da770cd2f9e4e29d938fbac9
+      internalID: 1939989328633596586
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_walk-strike_south_6
+      rect:
+        serializedVersion: 2
+        x: 735
+        y: 495
+        width: 110
+        height: 126
+      alignment: 9
+      pivot: {x: 0.56363636, y: 0.04761905}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28aa6125d7956c3e84f60ec869be6ace
+      internalID: -6987308082738241564
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_walk-strike_south-east_5
+      rect:
+        serializedVersion: 2
+        x: 487
+        y: 370
+        width: 156
+        height: 125
+      alignment: 9
+      pivot: {x: 0.47435897, y: 0.05600000}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 19fb5ff76395fe901b315831456e3fe1
+      internalID: 8601331231909381592
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_walk-strike_south-east_6
+      rect:
+        serializedVersion: 2
+        x: 1045
+        y: 622
+        width: 154
+        height: 126
+      alignment: 9
+      pivot: {x: 0.46753247, y: 0.04761905}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5227e1c33b0cb994d5e9b98c45e5961c
+      internalID: -2188014119030556429
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_walk-strike_east_5
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 370
+        width: 167
+        height: 125
+      alignment: 9
+      pivot: {x: 0.44910180, y: 0.03200000}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9368fe4f4f4a65aec85105100c145c22
+      internalID: 1778577273543305546
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_walk-strike_east_6
+      rect:
+        serializedVersion: 2
+        x: 167
+        y: 370
+        width: 162
+        height: 125
+      alignment: 9
+      pivot: {x: 0.43209877, y: 0.01600000}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 81f3e92f683598f43b1d6f9dd342b1c1
+      internalID: 8410658270788449120
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_walk-strike_north-east_5
+      rect:
+        serializedVersion: 2
+        x: 1045
+        y: 496
+        width: 152
+        height: 126
+      alignment: 9
+      pivot: {x: 0.40131579, y: 0.01587302}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b5e7cf13e8e345bdcee6eab7cc782ba3
+      internalID: 7230701202953750142
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_walk-strike_north_1
+      rect:
+        serializedVersion: 2
+        x: 523
+        y: 621
+        width: 109
+        height: 127
+      alignment: 9
+      pivot: {x: 0.44036697, y: 0.01574803}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fe08575657bbc342170d82af6cbfae97
+      internalID: -7169467033401598651
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_walk-strike_north_5
+      rect:
+        serializedVersion: 2
+        x: 632
+        y: 621
+        width: 109
+        height: 127
+      alignment: 9
+      pivot: {x: 0.44036697, y: 0.01574803}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a07f0b3ef06a94f6ce52d64445489f29
+      internalID: 7168666030453365208
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_walk-strike_north-west_1
+      rect:
+        serializedVersion: 2
+        x: 202
+        y: 246
+        width: 155
+        height: 124
+      alignment: 9
+      pivot: {x: 0.52903226, y: 0.01612903}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4dc19d0d4cab07128878877626d0db53
+      internalID: 3453629367571890412
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_walk-strike_north-west_4
+      rect:
+        serializedVersion: 2
+        x: 643
+        y: 370
+        width: 153
+        height: 125
+      alignment: 9
+      pivot: {x: 0.53594771, y: 0.03200000}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a1db74575d3ce42786ae6a1c0321cc11
+      internalID: 8181486377530504112
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_walk-strike_west_1
+      rect:
+        serializedVersion: 2
+        x: 745
+        y: 124
+        width: 167
+        height: 122
+      alignment: 9
+      pivot: {x: 0.55089820, y: 0.03278689}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aa0cb1644e3f26530526e5bd033496bb
+      internalID: -835507100391732688
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_walk-strike_west_2
+      rect:
+        serializedVersion: 2
+        x: 912
+        y: 124
+        width: 163
+        height: 122
+      alignment: 9
+      pivot: {x: 0.56441718, y: 0.01639344}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 33bf4bf90b9482fc0180255715272d3e
+      internalID: -4112367141938276250
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_walk-strike_west_3
+      rect:
+        serializedVersion: 2
+        x: 329
+        y: 370
+        width: 158
+        height: 125
+      alignment: 9
+      pivot: {x: 0.58227848, y: 0.04000000}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ac18a0f56fd83278e168e0f732a656a8
+      internalID: 2581724309540130377
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_walk-strike_west_4
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 621
+        width: 164
+        height: 127
+      alignment: 9
+      pivot: {x: 0.56097561, y: 0.07086614}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3e711c23b4a948136bc0d489fcca52ca
+      internalID: -1981436522748580717
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_walk-strike_south-west_1
+      rect:
+        serializedVersion: 2
+        x: 357
+        y: 246
+        width: 150
+        height: 124
+      alignment: 9
+      pivot: {x: 0.60666667, y: 0.05645161}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b6ef4ed360e7aa49e9cecf4927df1655
+      internalID: 2625649643446655851
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_walk-strike_south-west_2
+      rect:
+        serializedVersion: 2
+        x: 796
+        y: 370
+        width: 152
+        height: 125
+      alignment: 9
+      pivot: {x: 0.59868421, y: 0.04800000}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ef3bbf18e9d63260a4b1f4388659655f
+      internalID: 5592871777391914864
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_cast_south-west_2
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 495
+        width: 136
+        height: 126
+      alignment: 9
+      pivot: {x: 0.52205882, y: 0.14285714}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f74954ed19d77984bc8df327c81fe612
+      internalID: -6404396507769172200
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_cast_south-west_3
+      rect:
+        serializedVersion: 2
+        x: 295
+        y: 621
+        width: 116
+        height: 127
+      alignment: 9
+      pivot: {x: 0.45689655, y: 0.09448819}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2903e52b45acd5e7aba774f372abad86
+      internalID: -453420143042357226
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_hit_north_2
+      rect:
+        serializedVersion: 2
+        x: 164
+        y: 621
+        width: 131
+        height: 127
+      alignment: 9
+      pivot: {x: 0.32824427, y: 0.06299213}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b02c0eb04d691eb858dc83fc55beb055
+      internalID: 6595375815257091231
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_hit_north-west_1
+      rect:
+        serializedVersion: 2
+        x: 320
+        y: 123
+        width: 114
+        height: 123
+      alignment: 9
+      pivot: {x: 0.35087719, y: 0.11382114}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 57d6b3307baffc366c312e5af342dfd0
+      internalID: 8561471303072346587
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_death_south-east_2
+      rect:
+        serializedVersion: 2
+        x: 950
+        y: 496
+        width: 92
+        height: 125
+      alignment: 9
+      pivot: {x: 0.52173913, y: 0.23200000}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a6b572ce23d451ffdafb5bf574564e8d
+      internalID: -2999166276503078701
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_death_south-east_3
+      rect:
+        serializedVersion: 2
+        x: 432
+        y: 21
+        width: 93
+        height: 102
+      alignment: 9
+      pivot: {x: 0.48387097, y: 0.22549020}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 90de8f1a89e0a885cd9cc07516696efd
+      internalID: -8440595410086256857
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_death_east_1
+      rect:
+        serializedVersion: 2
+        x: 411
+        y: 621
+        width: 112
+        height: 127
+      alignment: 9
+      pivot: {x: 0.42857143, y: 0.08661417}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9ca347904c4e37db43fe1af4eebd5e5f
+      internalID: -3208978135853216720
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_death_east_4
+      rect:
+        serializedVersion: 2
+        x: 525
+        y: 22
+        width: 97
+        height: 101
+      alignment: 9
+      pivot: {x: 0.26804124, y: 0.20792079}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a58663a18e9114a967bfc674f5c3430b
+      internalID: 20246641995241416
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_death_north-east_0
+      rect:
+        serializedVersion: 2
+        x: 392
+        y: 495
+        width: 116
+        height: 126
+      alignment: 9
+      pivot: {x: 0.50000000, y: 0.08730159}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ebcab6878f42b4bfec0d273818d7df95
+      internalID: 3860094928408443626
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_death_north-east_1
+      rect:
+        serializedVersion: 2
+        x: 508
+        y: 495
+        width: 114
+        height: 126
+      alignment: 9
+      pivot: {x: 0.43859649, y: 0.07936508}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d39f3b9b4454b81db98730ce31a5593e
+      internalID: -1997427026713157749
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_death_north-east_2
+      rect:
+        serializedVersion: 2
+        x: 507
+        y: 246
+        width: 124
+        height: 124
+      alignment: 9
+      pivot: {x: 0.37096774, y: 0.12903226}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4e02f198b174ad79fcdb2ebeb5110e50
+      internalID: -4950613847485481015
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_death_north-east_4
+      rect:
+        serializedVersion: 2
+        x: 1093
+        y: 12
+        width: 123
+        height: 112
+      alignment: 9
+      pivot: {x: 0.28455285, y: 0.18750000}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: db6e16af67c1ca2dfb203d642ed555ab
+      internalID: 7800047526503384593
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_death_north_0
+      rect:
+        serializedVersion: 2
+        x: 136
+        y: 495
+        width: 129
+        height: 126
+      alignment: 9
+      pivot: {x: 0.37209302, y: 0.10317460}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 26b2afc81039a5e1e4cf0149757e8d97
+      internalID: 7951017802589976895
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_death_north_1
+      rect:
+        serializedVersion: 2
+        x: 265
+        y: 495
+        width: 127
+        height: 126
+      alignment: 9
+      pivot: {x: 0.37795276, y: 0.07142857}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ced7a381f2c8fec28e974a9a1f634748
+      internalID: -5976254502134587813
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_death_north_2
+      rect:
+        serializedVersion: 2
+        x: 745
+        y: 3
+        width: 118
+        height: 121
+      alignment: 9
+      pivot: {x: 0.41525424, y: 0.08264463}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a676626794e5a9c86e403693370e56e0
+      internalID: -3080991108825638811
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_death_north_4
+      rect:
+        serializedVersion: 2
+        x: 195
+        y: 14
+        width: 104
+        height: 109
+      alignment: 9
+      pivot: {x: 0.46153846, y: 0.11926606}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5dfe291046d36397dbdea6f0269cb870
+      internalID: 1575606730166290126
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_death_north-west_0
+      rect:
+        serializedVersion: 2
+        x: 1053
+        y: 370
+        width: 101
+        height: 126
+      alignment: 9
+      pivot: {x: 0.40594059, y: 0.08730159}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e1769c54d4ce563453dab2da0a3aeb63
+      internalID: 1995122920079016228
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_death_north-west_1
+      rect:
+        serializedVersion: 2
+        x: 111
+        y: 245
+        width: 91
+        height: 125
+      alignment: 9
+      pivot: {x: 0.43956044, y: 0.07200000}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 01cc765cf151f3a69957a89035804c53
+      internalID: -7081985756020677650
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_death_north-west_2
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 123
+        width: 92
+        height: 122
+      alignment: 9
+      pivot: {x: 0.47826087, y: 0.12295082}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bcb9f452ac0a0abcae58addf21ece8f0
+      internalID: 7065618601644258341
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_death_north-west_4
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 16
+        width: 91
+        height: 107
+      alignment: 9
+      pivot: {x: 0.53846154, y: 0.16822430}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5fcb5b70abc855120bc57e8043e076e4
+      internalID: -2446520390370458100
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_death_west_1
+      rect:
+        serializedVersion: 2
+        x: 622
+        y: 495
+        width: 113
+        height: 126
+      alignment: 9
+      pivot: {x: 0.57522124, y: 0.08730159}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6993cda812d52ef4fa48984c4d95298d
+      internalID: -879582586726857658
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_death_west_4
+      rect:
+        serializedVersion: 2
+        x: 622
+        y: 22
+        width: 97
+        height: 101
+      alignment: 9
+      pivot: {x: 0.73195876, y: 0.23762376}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ad87f2b1884018c1a0a98e1a16e9eb15
+      internalID: -4532299851533955605
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_death_south-west_2
+      rect:
+        serializedVersion: 2
+        x: 299
+        y: 17
+        width: 133
+        height: 106
+      alignment: 9
+      pivot: {x: 0.65413534, y: 0.10377358}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a3595e581bebcb584c0e85d370cc36a6
+      internalID: -5203103979569921234
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_shield-rush_south_1
+      rect:
+        serializedVersion: 2
+        x: 542
+        y: 123
+        width: 102
+        height: 123
+      alignment: 9
+      pivot: {x: 0.51960784, y: 0.08943089}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 736a26f3a8d246c4bc423e6b089628e4
+      internalID: -5987297275783917097
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_shield-rush_south_3
+      rect:
+        serializedVersion: 2
+        x: 644
+        y: 123
+        width: 101
+        height: 123
+      alignment: 9
+      pivot: {x: 0.59405941, y: 0.08943089}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 54eb463253f1d4533b38852edc919aa5
+      internalID: -6711218611508217920
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_shield-rush_south-east_1
+      rect:
+        serializedVersion: 2
+        x: 863
+        y: 3
+        width: 116
+        height: 121
+      alignment: 9
+      pivot: {x: 0.62931034, y: 0.05785124}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 64bb2c1317d324ac781d50b43dbfd3b0
+      internalID: 5032366107777036253
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_shield-rush_south-east_2
+      rect:
+        serializedVersion: 2
+        x: 1075
+        y: 124
+        width: 117
+        height: 122
+      alignment: 9
+      pivot: {x: 0.63247863, y: 0.05737705}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f26a6d014d75c00a6c90a0d640239632
+      internalID: -7849163083526315523
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_shield-rush_south-east_3
+      rect:
+        serializedVersion: 2
+        x: 202
+        y: 123
+        width: 118
+        height: 123
+      alignment: 9
+      pivot: {x: 0.63559322, y: 0.08943089}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4211e107259554c3ab71224d7c0a52dc
+      internalID: -9113173569352368604
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_shield-rush_east_2
+      rect:
+        serializedVersion: 2
+        x: 979
+        y: 3
+        width: 114
+        height: 121
+      alignment: 9
+      pivot: {x: 0.63157895, y: 0.03305785}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 37e6d592c71919bbab6ce0fff734271d
+      internalID: -394638524894383187
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_shield-rush_east_3
+      rect:
+        serializedVersion: 2
+        x: 92
+        y: 124
+        width: 107
+        height: 121
+      alignment: 9
+      pivot: {x: 0.60747664, y: 0.03305785}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0ef56eeeb7f6c949e1d4e6946397534b
+      internalID: 5089799565703952785
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_shield-rush_west_2
+      rect:
+        serializedVersion: 2
+        x: 631
+        y: 246
+        width: 114
+        height: 124
+      alignment: 9
+      pivot: {x: 0.36842105, y: 0.08064516}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 45d603ea7a8479a9fa28aadf48f71f12
+      internalID: 7293938096105501791
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_shield-rush_south-west_1
+      rect:
+        serializedVersion: 2
+        x: 434
+        y: 123
+        width: 108
+        height: 123
+      alignment: 9
+      pivot: {x: 0.35185185, y: 0.08943089}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e091170fb125cf5c1572abab2d0651b3
+      internalID: 5028472321207271140
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_shield-rush_south-west_2
+      rect:
+        serializedVersion: 2
+        x: 857
+        y: 246
+        width: 110
+        height: 124
+      alignment: 9
+      pivot: {x: 0.34545455, y: 0.11290323}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 39ecb4c0eccb765a00a04dd2e8291f7c
+      internalID: 6081163710139194604
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: vanguard_shield-rush_south-west_3
+      rect:
+        serializedVersion: 2
+        x: 92
+        y: 4
+        width: 103
+        height: 120
+      alignment: 9
+      pivot: {x: 0.36893204, y: 0.05833333}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 26a315a0522aac59927fb5f5d394ddd0
+      internalID: -8075135621135794039
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    outline: []
+    customData:
+    physicsShape: []
+    bones: []
+    spriteID:
+    internalID: 0
+    vertices: []
+    indices:
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      vanguard_walk_south-east_5: 755259111615785449
+      vanguard_walk_north_5: -3537853606857228223
+      vanguard_walk_north-west_1: 8143474938774680505
+      vanguard_walk_north-west_4: 5487321746384446666
+      vanguard_walk_west_1: -149144009458972391
+      vanguard_walk_west_2: -3759604611915145094
+      vanguard_walk_west_3: -3925765196206090200
+      vanguard_walk_south-west_1: 8802174970960078760
+      vanguard_walk-strike_south_2: 1939989328633596586
+      vanguard_walk-strike_south_6: -6987308082738241564
+      vanguard_walk-strike_south-east_5: 8601331231909381592
+      vanguard_walk-strike_south-east_6: -2188014119030556429
+      vanguard_walk-strike_east_5: 1778577273543305546
+      vanguard_walk-strike_east_6: 8410658270788449120
+      vanguard_walk-strike_north-east_5: 7230701202953750142
+      vanguard_walk-strike_north_1: -7169467033401598651
+      vanguard_walk-strike_north_5: 7168666030453365208
+      vanguard_walk-strike_north-west_1: 3453629367571890412
+      vanguard_walk-strike_north-west_4: 8181486377530504112
+      vanguard_walk-strike_west_1: -835507100391732688
+      vanguard_walk-strike_west_2: -4112367141938276250
+      vanguard_walk-strike_west_3: 2581724309540130377
+      vanguard_walk-strike_west_4: -1981436522748580717
+      vanguard_walk-strike_south-west_1: 2625649643446655851
+      vanguard_walk-strike_south-west_2: 5592871777391914864
+      vanguard_cast_south-west_2: -6404396507769172200
+      vanguard_cast_south-west_3: -453420143042357226
+      vanguard_hit_north_2: 6595375815257091231
+      vanguard_hit_north-west_1: 8561471303072346587
+      vanguard_death_south-east_2: -2999166276503078701
+      vanguard_death_south-east_3: -8440595410086256857
+      vanguard_death_east_1: -3208978135853216720
+      vanguard_death_east_4: 20246641995241416
+      vanguard_death_north-east_0: 3860094928408443626
+      vanguard_death_north-east_1: -1997427026713157749
+      vanguard_death_north-east_2: -4950613847485481015
+      vanguard_death_north-east_4: 7800047526503384593
+      vanguard_death_north_0: 7951017802589976895
+      vanguard_death_north_1: -5976254502134587813
+      vanguard_death_north_2: -3080991108825638811
+      vanguard_death_north_4: 1575606730166290126
+      vanguard_death_north-west_0: 1995122920079016228
+      vanguard_death_north-west_1: -7081985756020677650
+      vanguard_death_north-west_2: 7065618601644258341
+      vanguard_death_north-west_4: -2446520390370458100
+      vanguard_death_west_1: -879582586726857658
+      vanguard_death_west_4: -4532299851533955605
+      vanguard_death_south-west_2: -5203103979569921234
+      vanguard_shield-rush_south_1: -5987297275783917097
+      vanguard_shield-rush_south_3: -6711218611508217920
+      vanguard_shield-rush_south-east_1: 5032366107777036253
+      vanguard_shield-rush_south-east_2: -7849163083526315523
+      vanguard_shield-rush_south-east_3: -9113173569352368604
+      vanguard_shield-rush_east_2: -394638524894383187
+      vanguard_shield-rush_east_3: 5089799565703952785
+      vanguard_shield-rush_west_2: 7293938096105501791
+      vanguard_shield-rush_south-west_1: 5028472321207271140
+      vanguard_shield-rush_south-west_2: 6081163710139194604
+      vanguard_shield-rush_south-west_3: -8075135621135794039
+  mipmapLimitGroupName:
+  pSDRemoveMatte: 0
+  userData:
+  assetBundleName:
+  assetBundleVariant:

@@ -17,6 +17,7 @@ namespace Cryptforge.Tests
         public IEnumerator Load()
         {
             TestProfile.Begin(new PlayerProfile(0,null,null,0,new[]{"weapon_staff"},"weapon_staff"));
+            TestProfile.StartWith("weapon_staff");   // the Vanguard's own is the Sword alone since 2026-11-22
             Time.timeScale=1; Time.captureDeltaTime=1f/60;
             yield return SceneManager.LoadSceneAsync("Assets/_Project/Scenes/Gameplay/Gameplay.unity");
             yield return null;

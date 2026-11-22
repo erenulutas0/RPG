@@ -38,13 +38,15 @@ namespace Cryptforge.Tests
         private Health _target;
         private RenderedCharacterArtSet _fiveFacings;
 
-        private IEnumerator Load(bool arcanist = true, bool paintedFrames = false)
+        private IEnumerator Load(bool arcanist = true, bool paintedFrames = false, bool puppet = false)
         {
             TestProfile.Begin();
             if (arcanist)
                 File.WriteAllText(DevelopmentStart.HeroPath, ArcanistId);
             if (paintedFrames)
                 File.WriteAllText(DevelopmentStart.PaintedFramesPath, "on");
+            if (puppet)
+                File.WriteAllText(DevelopmentStart.PuppetPath, string.Empty);
             Time.timeScale = 1;
             Time.captureDeltaTime = 1f / 60;
             yield return SceneManager.LoadSceneAsync(ScenePath);
@@ -71,11 +73,11 @@ namespace Cryptforge.Tests
             yield return null;
         }
 
-        // The puppet is the Vanguard's: a hero with its own rendered art keeps it.
+        // The puppet is the Vanguard's: asked for (development/puppet.txt), it still leaves a hero its own rendered art.
         [UnityTest, Timeout(60000)]
         public IEnumerator ThePuppetLeavesIlyaItsOwnArt()
         {
-            yield return Load(true);
+            yield return Load(true, false, true);
             Assert.That(_drawn, Is.Not.Null, "Ilya is drawn from its rendered art.");
             Assert.That(_look.GetComponent<PuppetAnimator>(), Is.Null, "The puppet never takes a hero with its own art.");
             Assert.That(_look.enabled, Is.False, "The painted view stepped aside.");
@@ -121,18 +123,30 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
-        // The Vanguard has no rendered art: it wears the puppet, or with development/painted-frames.txt its painted frames.
+        // The Vanguard wears its own rendered set since 2026-11-22; its older looks stay on request: development/puppet.txt
+        // the puppet, painted-frames.txt its painted frames.
         [UnityTest]
-        public IEnumerator TheVanguardWearsThePuppetOrItsPaintedFrames()
+        public IEnumerator TheVanguardWearsItsRenderedSetOrOnRequestThePuppetOrItsPaintedFrames()
         {
             yield return Load(false);
-            Assert.That(_drawn, Is.Null);
-            Assert.That(GameObject.Find(RenderedCharacterAnimator.RootName), Is.Null);
-            Assert.That(_look.GetComponent<PuppetAnimator>(), Is.Not.Null, "The Vanguard's look is the puppet.");
-            Assert.That(_look.enabled, Is.False, "The painted view stepped aside for it.");
+            Assert.That(_drawn, Is.Not.Null, "The Vanguard is drawn from its rendered set.");
+            Assert.That(_drawn.Art, Is.SameAs(Object.FindFirstObjectByType<CombatSetup>().Hero.RenderedArt));
+            Assert.That(_drawn.Art.name, Is.EqualTo("VanguardRenderedArtSet"), "Its own, not Ilya's.");
+            Assert.That(_look.GetComponent<PuppetAnimator>(), Is.Null, "No puppet without the file.");
+            Assert.That(_look.enabled, Is.False, "The painted view stepped aside.");
             LogAssert.NoUnexpectedReceived();
             var scene = SceneManager.GetActiveScene();
-            SceneManager.SetActiveScene(SceneManager.CreateScene("Arcanist animation reload"));
+            SceneManager.SetActiveScene(SceneManager.CreateScene("Arcanist animation reload for the puppet"));
+            yield return SceneManager.UnloadSceneAsync(scene);
+            TestProfile.End();
+            yield return Load(false, false, true);
+            Assert.That(_drawn, Is.Null);
+            Assert.That(GameObject.Find(RenderedCharacterAnimator.RootName), Is.Null);
+            Assert.That(_look.GetComponent<PuppetAnimator>(), Is.Not.Null, "puppet.txt: the Vanguard's puppet.");
+            Assert.That(_look.enabled, Is.False, "The painted view stepped aside for it.");
+            LogAssert.NoUnexpectedReceived();
+            scene = SceneManager.GetActiveScene();
+            SceneManager.SetActiveScene(SceneManager.CreateScene("Arcanist animation reload for the painted frames"));
             yield return SceneManager.UnloadSceneAsync(scene);
             TestProfile.End();
             yield return Load(false, true);

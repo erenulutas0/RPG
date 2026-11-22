@@ -23,7 +23,8 @@ namespace Cryptforge.Tests
 {
     // A measurement, not a check (the 2026-10-29 performance audit): the heaviest fight the Foundry stages, with the hero
     // kept on its feet, measured frame by frame into TestResults/perf-probe.txt (and every frame into
-    // perf-probe-frames.tsv). For each hero - the Vanguard as its cut-out puppet, Ilya in its rendered frames - it plays:
+    // perf-probe-frames.tsv). For each hero - both in their rendered frames (the Vanguard since 2026-11-22, its
+    // cut-out puppet before) - it plays:
     //   horde  - the Foundry's first floor under the development autopilot, the first wave padded to a crowd of 40
     //            (development/horde-probe.txt) and the floor's clock started at 4:50 (floor-clock.txt), so the horde
     //            overruns at the scene's cap of 40 ten seconds in: a crowd walking in and dying in waves, burning (Ilya's

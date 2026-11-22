@@ -197,11 +197,26 @@ namespace Cryptforge.Tests
             _ => facing.ToString().ToLowerInvariant()
         };
 
+        // Each hero wears its own set: Ilya this one, the Vanguard its Blender set since 2026-11-22
+        // (VanguardRenderedArtSetTests).
         [Test]
-        public void OnlyTheCinderArcanistWearsTheRenderedSet()
+        public void OnlyTheCinderArcanistWearsThisRenderedSet()
         {
             Assert.That(Hero("Hero_CinderArcanist").RenderedArt, Is.SameAs(Set()));
-            Assert.That(Hero("Hero_Vanguard").RenderedArt, Is.Null, "The Vanguard keeps its painted frames.");
+            Assert.That(Hero("Hero_Vanguard").RenderedArt, Is.Not.Null.And.Not.SameAs(Set()), "The Vanguard wears its own.");
+        }
+
+        // The dash is an optional motion (the Vanguard's Shield Rush): Ilya's set, which has none, stays whole.
+        [Test]
+        public void TheSetWithoutADashStaysValid()
+        {
+            RenderedCharacterArtSet set = Set();
+            Assert.That(set.IsValid, Is.True);
+            Assert.That(set.Draws(RenderedMotion.Dash), Is.False);
+            Assert.That(set.FrameCount(RenderedMotion.Dash), Is.Zero);
+            RenderedClipTiming[] timings = set.Timings();
+            Assert.That(timings.Length, Is.EqualTo(RenderedCharacterFrames.MotionCount));
+            Assert.That(timings[(int)RenderedMotion.Dash].Frames, Is.Zero, "A dash shows Ilya's walk.");
         }
     }
 }

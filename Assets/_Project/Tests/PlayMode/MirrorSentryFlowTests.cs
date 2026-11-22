@@ -27,6 +27,8 @@ namespace Cryptforge.Tests
         [UnitySetUp] public IEnumerator Begin()
         {
             TestProfile.Begin(new PlayerProfile(0, null, null, 0, new[] { EliteRule.DaggersId }, EliteRule.DaggersId));
+            // The Vanguard's own is the Sword alone since 2026-11-22: the Daggers start is the development file's.
+            TestProfile.StartWith(EliteRule.DaggersId);
             Time.timeScale = 1;
             yield return null;
         }

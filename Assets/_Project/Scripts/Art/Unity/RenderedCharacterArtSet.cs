@@ -38,9 +38,11 @@ namespace Cryptforge.Art
 
         public float StrideLength => _strideLength;
 
-        // Every motion has a timing and a clip in each of the five east facings, all facings of a motion with the same
-        // number of frames and no frame missing. The west three are optional but drawn whole or not at all: a set with
-        // any of them has every motion in all three, so a half-packed west never mixes drawn and mirrored directions.
+        // Every required motion has a timing and a clip in each of the five east facings, all facings of a motion with the
+        // same number of frames and no frame missing. The west three are optional but drawn whole or not at all: a set
+        // with any of them has every required motion in all three, so a half-packed west never mixes drawn and mirrored
+        // directions. An optional motion (the dash, RenderedCharacterFrames.IsOptional) is left out entirely - Ilya's set
+        // has none - or drawn whole: its timing and a complete clip in every facing the set draws, and none beyond them.
         public bool IsValid
         {
             get
@@ -48,15 +50,24 @@ namespace Cryptforge.Art
                 if (_timings == null || _clips == null || !(_strideLength > 0f) || !EastComplete())
                     return false;
                 int west = WestClips();
-                return west == 0 || west == WestClipCount;
+                if (west != 0 && west != WestClipCount)
+                    return false;
+                for (int m = RenderedCharacterFrames.RequiredMotionCount; m < RenderedCharacterFrames.MotionCount; m++)
+                    if (!OptionalWhole((RenderedMotion)m, west == WestClipCount))
+                        return false;
+                return true;
             }
         }
 
-        // Every motion in the west three as well, complete: shown as drawn in all eight directions, nothing mirrored.
+        // Every required motion in the west three as well, complete: shown as drawn in all eight directions, nothing
+        // mirrored.
         public bool DrawsWest => IsValid && WestClips() == WestClipCount;
 
-        private const int WestClipCount =
-            RenderedCharacterFrames.MotionCount * (RenderedCharacterFrames.FacingCount - RenderedCharacterFrames.EastFacingCount);
+        // Whether the set draws a motion: every required one of a valid set, an optional one only where it was packed.
+        public bool Draws(RenderedMotion motion) => IsValid && FrameCount(motion) > 0 && TimingIndex(motion) >= 0;
+
+        private const int WestClipCount = RenderedCharacterFrames.RequiredMotionCount *
+            (RenderedCharacterFrames.FacingCount - RenderedCharacterFrames.EastFacingCount);
 
         public int FrameCount(RenderedMotion motion)
         {
@@ -73,22 +84,47 @@ namespace Cryptforge.Art
             return frames == null || frames.Length == 0 ? null : frames[Mathf.Clamp(index, 0, frames.Length - 1)];
         }
 
-        // The timings in RenderedMotion order, for RenderedCharacterPlayer; frame counts come from the clips.
+        // The timings in RenderedMotion order, every motion, for RenderedCharacterPlayer; frame counts come from the clips,
+        // so an optional motion the set leaves out has none.
         public RenderedClipTiming[] Timings()
         {
             var timings = new RenderedClipTiming[RenderedCharacterFrames.MotionCount];
             for (int m = 0; m < timings.Length; m++)
             {
                 int t = TimingIndex((RenderedMotion)m);
-                timings[m] = new RenderedClipTiming(FrameCount((RenderedMotion)m),
+                timings[m] = new RenderedClipTiming(t < 0 ? 0 : FrameCount((RenderedMotion)m),
                     t < 0 ? 0f : _timings[t].FramesPerSecond, t >= 0 && _timings[t].Loops);
             }
             return timings;
         }
 
+        // An optional motion is absent (no timing, no clip in any facing) or whole: a timing, and complete clips of one
+        // frame count in the five east facings and - exactly when the set draws the west - in the west three.
+        private bool OptionalWhole(RenderedMotion motion, bool westDrawn)
+        {
+            bool timed = TimingIndex(motion) >= 0;
+            bool any = false;
+            for (int f = 0; f < RenderedCharacterFrames.FacingCount; f++)
+                any |= ClipIndex(motion, (RenderedFacing)f) >= 0;
+            if (!timed && !any)
+                return true;
+            if (!timed)
+                return false;
+            int frames = CompleteFrames(motion, RenderedFacing.South);
+            if (frames <= 0)
+                return false;
+            for (int f = 1; f < RenderedCharacterFrames.FacingCount; f++)
+            {
+                bool drawn = f < RenderedCharacterFrames.EastFacingCount || westDrawn;
+                if (drawn ? CompleteFrames(motion, (RenderedFacing)f) != frames : ClipIndex(motion, (RenderedFacing)f) >= 0)
+                    return false;
+            }
+            return true;
+        }
+
         private bool EastComplete()
         {
-            for (int m = 0; m < RenderedCharacterFrames.MotionCount; m++)
+            for (int m = 0; m < RenderedCharacterFrames.RequiredMotionCount; m++)
             {
                 if (TimingIndex((RenderedMotion)m) < 0)
                     return false;
@@ -102,11 +138,12 @@ namespace Cryptforge.Art
             return true;
         }
 
-        // How many of the west clips the set has complete, with their motion's frame count; -1 when one it has is not.
+        // How many of the required motions' west clips the set has complete, with their motion's frame count; -1 when one
+        // it has is not.
         private int WestClips()
         {
             int complete = 0;
-            for (int m = 0; m < RenderedCharacterFrames.MotionCount; m++)
+            for (int m = 0; m < RenderedCharacterFrames.RequiredMotionCount; m++)
                 for (int f = RenderedCharacterFrames.EastFacingCount; f < RenderedCharacterFrames.FacingCount; f++)
                 {
                     if (ClipIndex((RenderedMotion)m, (RenderedFacing)f) < 0)

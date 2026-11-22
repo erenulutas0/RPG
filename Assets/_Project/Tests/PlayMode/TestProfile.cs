@@ -29,6 +29,17 @@ namespace Cryptforge.Tests
                 new ProfileStore(Folder).Save(seed);
         }
 
+        // Starts the run's hero with this weapon instead of its own (development/start-weapon.txt), after Begin: every
+        // hero starts with its own weapon only since 2026-11-22, so a scene test that plays the Vanguard with the Staff or
+        // the Daggers names it here as well as seeding the profile. Null or empty does nothing.
+        public static void StartWith(string weaponId)
+        {
+            if (string.IsNullOrEmpty(weaponId))
+                return;
+            Directory.CreateDirectory(Path.GetDirectoryName(DevelopmentStart.StartWeaponPath));
+            File.WriteAllText(DevelopmentStart.StartWeaponPath, weaponId);
+        }
+
         public static PlayerProfile ReadSaved() => new ProfileStore(Folder).Load();
 
         public static bool HasSavedFile => File.Exists(Path.Combine(Folder, ProfileStore.FileName));

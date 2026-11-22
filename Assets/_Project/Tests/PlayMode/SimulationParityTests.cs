@@ -86,6 +86,9 @@ namespace Cryptforge.Tests
 
             TestProfile.Begin(new PlayerProfile(0, relic != null ? new[] { relic.Id } : null, relic?.Id, 0,
                 weaponId != null ? new[] { weaponId } : null, weaponId));
+            // The Vanguard starts with its Sword alone since 2026-11-22: the simulation's Staff and Daggers starts are
+            // the development file's.
+            TestProfile.StartWith(weaponId);
             // After the profile is redirected, so the file lands in the test's own folder and not the Editor's.
             WriteRunSeed(DevelopmentSeed);
             _previousFrameRate = Application.targetFrameRate;

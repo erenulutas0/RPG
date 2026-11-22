@@ -201,8 +201,8 @@ namespace Cryptforge.UI
             int gold = _setup.Profile.Gold;
             RelicOption relic = _setup.Relics.NextUnlock;
             WeaponOption weapon = _setup.Weapons.NextUnlock;
-            // A hero offered its own weapon alone (Ilya) has no weapon to forge toward while the Vanguard's rack may
-            // still sell some: with every relic forged, only the relics are complete, not the whole forge.
+            // A hero offered its own weapon alone (Ilya, and the Vanguard since 2026-11-22) has no weapon to forge toward
+            // while another hero's rack might still sell some: with every relic forged, only the relics are complete.
             if (relic == null && weapon == null)
                 return string.Format(Loc.Numbers, _setup.Weapons.OnlyStartingWeapon ? _text.ForgeHintRelicsCompleteFormat
                     : _text.ForgeHintCompleteFormat, gold);

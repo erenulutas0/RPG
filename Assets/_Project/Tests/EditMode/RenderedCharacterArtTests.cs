@@ -402,7 +402,86 @@ namespace Cryptforge.Tests
         public void APlayerNeedsATimingForEveryMotionAndAStride()
         {
             Assert.Throws<ArgumentException>(() => new RenderedCharacterPlayer(new RenderedClipTiming[3], Stride));
+            Assert.Throws<ArgumentException>(() => new RenderedCharacterPlayer(new RenderedClipTiming[9], Stride));
             Assert.Throws<ArgumentOutOfRangeException>(() => new RenderedCharacterPlayer(Timings(), 0f));
+        }
+
+        // The Vanguard's clips (2026-11-22): Ilya's seven and the dash, docs/57's Shield Rush, 4 frames at 13.3 a second.
+        private static RenderedClipTiming[] WithDash()
+        {
+            var timings = new RenderedClipTiming[RenderedCharacterFrames.MotionCount];
+            Array.Copy(Timings(), timings, RenderedCharacterFrames.RequiredMotionCount);
+            timings[(int)RenderedMotion.Dash] = new RenderedClipTiming(4, 13.3f, false);
+            return timings;
+        }
+
+        [Test]
+        public void TheDashIsOptionalAndOnlyItsLastMotionIsIt()
+        {
+            for (int m = 0; m < RenderedCharacterFrames.MotionCount; m++)
+                Assert.That(RenderedCharacterFrames.IsOptional((RenderedMotion)m), Is.EqualTo((RenderedMotion)m == RenderedMotion.Dash),
+                    ((RenderedMotion)m).ToString());
+            RenderedCharacterPlayer seven = Player();
+            Assert.That(seven.DrawsDash, Is.False, "Seven timings: no dash.");
+            Assert.That(seven.Timing(RenderedMotion.Dash).Frames, Is.Zero);
+            Assert.That(new RenderedCharacterPlayer(WithDash(), Stride, true).DrawsDash, Is.True);
+        }
+
+        // Shield Rush throws the hero along: a set with the dash plays it once on its clock over the walk the travel shows,
+        // facing the travel, and then walks on; the strikes meanwhile wait under it.
+        [Test]
+        public void TheDashPlaysOnceOverTheTravelThenTheWalkGoesOn()
+        {
+            var player = new RenderedCharacterPlayer(WithDash(), Stride, true);
+            player.Step(Tick, 0, 0);
+            Assert.That(player.Dash(), Is.True);
+            Assert.That(player.Motion, Is.EqualTo(RenderedMotion.Dash));
+            Assert.That(player.Frame, Is.Zero, "The brace first.");
+            var seen = new List<int> { player.Frame };
+            float played = 0;
+            while (player.IsDashing)
+            {
+                // 4 units in 0.3 s along the floor's west.
+                player.Step(Tick, -4f / 0.3f * Tick, 0);
+                played += Tick;
+                player.Strike(0.25f);
+                player.Hit();
+                if (player.IsDashing)
+                {
+                    Assert.That(player.Motion, Is.EqualTo(RenderedMotion.Dash), "Neither a strike nor a hit cuts it short.");
+                    Assert.That(player.Facing, Is.EqualTo(RenderedFacing.West), "Facing the dash.");
+                    Assert.That(player.Mirrored, Is.False);
+                    Assert.That(player.Frame, Is.GreaterThanOrEqualTo(seen[seen.Count - 1]), "Played once, forward.");
+                    seen.Add(player.Frame);
+                }
+            }
+            Assert.That(new HashSet<int>(seen).Count, Is.EqualTo(4));
+            Assert.That(played, Is.EqualTo(4f / 13.3f).Within(2 * Tick), "Four frames at 13.3 a second: docs/57's 0.3 s.");
+            Assert.That(player.Motion, Is.EqualTo(RenderedMotion.WalkStrike), "Then the stride, striking.");
+        }
+
+        [Test]
+        public void ASetWithoutTheDashShowsTheWalkAndACastOrDeathOutranksADash()
+        {
+            RenderedCharacterPlayer seven = Player();
+            seven.Step(Tick, 0, 0);
+            Assert.That(seven.Dash(), Is.False, "No dash drawn.");
+            seven.Step(Tick, -0.2f, 0);
+            Assert.That(seven.Motion, Is.EqualTo(RenderedMotion.Walk), "The travel shows the walk, as before.");
+
+            var player = new RenderedCharacterPlayer(WithDash(), Stride, true);
+            player.Step(Tick, 0, 0);
+            player.Dash();
+            player.Cast();
+            Assert.That(player.Motion, Is.EqualTo(RenderedMotion.Cast), "The newer press shows.");
+            Assert.That(player.IsDashing, Is.False);
+            player.Dash();
+            Assert.That(player.Motion, Is.EqualTo(RenderedMotion.Dash));
+            Assert.That(player.IsCasting, Is.False);
+            player.Die();
+            Assert.That(player.Motion, Is.EqualTo(RenderedMotion.Death));
+            Assert.That(player.Dash(), Is.False, "A fallen hero dashes no more.");
+            Assert.That(player.Motion, Is.EqualTo(RenderedMotion.Death));
         }
     }
 }

@@ -11,9 +11,9 @@ using UnityEngine.TestTools;
 
 namespace Cryptforge.Tests
 {
-    // The cut-out puppet (docs/45 section 4 B), the Vanguard's look since 2026-10-29, in the real scene: HeroLookView hands
-    // the hero to PuppetAnimator with the Vanguard's painted parts (VanguardPuppetArtSet). Presentation only, like the
-    // Vanguard's animation tests.
+    // The cut-out puppet (docs/45 section 4 B), the Vanguard's look from 2026-10-29 until its Blender-rendered set took
+    // over (2026-11-22), in the real scene: with development/puppet.txt HeroLookView hands the hero to PuppetAnimator with
+    // the Vanguard's painted parts (VanguardPuppetArtSet). Presentation only, like the Vanguard's animation tests.
     public sealed class PuppetAnimationTests
     {
         private const string ScenePath = "Assets/_Project/Scenes/Gameplay/Gameplay.unity";
@@ -30,10 +30,13 @@ namespace Cryptforge.Tests
             yield return LoadPuppet(null);
         }
 
-        // A fresh profile folder, then the scene: the Vanguard wears the puppet by default.
+        // A fresh profile folder asking for the puppet (the Vanguard wears its rendered set otherwise), then the scene. A
+        // seed's equipped weapon is the run's start too: the Vanguard's own is the Sword alone since 2026-11-22.
         private IEnumerator LoadPuppet(PlayerProfile seed)
         {
             TestProfile.Begin(seed);
+            File.WriteAllText(DevelopmentStart.PuppetPath, string.Empty);
+            TestProfile.StartWith(seed?.EquippedWeaponId);
             Time.timeScale = 1;
             Time.captureDeltaTime = 1f / 60;
             yield return SceneManager.LoadSceneAsync(ScenePath);
@@ -123,6 +126,7 @@ namespace Cryptforge.Tests
             yield return null;
             Assert.That(Object.FindFirstObjectByType<PuppetAnimator>(), Is.Null);
             Assert.That(GameObject.Find(PuppetAnimator.RootName), Is.Null);
+            Assert.That(Object.FindFirstObjectByType<RenderedCharacterAnimator>(), Is.Null, "Nor the rendered set.");
             var look = Object.FindFirstObjectByType<HeroLookView>();
             Assert.That(look.enabled, Is.True);
             Assert.That(look.UsesPaintedArt, Is.True, "The scene's imported Vanguard set, as before.");
