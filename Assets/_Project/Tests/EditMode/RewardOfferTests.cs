@@ -345,6 +345,32 @@ namespace Cryptforge.Tests
             Assert.That(rig.Offer.State, Is.EqualTo(RewardOfferState.Video));
         }
 
+        // The wiring of 2026-11-23: LastResult names its run, so a result screen shows only its own run's words - the next
+        // screen opens with the last run's result still standing.
+        [Test]
+        public void TheLastResultNamesItsRun()
+        {
+            var rig = new Rig();
+            Assert.That(rig.Offer.LastResultRunId, Is.Null);
+            rig.OpenSecond(40);
+            rig.Offer.Take();
+            Assert.That((rig.Offer.LastResult, rig.Offer.LastResultRunId),
+                Is.EqualTo(((RewardResultKind?)RewardResultKind.Watched, "s-2")));
+            rig.Offer.Close();
+
+            Assert.That(rig.Open("s-3", 40), Is.EqualTo(RewardOfferState.Video));
+            Assert.That((rig.Offer.LastResult, rig.Offer.LastResultRunId),
+                Is.EqualTo(((RewardResultKind?)RewardResultKind.Watched, "s-2")), "Still the last run's, and named so.");
+            rig.Video.ScriptShows(RewardedVideoResult.Failed);
+            rig.Offer.Take();
+            Assert.That((rig.Offer.State, rig.Offer.LastResult, rig.Offer.LastResultRunId),
+                Is.EqualTo((RewardOfferState.Video, (RewardResultKind?)RewardResultKind.Failed, "s-3")),
+                "A first failure, with its retry still offered, names its run too.");
+            rig.Offer.Close();
+            Assert.That((rig.Offer.LastResult, rig.Offer.LastResultRunId),
+                Is.EqualTo(((RewardResultKind?)RewardResultKind.Failed, "s-3")), "The untaken retry ends as failed.");
+        }
+
         [Test]
         public void LeavingAnOpenOfferDeclinesIt()
         {

@@ -72,7 +72,12 @@ namespace Cryptforge.Tests
             Tap(WeaponCard(1));
             Assert.That(_setup.Profile.OwnedRelicIds, Is.Empty);
             Assert.That(_setup.Profile.OwnedWeaponIds, Is.Empty);
-            Assert.That(TestProfile.HasSavedFile, Is.False, "A run with no gold and no cleared floor writes nothing.");
+            // The run's end writes the profile once (docs/58 3.1: the result on disk before any video), even with nothing
+            // banked; the taps on the locked cards write nothing into it.
+            PlayerProfile saved = TestProfile.ReadSaved();
+            Assert.That((saved.Gold, saved.OwnedRelicIds.Count, saved.OwnedWeaponIds.Count), Is.EqualTo((0, 0, 0)),
+                "A run with no gold and no cleared floor saves an empty profile.");
+            Assert.That(_setup.ResultSaved, Is.True);
             LogAssert.NoUnexpectedReceived();
         }
 
