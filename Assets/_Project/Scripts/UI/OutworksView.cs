@@ -13,11 +13,20 @@ namespace Cryptforge.UI
     // Keeper; the hero's body lifted along its arc while its shadow keeps the ground (CombatantView.Lift); and edge arrows on
     // the tall band to what lies off the screen - at most OutworksRule.MaxArrows, the stair first, then the Keeper, then the
     // anvils nearest first, the open stair's own arrow (ExitSealView's) counted among them. Shown only while the phase runs.
-    [DefaultExecutionOrder(100)]
+    //
+    // The arrows' labels (2026-11-23, the P0a captures): each stands on its arrow's inner side, whole inside the safe area
+    // (EdgeLabel); an arrow that points the way an earlier one does under the same name merges into it (two anvils behind
+    // one edge read as one ANVIL, not two stacked), and a different name that way loses its chevron and stacks its label
+    // beside the earlier one's. A pad draws its centre - where the hero stands still to launch - and fills it as it does.
+    // Runs after ExitSealView (order 100) so the open stair's label is placed before these are laid round it.
+    [DefaultExecutionOrder(101)]
     public sealed class OutworksView : MonoBehaviour
     {
         private const int Segments = 48;
         private const float LabelReach = 3.2f;
+        // Two arrows' tips this near (world units) point the same way; and the gap kept between two labels' boxes.
+        private const float MergeReach = .6f;
+        private const float LabelGap = .06f;
         private static readonly Color Ember = new Color(1f, .55f, .22f, 1f);
         private static readonly Color Gold = new Color(1f, .82f, .45f, 1f);
         private static readonly Color Ash = new Color(.55f, .5f, .46f, 1f);
@@ -44,16 +53,32 @@ namespace Cryptforge.UI
         private readonly LineRenderer[] _arrows = new LineRenderer[OutworksRule.MaxArrows];
         private readonly TextMesh[] _arrowLabels = new TextMesh[OutworksRule.MaxArrows];
         private readonly string[] _arrowShown = new string[OutworksRule.MaxArrows];
+        private readonly MeshRenderer[] _arrowRenderers = new MeshRenderer[OutworksRule.MaxArrows];
+        // The arrows laid this frame (the open stair's among them): their tips, names and label boxes.
+        private readonly Vector3[] _laidCue = new Vector3[OutworksRule.MaxArrows];
+        private readonly string[] _laidName = new string[OutworksRule.MaxArrows];
+        private readonly Vector3[] _laidCentre = new Vector3[OutworksRule.MaxArrows];
+        private readonly Vector3[] _laidExtents = new Vector3[OutworksRule.MaxArrows];
+        private int _laid;
+        private float _bandBottom = .20f, _bandTop = .80f;
+        private ExitSealView _exitSeal;
+        private LineRenderer[] _padDwell;
         private readonly Vector3[] _arc = new Vector3[Segments + 1];
         private readonly Vector3[] _corners = new Vector3[4];
 
-        // For tests and captures: whether the phase is drawn, an anvil's ring and charge, the arrows standing.
+        // For tests and captures: whether the phase is drawn, an anvil's ring and charge, the arrows standing (and the
+        // labels this view draws, in order), the pad's dwell shown.
         public bool IsShown => _root != null && _root.activeSelf;
         public bool IsAnvilShown(int anvil) => _anvils != null && _anvils[anvil].activeSelf;
         public float ShownCharge(int anvil) => _charges != null && _charges[anvil].enabled && _encounters.Outworks != null
             ? _encounters.Outworks.Anvils.ShareOf(anvil)
             : 0f;
         public int ArrowsShown { get; private set; }
+        public int ArrowLabelsShown { get; private set; }
+        public string ArrowLabel(int index) => index >= 0 && index < ArrowLabelsShown ? _arrowShown[index] : null;
+        public Bounds ArrowLabelBounds(int index) => _arrowRenderers[index].bounds;
+        public bool ArrowChevronShown(int index) => index >= 0 && index < ArrowLabelsShown && _arrows[index].enabled;
+        public float ShownPadDwell { get; private set; }
         public bool IsLanternShown => _lantern != null && _lantern.activeSelf;
         public float ShownLift { get; private set; }
 
@@ -66,6 +91,7 @@ namespace Cryptforge.UI
             _arena = FindFirstObjectByType<ArenaView>();
             _camera = Camera.main;
             _framing = _camera != null ? _camera.GetComponent<ArenaCameraFollow>() : null;
+            _exitSeal = GetComponent<ExitSealView>();
             _material = SharedSpriteMaterial.For(_arena);
             _root = new GameObject("Outworks");
             _root.transform.SetParent(transform, false);
@@ -77,6 +103,7 @@ namespace Cryptforge.UI
                 _arrows[i].positionCount = 3;
                 _arrows[i].useWorldSpace = false;
                 _arrowLabels[i] = Label("Outworks Arrow Label " + i, transform, .032f, Ivory);
+                _arrowRenderers[i] = _arrowLabels[i].GetComponent<MeshRenderer>();
             }
             _label = Label("Outworks Instruction", _root.transform, .04f, Gold);
             Loc.Changed += Rewrite;
@@ -111,6 +138,7 @@ namespace Cryptforge.UI
             }
             int pads = OutworksRule.PadCount;
             _pads = new GameObject[pads];
+            _padDwell = new LineRenderer[pads];
             for (int i = 0; i < pads; i++)
             {
                 OutworksRule.PadLaunch(i, out float x, out float y);
@@ -118,6 +146,11 @@ namespace Cryptforge.UI
                 var pad = new GameObject("Jump Pad " + i);
                 pad.transform.SetParent(_root.transform, false);
                 Ring(pad.transform, Ivory, .05f, OutworksRule.PadRadius);
+                // Its centre, where the hero stands still to launch, and the beat filling round it.
+                Ring(pad.transform, Ash, .035f, OutworksRule.PadTriggerRadius);
+                _padDwell[i] = Line("Pad Dwell", pad.transform, Gold, .07f, 1);
+                _padDwell[i].positionCount = Segments + 1;
+                _padDwell[i].enabled = false;
                 Vector2 heading = new Vector2(tx - x, ty - y).normalized;
                 Vector2 side = new Vector2(-heading.y, heading.x);
                 LineRenderer chevron = Line("Pad Chevron", pad.transform, Ivory, .05f, 0);
@@ -175,10 +208,28 @@ namespace Cryptforge.UI
             if (_heroView != null && _heroView.Lift != ShownLift)
                 _heroView.Lift = ShownLift;
             ArrowsShown = 0;
+            ArrowLabelsShown = 0;
+            ShownPadDwell = 0f;
             if (!shown)
             {
                 HideArrowsFrom(0);
                 return;
+            }
+            int dwellPad = leap != null ? leap.DwellPad : -1;
+            for (int i = 0; i < _padDwell.Length; i++)
+            {
+                bool dwelling = i == dwellPad && leap.DwellShare > 0f;
+                if (_padDwell[i].enabled != dwelling)
+                    _padDwell[i].enabled = dwelling;
+                if (!dwelling)
+                    continue;
+                ShownPadDwell = leap.DwellShare;
+                for (int s = 0; s <= Segments; s++)
+                {
+                    float a = Mathf.PI / 2 - s * (Mathf.PI * 2 / Segments) * ShownPadDwell;
+                    _arc[s] = Project(new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * OutworksRule.PadTriggerRadius * 1.15f);
+                }
+                _padDwell[i].SetPositions(_arc);
             }
 
             OutworksPhase phase = _encounters.Outworks;
@@ -247,20 +298,25 @@ namespace Cryptforge.UI
             }
 
             // The arrows: the stair first (its own arrow, ExitSealView's, once open), the Keeper, then the anvils nearest first.
-            int arrow = 0;
-            bool stairOff = Offscreen(Ground(phase.StairX, phase.StairY), out Vector3 stairCue, out Vector3 stairDirection);
-            if (stairOff)
+            _laid = 0;
+            Band();
+            string stairName = Loc.Text("outworks.stair_direction", "ASCENT STAIR");
+            if (Offscreen(Ground(phase.StairX, phase.StairY), out Vector3 stairCue, out Vector3 stairDirection))
             {
                 if (phase.StairOpen)
+                {
+                    // ExitSealView draws it; its label's box joins the layout so nothing here lands on it.
+                    Bounds box = _exitSeal != null && _exitSeal.ShowsDirection ? _exitSeal.DirectionLabelBounds : default;
+                    Lay(stairCue, stairName, box.center, box.extents);
                     ArrowsShown++;
+                }
                 else
-                    Arrow(arrow++, stairCue, stairDirection, Loc.Text("outworks.stair_direction", "ASCENT STAIR"));
+                    Arrow(stairCue, stairDirection, stairName);
             }
-            if (lantern && arrow < _arrows.Length - (stairOff && phase.StairOpen ? 1 : 0) &&
+            if (lantern && ArrowsShown < _arrows.Length &&
                 Offscreen(Ground(keeperX, keeperY), out Vector3 keeperCue, out Vector3 keeperDirection))
-                Arrow(arrow++, keeperCue, keeperDirection, Loc.Text("outworks.keeper_direction", "KEEPER"));
-            int limit = _arrows.Length - (stairOff && phase.StairOpen ? 1 : 0);
-            for (int pass = 0; pass < _anvils.Length && arrow < limit; pass++)
+                Arrow(keeperCue, keeperDirection, Loc.Text("outworks.keeper_direction", "KEEPER"));
+            for (int pass = 0; pass < _anvils.Length && ArrowsShown < _arrows.Length; pass++)
             {
                 int next = -1;
                 float nextDistance = float.PositiveInfinity;
@@ -279,9 +335,9 @@ namespace Cryptforge.UI
                     break;
                 _order[pass] = next;
                 if (Offscreen(_anvils[next].transform.position, out Vector3 cue, out Vector3 direction))
-                    Arrow(arrow++, cue, direction, Loc.Text("outworks.anvil_direction", "ANVIL"));
+                    Arrow(cue, direction, Loc.Text("outworks.anvil_direction", "ANVIL"));
             }
-            HideArrowsFrom(arrow);
+            HideArrowsFrom(ArrowLabelsShown);
         }
 
         private readonly int[] _order = new int[8];
@@ -295,24 +351,86 @@ namespace Cryptforge.UI
             return false;
         }
 
-        private void Arrow(int index, Vector3 cue, Vector3 direction, string label)
+        // One arrow to what lies off the screen at cue's way: merged into an earlier arrow of the same name that points
+        // the same way (nothing drawn, no slot taken); else its label on its inner side, inside the safe area, set clear
+        // of the labels laid before it - without a chevron of its own when an earlier arrow already points this way.
+        private void Arrow(Vector3 cue, Vector3 direction, string label)
         {
+            bool chevron = true;
+            for (int i = 0; i < _laid; i++)
+            {
+                if ((cue - _laidCue[i]).sqrMagnitude >= MergeReach * MergeReach)
+                    continue;
+                if (_laidName[i] == label)
+                    return;
+                chevron = false;
+            }
+            int index = ArrowLabelsShown;
             LineRenderer line = _arrows[index];
-            Vector3 side = new Vector3(-direction.y, direction.x, 0f);
-            line.transform.position = cue;
-            line.SetPosition(0, -direction * .18f + side * .12f);
-            line.SetPosition(1, Vector3.zero);
-            line.SetPosition(2, -direction * .18f - side * .12f);
-            line.enabled = true;
+            line.enabled = chevron;
+            if (chevron)
+            {
+                Vector3 side = new Vector3(-direction.y, direction.x, 0f);
+                line.transform.position = cue;
+                line.SetPosition(0, -direction * .18f + side * .12f);
+                line.SetPosition(1, Vector3.zero);
+                line.SetPosition(2, -direction * .18f - side * .12f);
+            }
             TextMesh text = _arrowLabels[index];
-            text.gameObject.SetActive(true);
-            text.transform.position = cue - direction * .42f;
+            if (!text.gameObject.activeSelf)
+                text.gameObject.SetActive(true);
             if (_arrowShown[index] != label)
             {
                 text.text = label;
                 _arrowShown[index] = label;
             }
+            Vector3 extents = _arrowRenderers[index].bounds.extents;
+            Vector3 centre = EdgeLabel.Place(_camera, cue, direction, extents, EdgeLabel.ChevronReach, _bandBottom, _bandTop);
+            centre = ClearOfLaid(centre, extents);
+            text.transform.position = centre;
+            Lay(cue, label, centre, extents);
+            ArrowLabelsShown++;
             ArrowsShown++;
+        }
+
+        // A label's centre moved off the labels laid before it: stacked above or below the one it meets, toward the band's
+        // middle first, kept inside the safe area.
+        private Vector3 ClearOfLaid(Vector3 centre, Vector3 extents)
+        {
+            if (_camera == null)
+                return centre;
+            float depth = _camera.WorldToViewportPoint(centre).z;
+            float middle = _camera.ViewportToWorldPoint(new Vector3(.5f, (_bandBottom + _bandTop) * .5f, depth)).y;
+            for (int pass = 0; pass < _laid; pass++)
+            {
+                int met = -1;
+                for (int i = 0; i < _laid && met < 0; i++)
+                    if (_laidExtents[i] != Vector3.zero &&
+                        EdgeLabel.Overlaps(centre, extents, _laidCentre[i], _laidExtents[i], LabelGap))
+                        met = i;
+                if (met < 0)
+                    return centre;
+                float step = extents.y + _laidExtents[met].y + LabelGap;
+                float toward = _laidCentre[met].y <= middle ? 1f : -1f;
+                Vector3 moved = EdgeLabel.Clamp(_camera, new Vector3(centre.x, _laidCentre[met].y + toward * step, 0f),
+                    extents, _bandBottom, _bandTop);
+                if (EdgeLabel.Overlaps(moved, extents, _laidCentre[met], _laidExtents[met], LabelGap))
+                    moved = EdgeLabel.Clamp(_camera, new Vector3(centre.x, _laidCentre[met].y - toward * step, 0f),
+                        extents, _bandBottom, _bandTop);
+                centre = moved;
+            }
+            return centre;
+        }
+
+        private void Lay(Vector3 cue, string name, Vector3 centre, Vector3 extents)
+        {
+            if (_laid >= _laidCue.Length)
+                return;
+            _laidCue[_laid] = cue;
+            _laidName[_laid] = name;
+            _laidCentre[_laid] = centre;
+            _laidExtents[_laid] = extents;
+            _laid++;
         }
 
         private void HideArrowsFrom(int index)
@@ -328,13 +446,9 @@ namespace Cryptforge.UI
 
         // Whether a world point is off the band between the HUD blocks; where on the band's edge its arrow stands and which
         // way it points (ExitSealView's reading of the band).
-        private bool Offscreen(Vector3 position, out Vector3 cue, out Vector3 direction)
+        // The band between the HUD blocks, as viewport heights, read once a frame for the arrows and their labels.
+        private void Band()
         {
-            cue = position;
-            direction = Vector3.up;
-            if (_camera == null)
-                return false;
-            Vector3 viewport = _camera.WorldToViewportPoint(position);
             float bottom = .20f, top = .80f;
             if (_framing != null && _framing.TopHud != null && _framing.BottomHud != null)
             {
@@ -348,6 +462,18 @@ namespace Cryptforge.UI
                     top = .80f;
                 }
             }
+            _bandBottom = bottom;
+            _bandTop = top;
+        }
+
+        private bool Offscreen(Vector3 position, out Vector3 cue, out Vector3 direction)
+        {
+            cue = position;
+            direction = Vector3.up;
+            if (_camera == null)
+                return false;
+            Vector3 viewport = _camera.WorldToViewportPoint(position);
+            float bottom = _bandBottom, top = _bandTop;
             bool outside = viewport.x < .08f || viewport.x > .92f || viewport.y < bottom || viewport.y > top;
             if (!outside)
                 return false;

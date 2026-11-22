@@ -8,8 +8,10 @@ namespace Cryptforge.Tests
 {
     // docs/62's P0a, the Outworks probe's pure rules (OutworksRule, AnvilField, OutworksPhase, HeroLeap, OutworksPilot): the
     // sites stand on the court and clear of each other, an anvil captures after its charge and drains outside its ring, the
-    // Keeper's key and the Bell open the stair and the stair is held standing still, a pad's arc carries the hero across
-    // the pit on a straight ground track and lands it where no pad launches again, and the pilot's choices.
+    // Keeper's key and the Bell open the stair and the stair is held standing still, a pad launches only a hero that stood
+    // still on its centre for its beat - never one walking across it - and its arc carries the hero across the pit on a
+    // straight ground track and lands it where no pad launches again, the pads stand off the walks round the pit, and the
+    // pilot's choices.
     public sealed class OutworksRuleTests
     {
         private const float Step = 1f / 60f;
@@ -71,6 +73,39 @@ namespace Cryptforge.Tests
             }
         }
 
+        // The line a walk round the pit takes: its edges with the pit's corners' relief (OutworksRule.PitCorner's 1.2).
+        private const float RimWalk = 1.2f;
+
+        [Test]
+        public void EveryPadStandsOffTheWalksRoundThePit()
+        {
+            for (int pad = 0; pad < OutworksRule.PadCount; pad++)
+            {
+                OutworksRule.PadLaunch(pad, out float x, out float y);
+                FoundryMap.ToDesign(x, y, out float u, out float v);
+                // How far the pad's centre stands from the pit's box (0 inside it).
+                float du = Math.Max(Math.Max(FoundryMap.PitWest - u, u - FoundryMap.PitEast), 0f);
+                float dv = Math.Max(Math.Max(FoundryMap.PitSouth - v, v - FoundryMap.PitNorth), 0f);
+                float off = (float)Math.Sqrt(du * du + dv * dv);
+                Assert.That(off - RimWalk, Is.GreaterThan(OutworksRule.PadRadius + .8f),
+                    $"pad {pad}'s ring clear of the line round the pit (it stands {off:0.0} off the pit)");
+                for (int hall = 1; hall <= FoundryMap.RoomSiteCount; hall++)
+                {
+                    FoundryMap.RoomSite(0, hall, out float hx, out float hy);
+                    Assert.That(OutworksRule.Within(x, y, hx, hy, OutworksRule.PadRadius + FoundryMap.RoomSiteRadius), Is.False,
+                        $"pad {pad} clear of district {hall}");
+                }
+                for (int a = 0; a < OutworksRule.AnvilCount; a++)
+                {
+                    OutworksRule.AnvilSite(a, out float ax, out float ay);
+                    Assert.That(OutworksRule.Within(x, y, ax, ay, OutworksRule.PadRadius + OutworksRule.AnvilRadius), Is.False,
+                        $"pad {pad} clear of anvil {a}");
+                }
+            }
+            Assert.That(OutworksRule.PadTriggerRadius, Is.LessThanOrEqualTo(OutworksRule.PadRadius * .5f),
+                "the launch is the pad's centre, not its ring");
+        }
+
         [Test]
         public void EachPadLeapsThePitAndLandsOutsideEveryPadsCircle()
         {
@@ -84,6 +119,8 @@ namespace Cryptforge.Tests
                     OutworksRule.PadLaunch(other, out float ox, out float oy);
                     Assert.That(OutworksRule.Within(tx, ty, ox, oy, OutworksRule.PadRadius + .5f), Is.False,
                         $"pad {pad}'s landing clear of pad {other}");
+                    // No landing faces the way back: the pair's other pad stands well off it.
+                    Assert.That(OutworksRule.Within(tx, ty, ox, oy, 5f), Is.False, $"pad {pad}'s landing 5 or more from pad {other}");
                 }
             }
         }
@@ -254,7 +291,62 @@ namespace Cryptforge.Tests
             }
         }
 
-        // ---- The pad's arc --------------------------------------------------------------------------------------------
+        // ---- The pad's launch and arc ---------------------------------------------------------------------------------
+
+        // The hero standing still at (x, y) step after step until the pad launches it, or a second's steps; the steps it
+        // took (the first only places the feet).
+        private static int StandUntilLaunched(HeroLeap leap, float x, float y)
+        {
+            for (int frame = 1; frame <= 60; frame++)
+                if (leap.TryLaunch(x, y, Step))
+                    return frame;
+            return -1;
+        }
+
+        [Test]
+        public void APadLaunchesOnlyAHeroThatStoodStillOnItsCentreForItsBeat()
+        {
+            OutworksRule.PadLaunch(0, out float lx, out float ly);
+            var leap = new HeroLeap();
+            // On the ring but off the centre: never, however long it stands.
+            float ring = (OutworksRule.PadTriggerRadius + OutworksRule.PadRadius) * .5f;
+            Assert.That(StandUntilLaunched(leap, lx + ring, ly), Is.EqualTo(-1), "the ring is not the launch");
+            Assert.That(leap.DwellPad, Is.EqualTo(-1));
+            // On the centre, still: after the beat, to the step.
+            int frames = StandUntilLaunched(leap, lx + OutworksRule.PadTriggerRadius * .5f, ly);
+            Assert.That(leap.IsAirborne, Is.True, "stood still on the centre, it launches");
+            Assert.That(frames - 1, Is.EqualTo((int)Math.Round(OutworksRule.PadDwellSeconds / Step)),
+                "the beat, counted from the first still step");
+            Assert.That(leap.Pad, Is.EqualTo(0));
+            Assert.That(leap.Launches, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void WalkingAcrossAPadsCentreNeverLaunchesTheHero()
+        {
+            OutworksRule.PadLaunch(1, out float lx, out float ly);
+            var leap = new HeroLeap();
+            // Straight over the centre at every pace down to a tenth of the foundry's walk (3.5 units a second): each
+            // step moves the feet, so the beat never starts.
+            foreach (float pace in new[] { 3.5f, 1.4f, .35f })
+            {
+                float stride = pace * Step;
+                for (float t = -1.5f; t <= 1.5f; t += stride)
+                {
+                    Assert.That(leap.TryLaunch(lx + t, ly + t * .3f, Step), Is.False, $"walking at {pace} across it");
+                    if (Math.Abs(t) < OutworksRule.PadTriggerRadius * .5f)
+                        Assert.That(leap.DwellPad, Is.EqualTo(1), "on its centre");
+                }
+            }
+            Assert.That(leap.Launches, Is.EqualTo(0));
+            // A pause on the centre short of the beat, then on: nothing either.
+            for (int frame = 0; frame < (int)(OutworksRule.PadDwellSeconds / Step) - 2; frame++)
+                Assert.That(leap.TryLaunch(lx, ly, Step), Is.False);
+            Assert.That(leap.DwellShare, Is.GreaterThan(0f).And.LessThan(1f), "the beat fills while it stands");
+            Assert.That(leap.TryLaunch(lx + .05f, ly, Step), Is.False, "a step starts the beat again");
+            Assert.That(leap.DwellShare, Is.EqualTo(0f));
+            Assert.That(leap.Launches, Is.EqualTo(0));
+        }
 
         [Test]
         public void APadCarriesTheHeroAlongAStraightGroundTrackAndLandsIt()
@@ -262,9 +354,9 @@ namespace Cryptforge.Tests
             OutworksRule.PadLaunch(0, out float lx, out float ly);
             OutworksRule.PadLanding(0, out float tx, out float ty);
             var motion = new HeroMotion(3.5f);
-            motion.Place(lx + .3f, ly, ArenaGeometry.Foundry);
+            motion.Place(lx + .2f, ly, ArenaGeometry.Foundry);
             var leap = new HeroLeap();
-            Assert.That(leap.TryLaunch(motion.X, motion.Y), Is.True, "within the pad's radius it launches");
+            Assert.That(StandUntilLaunched(leap, motion.X, motion.Y), Is.GreaterThan(0), "stood on the pad's centre it launches");
             Assert.That(leap.IsAirborne, Is.True);
             Assert.That(leap.Pad, Is.EqualTo(0));
             float peak = 0f;
@@ -286,7 +378,7 @@ namespace Cryptforge.Tests
             Assert.That(motion.Y, Is.EqualTo(ty).Within(1e-5f));
             Assert.That(peak, Is.EqualTo(OutworksRule.PadHeight).Within(.02f), "the sprite peaks at the pad's height");
             Assert.That(leap.Lift, Is.EqualTo(0f), "landed, it stands on its ground");
-            Assert.That(leap.TryLaunch(motion.X, motion.Y), Is.False, "a landing launches nothing");
+            Assert.That(StandUntilLaunched(leap, motion.X, motion.Y), Is.EqualTo(-1), "a landing launches nothing");
             Assert.That(leap.Launches, Is.EqualTo(1));
         }
 
@@ -296,12 +388,12 @@ namespace Cryptforge.Tests
             OutworksRule.PadLaunch(2, out float lx, out float ly);
             var motion = new HeroMotion(3.5f);
             var leap = new HeroLeap();
-            Assert.That(leap.TryLaunch(lx, ly), Is.True);
+            Assert.That(StandUntilLaunched(leap, lx, ly), Is.GreaterThan(0));
             leap.Land(motion);
             Assert.That(leap.IsAirborne, Is.False);
-            Assert.That(leap.TryLaunch(lx, ly), Is.False, "still on the pad it left");
-            Assert.That(leap.TryLaunch(lx + OutworksRule.PadRadius + 1f, ly), Is.False);
-            Assert.That(leap.TryLaunch(lx, ly), Is.True, "stepped off and back on, it launches");
+            Assert.That(StandUntilLaunched(leap, lx, ly), Is.EqualTo(-1), "still on the pad it left");
+            Assert.That(leap.TryLaunch(lx + OutworksRule.PadRadius + 1f, ly, Step), Is.False);
+            Assert.That(StandUntilLaunched(leap, lx, ly), Is.GreaterThan(0), "stepped off and back on, it launches");
             Assert.That(OutworksRule.ArcLift(0f), Is.EqualTo(0f));
             Assert.That(OutworksRule.ArcLift(1f), Is.EqualTo(0f));
             Assert.That(OutworksRule.ArcLift(.5f), Is.EqualTo(OutworksRule.PadHeight).Within(1e-5f));
@@ -310,7 +402,7 @@ namespace Cryptforge.Tests
         [Test]
         public void APadTakesTheWalkAcrossThePitOnlyWhereItSavesIt()
         {
-            // From the court's east, beside the east pad, to the workyard's west: across the pit by the east pad.
+            // From the court's east, east of the pit, to the workyard's west: across the pit by the east pad.
             Floor(-1f, 8f, out float x, out float y);
             Floor(-26f, 8f, out float gx, out float gy);
             int pad = OutworksRule.PadShortcut(x, y, gx, gy);

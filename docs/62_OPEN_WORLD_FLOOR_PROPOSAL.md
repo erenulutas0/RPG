@@ -865,15 +865,15 @@ a run that begins there (a higher start and floors 2-3 are untouched).
 | The phase | Begins instead of floor 1's first hall; the floor's horde walks the court from the first frame, its state by the phase's clock (Ramp to 0:20, Horde to 1:00, Pressure from 1:00 and through the Bell). **One floor clock**: the horde's clock starts with the phase and runs on through the halls, so the gate's 3:30 hold and the 5:00 overrun read the whole floor. | `OutworksRule`, `OutworksPhase` (pure), `EncounterController.Outworks.cs` |
 | 3 Tithe Anvils | Rings of 2.2 at the workyard's south, the workyard's north and the east court's south (two across the pit from the start). 5 s inside the ring captures; moving inside it is allowed; outside it the charge drains at half the fill rate. A capture is a level-up's offer of three cards (`RunState.GrantBonusUpgrade`, the panel an altar opens), without the altar's danger. | `AnvilField`; `CombatSetup.OnAnvilCaptured` |
 | The Keeper | At 1:00 the floor's first elite room's wave (the Grunt Captain, a Grunt, two Cinder Mites) walks on at the waypoint of its loop farthest from the hero; the Captain at 12 times its health, its experience x3 and gold x2. It patrols a six-waypoint loop round the pit (north court, workyard, south rim) at 0.7 of its pace, and turns on the hero within 7 units or once its pack is struck. It is an elite wave (the Daggers' share, the elite's loot). Its Captain's fall drops the **Stair Key**: the stair opens before the Bell. A Keeper still roaming at the Bell leaves the court. | `OutworksPhase.KeeperGoal`, `SpawnKeeper` |
-| Jump pads | Two pairs leap the lava pit: west to east and back across its middle, south to north and back. Walking onto a pad (radius 0.7) launches the hero along a fixed arc to a fixed landing 15-17 units off in 0.9 s; the body rises up to 1.2 above the ground track while the shadow, the camera and every rule keep the track (`CombatantView.Lift`); no blow lands mid-arc (`AirborneGuard` on the hero's health; the simulation's `HeroDamaged`); the walls and the pit do not stop it. Each landing stands outside every pad, and a pad launches again only once the hero has stood off it. Enemies never use a pad. No new button. | `HeroLeap`, `HeroMovementInput.Leap`, `HeroMotion.Carry` |
+| Jump pads | Two pairs leap the lava pit, off the walks round it (section 12.9): west to east at v 5 and back at v 11, south to north at u -13 and back at u -7, each launch 2.8-4.5 units off the pit's edge. **Standing still on a pad's centre** (radius 0.35 inside the drawn 0.7 ring) for 0.3 s launches the hero - a walk across it never does - along a fixed arc to a fixed landing 17-18.5 units off in 0.9 s; the centre fills as the beat runs; the body rises up to 1.2 above the ground track while the shadow, the camera and every rule keep the track (`CombatantView.Lift`); no blow lands mid-arc (`AirborneGuard` on the hero's health; the simulation's `HeroDamaged`); the walls and the pit do not stop it. Each landing stands outside every pad, and a pad launches again only once the hero has stood off it. Enemies never use a pad. No new button. | `HeroLeap`, `HeroMovementInput.Leap`, `HeroMotion.Carry` |
 | The Bell | At 1:45 on the phase's clock (frozen through choices): the stair opens for everyone, a roaming Keeper leaves, and the swarm rises in the wave's pack - `SwarmDirector` over a ladder of the floor's horde roles (4, 6, then 8 at a time, a new wave every 12 s, refills after 2 s), as fodder as the horde is (its health and damage shares, the floor clock's growth) hardened by the swarm's ramp. | `BeginBell`, `SpawnBellEnemy` |
 | The Ascent Stair | At the court's north-east (design 10, 12), near the screen's top. Held as the opened gate is (`ExitDwell`: standing still on it for 1 s, radius 1.3). Sealed until the key or the Bell; the exit seal draws it once open. Held, the phase ends and floor 1's first hall forms round the hero there; the halls, the forge, the elites and the gate follow as today. | `OutworksPhase.StepStair`, `LeaveOutworks`, `ExitSealView` |
-| Edge arrows | At most four on the band between the HUD blocks: the stair first (the exit seal's own arrow once open), then the Keeper, then the anvils nearest first, each labelled. A lantern ring marks the Keeper. | `OutworksView` |
+| Edge arrows | At most four on the band between the HUD blocks: the stair first (the exit seal's own arrow once open), then the Keeper, then the anvils nearest first, each labelled. Each label stands on its arrow's inner side, whole inside the safe area; an arrow pointing the way an earlier one does under the same name merges into it, and a different name that way stacks its label beside the earlier one's (section 12.9). A lantern ring marks the Keeper. | `OutworksView`, `EdgeLabel` |
 | The clock | The HUD's floor clock counts to the Bell ("Bell in 1:05") and then says it rang; the floor's own clock takes over from the first hall. | `FloorClockView` |
 | Text | Nine `outworks.*` rows through `Loc`, Turkish beside each (docs/60's rules: capitals keep their dots, no suffix on a placeholder, the short MERDİVEN on screen); the working names added to docs/60's glossary for the owner's review. | `Strings.txt` |
 | The halls' trim | Knobs read instead of Floor_EmberHalls' own only while the switch is on (`OutworksRule.TrimmedHallSurges`, `TrimmedExtraElites`, `TrimmedGateSeconds`) - set to the asset's own values by the measurement below (section 12.5). | `EncounterController.HallSurgesOn` and kin |
 | The parity lever | While the phase runs a horde enemy (the Bell's too) pays 40 % of its authored experience instead of 20 % (`OutworksRule.HordeExperienceShare`) - the doc's "one lever" (section 4.2). | `OutworksRule.HordeExperience` |
-| The autopilot | `OutworksPilot` (pure, one body for the scene's `DevelopmentAutopilot` and the simulation): leaving - after the Bell, or with the key once done - the stair before anything else; otherwise after the kite the Keeper (when near, or the anvils done) or the nearest anvil, by a pad when the pad saves at least 3 units of walk, the drops beside the way; with nothing to go for, the altars, the drops in sight, else hold ground (never the pit's lure: the pads stand on its rim). Per cohort: careful hunts and uses pads and leaves with the key once its anvils are done; standing never hunts; first-card leaves with the key at once; clumsy and auto-farmer miss anvils farther than 16 units, never take a pad and never hunt. A realistic pilot (typical hands) notices an off-screen anvil with 70 % chance until it comes within 9 units (section 7.3's routing part). | `OutworksPilot` |
+| The autopilot | `OutworksPilot` (pure, one body for the scene's `DevelopmentAutopilot` and the simulation): leaving - after the Bell, or with the key once done - the stair before anything else; otherwise after the kite the Keeper (when near, or the anvils done) or the nearest anvil, by a pad when the pad saves at least 3 units of walk, the drops beside the way; with nothing to go for, the altars, the drops in sight, else hold ground (never the pit's lure). A pad is walked onto and stood on (`OutworksPilot.PadStop`, inside its centre) for its beat. Per cohort: careful hunts and uses pads and leaves with the key once its anvils are done; standing never hunts; first-card leaves with the key at once; clumsy and auto-farmer miss anvils farther than 16 units, never take a pad and never hunt. A realistic pilot (typical hands) notices an off-screen anvil with 70 % chance until it comes within 9 units (section 7.3's routing part). | `OutworksPilot` |
 | The simulation | `DescentSimulation.Outworks.cs`: the same frames, off by default (`FoundryLevers.Outworks`), with research levers for the Bell's time, the Keeper's health, experience and time, and the parity lever. `OutworksResearch` (explicit) measures it against the shipped climb. | Tests/Support, Tools/CombatChecks |
 | The Editor's measurement | `TestResults/horde-outworks.txt` has `HordePacingMeasurement` play the probe; its header's mode reads "outworks" so the batch report never takes it for the shipped floor. | `HordePacingMeasurement` |
 
@@ -990,7 +990,7 @@ spends longer in the phase or the halls than the simulation's typical hands - th
 | The owner | which floor to play again; always knew where to go | section 12.7 | open |
 
 Unity's gates for the lead: EditMode `OutworksRuleTests` and `OutworksSimulationTests` (both also pass under Tools/CombatChecks,
-21 tests), PlayMode `OutworksFlowTests` (7 tests; filter `OutworksFlowTests`), and the suites as usual.
+24 tests since 12.9), PlayMode `OutworksFlowTests` (8 tests since 12.9; filter `OutworksFlowTests`), and the suites as usual.
 
 ### 12.7 What the owner's A/B on the S23 should look at
 
@@ -1001,8 +1001,9 @@ only (Extract at the checkpoint). Then:
 1. **Which do you want to play again?** (docs/62 section 5's question; the kill-or-continue gate.)
 2. **Did you always know where to go?** The anvils and the Keeper off the screen carry edge arrows; the stair always
    has one. Did an arrow ever point at something you could not find, or did you walk into the pit's rim by mistake?
-3. **The pads.** Did a pad ever launch you when you did not mean it (they stand 1.4 units off the pit's rim, where the
-   court's paths run)? Did the arc read - body up, shadow down - and did the landing feel safe?
+3. **The pads.** Did a pad ever launch you when you did not mean it (since section 12.9 they stand off the walks round
+   the pit and launch only a hero standing still on the centre for 0.3 s)? Was the beat too long in the Bell's swarm? Did
+   the arc read - body up, shadow down - and did the landing feel safe?
 4. **The anvils.** Is 5 s in a ring with the crowd closing a fight or a chore? Did you notice the charge draining when
    you stepped out?
 5. **The Keeper.** Did you see it coming (the lantern, the arrow)? Was it a fight worth the key (about 20 s for the
@@ -1029,8 +1030,8 @@ clock, level and health) are the owner's own routing, to lay beside the pilots' 
   rewrites the body's position every frame, the arc will not show on it - only the capture will tell.
 - **The Bell is not yet a threat** (0 deaths in 910 entries): the court is small and the stair never far. P0b's tall world
   puts the distance in; within P0a the levers are the stair's spot and the ladder (`OutworksRule.BellLadder`).
-- **The pads stand on the paths round the pit**: a pilot or a player walking the rim can be launched unasked. The
-  simulation's pilots take 1-3 pads a run; whether an unasked leap reads as fun or as a trap is an A/B question.
+- **The pads stood on the paths round the pit** (P0a as first built): a walk round the rim could launch the hero unasked.
+  Section 12.9 moved them off those walks and made the launch a deliberate stand on the centre.
 - **The Keeper's Captain does the killing in the weak cohorts' phase deaths**, and the careful pilot leaves the phase with
   56-57 % of its health; a lower damage share with the same health is the lever if the owner finds it a wall.
 - **The weak cohorts gain** (section 12.4): for a shipped change docs/56 would hold it; P0b re-reads parity on the world.
@@ -1043,6 +1044,50 @@ clock, level and health) are the owner's own routing, to lay beside the pilots' 
      floor stays 4:20-4:34 with the halls whole.
   2. Keep the parity lever at 40 %, or take 30 % (the careful pilot at the gate's -2 edge, the weak cohorts' gain about a
      level smaller)?
-  3. Should a pad close at the Bell (section 7.5's mitigation), or stay the escape it is?
+  3. Should a pad close at the Bell (section 7.5's mitigation), or stay the escape it is? The lead's answer (12.9): open.
   4. The Turkish working names in docs/60's glossary (Öşür Örsü, Muhafız, Çan, Tırmanış Merdiveni, Dış Avlular) - and
      MERDİVEN as the short on-screen form?
+
+### 12.9 The capture's polish (2026-11-23): the arrows' labels and the pads
+
+The P0a captures (`ArtDirection/2026-11-22/outworks-p0a/`, 06 and 08) showed three faults; the lead's calls fixed them.
+
+- **Labels stacked and cut.** Two anvils behind one edge drew two ANVIL labels on top of each other, and the open
+  stair's ASCENT STAIR (the exit seal's label, centred under its arrow) ran off the screen's right edge. Now every edge
+  label stands on its arrow's **inner side** and is clamped whole inside `Screen.safeArea` with a 3 % margin and inside
+  the band between the HUD blocks (`EdgeLabel`, shared by `ExitSealView` and `OutworksView`); an arrow whose tip lies
+  within 0.6 of an earlier one's under the same name **merges** into it (no slot taken), and a different name that way
+  drops its chevron and **stacks** its label beside the earlier one's, the open stair's included. Still at most four.
+- **Pads that launched unasked.** The pads stood 1.4 off the pit's rim, on the walks round it, and launched any hero
+  whose feet came within 0.7. They now stand **2.8-4.5 off the pit's edge** (west to east at v 5, back at v 11; south to
+  north at u -13, back at u -7), each landing 6 or more from its pair's other pad, and launch only a hero that has
+  **stood still on the centre (0.35) for 0.3 s** - a walk across, at any pace, never does (`HeroLeap.TryLaunch`, one
+  body for the scene and the simulation; the view fills the centre as the beat runs). The pilots stop on the centre
+  (`OutworksPilot.PadStop`, 0.14). The pads stay open through the Bell.
+- **Turkish.** The arrows already went through `Loc` (ÖRS, MUHAFIZ, MERDİVEN); `OutworksFlowTests` now checks it, and
+  that every label stands inside the screen and on no other.
+
+The default batch (switch off; FOUNDRY_SEEDS=200 FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_REALISM=typical
+FOUNDRY_FLOORS=2) is byte-identical before and after: foundry-batch.csv, foundry-batch-floor2.csv,
+foundry-cohorts-floor2.csv, foundry-gate.md and foundry-cohorts.md identical; foundry-batch.md only its date line and wall
+seconds. `p0a` re-run on seeds 1-200 (both heroes, five cohorts, typical hands, four floors), before / after:
+
+| Hero | Cohort | Outworks P50 | Floor 1 P50 | Climb P50 | Pads a run | Level at the Warden P50 | Keeper killed | Floor 1 cleared | Climb completed |
+|---|---|---|---|---|---|---|---|---|---|
+| Vanguard | careful | 1:32 / 1:26 | 4:34 / 4:34 | 14:34 / 14:28 | 2.9 / 1.4 | 24 / 24 | 200 / 199 | 192 / 193 | 191 / 191 |
+| Vanguard | standing | 1:48 / 1:34 | 4:23 / 4:23 | 13:57 / 13:55 | 1.1 / 0.3 | 25 / 25 | 95 / 149 | 187 / 185 | 181 / 178 |
+| Vanguard | first-card | 1:32 / 1:26 | 4:31 / 4:30 | 14:17 / 14:14 | 2.8 / 1.5 | 24 / 25 | 192 / 196 | 182 / 187 | 177 / 181 |
+| Vanguard | clumsy | 1:52 / 1:52 | 4:26 / 4:26 | 14:10 / 14:10 | 0 / 0 | 27 / 27 | - | 94 / 94 | 80 / 80 |
+| Ilya | careful | 1:31 / 1:26 | 4:30 / 4:29 | 14:20 / 14:19 | 2.8 / 1.5 | 24 / 25 | 200 / 200 | 194 / 197 | 189 / 196 |
+| Ilya | standing | 1:48 / 1:35 | 4:20 / 4:21 | 13:47 / 13:50 | 1.1 / 0.3 | 25 / 25 | 104 / 140 | 185 / 191 | 174 / 182 |
+| Ilya | first-card | 1:30 / 1:25 | 4:26 / 4:25 | 14:06 / 14:06 | 2.8 / 1.5 | 24 / 25 | 200 / 198 | 192 / 188 | 186 / 180 |
+| Ilya | clumsy | 1:51 / 1:51 | 4:28 / 4:28 | 14:17 / 14:17 | 0 / 0 | 27 / 27 | - | 163 / 163 | 141 / 141 |
+
+The floor and the climb barely move (P50 within -6 to +3 s; the Warden still walks out at the clock's 3:30, and the
+level at the Warden holds or gains one). The phase itself gets shorter for the pilots who hunt and those who stand: the
+careful and first-card pilots take half the pads (the old ones lay on their way and launched them anyway) and leave
+about 5 s sooner with more health (0.57 to 0.69 at the stair, the careful Vanguard); the standing pilot, which never
+hunts and took 1.1 unasked leaps a run, now stays where the Keeper's loop finds it - it kills the Keeper in 140-149 runs
+of 200 against 95-104 and leaves by the key in 122-132 against 60-62, so its phase falls from 1:48 to 1:34-1:35 and the
+Bell rings in 68-78 of its runs against 138-140. The auto-farmer is unchanged. Phase deaths: 25 before, 25 after (one
+clumsy Ilya more, one first-card Vanguard fewer).

@@ -72,13 +72,16 @@ namespace Cryptforge.Tests
             // A pad's arc over the pit, mid-flight: the body lifted off its shadow.
             input.enabled=true;
             OutworksRule.PadLaunch(0,out float lx,out float ly);
-            FoundryMap.ToFloor(-19.4f,8f,out float sx,out float sy);
+            FoundryMap.ToFloor(-21.5f,5f,out float sx,out float sy);
             input.Motion.Place(sx,sy,ArenaGeometry.Foundry);
             Put(hero,sx,sy);
             input.Hold(new Vector2(lx-sx,ly-sy).normalized);
             float deadline=Time.realtimeSinceStartup+10f;
-            while(!encounter.Leap.IsAirborne&&Time.realtimeSinceStartup<deadline){Heal(health);yield return null;}
+            // Onto the pad's centre, then the stick let go: the pad launches a hero that stands still there for its beat.
+            float centre=OutworksRule.PadTriggerRadius*.5f;
+            while(ArenaFloor.FloorDistanceSquared(input.Motion.X,input.Motion.Y,lx,ly)>centre*centre&&Time.realtimeSinceStartup<deadline){Heal(health);yield return null;}
             input.Release();
+            while(!encounter.Leap.IsAirborne&&Time.realtimeSinceStartup<deadline){Heal(health);yield return null;}
             while(encounter.Leap.IsAirborne&&encounter.Leap.Progress<.45f&&Time.realtimeSinceStartup<deadline){Heal(health);yield return null;}
             // The coroutine resumes after the Updates and before the LateUpdates: the view lifts the body for this frame first.
             Object.FindFirstObjectByType<OutworksView>().Refresh();

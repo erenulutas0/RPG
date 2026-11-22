@@ -3,6 +3,7 @@ using System.IO;
 using Cryptforge.Art;
 using Cryptforge.Combat;
 using Cryptforge.Core;
+using Cryptforge.Localisation;
 using Cryptforge.Progression;
 using Cryptforge.UI;
 using NUnit.Framework;
@@ -13,9 +14,10 @@ using UnityEngine.TestTools;
 namespace Cryptforge.Tests
 {
     // docs/62's P0a behind development/outworks.txt: floor 1 of the foundry begins with the Outworks phase - its anvils
-    // capture into a card offer, the Keeper walks on and its fall hands over the key, a pad carries the hero over the pit
-    // untouched, the Bell raises the swarm and opens the stair, and the stair held leads into the floor's first hall on the
-    // same clock. Without the file the floor begins with its first hall as shipped.
+    // capture into a card offer, the Keeper walks on and its fall hands over the key, a pad - stood on, never walked across -
+    // carries the hero over the pit untouched, the edge arrows name the way in Turkish inside the screen, the Bell raises
+    // the swarm and opens the stair, and the stair held leads into the floor's first hall on the same clock. Without the
+    // file the floor begins with its first hall as shipped.
     //
     // Two things about Unity's frame these tests read by. A coroutine's "yield return null" resumes after every Update and
     // before any LateUpdate: an Update's change (the leap landing, the Keeper walking on, the stair held) is seen at once,
@@ -184,14 +186,31 @@ namespace Cryptforge.Tests
             var view=setup.GetComponent<OutworksView>();
             OutworksRule.PadLaunch(0,out float lx,out float ly);
             OutworksRule.PadLanding(0,out float tx,out float ty);
-            // Two units short of the west pad, on the far side from the pit, then walked onto it.
-            FoundryMap.ToFloor(-19.4f,8f,out float sx,out float sy);
+            System.Func<float> fromCentre=()=>Mathf.Sqrt(ArenaFloor.FloorDistanceSquared(movement.Motion.X,movement.Motion.Y,lx,ly));
+            // Two units short of the west pad, on the far side from the pit, then walked straight across its centre and on:
+            // a walk never launches the hero (the P0a captures' unasked leaps).
+            FoundryMap.ToFloor(-21.5f,5f,out float sx,out float sy);
             movement.Motion.Place(sx,sy,ArenaGeometry.Foundry);
             Put(movement.transform,sx,sy);
-            movement.Hold(new Vector2(lx-sx,ly-sy).normalized);
-            yield return Until(setup,()=>encounter.Leap.IsAirborne,10f);
+            Vector2 across=new Vector2(lx-sx,ly-sy).normalized;
+            movement.Hold(across);
+            bool crossed=false;
+            yield return Until(setup,()=>
+            {
+                crossed|=fromCentre()<OutworksRule.PadTriggerRadius*.5f;
+                return encounter.Leap.IsAirborne||(crossed&&fromCentre()>OutworksRule.PadRadius+.5f);
+            },10f);
+            Assert.That(crossed,Is.True,"The walk crossed the pad's centre.");
+            Assert.That(encounter.Leap.IsAirborne,Is.False,"Walking across a pad does not launch the hero.");
+            Assert.That(encounter.Leap.Launches,Is.Zero);
+            // Back onto its centre, and the stick let go: after the pad's beat, the leap.
+            movement.Hold(-across);
+            yield return Until(setup,()=>fromCentre()<OutworksRule.PadTriggerRadius*.5f,10f);
             movement.Release();
-            Assert.That(encounter.Leap.IsAirborne,Is.True,"Walking onto the pad launches the hero.");
+            float stood=Time.time;
+            yield return Until(setup,()=>encounter.Leap.IsAirborne,10f);
+            Assert.That(encounter.Leap.IsAirborne,Is.True,"Standing still on the pad's centre launches the hero.");
+            Assert.That(Time.time-stood,Is.GreaterThanOrEqualTo(OutworksRule.PadDwellSeconds-.02f),"After the pad's beat.");
             Assert.That(encounter.Leap.Pad,Is.EqualTo(0));
             bool overThePit=false,lifted=false,untouched=true;
             float deadline=Time.realtimeSinceStartup+10f;
@@ -215,6 +234,39 @@ namespace Cryptforge.Tests
             // The leap landed in this frame's Update; the view lowers the body in this frame's LateUpdate.
             yield return Drawn();
             Assert.That(view.ShownLift,Is.EqualTo(0f),"Landed, the body stands on its shadow again.");
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // The edge arrows in Turkish (docs/60): the short names, each label whole inside the screen and none on another -
+        // the P0a captures had two ANVIL labels stacked on one another and ASCENT STAIR cut by the screen's right edge.
+        [UnityTest, Timeout(90000)] public IEnumerator TheEdgeArrowsNameTheWayInTurkishInsideTheScreen()
+        {
+            yield return Load(true);
+            var setup=Object.FindFirstObjectByType<CombatSetup>();
+            var view=setup.GetComponent<OutworksView>();
+            Language? pinned=Loc.Override;
+            try
+            {
+                Loc.Override=Language.Turkish;
+                yield return Seconds(setup,.5f);
+                yield return Drawn();
+                Assert.That(view.ArrowLabelsShown,Is.GreaterThan(0),"Where the floor begins, the anvils and the stair lie off the screen.");
+                Assert.That(view.ArrowsShown,Is.LessThanOrEqualTo(OutworksRule.MaxArrows));
+                Camera camera=Camera.main;
+                for(int i=0;i<view.ArrowLabelsShown;i++)
+                {
+                    string label=view.ArrowLabel(i);
+                    Assert.That(label,Is.EqualTo("\u00D6RS").Or.EqualTo("MERD\u0130VEN").Or.EqualTo("MUHAFIZ"),"Arrow "+i+" in Turkish.");
+                    Bounds box=view.ArrowLabelBounds(i);
+                    Vector3 low=camera.WorldToViewportPoint(box.min),high=camera.WorldToViewportPoint(box.max);
+                    Assert.That(low.x,Is.GreaterThanOrEqualTo(0f),"Arrow "+i+"'s label inside the screen's left edge.");
+                    Assert.That(high.x,Is.LessThanOrEqualTo(1f),"Arrow "+i+"'s label inside the screen's right edge.");
+                    Assert.That(low.y,Is.GreaterThanOrEqualTo(0f));Assert.That(high.y,Is.LessThanOrEqualTo(1f));
+                    for(int j=0;j<i;j++)
+                        Assert.That(box.Intersects(view.ArrowLabelBounds(j)),Is.False,$"Arrows {j} and {i}'s labels apart.");
+                }
+            }
+            finally{Loc.Override=pinned;}
             LogAssert.NoUnexpectedReceived();
         }
 

@@ -22,6 +22,7 @@ namespace Cryptforge.UI
         private LineRenderer _arrow;
         private Material _material;
         private TextMesh _label;
+        private MeshRenderer _labelRenderer;
         // What the label was last given. TextMesh.text is read from the native text, a new string on every read, so the
         // view never reads it back: a frame with the seal or a marked hall on show then allocates nothing.
         private string _shownInstruction;
@@ -31,6 +32,8 @@ namespace Cryptforge.UI
         public float ShownProgress { get; private set; }
         public bool IsVisible => _plate != null && _plate.activeSelf;
         public bool ShowsDirection => _arrow != null && _arrow.enabled;
+        // The label's box in the world while it names the way off the screen (OutworksView lays its own arrows round it).
+        public Bounds DirectionLabelBounds { get; private set; }
         public Vector3 ExitPosition => _plate.transform.position;
 
         internal void Initialize(CombatSetup setup, PrototypeTextDefinition text)
@@ -66,7 +69,7 @@ namespace Cryptforge.UI
             var labelObject=new GameObject("Exit Instruction");labelObject.transform.SetParent(transform,false);
             _label=labelObject.AddComponent<TextMesh>();_label.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             _label.GetComponent<MeshRenderer>().sharedMaterial=_label.font.material;
-            _label.GetComponent<MeshRenderer>().sortingOrder=100;
+            _label.GetComponent<MeshRenderer>().sortingOrder=100;_labelRenderer=_label.GetComponent<MeshRenderer>();
             _label.anchor=TextAnchor.MiddleCenter;_label.alignment=TextAlignment.Center;_label.fontSize=48;_label.characterSize=.045f;_label.color=ivory;
             Refresh();
         }
@@ -111,23 +114,75 @@ namespace Cryptforge.UI
                 if(top<=bottom){bottom=.20f;top=.80f;}
             }
             bool outside=viewport.x<.08f||viewport.x>.92f||viewport.y<bottom||viewport.y>top;
-            Vector3 cue=position;
-            if(outside)
-            {
-                Vector3 edge=new Vector3(Mathf.Clamp(viewport.x,.08f,.92f),Mathf.Clamp(viewport.y,bottom,top),viewport.z);
-                cue=_camera.ViewportToWorldPoint(edge);cue.z=0;
-                Vector3 direction=(position-cue).normalized,side=new Vector3(-direction.y,direction.x,0);
-                _arrow.transform.position=cue;_arrow.enabled=true;
-                _arrow.SetPosition(0,-direction*.16f+side*.10f);_arrow.SetPosition(1,Vector3.zero);_arrow.SetPosition(2,-direction*.16f-side*.10f);
-            }
-            _label.transform.position=cue+Vector3.down*.45f;
             bool gate=encounter.IsGateExitOpen;
             string instruction=hall?(outside?_text.HallDirection:_text.HallInstruction):
                 stair?(outside?Loc.Text("outworks.stair_direction","ASCENT STAIR"):Loc.Text("outworks.stair_instruction","ASCENT STAIR - Stand still to climb")):
                 outside?(gate?_text.GateDirection:_text.ExitDirection):(gate?_text.GateInstruction:_text.ExitInstruction);
             if(!_instructionShown||_shownInstruction!=instruction){_label.text=instruction;_shownInstruction=instruction;_instructionShown=true;}
+            DirectionLabelBounds=default;
+            if(outside)
+            {
+                Vector3 edge=new Vector3(Mathf.Clamp(viewport.x,.08f,.92f),Mathf.Clamp(viewport.y,bottom,top),viewport.z);
+                Vector3 cue=_camera.ViewportToWorldPoint(edge);cue.z=0;
+                Vector3 direction=(position-cue).normalized,side=new Vector3(-direction.y,direction.x,0);
+                _arrow.transform.position=cue;_arrow.enabled=true;
+                _arrow.SetPosition(0,-direction*.16f+side*.10f);_arrow.SetPosition(1,Vector3.zero);_arrow.SetPosition(2,-direction*.16f-side*.10f);
+                // The way's name on the arrow's inner side, whole inside the safe area (2026-11-23: the Outworks
+                // capture's ASCENT STAIR ran off the screen's right edge when the label stood centred under its arrow).
+                Vector3 extents=_labelRenderer.bounds.extents;
+                _label.transform.position=EdgeLabel.Place(_camera,cue,direction,extents,EdgeLabel.ChevronReach,bottom,top);
+                DirectionLabelBounds=new Bounds(_label.transform.position,extents*2f);
+            }
+            else
+                _label.transform.position=position+Vector3.down*.45f;
         }
-        private void OnDisable(){if(_plate!=null)_plate.SetActive(false);if(_label!=null)_label.gameObject.SetActive(false);if(_arrow!=null)_arrow.enabled=false;}
+        private void OnDisable(){DirectionLabelBounds=default;if(_plate!=null)_plate.SetActive(false);if(_label!=null)_label.gameObject.SetActive(false);if(_arrow!=null)_arrow.enabled=false;}
         private void OnDestroy(){if(_plate!=null)Destroy(_plate);if(_arrow!=null)Destroy(_arrow.gameObject);if(_label!=null)Destroy(_label.gameObject);}
+    }
+
+    // Where an edge arrow's label stands (ExitSealView's way, OutworksView's arrows): on the arrow's inner side - its box
+    // set back from the chevron along the way it points, by the chevron's reach and the box's own depth that way - and
+    // clamped whole inside the screen's safe area with a margin, and inside the band between the HUD blocks the arrows
+    // stand on (bottom and top, viewport heights). Presentation only.
+    internal static class EdgeLabel
+    {
+        // The chevron's length behind its tip, and a gap past it.
+        public const float ChevronReach = .26f;
+        // Inside the safe area by this share of the screen's width (and of its height at the band's ends).
+        public const float Margin = .03f;
+
+        public static Vector3 Place(Camera camera, Vector3 cue, Vector3 direction, Vector3 extents, float reach,
+            float bottom, float top)
+        {
+            float depth = reach + Mathf.Abs(direction.x) * extents.x + Mathf.Abs(direction.y) * extents.y;
+            Vector3 centre = cue - direction * depth;
+            centre.z = 0f;
+            return Clamp(camera, centre, extents, bottom, top);
+        }
+
+        // A label's centre moved so its box (extents, world units) lies inside the safe area's margin and the band.
+        public static Vector3 Clamp(Camera camera, Vector3 centre, Vector3 extents, float bottom, float top)
+        {
+            if (camera == null || Screen.width <= 0 || Screen.height <= 0)
+                return centre;
+            Rect safe = Screen.safeArea;
+            float left = safe.xMin / Screen.width + Margin;
+            float right = safe.xMax / Screen.width - Margin;
+            float low = Mathf.Max(bottom, safe.yMin / Screen.height + Margin);
+            float high = Mathf.Min(top, safe.yMax / Screen.height - Margin);
+            float z = camera.WorldToViewportPoint(centre).z;
+            Vector3 min = camera.ViewportToWorldPoint(new Vector3(left, low, z));
+            Vector3 max = camera.ViewportToWorldPoint(new Vector3(right, high, z));
+            centre.x = Within(centre.x, min.x + extents.x, max.x - extents.x);
+            centre.y = Within(centre.y, min.y + extents.y, max.y - extents.y);
+            return centre;
+        }
+
+        // Whether two boxes (centres and extents) overlap, with a gap between them.
+        public static bool Overlaps(Vector3 a, Vector3 aExtents, Vector3 b, Vector3 bExtents, float gap) =>
+            Mathf.Abs(a.x - b.x) < aExtents.x + bExtents.x + gap && Mathf.Abs(a.y - b.y) < aExtents.y + bExtents.y + gap;
+
+        private static float Within(float value, float low, float high) =>
+            low > high ? (low + high) * .5f : Mathf.Clamp(value, low, high);
     }
 }

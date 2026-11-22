@@ -578,7 +578,7 @@ namespace Cryptforge.Core
             if (pad < 0)
                 return;
             OutworksRule.PadLaunch(pad, out gx, out gy);
-            stop = 0f;
+            stop = OutworksPilot.PadStop;
         }
 
         // From the floor's second room on, in the walk to its next hall: where a measurement mode stops playing.

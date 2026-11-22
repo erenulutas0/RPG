@@ -177,20 +177,27 @@ namespace Cryptforge.Combat
 
         // ---- The pads (docs/62 section 2.2) -----------------------------------------------------------------------------
 
-        // A jump pad launches the hero, whenever its feet come within PadRadius of the pad, along a fixed arc to a fixed
-        // landing in PadSeconds: the sprite rises up to PadHeight above the ground track, which the shadow keeps, and the
-        // hero can neither be struck nor walk mid-arc. Enemies never use a pad. Each landing stands outside every pad's
-        // circle, so no landing launches again; and a pad launches only once the hero has stood off it since its last.
+        // A jump pad launches the hero along a fixed arc to a fixed landing in PadSeconds once the hero has stood still on
+        // its centre - within PadTriggerRadius, half the drawn ring's PadRadius - for PadDwellSeconds: a step-in and a
+        // beat, never a walk across it (the lead's call on the P0a captures, 2026-11-23: the pads launched heroes walking
+        // round the pit unasked). The sprite rises up to PadHeight above the ground track, which the shadow keeps, and
+        // the hero can neither be struck nor walk mid-arc. Enemies never use a pad. Each landing stands outside every
+        // pad's ring, so no landing launches again; and a pad launches only once the hero has stood off it since its
+        // last. The pads stay open through the Bell.
         public const float PadRadius = .7f;
+        public const float PadTriggerRadius = .35f;
+        public const float PadDwellSeconds = .3f;
         public const float PadSeconds = .9f;
         public const float PadHeight = 1.2f;
 
-        // Two pairs across the pit (design u -16..-4, v 2..14): west to east and back at v 8, south to north and back at
-        // u -10; each launch 1.4 units off the pit's edge, each landing 1.8 beyond the other launch.
+        // Two pairs across the pit (design u -16..-4, v 2..14), off the walks round it: west to east at v 5 and back at
+        // v 11, south to north at u -13 and back at u -7. Each launch stands 2.8-4.5 units off the pit's edge, clear of
+        // the line a walk round the pit takes (its corners' 1.2 relief), and each landing 2 off the far edge, 6 or more
+        // from the other pad of its pair, so no landing faces the way back.
         private static readonly float[,] PadSites =
         {
-            { -17.4f, 8f, -.8f, 8f }, { -2.6f, 8f, -19.2f, 8f },
-            { -10f, .6f, -10f, 17.2f }, { -10f, 15.4f, -10f, -1.2f }
+            { -19.5f, 5f, -2f, 5f }, { .5f, 11f, -18f, 11f },
+            { -13f, -1.5f, -13f, 16f }, { -7f, 16.8f, -7f, 0f }
         };
         public static int PadCount => PadSites.GetLength(0);
 
@@ -534,6 +541,12 @@ namespace Cryptforge.Combat
         private float _travelled;
         // The pad launched from last, which launches again only once the hero has stood off it.
         private int _spent = -1;
+        // The pad whose centre the hero stands on, how long it has stood there still, and where it stood last step.
+        private int _dwellPad = -1;
+        private float _dwell;
+        private float _lastX;
+        private float _lastY;
+        private bool _placed;
 
         public bool IsAirborne { get; private set; }
         public int Pad { get; private set; } = -1;
@@ -544,18 +557,31 @@ namespace Cryptforge.Combat
         // How far along the arc, 0 to 1, and the sprite's height above its ground track there.
         public float Progress => IsAirborne ? Math.Min(1f, _travelled / OutworksRule.PadSeconds) : 0f;
         public float Lift => IsAirborne ? OutworksRule.ArcLift(Progress) : 0f;
+        // The pad whose centre the hero stands on (-1 for none) and its dwell so far as a share of the launch's.
+        public int DwellPad => IsAirborne ? -1 : _dwellPad;
+        public float DwellShare => DwellPad >= 0 ? Math.Min(1f, _dwell / OutworksRule.PadDwellSeconds) : 0f;
 
-        // Whether the hero at (x, y) launches from a pad now: within its radius, not mid-arc, and not still on the pad it
-        // last launched from. True when it did.
-        public bool TryLaunch(float x, float y)
+        // One step after the walk with the hero's feet at (x, y): whether it launches from a pad now. It does once it has
+        // stood still - (x, y) unchanged from the last step - within a pad's PadTriggerRadius for PadDwellSeconds, not
+        // mid-arc and not on the pad it last launched from until it has stood off it. A step that moves the feet starts
+        // the dwell again. True when it launched. One body for the scene and the simulation, never inlined: the dwell's
+        // sum is stored as a float every step.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public bool TryLaunch(float x, float y, float deltaTime)
         {
+            if (float.IsNaN(deltaTime) || float.IsInfinity(deltaTime) || deltaTime < 0f)
+                throw new ArgumentOutOfRangeException(nameof(deltaTime));
+            bool still = _placed && x == _lastX && y == _lastY;
+            _lastX = x;
+            _lastY = y;
+            _placed = true;
             if (IsAirborne)
                 return false;
             int on = -1;
             for (int pad = 0; pad < OutworksRule.PadCount; pad++)
             {
                 OutworksRule.PadLaunch(pad, out float px, out float py);
-                if (OutworksRule.Within(x, y, px, py, OutworksRule.PadRadius))
+                if (OutworksRule.Within(x, y, px, py, OutworksRule.PadTriggerRadius))
                 {
                     on = pad;
                     break;
@@ -565,8 +591,21 @@ namespace Cryptforge.Combat
             {
                 if (on < 0)
                     _spent = -1;
+                _dwellPad = -1;
+                _dwell = 0f;
                 return false;
             }
+            if (on != _dwellPad || !still)
+            {
+                _dwellPad = on;
+                _dwell = 0f;
+                return false;
+            }
+            _dwell += deltaTime;
+            if (_dwell < OutworksRule.PadDwellSeconds - Slack)
+                return false;
+            _dwellPad = -1;
+            _dwell = 0f;
             Pad = on;
             _spent = on;
             OutworksRule.PadLaunch(on, out _fromX, out _fromY);

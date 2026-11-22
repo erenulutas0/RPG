@@ -13,7 +13,8 @@ namespace Cryptforge.Tests
     // (FoundryLevers.Outworks), so every shipped number stays what it was; nothing here runs unless a run asks for it.
     //
     // What it mirrors, frame by frame, in the scene's order: the walk step carries an airborne hero along its pad's arc
-    // and, after a walk, launches it from a pad its feet reached (HeroMovementInput, HeroLeap); EncounterController steps
+    // and, after a walk, launches it from a pad whose centre it has stood still on for the pad's beat (HeroMovementInput,
+    // HeroLeap); EncounterController steps
     // the wave's pack - the Keeper's on its loop until it turns, or the Bell's swarm - and the horde, whose state follows the
     // phase's clock (OutworksRule.HordeStateAt), picks up the drops, then ticks the phase: the clock (the Bell), the Keeper
     // walking on, the anvils where the hero stands (a capture grants a level-up's offer, RunState.GrantBonusUpgrade), the
@@ -141,12 +142,13 @@ namespace Cryptforge.Tests
             // when the leap had the step.
             private bool LeapWalk() => _leap != null && _leap.IsAirborne && _leap.Move(_heroMotion, Step);
 
-            // HeroMovementInput after the walk: a pad under the hero's feet launches it while the phase runs.
+            // HeroMovementInput after the walk: a pad launches the hero once it has stood still on the pad's centre for the
+            // pad's beat (HeroLeap.TryLaunch, one body), while the phase runs - the Bell's swarm too.
             private void LeapLaunch()
             {
                 if (_leap == null || !InOutworks || !_heroHealth.IsAlive || _leap.IsAirborne)
                     return;
-                if (!_leap.TryLaunch(HeroX, HeroY))
+                if (!_leap.TryLaunch(HeroX, HeroY, Step))
                     return;
                 _result.PadLaunches++;
                 if (_trace != null)
@@ -453,7 +455,7 @@ namespace Cryptforge.Tests
                 if (objective == OutworksPilot.Objective.None)
                 {
                     // Nothing to go for: the altars, then the drops in sight, else hold ground and fight where it stands -
-                    // never the pit's lure, whose rim the pads stand on, nor a Keeper still on its loop taken for a fight.
+                    // never the pit's lure (as P0a was measured), nor a Keeper still on its loop taken for a fight.
                     if (NearestAltar(x, y, out gx, out gy))
                     {
                         stop = .1f;
@@ -493,7 +495,7 @@ namespace Cryptforge.Tests
             }
 
             // A goal across the pit taken by a pad when the cohort takes pads and the pad saves the walk: the pad's launch,
-            // walked onto (no stop short of it).
+            // stopped on well inside its centre (OutworksPilot.PadStop), where the hero stands for the pad's beat.
             private void ByPad(float x, float y, ref float gx, ref float gy, ref float stop)
             {
                 if (!_outworksHabits.UsesPads || Airborne)
@@ -502,7 +504,7 @@ namespace Cryptforge.Tests
                 if (pad < 0)
                     return;
                 OutworksRule.PadLaunch(pad, out gx, out gy);
-                stop = 0f;
+                stop = OutworksPilot.PadStop;
             }
 
             // A realistic pilot that missed an off-screen anvil notices it once it comes on the screen.
