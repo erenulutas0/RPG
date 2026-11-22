@@ -2404,6 +2404,8 @@ report (steps 7-8) only read, so they need no focus check.
    ```
    The folder holds no `pull.txt`, so the batch report never reads it.
 4. **Install the APK and check its hash.** The APK is `Builds/Android/Cryptforge-Prototype.apk`, the clean build of
+   main b525281c with the Blender Vanguard (rendered in Ilya's toon pipeline, eight facings, bound to its sword and
+   buckler, Shield Rush drawn) on top of
    main 6ba152e1 with the game-feel pass (slot cues, hit recoil, ash deaths, the Warden's body windup, the Regent's
    shatter), the Ascent / Tırmanış wording, and the Outworks probe behind development/outworks.txt on top of
    main 78c379af with the arena's button on the map choice (P0's arena opens from the title row's left) on top of
@@ -2442,8 +2444,8 @@ report (steps 7-8) only read, so they need no focus check.
    with a point on every locale; Gradle's 10 MB of holes gone; 36,819,361 bytes). Check the file
    itself, never a hash written down earlier:
    ```
-   (Get-FileHash Builds/Android/Cryptforge-Prototype.apk -Algorithm SHA256).Hash   # DD195A0F2D2A7F3B... on 2026-11-22 23:45
-   (Get-Item Builds/Android/Cryptforge-Prototype.apk).Length                        # 61692001
+   (Get-FileHash Builds/Android/Cryptforge-Prototype.apk -Algorithm SHA256).Hash   # 3D0F5D584C1F2FFE... on 2026-11-23 00:30
+   (Get-Item Builds/Android/Cryptforge-Prototype.apk).Length                        # 64807773
    adb install -r Builds/Android/Cryptforge-Prototype.apk
    ```
    `install -r` keeps the profile and the telemetry. `Cryptforge-Prototype-679df68d.apk` (47 MB, DA3D13FD...) and the
