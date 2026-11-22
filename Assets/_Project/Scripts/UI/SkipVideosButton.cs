@@ -85,11 +85,41 @@ namespace Cryptforge.UI
             }
 
             view._button.onClick.AddListener(view.Tap);
-            MonetisationRuntime.Changed += view.Refresh;
-            Loc.Changed += view.Refresh;
-            view._subscribed = true;
+            // Its OnEnable ran inside AddComponent, before it had words to write, when the parent was shown.
+            if (view.isActiveAndEnabled)
+                view.Subscribe();
             view.Refresh();
             return view;
+        }
+
+        // Shown: it follows the store and the language (the statics outlive the scene, so only while it is shown - a
+        // panel built hidden, as the pause overlay and the result's row are, may never show it).
+        private void OnEnable()
+        {
+            if (_button == null)
+                return;
+            Subscribe();
+            Refresh();
+        }
+
+        private void OnDisable() => Unsubscribe();
+
+        private void Subscribe()
+        {
+            if (_subscribed)
+                return;
+            _subscribed = true;
+            MonetisationRuntime.Changed += Refresh;
+            Loc.Changed += Refresh;
+        }
+
+        private void Unsubscribe()
+        {
+            if (!_subscribed)
+                return;
+            _subscribed = false;
+            MonetisationRuntime.Changed -= Refresh;
+            Loc.Changed -= Refresh;
         }
 
         // The owning view's input gate: its delay after opening.
@@ -123,11 +153,7 @@ namespace Cryptforge.UI
         {
             if (_button != null)
                 _button.onClick.RemoveListener(Tap);
-            if (!_subscribed)
-                return;
-            _subscribed = false;
-            MonetisationRuntime.Changed -= Refresh;
-            Loc.Changed -= Refresh;
+            Unsubscribe();
         }
     }
 }
