@@ -1,7 +1,8 @@
 # 62 - An open world before each floor's boss sanctum (proposal, 2026-11-22)
 
 Design and research only. No runtime script, asset, scene, setting or test changed. Everything here is **proposed** for
-the owner and the lead; numbers marked "target" are starting values to be measured, not results.
+the owner and the lead; numbers marked "target" are starting values to be measured, not results. (Since 2026-11-22
+evening, section 12 records P0a as built behind a development switch and measured.)
 
 **The owner's request (2026-11-22, translated from Turkish):** "The map is too ordinary. Every room has the same thing.
 I want to make the current rooms like boss rooms. Before them, like Megabonk's different worlds, I want a bigger world:
@@ -846,3 +847,202 @@ health.
 - **Q11, the working names stand** (Outworks, Tithe Anvil, Keeper, the Bell, Ascent Stair, sanctum). Their Turkish goes
   into the table with the owner's glossary review.
 
+
+## 12. P0a built and measured (2026-11-22)
+
+P0a is built behind `development/outworks.txt` (any text but "off"), read in the Editor and development builds as the
+other development files are (`DevelopmentStart.Outworks`). Without the file nothing changes: the shipped floor, a release
+build and the default batch play as before (section 12.6's byte-for-byte check). Measured in the simulation on the
+exploration seeds 1-200 only (docs/56 rule 1: a probe spends no confirmation block). Nothing here is the S23's yet.
+
+### 12.1 What is built
+
+The floor is the owner's answer 2: **the Outworks phase, then the three halls as today, then the Warden** - on floor 1 of
+a run that begins there (a higher start and floors 2-3 are untouched).
+
+| Piece | As built | Where |
+|---|---|---|
+| The phase | Begins instead of floor 1's first hall; the floor's horde walks the court from the first frame, its state by the phase's clock (Ramp to 0:20, Horde to 1:00, Pressure from 1:00 and through the Bell). **One floor clock**: the horde's clock starts with the phase and runs on through the halls, so the gate's 3:30 hold and the 5:00 overrun read the whole floor. | `OutworksRule`, `OutworksPhase` (pure), `EncounterController.Outworks.cs` |
+| 3 Tithe Anvils | Rings of 2.2 at the workyard's south, the workyard's north and the east court's south (two across the pit from the start). 5 s inside the ring captures; moving inside it is allowed; outside it the charge drains at half the fill rate. A capture is a level-up's offer of three cards (`RunState.GrantBonusUpgrade`, the panel an altar opens), without the altar's danger. | `AnvilField`; `CombatSetup.OnAnvilCaptured` |
+| The Keeper | At 1:00 the floor's first elite room's wave (the Grunt Captain, a Grunt, two Cinder Mites) walks on at the waypoint of its loop farthest from the hero; the Captain at 12 times its health, its experience x3 and gold x2. It patrols a six-waypoint loop round the pit (north court, workyard, south rim) at 0.7 of its pace, and turns on the hero within 7 units or once its pack is struck. It is an elite wave (the Daggers' share, the elite's loot). Its Captain's fall drops the **Stair Key**: the stair opens before the Bell. A Keeper still roaming at the Bell leaves the court. | `OutworksPhase.KeeperGoal`, `SpawnKeeper` |
+| Jump pads | Two pairs leap the lava pit: west to east and back across its middle, south to north and back. Walking onto a pad (radius 0.7) launches the hero along a fixed arc to a fixed landing 15-17 units off in 0.9 s; the body rises up to 1.2 above the ground track while the shadow, the camera and every rule keep the track (`CombatantView.Lift`); no blow lands mid-arc (`AirborneGuard` on the hero's health; the simulation's `HeroDamaged`); the walls and the pit do not stop it. Each landing stands outside every pad, and a pad launches again only once the hero has stood off it. Enemies never use a pad. No new button. | `HeroLeap`, `HeroMovementInput.Leap`, `HeroMotion.Carry` |
+| The Bell | At 1:45 on the phase's clock (frozen through choices): the stair opens for everyone, a roaming Keeper leaves, and the swarm rises in the wave's pack - `SwarmDirector` over a ladder of the floor's horde roles (4, 6, then 8 at a time, a new wave every 12 s, refills after 2 s), as fodder as the horde is (its health and damage shares, the floor clock's growth) hardened by the swarm's ramp. | `BeginBell`, `SpawnBellEnemy` |
+| The Ascent Stair | At the court's north-east (design 10, 12), near the screen's top. Held as the opened gate is (`ExitDwell`: standing still on it for 1 s, radius 1.3). Sealed until the key or the Bell; the exit seal draws it once open. Held, the phase ends and floor 1's first hall forms round the hero there; the halls, the forge, the elites and the gate follow as today. | `OutworksPhase.StepStair`, `LeaveOutworks`, `ExitSealView` |
+| Edge arrows | At most four on the band between the HUD blocks: the stair first (the exit seal's own arrow once open), then the Keeper, then the anvils nearest first, each labelled. A lantern ring marks the Keeper. | `OutworksView` |
+| The clock | The HUD's floor clock counts to the Bell ("Bell in 1:05") and then says it rang; the floor's own clock takes over from the first hall. | `FloorClockView` |
+| Text | Nine `outworks.*` rows through `Loc`, Turkish beside each (docs/60's rules: capitals keep their dots, no suffix on a placeholder, the short MERDİVEN on screen); the working names added to docs/60's glossary for the owner's review. | `Strings.txt` |
+| The halls' trim | Knobs read instead of Floor_EmberHalls' own only while the switch is on (`OutworksRule.TrimmedHallSurges`, `TrimmedExtraElites`, `TrimmedGateSeconds`) - set to the asset's own values by the measurement below (section 12.5). | `EncounterController.HallSurgesOn` and kin |
+| The parity lever | While the phase runs a horde enemy (the Bell's too) pays 40 % of its authored experience instead of 20 % (`OutworksRule.HordeExperienceShare`) - the doc's "one lever" (section 4.2). | `OutworksRule.HordeExperience` |
+| The autopilot | `OutworksPilot` (pure, one body for the scene's `DevelopmentAutopilot` and the simulation): leaving - after the Bell, or with the key once done - the stair before anything else; otherwise after the kite the Keeper (when near, or the anvils done) or the nearest anvil, by a pad when the pad saves at least 3 units of walk, the drops beside the way; with nothing to go for, the altars, the drops in sight, else hold ground (never the pit's lure: the pads stand on its rim). Per cohort: careful hunts and uses pads and leaves with the key once its anvils are done; standing never hunts; first-card leaves with the key at once; clumsy and auto-farmer miss anvils farther than 16 units, never take a pad and never hunt. A realistic pilot (typical hands) notices an off-screen anvil with 70 % chance until it comes within 9 units (section 7.3's routing part). | `OutworksPilot` |
+| The simulation | `DescentSimulation.Outworks.cs`: the same frames, off by default (`FoundryLevers.Outworks`), with research levers for the Bell's time, the Keeper's health, experience and time, and the parity lever. `OutworksResearch` (explicit) measures it against the shipped climb. | Tests/Support, Tools/CombatChecks |
+| The Editor's measurement | `TestResults/horde-outworks.txt` has `HordePacingMeasurement` play the probe; its header's mode reads "outworks" so the batch report never takes it for the shipped floor. | `HordePacingMeasurement` |
+
+### 12.2 How it was measured
+
+`OutworksResearch.TheOutworksProbe` (Tools/CombatChecks, explicit; it refuses a seed past 2000) plays every variant and
+the shipped climb on the same seeds: **seeds 1-200**, both heroes, all five cohorts, typical hands
+(`PilotRealism.Typical`), four floors (floors 1-3 and the Final Swarm), 12,000 runs of the shipped climb and five
+variants in 23 minutes. On the built code the same table comes from:
+
+    FOUNDRY_SEEDS=200 FOUNDRY_FLOORS=4 OUTWORKS_VARIANTS=p0a,p0a-xp30,p0a-xp50,p0a-keeper45,p0a-trim \
+      dotnet test Tools/CombatChecks -c Release -p:NuGetAudit=false --filter "FullyQualifiedName~OutworksResearch.TheOutworksProbe"
+
+It writes `outworks-p0a.md` and a row a run in `outworks-p0a.csv` into `FOUNDRY_OUT` (TestResults by default); a
+one-seed trace is `OutworksResearch.OneOutworksRunTraced`. The switch as built is `p0a` (`DescentSimulation.OutworksLevers`).
+The measurement was run before the Keeper's time moved - the Keeper at 0:45 as `p0a`, at 1:00 as the lever
+`p0a-keeper60`; 1:00 was then made the rule, and `p0a` on the built code was checked to reproduce that lever's rows
+exactly (100 of 100 runs, seeds 1-25, careful and clumsy, every column; the shipped rows likewise). Below, "P0a" is the
+built switch. The playing cohorts are careful, standing, first-card and clumsy; the auto-farmer is reported but, as in
+docs/48, is not one.
+
+### 12.3 The split: the phase comes out of the gate's wait
+
+| Hero | Cohort | Outworks P10 / P50 / P90 | Floor 1 P50: shipped / P0a | Climb P50 (P90): shipped / P0a |
+|---|---|---|---|---|
+| Vanguard | careful | 1:24 / 1:32 / 1:38 | 4:36 / 4:34 | 14:31 (15:02) / 14:34 (15:07) |
+| Vanguard | standing | 1:38 / 1:48 / 1:52 | 4:25 / 4:23 | 13:57 (14:22) / 13:57 (14:16) |
+| Vanguard | first-card | 1:25 / 1:32 / 1:40 | 4:33 / 4:31 | 14:16 (14:45) / 14:17 (14:40) |
+| Vanguard | clumsy | 1:34 / 1:52 / 1:54 | 4:29 / 4:26 | 14:18 (14:43) / 14:10 (14:40) |
+| Vanguard | auto-farmer | 1:36 / 1:51 / 1:54 | 4:12 / 4:07 | 13:17 (13:25) / 13:21 (13:55) |
+| Ilya | careful | 1:24 / 1:31 / 1:35 | 4:31 / 4:30 | 14:17 (14:47) / 14:20 (14:48) |
+| Ilya | standing | 1:39 / 1:48 / 1:52 | 4:22 / 4:20 | 13:51 (14:11) / 13:47 (14:06) |
+| Ilya | first-card | 1:24 / 1:30 / 1:36 | 4:29 / 4:26 | 14:10 (14:27) / 14:06 (14:25) |
+| Ilya | clumsy | 1:35 / 1:51 / 1:54 | 4:31 / 4:28 | 14:24 (15:01) / 14:17 (14:53) |
+| Ilya | auto-farmer | 1:37 / 1:51 / 1:54 | 4:08 / 4:05 | 13:23 (13:32) / 13:24 (13:36) |
+
+Outworks: from the floor's first frame to the stair held. Floor 1: the clears' active seconds. Climb: the four floors'
+active seconds over the runs that completed it.
+
+**The finding.** The owner's budget (1:30-2:00 for the world, the climb kept at 13-16 minutes) is met **without taking
+anything from the halls**. Today the careful pilot clears floor 1's halls in about 1:40 and then waits about 1:53 for the
+gate's 3:30 (docs/41; the default batch's gate row). With one floor clock, the phase spends that wait: the Warden walks out
+at the clock's **3:30 in every variant, cohort and hero (P50; P90 3:30, the clumsy Vanguard's up to 3:37)**, floor 1 stays
+**4:05-4:34** (P0a's gate: 4:00-4:45), and the climb stays **13:21-14:34 P50, 15:07 at its slowest P90**. The phase is
+**1:30-1:52 P50** for every playing cohort: the careful and first-card pilots leave by the key at about 1:31, the
+others mostly hear the Bell at 1:45.
+
+The Keeper's time was the one lever the split needed: at 0:45 the careful pilot killed it by 1:05 and left at 1:13-1:15,
+under the band; at 1:00 it falls at 1:21-1:22 and the phase lands at 1:31-1:32, with the same level at the Warden and no
+more deaths (the careful Vanguard cleared floor 1 on 192 seeds at 1:00 against 189 at 0:45).
+
+### 12.4 Power parity at the Warden, and completion
+
+| Hero | Cohort | Level at the Warden P50 (P25-P75): shipped / P0a | Health share at the Warden P50: shipped band / P0a | Floor 1 cleared: shipped / P0a | Climb completed: shipped / P0a |
+|---|---|---|---|---|---|
+| Vanguard | careful | 25 (25-25) / 24 (23-25) | 0.80-0.92 / 0.85 | 195 / 192 | 190 / 191 |
+| Vanguard | standing | 25 (25-26) / 25 (24-26) | 0.79-0.93 / 0.93 | 187 / 187 | 164 / 181 |
+| Vanguard | first-card | 25 (25-26) / 24 (24-25) | 0.72-0.88 / 0.75 | 182 / 182 | 172 / 177 |
+| Vanguard | clumsy | 25 (25-26) / 27 (26-27) | 0.46-0.71 / 0.75 | 78 / 94 | 61 / 80 |
+| Vanguard | auto-farmer | 25 (25-25) / 28 (27-28) | 0.45-0.73 / 0.79 | 10 / 60 | 5 / 10 |
+| Ilya | careful | 25 (25-26) / 24 (23-25) | 0.77-0.91 / 0.84 | 198 / 194 | 194 / 189 |
+| Ilya | standing | 25 (25-26) / 25 (25-26) | 0.79-0.93 / 0.93 | 183 / 185 | 159 / 174 |
+| Ilya | first-card | 25 (25-26) / 24 (24-25) | 0.72-0.88 / 0.74 | 198 / 192 | 184 / 186 |
+| Ilya | clumsy | 25 (25-26) / 27 (26-27) | 0.45-0.71 / 0.73 | 131 / 163 | 99 / 141 |
+| Ilya | auto-farmer | 25 (25-26) / 28 (27-28) | 0.51-0.77 / 0.80 | 29 / 58 | 6 / 11 |
+
+Of 200 seeds. The Warden's fight stays where it was: P50 38-50 s for the playing cohorts against 39-51 s shipped.
+
+- **The parity lever.** Without it (the phase's horde at the shipped 20 %), the hero met the Warden two to three levels
+  down (22-23 against 25, an earlier 100-seed run of the same variants): the phase's thin opening farms less than the
+  gate's wait at Pressure did. At 30 % the careful pilot was at 23 (the gate's edge), at 50 % the clumsy at 28. **40 %**
+  puts every playing cohort within the gate's +-2: the careful and first-card at 24, the standing at 25, the clumsy at 27.
+- **Not neutral for the weak.** The pilots who stay the whole phase (standing, clumsy, auto-farmer) farm more of it and
+  take the anvils' three extra picks: the clumsy cohort meets the Warden two levels up and healthier, and clears floor 1
+  on 16-32 more seeds of 200 and the climb on 19-42 more; the standing cohort's climb gains 15-17. The careful and
+  first-card pilots, who fight the Keeper and leave the phase early with 50-57 % of their health, clear floor 1 on 0-6
+  fewer seeds.
+  docs/56 would flag the clumsy cohort's change for a creature; for a probe it is reported, not tuned: the A/B decides
+  whether the world stays, and P0b re-reads parity on the world itself.
+- **The phase's own numbers** (P0a, seeds 1-200): the careful pilot captures 2 anvils P50 (2.3 mean), kills the Keeper
+  in 200 of 200 runs at 1:21-1:22 and leaves by the key in 197-199, takes 2-3 pads, and holds the stair at level 9 with
+  56-57 % of its health. The first-card pilot kills it in 192 and 200, the standing pilot (which never hunts) in 95 and
+  104 - the Keeper's loop finds it - and the clumsy in 49 and 56. The Bell rang in 910 runs of 2,000 and killed **no
+  one**: its escape takes 1-7 s P50 and 7-18 s P90 in today's court, where the stair is never far. Deaths in the phase:
+  11 clumsy Vanguards (the Keeper's Captain 5, the horde 6), 4 first-card Vanguards (the horde) and 10 auto-farmer
+  Vanguards; none of Ilya's.
+
+### 12.5 The proposed hall trim: none of the halls' content
+
+The measured answer to "the halls' time is trimmed to fit" (section 11) is that the gate's wait is the trim: the phase
+takes 1:30-1:52 out of the 1:40-1:53 the floor already waited, and the halls, their surges and the extra elite are
+untouched. A real trim was measured and refused: one surge a hall and no extra elite (`p0a-trim`, measured beside the
+Keeper at 0:45) moved floor 1's P50 by -1 to +2 s and the climb's by -3 to +14 s, and cost a level at the Warden (23
+against 24 for the careful pilot) for health it did not need. The switch's knobs
+(`OutworksRule.TrimmedHallSurges` 2, `TrimmedExtraElites` 1, `TrimmedGateSeconds` 210, read only on an Outworks run's
+floor 1) therefore stand at Floor_EmberHalls' own values. If the owner's floor on the S23 runs past 5:15 - a human who
+spends longer in the phase or the halls than the simulation's typical hands - the first knob to move is the extra elite
+(`TrimmedExtraElites` 0), then one surge.
+
+### 12.6 The gates
+
+| Gate (section 5, P0a) | Target | Measured | Status |
+|---|---|---|---|
+| Floor 1 P50 | 4:00-4:45, both heroes, every playing cohort | 4:20-4:34 (auto-farmer 4:05-4:07) | met |
+| Level at the Warden | within +-2 of today's P50 | careful 24, standing 25, first-card 24, clumsy 27 against 25 (auto-farmer 28) | met (clumsy at the edge) |
+| Careful anvils | at least 2 of 3, P50 | 2 (mean 2.3) | met |
+| Keeper killed | at least 60 % of careful runs | 100 % | met |
+| Swarm deaths | at most 3 % of the Bell's entries, every cohort | 0 of 910 | met |
+| The climb | 13-16 minutes (section 11) | 13:21-14:34 P50, 15:07 slowest P90 | met |
+| Power parity, health | today's P25-P75 at the Warden | careful and first-card inside; standing at the top edge (0.93); clumsy above (0.73-0.75 against 0.71) | partly |
+| The default batch unchanged | byte-identical with the switch off | FOUNDRY_SEEDS=200 FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_REALISM=typical FOUNDRY_FLOORS=2 on the base (lead-integrate-13) and on P0a: foundry-batch.csv, foundry-batch-floor2.csv, foundry-cohorts-floor2.csv, foundry-gate.md and foundry-cohorts.md identical; foundry-batch.md differs only in its date line and wall seconds | met |
+| Editor | `HordePacingMeasurement` on 6 seeds within 10 % of the simulation | not run (no Unity in the agent's worktree): `TestResults/horde-outworks.txt` with any text plays it; compare with the research's CSV on seeds 11-66 | not measured |
+| S23 | p95 at most 20 ms during the swarm at 40 enemies | the Bell's swarm stands beside the horde (cap 40 kept) | not measured |
+| The owner | which floor to play again; always knew where to go | section 12.7 | open |
+
+Unity's gates for the lead: EditMode `OutworksRuleTests` and `OutworksSimulationTests` (both also pass under Tools/CombatChecks,
+21 tests), PlayMode `OutworksFlowTests` (7 tests; filter `OutworksFlowTests`), and the suites as usual.
+
+### 12.7 What the owner's A/B on the S23 should look at
+
+Install a development APK, then three runs of today's floor 1 (no file) and three with `development/outworks.txt`
+holding "on" (`adb shell` into the profile's `development` folder, as for `autopilot.txt`). Forged, the Vanguard, floor 1
+only (Extract at the checkpoint). Then:
+
+1. **Which do you want to play again?** (docs/62 section 5's question; the kill-or-continue gate.)
+2. **Did you always know where to go?** The anvils and the Keeper off the screen carry edge arrows; the stair always
+   has one. Did an arrow ever point at something you could not find, or did you walk into the pit's rim by mistake?
+3. **The pads.** Did a pad ever launch you when you did not mean it (they stand 1.4 units off the pit's rim, where the
+   court's paths run)? Did the arc read - body up, shadow down - and did the landing feel safe?
+4. **The anvils.** Is 5 s in a ring with the crowd closing a fight or a chore? Did you notice the charge draining when
+   you stepped out?
+5. **The Keeper.** Did you see it coming (the lantern, the arrow)? Was it a fight worth the key (about 20 s for the
+   simulation's careful pilot at 12 times the Captain's health), or a wall? Did you leave early with the key?
+6. **The Bell.** Did the swarm feel like an escape? The simulation says it is not yet a threat in today's small court
+   (section 12.4): the stair is never far.
+7. **The halls after it.** Did the floor feel longer (the simulation says no: the phase fills the gate's wait) and did
+   the Warden feel as hard?
+8. **Turkish.** One run in Turkish: do "ÖŞÜR ÖRSÜ", "MUHAFIZ", "MERDİVEN", "Çanın çalmasına 1:05" and "ÇAN ÇALDI -
+   Merdivene ulaş" read, and do the working names stand (docs/60's glossary)?
+
+What to pull afterwards (Tools/Device/Pull-DeviceEvidence.ps1): the frame times while the Bell's swarm stands with
+the horde (P0a's S23 gate: p95 at most 20 ms at 40 enemies), and the run log's floor time beside the simulation's
+(section 12.2). The run log's `outworks_step` events (anvil, keeper_killed, bell, stair_held, each with the phase's
+clock, level and health) are the owner's own routing, to lay beside the pilots' habits (section 7.3).
+
+### 12.8 Risks, gaps and questions
+
+- **Unity has not run any of it.** The two .NET gates pass (Tools/CombatChecks: 1,106 tests passed; the Unity compile
+  check: 0 errors); the EditMode and PlayMode suites, the capture (`pwsh Tools/ArtReview/Run-OutworksProof.ps1`, frames into
+  `ArtDirection/2026-11-22/outworks-p0a/`, untracked) and the Editor's measurement are the lead's. The views are a greybox
+  in line renderers and built-in-font labels, drawn as the altars are; the capture is their first look.
+- **The body's lift** rides `CombatantView` (the body and the weapons it carries); if the Vanguard's puppet (PuppetAnimator)
+  rewrites the body's position every frame, the arc will not show on it - only the capture will tell.
+- **The Bell is not yet a threat** (0 deaths in 910 entries): the court is small and the stair never far. P0b's tall world
+  puts the distance in; within P0a the levers are the stair's spot and the ladder (`OutworksRule.BellLadder`).
+- **The pads stand on the paths round the pit**: a pilot or a player walking the rim can be launched unasked. The
+  simulation's pilots take 1-3 pads a run; whether an unasked leap reads as fun or as a trap is an A/B question.
+- **The Keeper's Captain does the killing in the weak cohorts' phase deaths**, and the careful pilot leaves the phase with
+  56-57 % of its health; a lower damage share with the same health is the lever if the owner finds it a wall.
+- **The weak cohorts gain** (section 12.4): for a shipped change docs/56 would hold it; P0b re-reads parity on the world.
+- **Not built in P0a:** chests in the phase (the halls' chests come with them), auto-hops over narrow gaps (the court has
+  none; the pit is crossed by pads), one-way ledges, the full map, the sanctum. Floors 2 and 3 and a higher start keep
+  today's floor. The telemetry logs `outworks_step` (anvil, keeper_killed, bell, stair_held with the phase's clock);
+  `room_start` and the HUD's room line begin with the first hall.
+- **Questions for the lead and the owner:**
+  1. Is the gate's wait the trim the owner meant ("the halls' time is trimmed so a floor stays about 4:30-5:15")? The
+     floor stays 4:20-4:34 with the halls whole.
+  2. Keep the parity lever at 40 %, or take 30 % (the careful pilot at the gate's -2 edge, the weak cohorts' gain about a
+     level smaller)?
+  3. Should a pad close at the Bell (section 7.5's mitigation), or stay the escape it is?
+  4. The Turkish working names in docs/60's glossary (Öşür Örsü, Muhafız, Çan, Tırmanış Merdiveni, Dış Avlular) - and
+     MERDİVEN as the short on-screen form?

@@ -89,6 +89,21 @@ namespace Cryptforge.Core
             return int.TryParse(ReadFirstLine(SkillsPath), out int slots) && slots >= 2 && slots <= 3 ? slots : 1;
         }
 
+        // docs/62's P0a, the Outworks mechanics probe: any text in it but "off" has a run that begins on floor 1 of the foundry
+        // play the Outworks phase in the court before the floor's halls (EncounterController.Outworks.cs) - the Tithe Anvils,
+        // the Keeper and its key, the pads over the pit, the Bell and the Ascent Stair - with floor 1's halls trimmed as
+        // OutworksRule says. Only the Editor and a development build look; nothing without the file, so a release build and
+        // the default batch play the shipped floor.
+        public const string OutworksFileName = "outworks.txt";
+        public static string OutworksPath => Path.Combine(ProfileLocation.Resolve(), FolderName, OutworksFileName);
+        public static bool Outworks()
+        {
+            if (!Application.isEditor && !Debug.isDebugBuild)
+                return false;
+            string line = ReadFirstLine(OutworksPath);
+            return FoundryRegion() && !string.IsNullOrEmpty(line) && !string.Equals(line, "off", StringComparison.Ordinal);
+        }
+
         // A hero id in it plays that hero whatever the profile chose (docs/45). Nothing without the file.
         public static string HeroPath => Path.Combine(ProfileLocation.Resolve(), FolderName, "hero.txt");
         public static string HeroId() => Application.isEditor || Debug.isDebugBuild ? ReadFirstLine(HeroPath) : null;

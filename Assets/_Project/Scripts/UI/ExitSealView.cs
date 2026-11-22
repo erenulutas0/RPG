@@ -2,6 +2,7 @@ using Cryptforge.Art;
 using Cryptforge.Combat;
 using Cryptforge.Content;
 using Cryptforge.Core;
+using Cryptforge.Localisation;
 using UnityEngine;
 
 namespace Cryptforge.UI
@@ -84,17 +85,20 @@ namespace Cryptforge.UI
             if(_plate==null)return;
             var encounter=_setup.Encounters;
             bool hall=encounter.IsRoomSiteOpen;
-            bool visible=enabled&&(encounter.IsExitOpen||hall)&&!_setup.Run.HasEnded;
+            // docs/62 P0a's Ascent Stair, once the Keeper's key or the Bell opens it: the gate's seal, held as the gate is.
+            bool stair=encounter.IsStairOpen;
+            bool visible=enabled&&(encounter.IsExitOpen||hall||stair)&&!_setup.Run.HasEnded;
             _plate.SetActive(visible);_label.gameObject.SetActive(visible);_arrow.enabled=false;
-            ShownProgress=visible&&!hall?Mathf.Clamp01(encounter.ExitHeldSeconds/ExitRule.DwellSeconds):0;
+            ShownProgress=visible&&!hall?Mathf.Clamp01((stair?encounter.Outworks.StairHeld:encounter.ExitHeldSeconds)/ExitRule.DwellSeconds):0;
             if(!visible)return;
             // A marked hall is entered, not held: the same seal at its district, at the district's radius.
             Vector3 position=hall?new Vector3(encounter.RoomSiteFloorX,ArenaFloor.WorldY(encounter.RoomSiteFloorY),0):
+                stair?new Vector3(encounter.Outworks.StairX,ArenaFloor.WorldY(encounter.Outworks.StairY),0):
                 new Vector3(encounter.ExitFloorX,ArenaFloor.WorldY(encounter.ExitFloorY),0);
             if(_arena!=null&&_arena.IsFoundryRegion)position.y+=FoundrySurface.Lift(position,_arena.transform.position);
             _plate.transform.position=position;
             // The seal is drawn at the finale's radius; the opened gate's wider hold scales the whole plate.
-            float scale=(hall?FoundryMap.RoomSiteRadius:encounter.ExitRadius)/ExitRule.Radius;_plate.transform.localScale=new Vector3(scale,scale,1);
+            float scale=(hall?FoundryMap.RoomSiteRadius:stair?OutworksRule.StairRadius:encounter.ExitRadius)/ExitRule.Radius;_plate.transform.localScale=new Vector3(scale,scale,1);
             _progress.enabled=ShownProgress>0;
             for(int i=0;i<=Segments;i++)_arc[i]=Point(Mathf.PI/2-i*(Mathf.PI*2/Segments)*ShownProgress,ExitRule.Radius);
             _progress.positionCount=_arc.Length;_progress.SetPositions(_arc);
@@ -119,6 +123,7 @@ namespace Cryptforge.UI
             _label.transform.position=cue+Vector3.down*.45f;
             bool gate=encounter.IsGateExitOpen;
             string instruction=hall?(outside?_text.HallDirection:_text.HallInstruction):
+                stair?(outside?Loc.Text("outworks.stair_direction","ASCENT STAIR"):Loc.Text("outworks.stair_instruction","ASCENT STAIR - Stand still to climb")):
                 outside?(gate?_text.GateDirection:_text.ExitDirection):(gate?_text.GateInstruction:_text.ExitInstruction);
             if(!_instructionShown||_shownInstruction!=instruction){_label.text=instruction;_shownInstruction=instruction;_instructionShown=true;}
         }

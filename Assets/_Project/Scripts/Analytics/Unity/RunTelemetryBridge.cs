@@ -122,6 +122,22 @@ namespace Cryptforge.Analytics
                 pit.Erupted += () => _telemetry.RecordPitEruption(pit.LastHeroBurnt, pit.LastEnemiesBurnt, pit.LastEnemiesKilled);
         }
 
+        // docs/62 P0a's Outworks phase, on a run that plays it: each anvil captured, the Keeper's fall, the Bell and the stair
+        // held, with the phase's clock (RunTelemetry.RecordOutworks).
+        public void WatchOutworks(EncounterController encounters)
+        {
+            if (encounters == null || !encounters.PlaysOutworks)
+                return;
+            encounters.AnvilCaptured += anvil => _telemetry.RecordOutworks("anvil", anvil, OutworksClock(encounters));
+            encounters.KeeperFell += () => _telemetry.RecordOutworks("keeper_killed", 0, OutworksClock(encounters));
+            encounters.BellRang += () => _telemetry.RecordOutworks("bell", 0, OutworksClock(encounters));
+            encounters.OutworksLeft += () => _telemetry.RecordOutworks("stair_held", encounters.Outworks.KeyHeld ? 1 : 0,
+                OutworksClock(encounters));
+        }
+
+        private static float OutworksClock(EncounterController encounters) =>
+            encounters.Outworks != null ? encounters.Outworks.Seconds : 0f;
+
         // Writes run_start; the run's other events follow it.
         public void Begin()
         {

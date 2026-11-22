@@ -329,6 +329,23 @@ namespace Cryptforge.Analytics
                 .Add("room_index", _roomIndex));
         }
 
+        // docs/62 P0a's Outworks phase (development/outworks.txt): each of its moments - "anvil" (index the anvil captured),
+        // "keeper_killed", "bell", "stair_held" - with the phase's clock, so the owner's runs can be laid beside the
+        // simulation's (docs/62 section 7.3: the pilots' routing is to be checked against the owner's own telemetry).
+        public void RecordOutworks(string step, int index, float clock)
+        {
+            if (!IsRecording)
+                return;
+
+            _session.Emit("outworks_step", new TelemetryFields()
+                .Add("step", step)
+                .Add("index", index)
+                .Add("clock", (double)clock)
+                .AddHeroHealth(_heroHealth(), _heroMaximumHealth())
+                .Add("level", _run.Level)
+                .Add("floor_index", _roomFloor));
+        }
+
         public void RecordPitEruption(bool heroBurnt, int enemiesBurnt, int enemiesKilled)
         {
             if (!IsRecording)

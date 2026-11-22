@@ -31,6 +31,26 @@ namespace Cryptforge.UI
 
         // True from a hit until the feedback ends; FlashColor is the tint of that flash and white while idle.
         public bool IsFlashing { get; private set; }
+
+        // How far above its ground the body is drawn (docs/62 P0a's pad arc, OutworksView): the body, and the weapons it
+        // carries, rise while the root - the shadow, the camera's target and every rule's position - keeps the ground track.
+        // 0 for every combatant but a leaping hero.
+        public float Lift
+        {
+            get => _lift;
+            set
+            {
+                if (_lift == value || _body == null)
+                {
+                    _lift = value;
+                    return;
+                }
+                _lift = value;
+                _body.transform.localPosition = _basePosition + Vector3.up * ((_feedbackRemaining > 0f ? _attackNudge : 0f) + _lift);
+            }
+        }
+
+        private float _lift;
         public Color FlashColor { get; private set; } = Color.white;
 
         private void OnEnable()
@@ -109,7 +129,7 @@ namespace Cryptforge.UI
 
         private void OnAttacked()
         {
-            _body.transform.localPosition = _basePosition + Vector3.up * _attackNudge;
+            _body.transform.localPosition = _basePosition + Vector3.up * (_attackNudge + _lift);
             _feedbackRemaining = _feedbackDuration;
         }
 
@@ -180,7 +200,7 @@ namespace Cryptforge.UI
             }
             if (_flash != null)
                 _flash.enabled = false;
-            _body.transform.localPosition = _basePosition;
+            _body.transform.localPosition = _basePosition + Vector3.up * _lift;
             _feedbackRemaining = 0f;
             IsFlashing = false;
             FlashColor = Color.white;

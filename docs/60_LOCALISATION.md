@@ -85,6 +85,11 @@ to English.
 | checkpoint | durak | |
 | floor / room / wave | kat / oda / dalga | |
 | gate / exit / next hall | kapı / çıkış / sonraki salon | |
+| Outworks (docs/62's world before a floor's sanctum) | Dış Avlular | 2026-11-22, a working name (docs/62 section 11): the outer yards round the floor's heart. No P0a text shows it yet |
+| Tithe Anvil (the capture shrine) | Öşür Örsü | 2026-11-22, working name: öşür is the old tithe, the tenth a harvest owed, as docs/62 section 1.4's lore has it. "ÖŞÜR ÖRSÜ - Halkanın içinde dur"; ÖRS on its edge arrow |
+| Keeper (the roaming mini-boss) | Muhafız | 2026-11-22, working name: not Bekçi, which is the Warden's (Ocak Bekçisi). MUHAFIZ on its edge arrow; "Muhafızın anahtarıyla" (a common noun, no apostrophe) |
+| the Bell | Çan | 2026-11-22, working name: "Çanın çalmasına 1:05", "ÇAN ÇALDI - Merdivene ulaş" |
+| Ascent Stair / Stair Key | Tırmanış Merdiveni / Merdiven Anahtarı | 2026-11-22, working names. On screen the short MERDİVEN (the seal and the arrow): the full name would run half again the English |
 | overrun | İSTİLA | The horde overruns the floor |
 | danger | tehlike | |
 | level / level up | seviye / seviye atladın | "Sv" when short ("Sv 2 -> 3") |
