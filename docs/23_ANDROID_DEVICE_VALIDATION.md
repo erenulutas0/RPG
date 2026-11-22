@@ -2404,6 +2404,8 @@ report (steps 7-8) only read, so they need no focus check.
    ```
    The folder holds no `pull.txt`, so the batch report never reads it.
 4. **Install the APK and check its hash.** The APK is `Builds/Android/Cryptforge-Prototype.apk`, the clean build of
+   main 6ba152e1 with the game-feel pass (slot cues, hit recoil, ash deaths, the Warden's body windup, the Regent's
+   shatter), the Ascent / Tırmanış wording, and the Outworks probe behind development/outworks.txt on top of
    main 78c379af with the arena's button on the map choice (P0's arena opens from the title row's left) on top of
    main dd166c31 with Cinder Ward's redrawn icon on top of
    main 8ba5496e with the heroes' skills 2 and 3 playable (docs/57 14: floor 2's and floor 3's first clears open them,
@@ -2440,8 +2442,8 @@ report (steps 7-8) only read, so they need no focus check.
    with a point on every locale; Gradle's 10 MB of holes gone; 36,819,361 bytes). Check the file
    itself, never a hash written down earlier:
    ```
-   (Get-FileHash Builds/Android/Cryptforge-Prototype.apk -Algorithm SHA256).Hash   # A8C088A39F06017A... on 2026-11-19 05:30
-   (Get-Item Builds/Android/Cryptforge-Prototype.apk).Length                        # 61619861
+   (Get-FileHash Builds/Android/Cryptforge-Prototype.apk -Algorithm SHA256).Hash   # DD195A0F2D2A7F3B... on 2026-11-22 23:45
+   (Get-Item Builds/Android/Cryptforge-Prototype.apk).Length                        # 61692001
    adb install -r Builds/Android/Cryptforge-Prototype.apk
    ```
    `install -r` keeps the profile and the telemetry. `Cryptforge-Prototype-679df68d.apk` (47 MB, DA3D13FD...) and the
