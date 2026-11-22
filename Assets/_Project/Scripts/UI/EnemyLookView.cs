@@ -30,6 +30,11 @@ namespace Cryptforge.UI
         // The strike windup never takes more than this share of a blow's interval, so a quick attacker still walks
         // between its blows.
         private const float StrikeWindupShare = .5f;
+        // The game-feel pass's flinch (docs/43 section 1, 2026-11-22): beside the hit's compression, the body tips away from
+        // whoever struck it by up to this much about its feet and rights itself over FlinchSeconds - a float and a sign an
+        // enemy, so a crowd of forty pays nothing it did not already pay for the compression. A burn's tick is no blow.
+        internal const float FlinchDegrees = 7f;
+        internal const float FlinchSeconds = .12f;
 
         [SerializeField] private EnemyLook _look = EnemyLook.Grunt;
         [SerializeField] private SpriteRenderer _body;
@@ -59,6 +64,10 @@ namespace Cryptforge.UI
         private bool _painted;
         private float _walkDistance;
         private float _hitRemaining;
+        // The flinch: its time left and its full tip in degrees (signed away from the blow), and whether the body is tipped.
+        private float _flinchRemaining;
+        private float _flinchTip;
+        private bool _tipped;
         public EnemyArtSet PaintedArt => _painted ? Art : null;
         public int PaintedFrame { get; private set; }
         public bool RearFacing { get; private set; }
@@ -119,6 +128,10 @@ namespace Cryptforge.UI
         internal bool DrawsEnrage => _painted && Art.HasEnragedFrames;
         // The body renderer, for presentation that restyles it in place (the foundry's hidden-enemy silhouette).
         internal SpriteRenderer Body => _body;
+        // Where the body rests on its root, and the flinch's tip now (degrees, 0 at rest): for a boss's tell, which raises
+        // and leans the body over them (BossFeelView), and for tests.
+        internal Vector3 BodyRest => _bodyRest;
+        internal float FlinchTip => _flinchRemaining > 0f ? _flinchTip * (_flinchRemaining / FlinchSeconds) : 0f;
         // The health bar root (a child of this enemy), for presentation that keeps it on top of scenery.
         internal Transform Bar => _bar != null ? _bar.transform : null;
         // The painted bar's set while this enemy wears it; null on the pixel bar. For tests.
@@ -199,6 +212,10 @@ namespace Cryptforge.UI
                 return;
             _walkDistance = 0f;
             _hitRemaining = 0f;
+            _flinchRemaining = 0f;
+            _flinchTip = 0f;
+            _tipped = false;
+            _body.transform.localRotation = Quaternion.identity;
             _arrivalDuration = 0f;
             _arrivalRemaining = 0f;
             _attackRemaining = 0f;
@@ -351,6 +368,12 @@ namespace Cryptforge.UI
         {
             IsWindingUp = false;
             WindupStep = -1;
+            _flinchRemaining = 0f;
+            if (_tipped)
+            {
+                _tipped = false;
+                _body.transform.localRotation = Quaternion.identity;
+            }
             if (_bar != null)
                 _bar.SetActive(false);
             // The body is hidden at once (CombatantView) and its pooled remains take over; an arrival cut short ends here.
@@ -424,7 +447,33 @@ namespace Cryptforge.UI
             Show(EnemyPose.Attack);
         }
 
-        private void OnDamaged(DamageContext context) { if (_painted) _hitRemaining = .09f; }
+        private void OnDamaged(DamageContext context)
+        {
+            if (!_painted)
+                return;
+            _hitRemaining = .09f;
+            // The flinch tips the top away from the blow: struck from the left it leans right (clockwise), and the other
+            // way; a blow from straight above or below, or from no one, and a burn's tick, tip nothing.
+            if (context.IsTick || !(context.Source is Component source) || source == null)
+                return;
+            float dx = transform.position.x - source.transform.position.x;
+            if (Mathf.Abs(dx) < .01f)
+                return;
+            _flinchTip = dx > 0f ? -FlinchDegrees : FlinchDegrees;
+            _flinchRemaining = FlinchSeconds;
+        }
+
+        // The flinch's tip on the body as it rights itself; written only while it tips and once as it comes upright.
+        private void TickFlinch(float deltaTime)
+        {
+            if (_flinchRemaining > 0f)
+                _flinchRemaining = Mathf.Max(0f, _flinchRemaining - deltaTime);
+            float tip = FlinchTip;
+            if (tip == 0f && !_tipped)
+                return;
+            _body.transform.localRotation = tip == 0f ? Quaternion.identity : Quaternion.Euler(0f, 0f, tip);
+            _tipped = tip != 0f;
+        }
 
         private void OnStruck(Health target)
         {
@@ -490,6 +539,7 @@ namespace Cryptforge.UI
             _hitRemaining = Mathf.Max(0, _hitRemaining - Time.deltaTime);
             float compression = _hitRemaining / .09f;
             _body.transform.localScale = new Vector3((Mirrored ? -1 : 1) * (1 + .06f * compression), 1 - .08f * compression, 1);
+            TickFlinch(Time.deltaTime);
             // Walking on under a raised hammer keeps it raised, facing where the blow will land.
             if (IsWindingUp) { TickWindup(delta); return; }
             _attackRemaining = Mathf.Max(0, _attackRemaining - Time.deltaTime);

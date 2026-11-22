@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Cryptforge.Art;
 using Cryptforge.Combat;
+using Cryptforge.Content;
 using UnityEngine;
 
 namespace Cryptforge.UI
@@ -50,6 +51,11 @@ namespace Cryptforge.UI
             // the point it was placed at. Floor pulses never are; they already sort under the foundry's structures.
             public bool AboveFloor;
             public Vector3 Ground;
+            // The game-feel pass's motes (docs/43 section 1): fading in and out over the whole life rather than only at its
+            // end, and shrinking from the scale armed (BaseScale) as they go.
+            public bool FadeAll;
+            public bool Shrink;
+            public float BaseScale;
         }
 
         // Numbers are read, not seen as things in the world, so they stay on the flat layer over every foundry structure,
@@ -127,6 +133,30 @@ namespace Cryptforge.UI
         // next wave waits a second). So a crowd falling together never cuts a death short, and the deaths never take the
         // shared pool's slots from the sparks, strikes and coins they fall among.
         internal const int DeathSlots = PackLayout.MaxPackSize + 8;
+        // The game-feel pass (docs/43 section 1, 2026-11-22): a fallen enemy dissolves - a few ash motes lift off its body
+        // and thin to nothing over about 0.3 s, over its remains - and a horde newcomer rises out of embers that drift up
+        // round its feet as it fades in. The motes keep slots of their own past the deaths', round robin among
+        // themselves, so they never cut short a remains, a strike or a burst; when every slot is busy the oldest mote gives
+        // way. How many a death throws falls as a crowd falls together (GameFeel.MotesPerDeath over the deaths of the last
+        // 0.3 s: six for a few, three for a busy fight, one past thirty at once), the arrivals' likewise, so a crowd's end
+        // costs little more than one enemy's. The mote is FeelArt's code-drawn disc; no painted frame.
+        internal const int AshSlots = 64;
+        private const float AshWindow = .3f;
+        private const float AshSeconds = .3f;
+        private const float AshSecondsSpread = .12f;
+        private const float AshRise = .45f;
+        private const float AshRiseSpread = .35f;
+        private const float AshSize = .035f;
+        private const float AshSizeSpread = .025f;
+        private const float EmberSeconds = .28f;
+        private const float EmberRise = .7f;
+        private const float EmberSize = .03f;
+        private const int AshSeed = 61;
+        private static readonly Color AshGrey = new Color(.45f, .42f, .4f, .85f);
+        private static readonly Color AshEmber = new Color(1f, .52f, .2f, .9f);
+        // The floors' own dissolves: frost motes on the ice (docs/49), the garden's violet on the Gloam (docs/51).
+        private static readonly Color AshFrost = new Color(.78f, .9f, 1f, .8f);
+        private static readonly Color AshGloam = new Color(.78f, .62f, 1f, .8f);
         private const float CoinFrameDuration = 0.08f;
         private const float CoinGravity = 9.8f;
         private const float CoinLaunch = 2.4f;
@@ -301,6 +331,12 @@ namespace Cryptforge.UI
         private int _nextEffect;
         private int _nextPuff;
         private int _nextDeath;
+        // The motes' slots and their budgets (game feel): the deaths and the arrivals of the last AshWindow.
+        private Sprite[] _mote;
+        private int _nextAsh;
+        private int _ashCount;
+        private readonly FeelBudget _deaths = new FeelBudget(AshWindow, 64);
+        private readonly FeelBudget _arrivals = new FeelBudget(AshWindow, 64);
         private int _nextNumber;
         private int _hitCount;
         private int _deathCount;
@@ -350,6 +386,22 @@ namespace Cryptforge.UI
         internal Sprite[] BurnFlameFrames(int stacks) => _flames?.Frames(stacks);
         internal bool PaintsBurnFlames => _flames != null && _flames.IsPainted;
         internal float ShockwaveSpriteRadius => _shockwaveSpriteRadius;
+        // The motes the last death threw and the last arrival's embers (game feel), and how many motes are on show: for
+        // the tests and the capture.
+        internal int LastMotesPerDeath { get; private set; }
+        internal int LastEmbersPerArrival { get; private set; }
+        internal int ShownMotes
+        {
+            get
+            {
+                int shown = 0;
+                for (int i = AshStart; _effects != null && i < _effects.Length; i++)
+                    if (_effects[i].Active)
+                        shown++;
+                return shown;
+            }
+        }
+        private int AshStart => _effectPoolSize + PuffSlots + BurstSlots + FallSlots + DeathSlots;
 
         // Pool slots, and the effect on show above the floor in one with the world height of the floor it stands on, for
         // presentation that depth-tests effects against scenery (FoundryVisibilityView). Floor pulses and numbers are
@@ -496,6 +548,8 @@ namespace Cryptforge.UI
         private void BuildSprites()
         {
             _slash = UsesPaintedStrikes ? _paintedArt.Slash : Build(EffectArt.SlashFrames(), "VFX Slash", PixelSpriteFactory.Centre);
+            // Borrowed for the session (FeelArt), never destroyed here.
+            _mote = new[] { FeelArt.Disc() };
             _ring = new[] { StaffSplashArt.Get() }; // Borrowed session art.
             if (UsesPaintedStaffBlast)
             {
@@ -626,7 +680,7 @@ namespace Cryptforge.UI
             _poolRoot = new GameObject("Combat Effects");
             _poolRoot.transform.SetParent(transform, false);
 
-            _effects = new Effect[_effectPoolSize + PuffSlots + BurstSlots + FallSlots + DeathSlots];
+            _effects = new Effect[_effectPoolSize + PuffSlots + BurstSlots + FallSlots + DeathSlots + AshSlots];
             for (int i = 0; i < _effects.Length; i++)
             {
                 SpriteRenderer renderer = CreateRenderer($"Effect {i}", _poolRoot.transform, _sortingOrder);
@@ -689,6 +743,72 @@ namespace Cryptforge.UI
             if (watch.Look != null)
                 watch.Look.Arrive(ArrivalSeconds);
             ShowArrivalPuff(watch.Root.position);
+            ShowArrivalEmbers(watch.Root.position);
+        }
+
+        // Embers drifting up round a newcomer's feet as it fades in: it rises out of them (game feel).
+        private void ShowArrivalEmbers(Vector3 feet)
+        {
+            float now = Time.time;
+            _arrivals.Record(now);
+            int count = GameFeel.EmbersPerArrival(_arrivals.Recent(now));
+            LastEmbersPerArrival = count;
+            _ashCount++;
+            for (int i = 0; i < count; i++)
+            {
+                float n = PixelNoise.Value(i, _ashCount, AshSeed);
+                float m = PixelNoise.Value(i, _ashCount, AshSeed + 1);
+                var origin = feet + new Vector3((i - (count - 1) * .5f) * .16f + (n - .5f) * .08f, .02f + .05f * m, 0f);
+                var velocity = new Vector3((n - .5f) * .2f, EmberRise * (.8f + .4f * m), 0f);
+                ShowMote(origin, feet, velocity, EmberSeconds * (.9f + .25f * n), EmberSize * (.85f + .4f * m), AshEmber);
+            }
+        }
+
+        // A fallen enemy's ash: a few motes off its body, lifting and thinning to nothing over about 0.3 s. A boss's own
+        // fall carries its own end (BossFeelView), so it throws none here.
+        private void ShowAsh(EnemyWatch watch, Vector3 anchor, Vector3 ground)
+        {
+            EnemyArtSet painted = watch != null && watch.Look != null ? watch.Look.PaintedArt : null;
+            if (painted != null && painted.HasFall)
+                return;
+            float now = Time.time;
+            _deaths.Record(now);
+            int count = GameFeel.MotesPerDeath(_deaths.Recent(now));
+            LastMotesPerDeath = count;
+            Color dust = AshGrey;
+            if (watch != null && watch.Look != null)
+            {
+                FloorTheme theme = watch.Look.ShownTheme;
+                if (theme == FloorTheme.Ice)
+                    dust = AshFrost;
+                else if (theme == FloorTheme.Gloam)
+                    dust = AshGloam;
+            }
+            _ashCount++;
+            for (int i = 0; i < count; i++)
+            {
+                float n = PixelNoise.Value(i, _ashCount, AshSeed + 2);
+                float m = PixelNoise.Value(i, _ashCount, AshSeed + 3);
+                var origin = anchor + new Vector3((n - .5f) * .36f, (m - .5f) * .4f, 0f);
+                var velocity = new Vector3((m - .5f) * .4f, AshRise + AshRiseSpread * n, 0f);
+                ShowMote(origin, ground, velocity, AshSeconds + AshSecondsSpread * m, AshSize + AshSizeSpread * n,
+                    i % 3 == 1 ? AshEmber : dust);
+            }
+        }
+
+        // The motes' reserved slots (AshSlots), round robin among themselves; standing on ground for the foundry's depth.
+        private void ShowMote(Vector3 origin, Vector3 ground, Vector3 velocity, float lifetime, float size, Color tint)
+        {
+            Effect mote = _effects[AshStart + _nextAsh];
+            _nextAsh = (_nextAsh + 1) % AshSlots;
+            Arm(mote, _mote, lifetime, lifetime, origin, _sortingOrder + SparkOrder, velocity, 0f, false, size);
+            mote.FadeAll = true;
+            mote.Shrink = true;
+            mote.Tint = tint;
+            Color hidden = tint;
+            hidden.a = 0f;
+            mote.Renderer.color = hidden;
+            StandOn(mote, ground);
         }
 
         // A swarm room fills a fallen place, or opens a new one, for its whole life after the one EncounterStarted: the
@@ -1063,6 +1183,7 @@ namespace Cryptforge.UI
             }
             else StandOn(ShowMoving(_smoke, _smokeFrameDuration, _smoke.Length * _smokeFrameDuration, anchor, _sortingOrder + SmokeOrder,
                 Vector3.up * SmokeRise, 0f, false, SmokeScale), ground);
+            ShowAsh(watch, anchor, ground);
             // Descent rewards now remain on the floor; its drop view is the collectible cue. Swarm pays immediately.
             if (!_encounter.IsInSwarmRoom || _encounter.GoldRewardOf(enemy) <= 0)
                 return;
@@ -1146,6 +1267,9 @@ namespace Cryptforge.UI
             effect.FaceMotion = false;
             effect.AboveFloor = false;
             effect.Ground = origin;
+            effect.FadeAll = false;
+            effect.Shrink = false;
+            effect.BaseScale = scale;
             effect.Transform.position = origin;
             effect.Transform.localRotation = Quaternion.identity;
             effect.Transform.localScale = new Vector3(scale, scale, 1f);
@@ -1191,7 +1315,12 @@ namespace Cryptforge.UI
 
         private void Update()
         {
-            float deltaTime = Time.deltaTime;
+            using (Cryptforge.Core.PerformanceMarkers.EffectsTick.Auto())
+                Tick(Time.deltaTime);
+        }
+
+        private void Tick(float deltaTime)
+        {
             for (int i = 0; i < _effects.Length; i++)
             {
                 Effect effect = _effects[i];
@@ -1229,6 +1358,19 @@ namespace Cryptforge.UI
                     Color wave = effect.Tint;
                     wave.a *= Mathf.Clamp01((effect.Lifetime - effect.Elapsed) / .1f);
                     effect.Renderer.color = wave;
+                }
+                if (effect.FadeAll)
+                {
+                    // In over its first tenth, then thinning to nothing; shrinking by half as it goes.
+                    float life = effect.Elapsed / effect.Lifetime;
+                    Color mote = effect.Tint;
+                    mote.a *= Mathf.Min(1f, life * 10f) * (1f - life);
+                    effect.Renderer.color = mote;
+                    if (effect.Shrink)
+                    {
+                        float size = effect.BaseScale * (1f - .5f * life);
+                        effect.Transform.localScale = new Vector3(size, size, 1f);
+                    }
                 }
                 if (effect.Fade)
                 {
