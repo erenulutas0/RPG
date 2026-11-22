@@ -7,6 +7,7 @@ using Cryptforge.Combat;
 using Cryptforge.Content;
 using Cryptforge.Economy;
 using Cryptforge.Localisation;
+using Cryptforge.Monetisation;
 using Cryptforge.Progression;
 using Cryptforge.UI;
 using Cryptforge.Save;
@@ -52,6 +53,8 @@ namespace Cryptforge.Core
         private bool _firstWaveAfterChoices;
         // What Ember Memory's burns tick at: the gear's burn-damage factor (GearStats.BurnFactor), 1 without one.
         private float _burnFactor = 1f;
+        // This run's id when telemetry gave it none (a run ended before it began recording): one fresh GUID a run.
+        private string _fallbackRunId;
 
         // The floor this run began on: 1, or the deeper map chosen before this load (MapChoiceView, DescentStart).
         public int StartFloor { get; private set; } = 1;
@@ -121,6 +124,23 @@ namespace Cryptforge.Core
         public bool LastHurtByPit { get; private set; }
         // The killer telemetry writes into run_end's cause (killed_by:<id>): the pit's id, the last attacker's, or none.
         public string KillerTelemetryId => LastHurtByPit ? PitEruptionService.KillerId : LastAttacker != null ? LastAttacker.Id : null;
+        // The run's result is on disk (docs/58 3.1, save before any video): the profile was written once more as the run
+        // ended, after the bank's deposit, and that write returned without an exception. False until then, false when it
+        // failed (the result screen then offers no video), and false again from RestartRun. Neither the bank's own save,
+        // which swallows a failure, nor a run that banked nothing (no save at all) can stand for it.
+        public bool ResultSaved { get; private set; }
+        // The run's id for the result screen's offer (docs/58 7.4): telemetry's (RunTelemetry.RunId, kept after run_end), or
+        // one fresh GUID for this run when telemetry has none.
+        public string RunId
+        {
+            get
+            {
+                string recorded = _telemetry != null ? _telemetry.RunId : null;
+                if (!string.IsNullOrEmpty(recorded))
+                    return recorded;
+                return _fallbackRunId ??= Guid.NewGuid().ToString("N");
+            }
+        }
 
         private void Awake()
         {
@@ -187,6 +207,9 @@ namespace Cryptforge.Core
             Loot = new RunLoot(Run, ItemTemplates(), !Profile.Gear.FirstArmourGiven, _economy.AtRiskGoldLoss, Tier);
             // Created before any view subscribes to Run.Ended, so banked gold and loot reach the profile before results show.
             Bank = new RunBank(Run, Profile, Loot);
+            // Right after the bank's deposit and before any view: the result is written once more, and ResultSaved says
+            // whether that write landed (docs/58 3.1: no video before the run is saved).
+            Run.Ended += SaveResult;
             Anvil = new Anvil(Profile);
             Profile.Changed += SaveProfile;
             // Nothing burns on behind the result screen (review, 2026-10-27).
@@ -276,7 +299,7 @@ namespace Cryptforge.Core
             _encounters.EnemyRemoved += OnEnemyRemoved;
             _encounters.FloorCleared += OnFloorCleared;
             if (!IsChoosingMap)
-                telemetry.Begin();
+                BeginRun();
             bool catchUp = StartFloor > 1;
             bool arrival = !catchUp && DevelopmentStart.GateArrival();
             _encounters.Initialize(Choices, Forge, () => HeroStats.Difficulty, Upgrades, Drops, arrival || IsChoosingMap || catchUp,
@@ -394,9 +417,16 @@ namespace Cryptforge.Core
                 RestartRun();
                 return;
             }
-            _telemetry.Begin();
+            BeginRun();
             if (!Run.HasEnded)
                 _encounters.BeginFirstEncounter();
+        }
+
+        // The run begins: its telemetry's run_start, and the result screen's video asked for ahead of need (docs/58 7.4).
+        private void BeginRun()
+        {
+            _telemetry.Begin();
+            MonetisationRuntime.BeginRun();
         }
 
         // The run's local event log. Attached before this root subscribes to a checkpoint choice, a kill or a floor clear,
@@ -441,6 +471,7 @@ namespace Cryptforge.Core
                 return;
 
             _restarting = true;
+            ResultSaved = false;
             Time.timeScale = 1f;
             SceneManager.LoadScene(gameObject.scene.buildIndex);
         }
@@ -532,15 +563,23 @@ namespace Cryptforge.Core
             }
         }
 
-        private void SaveProfile()
+        private void SaveProfile() => TrySaveProfile();
+
+        // The run ended: the profile is written once more, after the bank's deposit, and only a write that landed marks
+        // the result saved.
+        private void SaveResult() => ResultSaved = TrySaveProfile();
+
+        private bool TrySaveProfile()
         {
             try
             {
                 _profileStore.Save(Profile);
+                return true;
             }
             catch (Exception exception) when (exception is IOException || exception is UnauthorizedAccessException)
             {
                 Debug.LogError($"Saving the profile to {_profileStore.Directory} failed: {exception}", this);
+                return false;
             }
         }
 

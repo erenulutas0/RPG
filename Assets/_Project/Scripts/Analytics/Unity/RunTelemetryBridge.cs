@@ -138,6 +138,9 @@ namespace Cryptforge.Analytics
         private static float OutworksClock(EncounterController encounters) =>
             encounters.Outworks != null ? encounters.Outworks.Seconds : 0f;
 
+        // The recorder's run id (RunTelemetry.RunId): null before Begin and once the scene is going away.
+        public string RunId => _telemetry != null ? _telemetry.RunId : null;
+
         // Writes run_start; the run's other events follow it.
         public void Begin()
         {

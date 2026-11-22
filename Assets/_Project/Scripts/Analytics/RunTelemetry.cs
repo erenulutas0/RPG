@@ -160,6 +160,10 @@ namespace Cryptforge.Analytics
 
         private bool IsRecording => _begun && !_closed && !_disposed;
 
+        // This recorder's run id, null before Begin. Kept after run_end, which clears the session's own (TelemetrySession.
+        // RunId) before the result screen opens: the screen's offer is written under it (docs/58 7.3 and 7.4).
+        public string RunId => _runId;
+
         // Validates the wiring once, at scene start, so a missing reference fails there and never inside a handler.
         public RunTelemetry(RunTelemetryContext context)
         {

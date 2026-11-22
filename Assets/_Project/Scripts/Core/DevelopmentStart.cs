@@ -138,6 +138,24 @@ namespace Cryptforge.Core
             return string.IsNullOrEmpty(id) ? null : id;
         }
 
+        // docs/58 7.4: how the offline fake rewarded video ends, so every state of the result screen's offer can be captured
+        // - "completed" (also no file), "skipped", "failed" (no fault of the player's: one retry, then the offer ends) or
+        // "noad" (no video ever fills: the button says so). Read as each run begins (MonetisationRuntime.BeginRun), in
+        // lower case; anything else is "completed". Only the Editor and a development build look.
+        public const string AdsFileName = "ads.txt";
+        public const string AdsCompleted = "completed";
+        public const string AdsSkipped = "skipped";
+        public const string AdsFailed = "failed";
+        public const string AdsNoAd = "noad";
+        public static string AdsPath => Path.Combine(ProfileLocation.Resolve(), FolderName, AdsFileName);
+        public static string AdsOutcome()
+        {
+            if (!Application.isEditor && !Debug.isDebugBuild)
+                return null;
+            string line = ReadFirstLine(AdsPath);
+            return string.IsNullOrEmpty(line) ? null : line.ToLowerInvariant();
+        }
+
         public static string DepthProofPath => Path.Combine(ProfileLocation.Resolve(), FolderName, DepthProofFileName);
 
         // Under the seed's rules: only the Editor and a development build look, and a missing, empty or unreadable file

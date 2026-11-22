@@ -329,7 +329,8 @@ Step 1 of section 6 and docs/59 section 3 items 2 and 3, as **pure code behind i
 no package, no view, no scene, no asset. Nothing existing was edited but `Tools/CombatChecks/CombatChecks.csproj`
 (the new files' lines). RunResultView, RunHud, MapChoiceView, RunTelemetry, RunTelemetryContext, the profile and every
 profile save file are untouched (the difficulty tiers rewrite them); the wiring pass (7.4) comes after the tiers merge.
-Nothing of the simulation was touched, so the default batch is unmoved by construction.
+Nothing of the simulation was touched, so the default batch is unmoved by construction. **Wired into the game on
+2026-11-23, still over the offline fakes: 7.8.**
 
 ### 7.1 What is built
 
@@ -428,6 +429,8 @@ the skip make no request and no attempt, so they are outside every count. Confir
 
 ### 7.4 The wiring pass (after the tiers merge)
 
+Done on 2026-11-23 as planned here, with the details and the few departures in 7.8.
+
 **A launch-long holder** (new, Unity side, beside `TelemetryRuntime` and in its shape: statics reset in
 `SubsystemRegistration`): `MonetisationRuntime` holding, for the launch, the `EntitlementService` (over a
 `FakeStoreEntitlements` until Unity IAP, the cache at `ProfileLocation.Resolve()`, `Refresh()` at boot), the
@@ -514,3 +517,88 @@ The second is the new tests in Unity (its own NUnit, and the test assembly apart
    it. Built (7.2).
 3. **A minimum:** the offer needs at least 10 banked gold, so a +1 offer never shows. Built: `MinimumRunGold`, beside
    `MultiplierPercent`, overridable in the context (7.2).
+
+### 7.8 Wired (2026-11-23)
+
+7.4's pass, **over the offline fakes only**: no SDK, no package, no ProjectSettings change, no scene or prefab edited (every
+new part is built in code). The simulation reads none of it, and the default batch (`FOUNDRY_SEEDS=200 FOUNDRY_LEVERS=0
+FOUNDRY_COHORTS=1 FOUNDRY_REALISM=typical FOUNDRY_FLOORS=2`) wrote the same bytes before and after: the five CSV and
+Markdown tables byte-identical, and `foundry-batch.md` apart only in its run's timestamp and its "Wall s" column (the
+batch's own wall-clock seconds).
+
+| Where | What |
+|---|---|
+| `Scripts/Monetisation/Unity/MonetisationRuntime.cs` | 7.4's launch-long holder, one per profile folder like `TelemetryRuntime` (statics reset in `SubsystemRegistration`): `EntitlementService` over `FakeStoreEntitlements` (`entitlements.json` at `ProfileLocation.Resolve()`, `Refresh()` at boot), `RewardLedgerStore` and its ledger, a `SessionClock` started with the telemetry session, the `RewardOfferCoordinator` (`FakeRewardedVideo`, `FakeAdConsent(true)`, `OwnsSkip` from the service, `SaveLedger = store.Save`, `LocalFileAnalytics(session)`); `consent.Gather(() => offer.Prefetch())` at boot; `BeginRun` (the development switch, then `Prefetch`), `BuySkip`, `Flush`, `Changed` |
+| `Scripts/Monetisation/Unity/PlaySessionForwarder.cs` | the hidden `DontDestroyOnLoad` object, one a launch, forwarding `OnApplicationPause` to the clock; a return that starts a new session writes `play_session` (`ordinal`, `ended_sec`) |
+| `Scripts/Core/CombatSetup.cs` | `ResultSaved`: `Run.Ended` subscribed right after `Bank = new RunBank(...)` saves the profile once more and sets it only when that write returned without an exception; `RestartRun` clears it. `RunId`: telemetry's, else one `Guid.NewGuid().ToString("N")` a run. `BeginRun`: `run_start` and `MonetisationRuntime.BeginRun()`, wherever the run's telemetry began (at load, or when the map choice starts the run) |
+| `Scripts/Analytics/RunTelemetry.cs`, `Unity/RunTelemetryBridge.cs` | `RunId => _runId`, through the bridge |
+| `Scripts/Monetisation/RewardOfferCoordinator.cs` | the one addition to the scaffold: `LastResultRunId`, the run `LastResult` belongs to (`Open` keeps the last run's result, so a screen must tell it from its own); one EditMode test |
+| `Scripts/UI/RunResultView.cs`, `RunResultView.Offer.cs` | the offer on the result screen (below) |
+| `Scripts/UI/SkipVideosButton.cs`, `RewardOfferText.cs` | the skip's link and settings entry; the offer's and the store's words |
+| `Scripts/UI/PauseView.cs` | the skip's entry above the language toggle |
+| `Scripts/Core/DevelopmentStart.cs` | `development/ads.txt` (below) |
+| `Resources/Localisation/Strings.txt` | 12 rows, `result.offer_*` and `store.*`, with their Turkish (docs/60 sections 3 and 9) |
+| `Tests/PlayMode/RewardOfferFlowTests.cs` | 12 PlayMode tests (below); `RelicForgeFlowTests` reads the saved profile now that a run's end writes one |
+| `Tools/ArtReview/Run-RewardOfferProof.ps1`, `RewardOfferCapture.cs` | the capture |
+
+**The result screen.** `Show()`, after its labels, opens the offer: `offer.Open(setup.RunId, run.GoldBanked, () =>
+setup.ResultSaved, setup.Profile.Deposit)`. One button is drawn from `offer.Refresh()`: Video "Watch a video: +{bonus}
+gold", Skip "Skip owned: +{bonus} gold" (the owner's: never a video, even with one ready), NoAd "No video right now"
+(shown and tappable: a tap asks for a video, and counts as one attempt a screen); any other state shows none. A tap is `offer.Take()`. `Changed`
+(the offer's, the entitlement's and the language's) draws the button again, the gold label (`GoldBanked + bonus` once
+credited) and the forge's hint (the profile's gold now holds the bonus). `LastResult`, for this run only
+(`LastResultRunId`), gives the plain words: "+{bonus} gold added", "The video was closed early: no bonus", "The video could
+not play: try once more" (the retry, the button still shown) and "The video could not play: no bonus". Restart and the
+view's destruction call `offer.Close()` - only for the screen's own run - and flush the lines it wrote. The 0.5 s input
+delay that guards Restart and the Forge guards the offer and the link.
+
+**The layout.** The scene lays the ledger out for the summary alone (title, cause, progress, gold, divider, build, the
+forge's hint, Restart, Forge on a 984 x 1370 surface). When the offer shows as the screen opens, a 180-unit row opens
+under the gold label: everything whose middle stands above the gold label's foot rises 90 units (the title's painted plate
+and crest with it), everything below sinks 90, and the surface grows 180, so the ledger stays centred: 1550 units of the
+shortest safe area's 1760, 105 to spare at each end. The row holds the button (760 x 100, the forge's secondary plate) 12
+units under the gold, and under it a 52-unit line for the link or, during a retry, the words; once the offer is over the
+words stand in the button's place. The row stays for the rest of the screen, so nothing jumps; a screen that opens
+TooEarly, NotSaved or NoGold keeps the scene's layout exactly.
+
+**The skip.** `SkipVideosButton`, built in code like `LanguageToggleView`: a bare line of text under the offer (shown while
+the offer stands, never to an owner, and not while the retry's words take its line), and an entry on the forge's
+secondary plate on the pause overlay, 24 units above the language toggle and as wide, under the hint. A tap is
+`MonetisationRuntime.BuySkip()` (`EntitlementService.Purchase(StoreProducts.SkipRewardVideos)`); with the fake store it is
+bought at once, cached in `entitlements.json`, acknowledged and logged (`store_purchase`). The words: "Skip reward videos",
+"Opening the store..." while a purchase is open, "Purchase pending", "The store did not answer: try later" (a cancelled
+one says nothing), and on the pause overlay "Skip reward videos: owned" (disabled) once bought. A purchase on the result
+screen turns its Video into Skip in the same row. The fake store's account starts as the cache says: otherwise the boot's
+query would answer "nothing owned" and take back a skip bought in an earlier launch.
+
+**The development switch.** `development/ads.txt` in the profile folder (the Editor and a development build only, as every
+development file): `completed` (also no file), `skipped`, `failed` (every show fails: the retry, then the end) or `noad`
+(no video ever fills; a ready one is let go). Read at boot and again as each run begins.
+
+**Nothing logs in normal play.** Only an unreadable `rewards.json` or `entitlements.json` is reported, as a warning, as the
+profile's own recovery is.
+
+**Checks.** The gates: `dotnet test Tools/CombatChecks -c Release -p:NuGetAudit=false` (Başarılı, 1120) and the compile
+check (0 errors). In Unity:
+
+    pwsh -File Tools/Run-UnityTests.ps1 -Platform PlayMode -Filter "RewardOfferFlowTests|RelicForgeFlowTests|RunResultTests|TurkishScreensTests|TurkishTierScreensTests|PaintedScreensFlowTests|ArtHudFlowTests|TelemetryFlowTests|TierChoiceFlowTests" -SkipApk
+    pwsh -File Tools/Run-UnityTests.ps1 -Platform EditMode -Filter "RewardOfferTests|RewardLedgerTests|EntitlementTests|AnalyticsSeamTests|SessionClockTests|LocalisationTableTests|LocalisationAssetTests" -SkipApk
+
+`RewardOfferFlowTests`: the offer from the second completed run (through a real restart); the 10-gold minimum; no offer
+while `ResultSaved` is false (a folder where the profile's temp file goes fails every save); a watched video credited once
+(the fake reporting twice), saved, and shown; the skip bought from the link and credited without a video; an owner from
+the cache, and the pause overlay saying owned; the pause overlay selling it; a failed video's retry crediting;
+`ads.txt` failed and noad; leaving records `declined`; and the screen with its offer fitting both safe areas in English and,
+state by state, in Turkish (every label at its smallest size, the row inside the ledger and clear of the gold and the
+divider). The capture (graphics, 1080 x 2340 on a tr-TR culture): Video, Skip, NoAd, credited, the failed video's retry and
+the pause entry, in English and Turkish, into `ArtDirection/2026-11-23/reward-offer-01/` (untracked):
+
+    pwsh -File Tools/ArtReview/Run-RewardOfferProof.ps1
+
+**Left for the lead and the owner.**
+
+1. The map choice screen's settings: 7.4 placed a second skip entry there "after localisation pass 2", which is done; its
+   title band holds the language toggle. Not added in this pass (the task named the pause overlay); a question.
+2. The price on the link and the entry comes from the store at SDK integration; the fake has none, so none is shown.
+3. `Skip owned: +{bonus} gold` reads "Videosuz al" in Turkish (docs/60 question 12).
+4. `play_session` is written only on a return that starts a new session; the launch's first session is `session_start`.

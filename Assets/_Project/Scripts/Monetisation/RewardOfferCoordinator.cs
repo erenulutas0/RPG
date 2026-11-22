@@ -100,6 +100,9 @@ namespace Cryptforge.Monetisation
         // first failure sets Failed while its screen still offers the retry (State Video or NoAd again).
         public RewardResultKind? LastResult { get; private set; }
         public bool LastCredited { get; private set; }
+        // The run LastResult belongs to: a result screen shows the words only for its own run, never the last run's (the
+        // wiring of 2026-11-23).
+        public string LastResultRunId { get; private set; }
         // The type and message of the last ledger write that failed; null after a success.
         public string LastPersistError { get; private set; }
 
@@ -305,6 +308,7 @@ namespace Cryptforge.Monetisation
                 _failedShows++;
                 LastResult = RewardResultKind.Failed;
                 LastCredited = false;
+                LastResultRunId = runId;
                 Changed?.Invoke();
             }
             else
@@ -334,6 +338,7 @@ namespace Cryptforge.Monetisation
                 _resolved = true;
             LastResult = kind;
             LastCredited = credited;
+            LastResultRunId = runId;
             if (_analytics != null)
             {
                 _analytics.EmitForRun(runId, MonetisationTelemetry.RewardResultEvent,
