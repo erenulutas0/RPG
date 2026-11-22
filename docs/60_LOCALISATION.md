@@ -1,9 +1,10 @@
-# 60 - Localisation: Turkish and English (pass 1, 2026-11-18; pass 2, 2026-11-19)
+# 60 - Localisation: Turkish and English (pass 1, 2026-11-18; pass 2, 2026-11-19; the Ascent, 2026-11-22)
 
 The owner decided on 2026-11-18 that the game ships in Turkish and English (docs/59 decision 1): the game opens in the
 phone's language and the language can be changed in the settings. This document is the guide: how the localisation
-works, the glossary the owner reviews, the Turkish style rules, how to add a string, the culture rules for data, and
-what pass 2 did once the difficulty tiers had merged (section 7).
+works, the glossary the owner reviews, the Turkish style rules, how to add a string, the culture rules for data, what
+pass 2 did once the difficulty tiers had merged (section 7), and the run's name turned from the Descent to the Ascent
+(section 10).
 
 ## 1. How it works
 
@@ -77,8 +78,9 @@ to English.
 | Forge (the place, the room, the tab) | Ocak | The smith's forge; also in Ocak Bekçisi, Ocak Mührü, Ocak Nabzı |
 | Relic / Relic Forge | Kalıntı / Kalıntı Ocağı | The common RPG translation of "relic" |
 | to forge (buy) a relic or weapon | dövmek ("60 altına döv") | Metal is forged: "dövülmeye hazır" |
-| run (one Descent) | sefer | "Sefere çık", "seferi bitir"; "koşu" reads as jogging |
-| Descent | İniş | A proper noun in the game, so a suffix takes an apostrophe: "İniş'i tamamla", "Her İniş'in başladığı" |
+| run (one Ascent) | sefer | "Sefere çık", "seferi bitir"; "koşu" reads as jogging |
+| the Ascent (the whole climb, floor 1 to the Final Swarm) | **Tırmanış** | Since 2026-11-22 (section 10): the hero climbs the tower (docs/44 section 1), so the Descent / İniş of passes 1-2 became the Ascent / Tırmanış, the word the victory title already used ("Ascent complete" / "Tırmanış tamamlandı"). A proper noun in the game, so a suffix takes an apostrophe: "Tırmanış'ı tamamla", "Her Tırmanış'ın başladığı" |
+| climb (on to the next floor) | tırman | Since 2026-11-22: a player's text never says "descend", "deeper" or "inmek"; a map above floor 1 is "a higher start" in the notes. The code's names (DescentStart, DescentSimulation, telemetry's "descend") stay |
 | Extract / Climb (the checkpoint) | Çık / Tırman | Two short verbs; the title names both: "Durak: Çık ya da Tırman" |
 | checkpoint | durak | |
 | floor / room / wave | kat / oda / dalga | |
@@ -103,7 +105,7 @@ to English.
 | pts (crit and armour points) | puan | |
 | s (seconds) | sn | "4,5 sn", "her 0,80 sn'de" |
 | difficulty tier ("on Forged") | zorluk ("Dövülmüş zorluğunda") | Pass 2. The suffix goes on "zorluk", never on the tier's name |
-| Forged (tier 1) | **Dövülmüş** | Pass 2. Forged metal, as the glossary's "dövmek"; the tier line keeps the pun: "İniş ilk dövüldüğü gibi" |
+| Forged (tier 1) | **Dövülmüş** | Pass 2. Forged metal, as the glossary's "dövmek"; the tier line keeps the pun: "Tırmanış ilk dövüldüğü gibi" |
 | Tempered (tier 2) | **Su Verilmiş** | Pass 2. Tempered steel is "su verilmiş çelik", the smith's step after forging. Not "Tavlanmış": "tavlamak" also means to con or sweet-talk someone, and "tavlama" is annealing, which softens the metal |
 | Inferno (tier 3) | **Cehennem** | Pass 2 |
 | Abyssal (tier 4) | **Uçurum** | Pass 2. The abyss ("aralarında uçurum var"), a noun beside Cehennem; "Dipsiz" (bottomless) is the alternative |
@@ -114,7 +116,7 @@ to English.
 | a +5 set / a +9 set | +5 set / +9 set | Pass 2. Turkish players say "set" |
 | map (a starting floor) | harita ("Haritanı seç") | Pass 2 |
 | Selected / Tap to choose / Locked | Seçildi / Seçmek için dokun / Kilitli | Pass 2 |
-| choose N level-ups (a deeper start) | N seviye seç | Pass 2, as the catch-up's own button says it ("{count} seviyeyi otomatik seç") |
+| choose N level-ups (a higher start) | N seviye seç | Pass 2, as the catch-up's own button says it ("{count} seviyeyi otomatik seç") |
 | pieces (the result's bare loot count) | eşya ("12 eşya (Çanta'ya bak)") | Pass 2 |
 
 **Proper names stay as they are:** Cryptforge, Ilya Kest, Vanguard (the lead, 2026-11-18). **Cinder Arcanist is kept
@@ -194,22 +196,23 @@ Pass 1 left `MapChoiceView`, `RunHud`, `RunResultView` and `TierText` untouched 
 `CombatSetup`'s checkpoint numbers. Pass 2 converted them once the tiers had merged; English is byte for byte as before
 (one deliberate exception below), and the 26 new rows sit in one block at the table's end ("Localisation pass 2").
 
-**What moved into the table:**
+**What moved into the table** (the four lines that named the Descent / İniş read as they do since 2026-11-22: the
+Ascent / Tırmanış, section 10):
 
 | Where | Keys | English | Turkish |
 |---|---|---|---|
 | TierText (the tier row, the HUD's floor line, the pause and result titles) | `tier.forged` ... `tier.abyssal` | Forged, Tempered, Inferno, Abyssal | Dövülmüş, Su Verilmiş, Cehennem, Uçurum |
-| | `tier.unlock_hint` | Complete the Descent on {0} | İniş'i {0} zorluğunda tamamla |
+| | `tier.unlock_hint` | Complete the Ascent on {0} | Tırmanış'ı {0} zorluğunda tamamla |
 | | `tier.reward` | x{0:0.##} | x{0:0.##} ("x1,25") |
 | MapChoiceView, the tier row | `tier.card_reward` | Rewards {0} | Ödül {0} |
-| | `tier.detail_forged` | {0}: the Descent as it was first forged; rewards x1\nBuilt for no gear. Your gear: {1:+0.#}% | {0}: İniş ilk dövüldüğü gibi; ödül x1\nEkipman gerekmez. Ekipmanın: +%{1:0.#} |
+| | `tier.detail_forged` | {0}: the Ascent as it was first forged; rewards x1\nBuilt for no gear. Your gear: {1:+0.#}% | {0}: Tırmanış ilk dövüldüğü gibi; ödül x1\nEkipman gerekmez. Ekipmanın: +%{1:0.#} |
 | | `tier.detail` | {0}: foes {1:+0.#}% health, {2:+0.#}% damage; rewards {3}; item luck +{4:0}\nBuilt for gear {5:+0}% ({6}). Your gear: {7:+0.#}% | {0}: düşman canı +%{1:0.#}, hasarı +%{2:0.#}; ödül {3}; eşya şansı +{4:0}\nÖnerilen ekipman +%{5:0} ({6}). Ekipmanın: +%{7:0.#} |
 | | `tier.set_tempered`, `_inferno`, `_abyssal` | a +5 set, a +9 set, +9 with good efsun | +5 set, +9 set, iyi efsunlu +9 |
 | MapChoiceView | `map.title`, `map.title_with_heroes` | Choose your map / Choose your hero and map | Haritanı seç / Kahramanını ve haritanı seç |
 | | `map.selected`, `map.tap_to_choose`, `map.locked` | Selected / Tap to choose / Locked | Seçildi / Seçmek için dokun / Kilitli |
 | | `map.hero_weapon`, `map.hero_name` | Weapon: {0} / {0}\n<size=26>{1}</size> | Silah: {0} / (the same) |
-| | `map.flavour_1` ... `_3` | the three maps' lines | Her İniş'in başladığı, lavla aydınlanan salonlar. Kapıyı Ocak Bekçisi tutar. / Donmuş cıva mahzenleri. Ayna Nöbetçileri darbelerini sana geri çevirir. / Küllerin üstünde büyümüş bir alacakaranlık bahçesi. Son Sürü'den önceki son kat. |
-| | `map.start_catch_up`, `map.start_fresh` | Floor {0}. Start at level {1}: choose {1} level-ups first. / Floor {0}. A fresh hero, the whole Descent ahead. | Kat {0}. {1}. seviyeden başla: önce {1} seviye seç. / Kat {0}. Taze bir kahraman, önünde koca bir İniş. |
+| | `map.flavour_1` ... `_3` | the three maps' lines | Her Tırmanış'ın başladığı, lavla aydınlanan salonlar. Kapıyı Ocak Bekçisi tutar. / Donmuş cıva mahzenleri. Ayna Nöbetçileri darbelerini sana geri çevirir. / Küllerin üstünde büyümüş bir alacakaranlık bahçesi. Son Sürü'den önceki son kat. |
+| | `map.start_catch_up`, `map.start_fresh` | Floor {0}. Start at level {1}: choose {1} level-ups first. / Floor {0}. A fresh hero, the whole Ascent ahead. | Kat {0}. {1}. seviyeden başla: önce {1} seviye seç. / Kat {0}. Taze bir kahraman, önünde koca bir Tırmanış. |
 | RunResultView, the loot line | `result.loot_nothing`, `result.loot_pieces` | nothing / {0} pieces (see the Bag) | hiçbir şey / {0} eşya (Çanta'ya bak) |
 
 The tiers added no content asset (no new `<id>` rows); the four hero skills' rows came with the skills (3f45838b).
@@ -268,9 +271,62 @@ Pass 2's (2026-11-19):
 
 6. The tiers: Dövülmüş, **Su Verilmiş** (rather than the suggested Tavlanmış, whose "tavlamak" also means to con someone),
    Cehennem, **Uçurum** - or "Dipsiz" (bottomless) for the deepest?
-7. "{0} zorluğunda" for "on Forged" ("İniş'i Dövülmüş zorluğunda tamamla"), or "kademe" ("Dövülmüş kademesinde")?
+7. "{0} zorluğunda" for "on Forged" ("Tırmanış'ı Dövülmüş zorluğunda tamamla"), or "kademe" ("Dövülmüş kademesinde")?
 8. The tier line: "Önerilen ekipman +%15 (+5 set). Ekipmanın: +%14,7" - "önerilen" for "built for", "set" for a set of
    gear?
 9. "Ödül x1,25" on the tier card: singular "Ödül", the multiplier's "x" and the decimal comma?
-10. A deeper start says "önce 31 seviye seç", as the catch-up's button says "seviyeyi otomatik seç"; "güçlendirme seç"
+10. A higher start says "önce 31 seviye seç", as the catch-up's button says "seviyeyi otomatik seç"; "güçlendirme seç"
     (the level-up card's own word) is the alternative for both.
+
+2026-11-22's (section 10):
+
+11. "Tırmanış" for the Ascent, as the victory title already says it ("Tırmanış tamamlandı")? "Yükseliş" is the
+    alternative, but it also reads as a rise in rank or prices.
+
+## 10. The Ascent (2026-11-22)
+
+**The decision.** The fiction is a climb up the tower: the hero always climbs (docs/44 section 1, "oyuncu aşağı inmez;
+hep yukarı tırmanır"; the owner decided it on 2026-10-20 and confirmed it on 2026-11-22). The player's text still
+called the run "the Descent" / "İniş" in four lines. They now say **the Ascent** / **Tırmanış**.
+
+**Why "the Ascent" and not "the Climb":**
+
+- The victory title already says it: "Ascent complete" / "Tırmanış tamamlandı" (`prototype.result_victory_title`), so
+  the run's name and the title that ends it now agree.
+- "Climb" is the checkpoint's verb ("Checkpoint: extract or climb?", the card "Climb", "GATE - Stand still to climb");
+  a noun "the Climb" beside the button "Climb" would read as the button's name.
+- A name, as the Descent was, one letter shorter in English (no fit moves), and it echoes the lore's Ascendant Kiln
+  (docs/44).
+
+**Turkish.** "Tırmanış" is the noun of the checkpoint's own "Tırman". It stays a proper noun, so a suffix takes an
+apostrophe and follows its last vowel (ı, back and unrounded) and its last letter (ş, voiceless): **Tırmanış'ı**
+(accusative), **Tırmanış'ın** (genitive), Tırmanış'a, Tırmanış'ta, Tırmanış'tan. Style rule 2 still holds: the suffix
+rides on the fixed word, never on a placeholder.
+
+| Key | English (was) | English | Turkish (was) | Turkish |
+|---|---|---|---|---|
+| `tier.unlock_hint` | Complete the Descent on {0} | Complete the Ascent on {0} | İniş'i {0} zorluğunda tamamla | Tırmanış'ı {0} zorluğunda tamamla |
+| `tier.detail_forged` | {0}: the Descent as it was first forged; rewards x1\n... | {0}: the Ascent as it was first forged; rewards x1\n... | {0}: İniş ilk dövüldüğü gibi; ödül x1\n... | {0}: Tırmanış ilk dövüldüğü gibi; ödül x1\n... |
+| `map.flavour_1` | Lava-lit halls where every Descent begins. The Forge Warden keeps the gate. | Lava-lit halls where every Ascent begins. The Forge Warden keeps the gate. | Her İniş'in başladığı, lavla aydınlanan salonlar. Kapıyı Ocak Bekçisi tutar. | Her Tırmanış'ın başladığı, lavla aydınlanan salonlar. Kapıyı Ocak Bekçisi tutar. |
+| `map.start_fresh` | Floor {0}. A fresh hero, the whole Descent ahead. | Floor {0}. A fresh hero, the whole Ascent ahead. | Kat {0}. Taze bir kahraman, önünde koca bir İniş. | Kat {0}. Taze bir kahraman, önünde koca bir Tırmanış. |
+
+No other player's text named a descent: the checkpoint already said "Climb" / "Tırman", the gate "Stand still to
+climb", the forge "Highest floor cleared", the arena ladder "as you climb". "The Deep Forge" (a floor 2 room) and "Deep
+Lungs" (a card) are names of their own, not the direction. The table's notes now say "a higher start" for a map above
+floor 1 (the catch-up's notes) and "highest floor cleared" (the forge's), as the English already did.
+
+**What stays.** Every key (`prototype.descend_name` and its kin), the code's names (`DescentStart`, `DescentSimulation`,
+`RecordDescentCompleted`, `FOUNDRY_*`), the save's fields and the telemetry's events and values ("descend",
+`floor_descend`), the research reports and the dated docs. `DifficultyTiers.UnlockHintFormat`, the English reference
+`TierTextTests` hold TierText to, says "Complete the Ascent on {0}" too; nothing writes it to the save or telemetry.
+
+**The store drafts** say it too: the listings' first paragraph reads "As you climb floor by floor" / "Kat kat yukarı
+tırmanırken" where it read "Deep in the forge" / "Ocağın derinliklerinde" (docs/store; the counts there are updated).
+
+**Fit.** The longest Turkish line that changed is a locked tier's state, "Kilitli: Tırmanış'ı Su Verilmiş zorluğunda
+tamamla", four letters longer than before: in its 196 x 84 label it takes three lines at 22 and two at its smallest
+best-fit size, 14 (Arial's metrics); `TurkishTierScreensTests` check it in the Editor.
+
+**Tests.** `DifficultyTierTests` and `TierTextTests` (EditMode), `TierChoiceFlowTests` and `TurkishTierScreensTests`
+(PlayMode) assert the new English and Turkish; `TurkishTierScreensTests`' list of English that must not show in Turkish
+names "Ascent". `LocalisationTableTests` hold the table's English equal to the code's.

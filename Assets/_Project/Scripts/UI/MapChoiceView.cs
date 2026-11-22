@@ -27,7 +27,7 @@ namespace Cryptforge.UI
     // scene tests) or another development start.
     // Between the heroes and the maps stands the difficulty tier row (docs/54 section 21): Forged, Tempered, Inferno and
     // Abyssal side by side, the chosen one lit in its own tier's card (green, orange, red and gold, the run's choice cards'
-    // ladder) and the others on the neutral card, a locked tier shaded and saying how it opens ("Locked: Complete the Descent
+    // ladder) and the others on the neutral card, a locked tier shaded and saying how it opens ("Locked: Complete the Ascent
     // on Forged"); under the row a line on the chosen tier - its enemies, its rewards, its item luck and the gear it is
     // built for beside the chosen hero's own. A tier card chooses the tier and the profile remembers it as it remembers the
     // hero; the map cards follow it, since each tier opens its deeper starts once a run on that tier has reached them. A
@@ -97,7 +97,7 @@ namespace Cryptforge.UI
         // A line about each map, by floor number.
         private static string Flavour(int floorNumber) => floorNumber switch
         {
-            1 => Loc.Text("map.flavour_1", "Lava-lit halls where every Descent begins. The Forge Warden keeps the gate."),
+            1 => Loc.Text("map.flavour_1", "Lava-lit halls where every Ascent begins. The Forge Warden keeps the gate."),
             2 => Loc.Text("map.flavour_2", "Frozen vaults of quicksilver. Mirror Sentries turn your blows back on you."),
             3 => Loc.Text("map.flavour_3", "A dusk garden grown over the ash. The last floor before the Final Swarm."),
             _ => string.Empty
@@ -466,7 +466,7 @@ namespace Cryptforge.UI
             double yours = gearPower / 100.0;
             if (tier == DifficultyTier.Forged)
                 return Loc.Format("tier.detail_forged",
-                    "{0}: the Descent as it was first forged; rewards x1\nBuilt for no gear. Your gear: {1:+0.#}%",
+                    "{0}: the Ascent as it was first forged; rewards x1\nBuilt for no gear. Your gear: {1:+0.#}%",
                     TierText.Name(tier), yours);
             return Loc.Format("tier.detail",
                 "{0}: foes {1:+0.#}% health, {2:+0.#}% damage; rewards {3}; item luck +{4:0}\nBuilt for gear {5:+0}% ({6}). Your gear: {7:+0.#}%",
@@ -696,7 +696,7 @@ namespace Cryptforge.UI
             int level = DescentStart.CatchUpLevel(floorNumber);
             string start = level > 0
                 ? Loc.Format("map.start_catch_up", "Floor {0}. Start at level {1}: choose {1} level-ups first.", floorNumber, level)
-                : Loc.Format("map.start_fresh", "Floor {0}. A fresh hero, the whole Descent ahead.", floorNumber);
+                : Loc.Format("map.start_fresh", "Floor {0}. A fresh hero, the whole Ascent ahead.", floorNumber);
             return flavour + "\n" + start;
         }
 

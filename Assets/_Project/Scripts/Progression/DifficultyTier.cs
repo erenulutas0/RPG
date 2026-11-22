@@ -144,9 +144,9 @@ namespace Cryptforge.Progression
             return tier != DifficultyTier.Forged;
         }
 
-        public const string UnlockHintFormat = "Complete the Descent on {0}";
+        public const string UnlockHintFormat = "Complete the Ascent on {0}";
 
-        // How a locked tier is opened ("Complete the Descent on Forged"); empty for Forged.
+        // How a locked tier is opened ("Complete the Ascent on Forged"); empty for Forged.
         public static string UnlockHint(DifficultyTier tier) =>
             TryBelow(tier, out DifficultyTier below)
                 ? string.Format(CultureInfo.InvariantCulture, UnlockHintFormat, Name(below))

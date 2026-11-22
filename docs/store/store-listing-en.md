@@ -25,13 +25,14 @@ no emojis in the short description; no keyword stuffing; no competitors' names).
 
 ## 3. Full description (4,000 at most)
 
-**Counts:** the base text is **2,190** characters; the skills paragraph adds 148 and the arena paragraph 159. With
-both: **2,497**.
+**Counts:** the base text is **2,201** characters; the skills paragraph adds 148 and the arena paragraph 159. With
+both: **2,508**. (2026-11-22: the first paragraph says the hero climbs, "As you climb floor by floor", where it said
+"Deep in the forge": the hero always climbs, docs/44 section 1 and docs/60 section 10.)
 
 ### 3.1 Base text
 
 ```text
-Cryptforge is a single-player action roguelite played in portrait. Deep in the forge the horde closes in: you hold, grow stronger and try to get your loot out alive. Then you strike your gear up to +9 at the Anvil. Your item never breaks.
+Cryptforge is a single-player action roguelite played in portrait. As you climb floor by floor, the horde closes in: you hold, grow stronger and try to get your loot out alive. Then you strike your gear up to +9 at the Anvil. Your item never breaks.
 
 The run
 - Your hero attacks on their own. Your left thumb steers, your right thumb fires your skill. The game is played with two hands.
