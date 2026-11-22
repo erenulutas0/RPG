@@ -298,6 +298,9 @@ namespace Cryptforge.Core
             // Nor does its ability fire: the button stands greyed and a use is refused (AbilityController.FightHold).
             _ability.FightHold = _encounters.FightHold;
             gameObject.AddComponent<WardenSlamView>().Initialize(Warden);
+            // The gate boss's body tells its blows, its phase two and its fall (docs/43 section 1): after the mark's view,
+            // so the mark's windup is raised before the body's tell reads it. Presentation only.
+            gameObject.AddComponent<BossFeelView>().Initialize(Warden);
             gameObject.AddComponent<MirrorGlintView>().Initialize(Mirrors, _encounters, _hero);
             gameObject.AddComponent<RunFeedbackView>().Initialize(Run, Upgrades, _hero, _runFeedbackArt);
             // The game-feel pass on the hero (docs/43 section 1, 2026-11-22): presentation only - it reads the attacker, the
