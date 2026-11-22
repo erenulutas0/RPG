@@ -63,6 +63,8 @@
     <!-- docs/57's skills 2 and 3 (phase 1, 2026-11-18): their shared arithmetic, the dash, the slow and the glyph. -->
     <Compile Include="../../Assets/_Project/Scripts/Combat/SkillRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/HeroDash.cs" />
+    <!-- docs/62's P0a (2026-11-22): the Outworks phase's pure rules - anvils, the Keeper, the Bell, the stair, the pads. -->
+    <Compile Include="../../Assets/_Project/Scripts/Combat/OutworksRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/SlowState.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/SigilZone.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Core/RunOutcome.cs" />
@@ -82,6 +84,7 @@
     <Compile Include="../../Assets/_Project/Scripts/Core/FootworkRule.cs" />
     <!-- Who the development autopilot plays as (docs/41 step 5's cohorts), one body for the scene's and the simulation's. -->
     <Compile Include="../../Assets/_Project/Scripts/Core/AutopilotCohort.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Core/OutworksPilot.cs" />
     <!-- When the autopilot presses docs/57's skills 2 and 3, one body for the scene's autopilot and the simulation's. -->
     <Compile Include="../../Assets/_Project/Scripts/Core/SkillFootwork.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Economy/RewardService.cs" />

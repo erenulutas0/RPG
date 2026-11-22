@@ -71,6 +71,16 @@ namespace Cryptforge.Combat
             return TryPlace(X + slideX, Y + slideY, geometry);
         }
 
+        // Sets the hero's floor position whatever lies under it: a pad's leap (HeroLeap) carries it over the pit, onto a
+        // landing that stands on the floor.
+        public void Carry(float x, float y)
+        {
+            if (float.IsNaN(x) || float.IsInfinity(x) || float.IsNaN(y) || float.IsInfinity(y))
+                throw new ArgumentOutOfRangeException(nameof(x));
+            X = x;
+            Y = y;
+        }
+
         // Puts the hero down somewhere on the platform, for example at the start of a floor.
         public void Place(float x, float y, ArenaGeometry geometry)
         {
