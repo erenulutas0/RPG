@@ -12,7 +12,7 @@ namespace Cryptforge.Core
     // probe's modelling, to be checked against the owner's own telemetry):
     // - careful: captures every anvil it can reach, hunts the Keeper when it is near or the anvils are done, uses the
     //   pads, and with the key leaves once its anvils are done; with nothing to go for it takes the altars and the drops in
-    //   sight, else holds its ground (never the pit's lure: the pads stand on the rim);
+    //   sight, else holds its ground (never the pit's lure, as P0a was measured);
     // - standing: captures and stands - it never hunts the Keeper (it fights it where it comes);
     // - first-card: beelines - with the key it leaves at once;
     // - clumsy: misses the far anvils, never takes a pad and never hunts the Keeper (it fights it where it comes);
@@ -57,6 +57,9 @@ namespace Cryptforge.Core
         // How near the stair's centre the pilot stops, inside its hold radius, and an anvil's, well inside its ring.
         public const float StairStop = .25f;
         public const float AnvilStop = .5f;
+        // How near a pad's centre the pilot stops when it takes the pad: well inside its trigger, where it then stands
+        // still for the pad's beat (OutworksRule.PadDwellSeconds) - a stop of its own, unlike any objective's.
+        public const float PadStop = OutworksRule.PadTriggerRadius * .4f;
 
         public static Habits Of(AutopilotCohort cohort)
         {

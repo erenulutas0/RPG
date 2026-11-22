@@ -34,6 +34,8 @@ namespace Cryptforge.Tests
             Assert.That(first.OutworksSeconds, Is.GreaterThan(0f), "the stair was held");
             Assert.That(first.AnvilsCaptured, Is.GreaterThanOrEqualTo(1));
             Assert.That(first.KeeperSpawned || first.BellRung, Is.True);
+            // The careful pilot still crosses the pit by a pad: it stops on the pad's centre and stands out its beat.
+            Assert.That(first.PadLaunches, Is.GreaterThanOrEqualTo(1), "a pad taken");
             // The halls go on after it: the first hall began once the stair was held, on the same floor clock.
             Assert.That(first.RoomSeconds[0], Is.GreaterThan(0f));
             Assert.That(first.FloorSeconds, Is.GreaterThan(first.OutworksSeconds));
