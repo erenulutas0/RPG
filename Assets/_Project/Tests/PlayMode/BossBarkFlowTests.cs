@@ -70,6 +70,14 @@ namespace Cryptforge.Tests
             Assert.That(_bark, Is.Not.Null, "The bark view is set up with the scene.");
         }
 
+        // The hero standing through beat after beat: healed between them, so no blow ends the run under the test.
+        private static void Heal()
+        {
+            Health hero = Object.FindFirstObjectByType<HeroMovementInput>().GetComponent<Health>();
+            if (hero != null && hero.IsAlive)
+                hero.Heal(hero.Maximum);
+        }
+
         private void ResolveUpgrades()
         {
             for (int i = 0; i < 8 && _setup.Choices.Current != null && _setup.Choices.Current.Kind == ChoiceKind.Upgrade; i++)
@@ -170,6 +178,7 @@ namespace Cryptforge.Tests
             yield return Until(() => !_service.Clock.IsMarked, 5f);
 
             // Phase two: its first mark says it again, its next does not.
+            Heal();
             Health boss = _service.Boss;
             boss.ApplyDamage(new DamageContext(boss.Maximum * .55f));
             yield return Until(() => _service.IsEnraged, 2f);
@@ -178,6 +187,7 @@ namespace Cryptforge.Tests
             Assert.That(_bark.TelegraphBarks, Is.EqualTo(2), "Phase two's first mark says it once more.");
             Assert.That(_bark.TelegraphsSaid, Is.EqualTo(2));
             yield return Until(() => !_service.Clock.IsMarked, 5f);
+            Heal();
             yield return Until(() => _service.Clock.IsMarked, WardenRule.SlamEveryEnraged + 5f);
             Assert.That(_bark.TelegraphBarks, Is.EqualTo(2), "Not with phase two's next mark.");
 
@@ -209,6 +219,7 @@ namespace Cryptforge.Tests
                 Assert.That(_service.Clock.IsMarked, Is.True, "Beat " + beat);
                 _bark.SayForCheck(BarkMoment.Telegraph);
                 yield return Until(() => !_service.Clock.IsMarked, 5f);
+                Heal();
             }
             Assert.That(_bark.TelegraphBarks, Is.EqualTo(1), "Its own telegraph bark once in phase one.");
             Health boss = _service.Boss;
