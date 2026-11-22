@@ -273,6 +273,9 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/PixelCanvasTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/ArenaGeometryTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/FoundryMapTests.cs" />
+    <!-- docs/62's P0a (2026-11-22): the Outworks probe's pure rules and its simulation. -->
+    <Compile Include="../../Assets/_Project/Tests/EditMode/OutworksRuleTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/OutworksSimulationTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/ClimbScalingTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/*ArtTests.cs" />
     <!-- The glob's one Editor-only file: EnemyThemeArtTests loads the painted sets through UnityEditor's AssetDatabase. -->

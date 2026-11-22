@@ -76,6 +76,16 @@ namespace Cryptforge.Tests
             return File.Exists(path) ? File.ReadAllText(path).Trim() : string.Empty;
         }
 
+        // TestResults/horde-outworks.txt, any text, plays docs/62 P0a's Outworks phase before floor 1's halls
+        // (development/outworks.txt, EncounterController.Outworks.cs) - the Editor's side of the probe's parity with the
+        // simulation (OutworksResearch on the same seeds). The header's mode then reads "outworks", so the batch report never
+        // reads the file as the shipped floor's (FoundryBatchReport.NewestPacing takes "mode on" alone).
+        private static bool Outworks()
+        {
+            string path = Path.Combine(Application.dataPath, "..", "TestResults", "horde-outworks.txt");
+            return File.Exists(path) && File.ReadAllText(path).Trim().Length > 0;
+        }
+
         // TestResults/horde-floors.txt, "3" or "4", plays the whole Descent (docs/41's evening status, docs/47, docs/48):
         // after floor 1's clear the checkpoint's Descend, floor 2 - its halls, the Deep Forge, the Sentry Hall, the gate's
         // hold for its 3:30, its Warden and gate - Descend again, floor 3 (Gloam Gardens: its halls, the Grafting Forge,
@@ -126,11 +136,12 @@ namespace Cryptforge.Tests
             string weaponId = Weapon();
             string cohort = Cohort();
             int floors = Floors();
+            bool outworks = Outworks();
             Assert.That(cohort.Length == 0 || AutopilotCohort.TryNamed(cohort, out _), Is.True,
                 $"horde-cohort.txt names no cohort: '{cohort}'");
             Assert.That(floors == 1 || floors == 3 || floors == 4, Is.True, "horde-floors.txt holds 3 or 4, or nothing for floor 1 alone");
             bool down = floors >= 3;
-            report.AppendLine("mode " + mode + (heroId.Length > 0 ? " hero " + heroId : string.Empty) +
+            report.AppendLine("mode " + (outworks ? "outworks" : mode) + (heroId.Length > 0 ? " hero " + heroId : string.Empty) +
                 (weaponId.Length > 0 ? " weapon " + weaponId : string.Empty) + (cohort.Length > 0 ? " cohort " + cohort : string.Empty) +
                 (down ? " floors " + floors.ToString(CultureInfo.InvariantCulture) : string.Empty));
             var descentRows = new StringBuilder();
@@ -146,6 +157,8 @@ namespace Cryptforge.Tests
                 if (heroId.Length > 0)
                     File.WriteAllText(DevelopmentStart.HeroPath, heroId);
                 File.WriteAllText(DevelopmentStart.RunSeedPath, seed.ToString());
+                if (outworks)
+                    File.WriteAllText(DevelopmentStart.OutworksPath, "on");
                 Time.captureDeltaTime = Step;
                 yield return SceneManager.LoadSceneAsync("Assets/_Project/Scenes/Gameplay/Gameplay.unity");
                 yield return null;
