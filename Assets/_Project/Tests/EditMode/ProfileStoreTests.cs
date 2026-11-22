@@ -111,7 +111,8 @@ namespace Cryptforge.Tests
             Assert.That(profile.OwnedWeaponIds, Is.Empty);
             Assert.That(profile.EquippedWeaponId, Is.Null, "The hero keeps the starting weapon.");
 
-            Assert.That(profile.TryForgeWeapon("weapon_staff", 60), Is.True);
+            // The forge sells relics alone since its weapon rack went (docs/63): a relic is the purchase saved here.
+            Assert.That(profile.TryForgeRelic("relic_counterweight", 60), Is.True);
             store.Save(profile);
 
             string json = File.ReadAllText(path);
@@ -119,8 +120,33 @@ namespace Cryptforge.Tests
             Assert.That(File.ReadAllText(Path.Combine(_directory, ProfileStore.BackupFileName)), Does.Contain("\"saveVersion\": 1"),
                 "The version 1 file stays behind as the backup.");
             PlayerProfile reloaded = new ProfileStore(_directory).Load();
-            Assert.That(reloaded.OwnedWeaponIds, Is.EqualTo(new[] { "weapon_staff" }));
-            Assert.That(reloaded.EquippedWeaponId, Is.EqualTo("weapon_staff"));
+            Assert.That(reloaded.OwnedRelicIds, Is.EquivalentTo(new[] { "relic_second_wind", "relic_counterweight" }));
+            Assert.That(reloaded.OwnedWeaponIds, Is.Empty);
+        }
+
+        // The forge's weapon rack is gone (docs/63, 2026-11-23) but a save that recorded its weapons keeps them: loaded,
+        // saved again and reloaded, with no version bump. No run reads them; nothing is lost.
+        [Test]
+        public void TheRetiredRacksWeaponsSurviveALoadAndASave()
+        {
+            var store = new ProfileStore(_directory);
+            store.Load();
+            store.Save(new PlayerProfile(40, null, null, 1, new[] { "weapon_staff", "weapon_daggers" }, "weapon_daggers"));
+
+            PlayerProfile loaded = new ProfileStore(_directory).Load();
+            Assert.That(loaded.OwnedWeaponIds, Is.EqualTo(new[] { "weapon_staff", "weapon_daggers" }));
+            Assert.That(loaded.EquippedWeaponId, Is.EqualTo("weapon_daggers"));
+            var again = new ProfileStore(_directory);
+            PlayerProfile kept = again.Load();
+            kept.Deposit(5);
+            again.Save(kept);
+            string json = File.ReadAllText(Path.Combine(_directory, ProfileStore.FileName));
+            Assert.That(json, Does.Contain("\"saveVersion\": " + ProfileSaveData.CurrentVersion), "No version bump for the rack's going.");
+            Assert.That(json, Does.Contain("weapon_staff").And.Contain("weapon_daggers"));
+            PlayerProfile reloaded = new ProfileStore(_directory).Load();
+            Assert.That(reloaded.Gold, Is.EqualTo(45));
+            Assert.That(reloaded.OwnedWeaponIds, Is.EqualTo(new[] { "weapon_staff", "weapon_daggers" }));
+            Assert.That(reloaded.EquippedWeaponId, Is.EqualTo("weapon_daggers"));
         }
 
         [Test]

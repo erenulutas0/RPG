@@ -43,8 +43,7 @@ namespace Cryptforge.UI
 
         private void Start()
         {
-            if (_setup == null || _setup.Run == null || _setup.Upgrades == null || _setup.Relics == null || _setup.Weapons == null ||
-                _encounters == null ||
+            if (_setup == null || _setup.Run == null || _setup.Upgrades == null || _setup.Relics == null || _encounters == null ||
                 _encounters.Floor == null || _heroDefinition == null || _text == null || _forge == null || _panel == null ||
                 _titleLabel == null || _causeLabel == null || _progressLabel == null || _goldLabel == null || _buildLabel == null ||
                 _forgeHintLabel == null || _restartLabel == null || _restartButton == null || _forgeButtonLabel == null ||
@@ -194,26 +193,17 @@ namespace Cryptforge.UI
             return entries.Count > 0 ? string.Join(", ", entries) : _text.ResultNoUpgrades;
         }
 
-        // The "one more run" hook from 04_CORE_LOOP_RETENTION: always name the nearest unlock, relic or weapon, that
-        // the next run's hero can use.
+        // The "one more run" hook from 04_CORE_LOOP_RETENTION: always name the nearest unlock the forge sells. That is a
+        // relic alone since 2026-11-23: every hero carries its own weapon and the weapon rack is gone (docs/63).
         private string DescribeForge()
         {
             int gold = _setup.Profile.Gold;
             RelicOption relic = _setup.Relics.NextUnlock;
-            WeaponOption weapon = _setup.Weapons.NextUnlock;
-            // A hero offered its own weapon alone (Ilya, and the Vanguard since 2026-11-22) has no weapon to forge toward
-            // while another hero's rack might still sell some: with every relic forged, only the relics are complete.
-            if (relic == null && weapon == null)
-                return string.Format(Loc.Numbers, _setup.Weapons.OnlyStartingWeapon ? _text.ForgeHintRelicsCompleteFormat
-                    : _text.ForgeHintCompleteFormat, gold);
-
-            // The cheaper one is nearer; a relic wins a tie.
-            bool relicFirst = weapon == null || (relic != null && relic.Price <= weapon.Price);
-            string name = relicFirst ? relic.DisplayName : weapon.DisplayName;
-            int price = relicFirst ? relic.Price : weapon.Price;
-            return gold >= price
-                ? string.Format(Loc.Numbers, _text.ForgeHintReadyFormat, gold, name)
-                : string.Format(Loc.Numbers, _text.ForgeHintNextFormat, gold, name, price);
+            if (relic == null)
+                return string.Format(Loc.Numbers, _text.ForgeHintRelicsCompleteFormat, gold);
+            return gold >= relic.Price
+                ? string.Format(Loc.Numbers, _text.ForgeHintReadyFormat, gold, relic.DisplayName)
+                : string.Format(Loc.Numbers, _text.ForgeHintNextFormat, gold, relic.DisplayName, relic.Price);
         }
 
         private void Update()

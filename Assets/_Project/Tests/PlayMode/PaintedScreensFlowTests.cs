@@ -15,8 +15,9 @@ namespace Cryptforge.Tests
 {
     // The between-runs and pause screens painted in the Gameplay scene (ScreenArtSet on the Result Canvas's
     // ScreenArtView): the forge wears its frames, each card the frame of its state and following it as it changes, a
-    // relic's picture its well; the chooser frames the chosen hero and its pips follow the choice, and a hero who carries
-    // one weapon leaves the rack's other places painted, not bare; the result's title wears its victory or its defeat;
+    // relic's picture its well; the chooser frames the chosen hero and its pips follow the choice, and the forge's one
+    // weapon card - the chosen hero's own weapon, since the rack went (docs/63) - wears the worn frame and follows the
+    // choice, with no painted empty place left behind; the result's title wears its victory or its defeat;
     // the pause shows its plate; the buttons swap to their pressed and disabled plates; no rect the layout reads moves and
     // nothing painted catches a tap; and a view without its set, or with a broken one, leaves today's look.
     public sealed class PaintedScreensFlowTests
@@ -104,9 +105,9 @@ namespace Cryptforge.Tests
         [UnityTest, Timeout(90000)]
         public IEnumerator TheForgeWearsItsFramesAndEachCardTheFrameOfItsState()
         {
-            // The forge's cards in their states: the Sword the Vanguard carries (its rack holds nothing else since
-            // 2026-11-22, an older profile's Staff aside), Second Wind worn and Counterweight ready to forge (150); a relic
-            // out of reach is the next test's.
+            // The forge's cards in their states: the Sword the Vanguard carries (its own weapon, shown and never sold since
+            // the rack went, docs/63; an older profile's Staff is not read), Second Wind worn and Counterweight ready to
+            // forge (150); a relic out of reach is the next test's.
             yield return Load(new PlayerProfile(160, new[] { "relic_second_wind" }, "relic_second_wind", 2, new[] { "weapon_staff" }));
             yield return OpenForge();
             Transform area = ForgeArea;
@@ -140,7 +141,7 @@ namespace Cryptforge.Tests
             // Each card in the frame of its state; the written state and its colour as RelicForgeView sets them.
             (string card, UnlockStatus state, string words)[] expected =
             {
-                ("Weapon Card 1", UnlockStatus.Equipped, "Equipped"),
+                ("Weapon Card 1", UnlockStatus.Equipped, "Signature weapon"),
                 ("Relic Card 1", UnlockStatus.Equipped, "Equipped"),
                 ("Relic Card 2", UnlockStatus.Affordable, "Forge for 150 gold"),
             };
@@ -157,8 +158,10 @@ namespace Cryptforge.Tests
                 Assert.That(accent.color, Is.EqualTo(card.transform.Find("State Label").GetComponent<Text>().color),
                     $"{name}: still in the state's colour.");
             }
-            Assert.That(Card("Weapon Card 2").gameObject.activeSelf || Card("Weapon Card 3").gameObject.activeSelf, Is.False,
-                "The Vanguard's Sword alone on its rack.");
+            Assert.That(area.Find("Weapon Card 2") == null && area.Find("Weapon Card 3") == null, Is.True,
+                "The rack's other places went with it: the Vanguard's Sword alone.");
+            Assert.That(area.Find("Painted Empty Place 2") == null && area.Find("Painted Empty Place 3") == null, Is.True,
+                "Nothing painted in their stead.");
             Assert.That(Card("Weapon Card 1").GetComponent<RectTransform>().anchorMin, Is.EqualTo(new Vector2(0f, .69f)), "Every card where it was.");
             Assert.That(Card("Weapon Card 1").GetComponent<RectTransform>().sizeDelta, Is.EqualTo(new Vector2(-120f, 0f)));
 
@@ -212,7 +215,7 @@ namespace Cryptforge.Tests
         }
 
         [UnityTest, Timeout(90000)]
-        public IEnumerator TheChooserFramesTheChosenHeroAndEachHerosOneWeaponLeavesTheRackPainted()
+        public IEnumerator TheChooserFramesTheChosenHeroAndTheForgeShowsItsOwnWeapon()
         {
             yield return Load();
             yield return OpenForge();
@@ -240,41 +243,27 @@ namespace Cryptforge.Tests
             Assert.That(choice.Current, Is.SameAs(_setup.Heroes[0]));
             Assert.That(_view.HeroPips[0].sprite, Is.SameAs(_art.PipLit), "The Vanguard chosen.");
             Assert.That(_view.HeroPips[1].sprite, Is.SameAs(_art.PipDark));
-            // The Vanguard: its Sword alone since 2026-11-22, in the rack's first place, the others painted.
-            Assert.That(_view.EmptyPlace(0).activeSelf, Is.False, "The Sword's own place holds the Sword.");
-            Assert.That(_view.EmptyPlace(1).activeSelf && _view.EmptyPlace(2).activeSelf, Is.True, "The others painted while empty.");
+            // The Vanguard: its own Sword in the weapon's one place, in the worn frame (docs/63: no rack, no empty places).
+            Button weapon = Card("Weapon Card 1");
+            Assert.That(weapon.transform.Find("Name Label").GetComponent<Text>().text, Is.EqualTo("Sword"));
+            Assert.That(weapon.image.sprite, Is.SameAs(_art.CardFor(UnlockStatus.Equipped)), "Its Sword, carried.");
+            Assert.That(ForgeArea.Find("Painted Empty Place 1"), Is.Null, "No rack place painted.");
 
-            // Ilya: its Staff alone, in the rack's middle place, the others painted.
+            // Ilya: its Staff in the same place, in the same frame.
             choice.Cycle();
             yield return null;
             Assert.That(choice.Current.Id, Is.EqualTo("hero_cinder_arcanist"));
             Assert.That(_view.HeroPips[0].sprite, Is.SameAs(_art.PipDark));
             Assert.That(_view.HeroPips[1].sprite, Is.SameAs(_art.PipLit), "Ilya chosen.");
-            Assert.That(Card("Weapon Card 2").gameObject.activeSelf, Is.True);
-            Assert.That(Card("Weapon Card 2").image.sprite, Is.SameAs(_art.CardFor(UnlockStatus.Equipped)), "Her Staff, carried.");
-            foreach (int slot in new[] { 0, 2 })
-            {
-                Button hidden = Card($"Weapon Card {slot + 1}");
-                GameObject place = _view.EmptyPlace(slot);
-                Assert.That(hidden.gameObject.activeSelf, Is.False);
-                Assert.That(place.activeSelf, Is.True, $"Place {slot + 1}: painted while empty.");
-                Assert.That(place.transform.parent, Is.SameAs(hidden.transform.parent));
-                (Vector2 placeMin, Vector2 placeMax) = Corners((RectTransform)place.transform);
-                (Vector2 cardMin, Vector2 cardMax) = Corners((RectTransform)hidden.transform);
-                Assert.That((placeMin - cardMin).magnitude + (placeMax - cardMax).magnitude, Is.LessThan(1f), "In the card's own place.");
-                Assert.That(place.transform.Find("Painted Seal").GetComponent<Image>().sprite, Is.SameAs(_art.Seal));
-                Assert.That(place.transform.Find("Painted Rule").GetComponent<Image>().sprite, Is.SameAs(_art.Rule));
-                Assert.That(place.GetComponent<Button>() == null && place.GetComponentInChildren<Text>() == null, Is.True,
-                    "Nothing to tap or read: the forge's rows stay its rows.");
-            }
-            Assert.That(_view.EmptyPlace(1).activeSelf, Is.False, "The Staff's own place holds the Staff.");
+            Assert.That(weapon.gameObject.activeSelf, Is.True);
+            Assert.That(weapon.transform.Find("Name Label").GetComponent<Text>().text, Is.EqualTo("Staff"));
+            Assert.That(weapon.image.sprite, Is.SameAs(_art.CardFor(UnlockStatus.Equipped)), "Her Staff, carried.");
 
-            // Back to the Vanguard: its Sword's place again.
+            // Back to the Vanguard: its Sword again.
             choice.Cycle();
             yield return null;
             Assert.That(_view.HeroPips[0].sprite, Is.SameAs(_art.PipLit));
-            Assert.That(_view.EmptyPlace(0).activeSelf, Is.False);
-            Assert.That(_view.EmptyPlace(1).activeSelf && _view.EmptyPlace(2).activeSelf, Is.True);
+            Assert.That(weapon.transform.Find("Name Label").GetComponent<Text>().text, Is.EqualTo("Sword"));
             AssertNothingPaintedCatchesATap(_forge);
             LogAssert.NoUnexpectedReceived();
         }

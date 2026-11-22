@@ -66,7 +66,6 @@ namespace Cryptforge.Analytics
         private readonly ForgeService _forge;
         private readonly CheckpointService _checkpoint;
         private readonly RelicShop _relics;
-        private readonly WeaponShop _weapons;
         // docs/54: the run's loot and the Anvil; null for a run or test without them.
         private readonly Economy.RunLoot _loot;
         private readonly Anvil _anvil;
@@ -178,7 +177,6 @@ namespace Cryptforge.Analytics
             _heroMaximumHealth = Require(context.HeroMaximumHealth, nameof(context.HeroMaximumHealth));
             _pulses = context.Pulses;
             _relics = context.Relics;
-            _weapons = context.Weapons;
             _loot = context.Loot;
             _anvil = context.Anvil;
             _heroId = RequireId(context.HeroId, nameof(context.HeroId));
@@ -678,8 +676,6 @@ namespace Cryptforge.Analytics
             _checkpoint.Chosen += OnCheckpointChosen;
             if (_relics != null)
                 _relics.Forged += OnRelicForged;
-            if (_weapons != null)
-                _weapons.Forged += OnWeaponForged;
             if (_loot != null)
                 _loot.Dropped += OnLootDropped;
             if (_anvil != null)
@@ -710,8 +706,6 @@ namespace Cryptforge.Analytics
             _checkpoint.Chosen -= OnCheckpointChosen;
             if (_relics != null)
                 _relics.Forged -= OnRelicForged;
-            if (_weapons != null)
-                _weapons.Forged -= OnWeaponForged;
             if (_loot != null)
                 _loot.Dropped -= OnLootDropped;
             if (_anvil != null)
@@ -1108,17 +1102,12 @@ namespace Cryptforge.Analytics
                 .Add("gold_unsecured", _run.UnsecuredGold));
         }
 
-        // Purchases happen in the Relic Forge after the run ended, so these lines carry no run id.
+        // Purchases happen in the Relic Forge after the run ended, so these lines carry no run id. Relics alone since
+        // 2026-11-23: the forge's weapon rack, whose purchases were the "weapon" spends, is gone (docs/63).
         private void OnRelicForged(RelicOption relic)
         {
             if (!_disposed && relic != null)
                 ReportSpent("relic", relic.Id, relic.Price);
-        }
-
-        private void OnWeaponForged(WeaponOption weapon)
-        {
-            if (!_disposed && weapon != null)
-                ReportSpent("weapon", weapon.Id, weapon.Price);
         }
 
         // docs/54 section 12: one loot_dropped line for each thing a drop moment gave - a material, a booster, an item.

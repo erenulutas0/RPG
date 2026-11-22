@@ -69,14 +69,14 @@ prototype.restart_label	Try again	Tekrar dene	Result button.
 prototype.relic_format	Relic: {0}	Kalıntı: {0}	HUD relic badge.
 prototype.relic_triggered_format	Relic: {0} ({1}x)	Kalıntı: {0} ({1}x)	{1} times it triggered.
 prototype.result_relic_format	{0} ({1}x)	{0} ({1}x)	Result build line.
-prototype.forge_hint_ready_format	Forge gold {0}: {1} is ready to forge	Ocak altını {0}: {1} dövülmeye hazır	Result. {0} profile gold, {1} relic or weapon.
+prototype.forge_hint_ready_format	Forge gold {0}: {1} is ready to forge	Ocak altını {0}: {1} dövülmeye hazır	Result. {0} profile gold, {1} relic.
 prototype.forge_hint_next_format	Forge gold {0}: {1} costs {2}	Ocak altını {0}: {1} için {2} gerekli	{1} cheapest unowned item, {2} its price.
-prototype.forge_hint_complete_format	Forge gold {0}: everything is forged	Ocak altını {0}: her şey dövüldü	Result.
-prototype.forge_hint_relics_complete_format	Forge gold {0}: every relic is forged	Ocak altını {0}: tüm kalıntılar dövüldü	Result.
+prototype.forge_hint_relics_complete_format	Forge gold {0}: every relic is forged	Ocak altını {0}: tüm kalıntılar dövüldü	Result: the forge sells relics alone (docs/63).
 prototype.forge_button_label	Relic Forge	Kalıntı Ocağı	Result button opening the forge.
 prototype.forge_title	Relic Forge	Kalıntı Ocağı	Forge nameplate, 600 px.
 prototype.forge_status_format	Gold {0}  |  Highest floor cleared: {1}	Altın {0}  |  En yüksek temizlenen kat: {1}	Forge. {0} gold, {1} highest floor cleared.
-prototype.forge_weapons_header	Weapons: carry one	Silahlar: birini taşı	Forge header.
+prototype.forge_weapons_header	Weapon: the hero's own	Silah: kahramanın kendi silahı	Forge header over the next hero's own weapon (docs/63).
+prototype.forge_own_weapon_label	Signature weapon	İmza silahı	Forge: the state line of the hero's own weapon card, read only (docs/63).
 prototype.forge_relics_header	Relics: equip one	Kalıntılar: birini kuşan	Forge header.
 prototype.unlock_forge_format	Forge for {0} gold	{0} altına döv	Forge card state. {0} price.
 prototype.unlock_need_gold_format	{0} gold: need {1} more	{0} altın: {1} daha gerekli	{0} price, {1} gold still needed.

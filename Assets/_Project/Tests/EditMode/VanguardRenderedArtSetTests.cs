@@ -197,8 +197,8 @@ namespace Cryptforge.Tests
             HeroDefinition vanguard = Hero("Hero_Vanguard");
             Assert.That(vanguard.RenderedArt, Is.SameAs(Set()));
             Assert.That(vanguard.RenderedArt, Is.Not.SameAs(Hero("Hero_CinderArcanist").RenderedArt));
+            // Its own weapon, every run (docs/63: every hero is bound to its own, and the forge sells none).
             Assert.That(vanguard.StartingWeapon.Id, Is.EqualTo("weapon_sword"));
-            Assert.That(vanguard.StartsWithItsOwnWeaponOnly, Is.True);
             Assert.That(AssetDatabase.LoadAssetAtPath<VanguardArtSet>(Folder + "/VanguardArtSet.asset"), Is.Not.Null,
                 "The painted frames stay in the repo.");
         }

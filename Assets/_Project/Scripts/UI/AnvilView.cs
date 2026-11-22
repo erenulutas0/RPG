@@ -391,7 +391,8 @@ namespace Cryptforge.UI
                 Refresh();
         }
 
-        private string EquippedWeaponId() => _setup.Weapons != null && _setup.Weapons.Equipped != null ? _setup.Weapons.Equipped.Id : null;
+        // The weapon the next run carries: the next hero's own (CombatSetup.NextWeapon; docs/63), as the forge shows it.
+        private string EquippedWeaponId() => _setup.NextWeapon != null ? _setup.NextWeapon.Id : null;
 
         private void OnProfileChanged()
         {

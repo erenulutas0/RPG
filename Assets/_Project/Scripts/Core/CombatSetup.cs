@@ -25,7 +25,8 @@ namespace Cryptforge.Core
         [SerializeField] private EconomyConfig _economy;
         [SerializeField] private UpgradeDefinition[] _upgrades;
         [SerializeField] private RelicDefinition[] _relics;
-        // Hero weapons sold in the Relic Forge, in card order; the hero's starting weapon must be one of them.
+        // The hero weapons a run's cards can hand over, in card order; every hero's starting weapon must be one of them.
+        // Since 2026-11-23 the Relic Forge sells none: every hero starts with its own weapon (docs/63).
         [SerializeField] private WeaponDefinition[] _weapons;
         [SerializeField] private PrototypeTextDefinition _text;
         [SerializeField] private Health _hero;
@@ -40,8 +41,6 @@ namespace Cryptforge.Core
         // The run's growth on the hero painted (RunFeedbackView); empty, it draws its lines.
         [SerializeField] private RunFeedbackArtSet _runFeedbackArt;
         private RewardService _rewards;
-        // The shop's weapons, in _weapons' order, to find a hero's starting weapon in the rack.
-        private WeaponOption[] _weaponOptions;
         // Burn's own neighbourhood (TargetingNeighbourhood): never the AttackController's, whose list a burst walks.
         private INeighbourhood _burnNeighbourhood;
         private ProfileStore _profileStore;
@@ -99,8 +98,8 @@ namespace Cryptforge.Core
         public RunPause Pause { get; private set; }
         public PlayerProfile Profile { get; private set; }
         public RelicShop Relics { get; private set; }
-        public WeaponShop Weapons { get; private set; }
-        // The weapon the hero carries this run: the profile's equipped weapon, or the starting weapon.
+        // The weapon the hero carries this run: its own starting weapon (docs/63: every hero is bound to its own since
+        // 2026-11-22, and the forge's weapon rack is gone since 2026-11-23), or development/start-weapon.txt's.
         public WeaponDefinition HeroWeapon { get; private set; }
         public RunBank Bank { get; private set; }
         // The run's floor materials, boosters and items (docs/54 phase 3): dropped by bosses, elites, floor clears and the
@@ -136,7 +135,8 @@ namespace Cryptforge.Core
                 return;
             }
 
-            if (!ForgeCatalog.TryCreate(_relics, _weapons, out RelicOption[] relics, out WeaponOption[] weapons, out string catalogError))
+            // The weapons are checked here too (their combat data, ids and texts), though the forge sells none of them now.
+            if (!ForgeCatalog.TryCreate(_relics, _weapons, out RelicOption[] relics, out WeaponOption[] _, out string catalogError))
             {
                 Debug.LogError($"CombatSetup cannot build the Relic Forge catalog. {catalogError}", this);
                 enabled = false;
@@ -153,15 +153,10 @@ namespace Cryptforge.Core
             int wanted = RunStartRequest.Take(out string requestedHero, out DifficultyTier? requestedTier);
             Hero = ChooseHero(requestedHero);
             Tier = requestedTier.HasValue && Profile.Tiers.IsOpen(requestedTier.Value) ? requestedTier.Value : Profile.Tiers.Selected;
-            _weaponOptions = weapons;
-            Weapons = new WeaponShop(Profile, weapons, weapons[Array.IndexOf(_weapons, Hero.StartingWeapon)],
-                Hero.StartsWithItsOwnWeaponOnly);
-            // Before any view: the rack follows the forge's hero chooser before the forge redraws for the same change.
-            Profile.Changed += FollowNextHero;
-            HeroWeapon = _weapons[Array.IndexOf(weapons, Weapons.Equipped)];
-            // Every hero starts with its own weapon (the Vanguard its Sword since 2026-11-22); in the Editor and a
-            // development build development/start-weapon.txt may start it with another (DevelopmentStart.StartWeaponId).
-            HeroWeapon = DevelopmentStartWeapon() ?? HeroWeapon;
+            // Every hero starts with its own weapon (the Vanguard its Sword since 2026-11-22, Ilya its Staff); in the Editor
+            // and a development build development/start-weapon.txt may start it with another (DevelopmentStart.StartWeaponId).
+            // A weapon the retired forge rack sold and the profile still records (PlayerProfile.OwnedWeaponIds) is not read.
+            HeroWeapon = DevelopmentStartWeapon() ?? Hero.StartingWeapon;
 
             _hero.Initialize(Hero.MaximumHealth);
             // On the foundry a run builds Megabonk's way (docs/42, PR 7): the forge's weapon is the first of up to three,
@@ -413,7 +408,6 @@ namespace Cryptforge.Core
                 Forge = Forge,
                 Checkpoint = Checkpoint,
                 Relics = Relics,
-                Weapons = Weapons,
                 Loot = Loot,
                 Anvil = Anvil,
                 HeroId = Hero.Id,
@@ -633,26 +627,19 @@ namespace Cryptforge.Core
             return null;
         }
 
-        // The weapon a hero would carry from this start (the map choice's hero cards): this run's own for the scene's hero;
-        // for another, as the rack would equip it once that hero is chosen (WeaponShop.Equipped) - its own weapon alone, or
-        // the saved weapon while it is owned, otherwise its starting weapon.
+        // The weapon a hero would carry from this start (the map choice's hero cards, the forge's hero weapon, the Anvil's
+        // weapon slot): this run's own for the scene's hero, its own starting weapon for another - every hero carries its
+        // own (docs/63), whatever the profile recorded from the retired rack.
         public WeaponDefinition WeaponFor(HeroDefinition hero)
         {
             if (hero == null)
                 return null;
-            if (hero == Hero)
-                return HeroWeapon;
-            string saved = Profile.EquippedWeaponId;
-            if (!hero.StartsWithItsOwnWeaponOnly && Profile.OwnsWeapon(saved))
-            {
-                for (int i = 0; i < _weapons.Length; i++)
-                {
-                    if (_weapons[i].Id == saved)
-                        return _weapons[i];
-                }
-            }
-            return hero.StartingWeapon;
+            return hero == Hero ? HeroWeapon : hero.StartingWeapon;
         }
+
+        // The weapon the next run's hero (NextRunHero, as the forge's hero chooser has chosen it) will carry: what the
+        // forge shows and the Anvil's weapon slot works on between runs.
+        public WeaponDefinition NextWeapon => WeaponFor(NextRunHero);
 
         // The Descent's items (EconomyConfig, docs/54 section 3.2) as the run's loot reads them.
         private ItemTemplate[] ItemTemplates()
@@ -727,7 +714,9 @@ namespace Cryptforge.Core
             return weapon != null ? new GearLoadout(Profile.Gear.EquippedPieces(weapon.Id)).Power : 0;
         }
 
-        // The Foundry cleared: every hero unlocked by carrying a weapon through it, and carried this run, unlocks.
+        // The Foundry cleared: every hero unlocked by carrying a weapon through it unlocks when this run carried it - or,
+        // when this run's cards could never have handed it over (HeroUnlock.UnlocksOnFoundryClear: under the weapon roster
+        // another hero's own weapon is never offered, docs/63), on the clear itself.
         internal void UnlockHeroesForTheFoundry()
         {
             if (_heroes == null)
@@ -737,11 +726,25 @@ namespace Cryptforge.Core
                 HeroDefinition hero = _heroes[i];
                 if (hero == null || hero.UnlockedFromStart || hero.UnlockWeapon == null || Profile.HasUnlockedHero(hero.Id))
                     continue;
+                string weaponId = hero.UnlockWeapon.Id;
                 bool carried = HeroWeapon == hero.UnlockWeapon ||
-                    (Upgrades.Loadout != null && Upgrades.Loadout.IndexOf(hero.UnlockWeapon.Id) >= 0);
-                if (carried)
+                    (Upgrades.Loadout != null && Upgrades.Loadout.IndexOf(weaponId) >= 0);
+                if (HeroUnlock.UnlocksOnFoundryClear(carried, CardsCanOffer(weaponId)))
                     Profile.UnlockHero(hero.Id);
             }
+        }
+
+        // Whether this run's cards could hand the hero this weapon: in category mode, whether the run's catalogue holds it;
+        // in the legacy engine (the hall arena), which hands over no weapon, true, so a weapon there must be carried.
+        private bool CardsCanOffer(string weaponId)
+        {
+            IReadOnlyList<WeaponCard> cards = Upgrades.WeaponCards;
+            if (cards == null)
+                return true;
+            for (int i = 0; i < cards.Count; i++)
+                if (cards[i].Id == weaponId)
+                    return true;
+            return false;
         }
 
         // Ember Memory: one direct Burn stack on the enemy each hit lands on; its fall then passes the burn on.
@@ -750,16 +753,6 @@ namespace Cryptforge.Core
 
         // For tests: the neighbourhood a burn's fall asks.
         internal INeighbourhood BurnNeighbourhood => _burnNeighbourhood;
-
-        // The forge's hero chooser changed the next run's hero: its starting weapon becomes the rack's free one, the only
-        // one on offer for a hero that starts with its own weapon only.
-        private void FollowNextHero()
-        {
-            HeroDefinition next = ChooseHero();
-            int index = Array.IndexOf(_weapons, next.StartingWeapon);
-            if (index >= 0)
-                Weapons.SetStartingWeapon(_weaponOptions[index], next.StartsWithItsOwnWeaponOnly);
-        }
 
         // The final floor ends the Descent; every earlier floor offers Extract or Descend.
         private void OnFloorCleared()

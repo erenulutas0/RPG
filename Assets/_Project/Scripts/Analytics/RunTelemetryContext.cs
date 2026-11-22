@@ -15,9 +15,9 @@ namespace Cryptforge.Analytics
         public UpgradeService Upgrades;
         public ForgeService Forge;
         public CheckpointService Checkpoint;
-        // The Relic Forge shops; either may be null when a test or scene has no forge.
+        // The Relic Forge's shop; null when a test or scene has no forge. It sells relics alone: the weapon rack is gone
+        // (docs/63).
         public RelicShop Relics;
-        public WeaponShop Weapons;
         // The run's loot and the Anvil (docs/54); either may be null, and a run without them writes none of their lines.
         public Economy.RunLoot Loot;
         public Anvil Anvil;
