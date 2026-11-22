@@ -488,3 +488,13 @@ map.start_catch_up	Floor {0}. Start at level {1}: choose {1} level-ups first.	Ka
 map.start_fresh	Floor {0}. A fresh hero, the whole Ascent ahead.	Kat {0}. Taze bir kahraman, önünde koca bir Tırmanış.	Map card, floor 1. {0} floor.
 result.loot_nothing	nothing	hiçbir şey	Result loot line: what was banked when the run banked nothing but lost loot ("Ganimet: hiçbir şey  |  kayıp: ...").
 result.loot_pieces	{0} pieces (see the Bag)	{0} eşya (Çanta'ya bak)	Result loot line when the full line would not fit. {0} the count of items and materials; no plural after a number.
+
+# ---- docs/62 P0a, the Outworks probe (development/outworks.txt; off by default): OutworksView, FloorClockView, ExitSealView. Working names (docs/62 section 11): Outworks = Dış Avlular, Tithe Anvil = Öşür Örsü, Keeper = Muhafız, the Bell = Çan, Ascent Stair = Tırmanış Merdiveni, Stair Key = Merdiven Anahtarı; the owner reviews them with docs/60's glossary
+outworks.bell_in_format	Bell in {0}:{1:00}	Çanın çalmasına {0}:{1:00}	HUD floor clock while the Outworks phase runs, before the Bell. {0} minutes, {1} seconds. 420 px wide, as the gate's count (prototype.gate_opens_format).
+outworks.bell_rung	THE BELL - Reach the stair	ÇAN ÇALDI - Merdivene ulaş	HUD floor clock once the Bell has rung: the swarm rises and the Ascent Stair is open. 420 px wide.
+outworks.anvil_instruction	TITHE ANVIL - Stand in the ring	ÖŞÜR ÖRSÜ - Halkanın içinde dur	World label beside a Tithe Anvil the hero is near. Öşür is the old tithe, the tenth a harvest owed.
+outworks.anvil_direction	ANVIL	ÖRS	Edge arrow's label pointing at an anvil off the screen.
+outworks.keeper_direction	KEEPER	MUHAFIZ	Edge arrow's label pointing at the Keeper (a roaming mini-boss) off the screen. Muhafız, so it is not the Warden's Bekçi.
+outworks.stair_direction	ASCENT STAIR	MERDİVEN	Edge arrow's and the open stair seal's label off the screen. The short form: Tırmanış Merdiveni would run half again the English.
+outworks.stair_instruction	ASCENT STAIR - Stand still to climb	MERDİVEN - Tırmanmak için hareketsiz dur	World label on the open Ascent Stair's seal, as the gate's (prototype.gate_instruction).
+outworks.stair_sealed	ASCENT STAIR - Opens at the Bell or with the Keeper's key	MERDİVEN - Çanla ya da Muhafızın anahtarıyla açılır	World label beside the sealed Ascent Stair when the hero is near it.

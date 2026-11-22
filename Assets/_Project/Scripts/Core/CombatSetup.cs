@@ -279,6 +279,18 @@ namespace Cryptforge.Core
             _encounters.Initialize(Choices, Forge, () => HeroStats.Difficulty, Upgrades, Drops, arrival || IsChoosingMap || catchUp,
                 Run.Seed, StartFloor, Tier);
             if (arrival) gameObject.AddComponent<GateArrivalView>().Initialize(this, movement);
+            // docs/62 P0a (development/outworks.txt): an Outworks run's pads walk the hero, no blow lands mid-arc, each anvil
+            // captured grants a level-up's offer as an altar does, and the phase is drawn. Nothing without the switch.
+            if (_encounters.Leap != null)
+            {
+                if (movement != null)
+                    movement.Leap = _encounters.Leap;
+                _hero.Guard = new AirborneGuard(_encounters.Leap);
+                // Logged before the grant, whose offer follows it in the run's log (as an altar's is).
+                telemetry.WatchOutworks(_encounters);
+                _encounters.AnvilCaptured += OnAnvilCaptured;
+                gameObject.AddComponent<OutworksView>().Initialize(this, _hero.transform);
+            }
             // After the encounter knows its floor.
             Altars.Initialize(this, _hero.transform);
             gameObject.AddComponent<AltarView>().Initialize(Altars, _text, _hero.transform);
@@ -551,6 +563,9 @@ namespace Cryptforge.Core
             }
             _rewards.TryDropKill(enemy, experience, gold, x, y, Drops);
         }
+
+        // docs/62 P0a: a Tithe Anvil captured is a level-up's offer of cards, as an altar's is, without the altar's danger.
+        private void OnAnvilCaptured(int anvil) => Run.GrantBonusUpgrade();
 
         // The encounter let go of the body and of its death: the kill paid, if it was one, cannot be reported again.
         private void OnEnemyRemoved(Health enemy) => _rewards.Forget(enemy);

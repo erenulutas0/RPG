@@ -15,8 +15,10 @@ namespace Cryptforge.Combat
     // forge in non-combat rooms, and advances after a short delay once the current step is resolved, no choice is open
     // and the hero lives. The final wave's last kill clears the floor immediately. It runs before other scripts so
     // enemies move before anyone attacks in a frame, the same order the Descent simulation uses.
+    // docs/62's P0a, the Outworks phase before floor 1's halls behind development/outworks.txt, is in
+    // EncounterController.Outworks.cs.
     [DefaultExecutionOrder(-50)]
-    public sealed class EncounterController : MonoBehaviour
+    public sealed partial class EncounterController : MonoBehaviour
     {
         private sealed class SpawnedEnemy
         {
@@ -31,6 +33,9 @@ namespace Cryptforge.Combat
             // When a horde enemy fell, on the horde's clock, so its body can be taken away a while after.
             public float FellAt;
             public bool Horde;
+            // Of docs/62 P0a's Keeper's pack, and of the Bell's swarm (EncounterController.Outworks.cs).
+            public bool Keeper;
+            public bool Bell;
             // Its death reported to the encounter that spawned it: one delegate for the record's every life, made once
             // (a horde record is reused once its place is filled again or the horde is released).
             public Action OnDied;
@@ -338,6 +343,8 @@ namespace Cryptforge.Combat
             FloorNumber = firstNumber;
             StartFloorNumber = firstNumber;
             _hallsOnEarlierFloors = hallsBefore;
+            // docs/62 P0a: whether this run plays the Outworks before floor 1's halls, decided before the floor's rooms are.
+            DecideOutworks(first, firstNumber);
             // The floor a run starts on plays no arrival: the frost and the melt belong to the descent onto it.
             _enteringFirstFloor = true;
             try
@@ -395,7 +402,9 @@ namespace Cryptforge.Combat
 
             // Clear before events fire: an EncounterStarted subscriber may call this method again.
             _firstEncounterPending = false;
-            AdvanceFloor();
+            // docs/62 P0a: with the switch on, floor 1 begins with the Outworks phase; its stair leads into the first hall.
+            if (!BeginOutworks())
+                AdvanceFloor();
         }
 
         // The hero's position on the arena floor, which the packs walk toward.
@@ -484,7 +493,7 @@ namespace Cryptforge.Combat
         public bool IsHoldingForGate => _holdingForGate;
         private bool _holdingForGate;
         public float GateOpensIn => IsHoldingForGate && _currentFloor != null
-            ? Mathf.Max(0f, _currentFloor.FoundryGateNotBeforeSeconds - FloorClockSeconds) : 0f;
+            ? Mathf.Max(0f, GateNotBeforeOn(_currentFloor) - FloorClockSeconds) : 0f;
         // Seconds before the floor is overrun, and whether it already is.
         public float FloorClockRemaining => HordeClock.Remaining(FloorClockSeconds);
         public bool IsFloorOvertime => _horde != null && _horde.IsOvertime;
@@ -629,7 +638,10 @@ namespace Cryptforge.Combat
 
         // A floor's rooms as the foundry plays them: its extra elites (FloorDefinition.FoundryExtraElites, copies of its first
         // elite room) stand before its gate boss, its last boss room. A floor without an elite or a boss plays as authored.
-        public static RoomDefinition[] FoundryRooms(FloorDefinition floor)
+        public static RoomDefinition[] FoundryRooms(FloorDefinition floor) => FoundryRooms(floor, floor.FoundryExtraElites);
+
+        // The same with extraElites copies of its first elite room, whatever the floor's own (docs/62 P0a's trim).
+        public static RoomDefinition[] FoundryRooms(FloorDefinition floor, int extraElites)
         {
             int elite = -1, boss = -1;
             for (int i = 0; i < floor.RoomCount; i++)
@@ -640,7 +652,7 @@ namespace Cryptforge.Combat
                 if (room != null && room.Kind == RoomKind.Boss)
                     boss = i;
             }
-            int extra = elite >= 0 && boss >= 0 ? Math.Max(0, floor.FoundryExtraElites) : 0;
+            int extra = elite >= 0 && boss >= 0 ? Math.Max(0, extraElites) : 0;
             var rooms = new RoomDefinition[floor.RoomCount + extra];
             for (int i = 0, r = 0; i < floor.RoomCount; i++)
             {
@@ -656,7 +668,7 @@ namespace Cryptforge.Combat
         private RoomDefinition[] RoomsAsPlayed(FloorDefinition floor)
         {
             if (_arena != null && _arena.IsFoundryRegion)
-                return FoundryRooms(floor);
+                return FoundryRooms(floor, ExtraElitesOn(floor));
             var rooms = new RoomDefinition[floor.RoomCount];
             for (int i = 0; i < rooms.Length; i++)
                 rooms[i] = floor.RoomAt(i);
@@ -702,7 +714,7 @@ namespace Cryptforge.Combat
         private int WavesIn(FloorDefinition floor, RoomDefinition room) => room.WaveCount + SurgesIn(floor, room);
 
         private int SurgesIn(FloorDefinition floor, RoomDefinition room) =>
-            room.Kind == RoomKind.Combat && _arena != null && _arena.IsFoundryRegion ? floor.FoundryHallSurges : 0;
+            room.Kind == RoomKind.Combat && _arena != null && _arena.IsFoundryRegion ? HallSurgesOn(floor) : 0;
 
         // The enemies of a room's wave into _waveEnemies: an authored wave as authored, a surge as the wave it repeats
         // with that wave's last enemy added until the surge's size.
@@ -757,6 +769,13 @@ namespace Cryptforge.Combat
             // player walks to fetch them. A frozen frame is no frame, as the simulation has none while a choice is open.
             if (_drops != null && Time.deltaTime > 0f)
                 _drops.CollectNear(HeroFloorX, HeroFloorY);
+
+            // docs/62 P0a's Outworks phase (EncounterController.Outworks.cs): while it runs the floor's rooms wait.
+            if (IsInOutworks)
+            {
+                TickOutworks(Time.deltaTime);
+                return;
+            }
 
             // A marked room waits for the hero to walk onto its district; an open choice keeps it waiting.
             if (_roomSiteOpen)
@@ -814,11 +833,11 @@ namespace Cryptforge.Combat
         private bool GateHoldsForClock()
         {
             if (_currentFloor == null || _horde == null || _arena == null || !_arena.IsFoundryRegion ||
-                _currentFloor.FoundryGateNotBeforeSeconds <= 0f || !_floorProgress.IsLastWaveOfRoom)
+                GateNotBeforeOn(_currentFloor) <= 0f || !_floorProgress.IsLastWaveOfRoom)
                 return false;
             int next = _floorProgress.RoomIndex + 1;
             return next < _rooms.Length && _rooms[next].Kind == RoomKind.Boss &&
-                   FloorClockSeconds < _currentFloor.FoundryGateNotBeforeSeconds;
+                   FloorClockSeconds < GateNotBeforeOn(_currentFloor);
         }
 
         // One frame of a continuous swarm, at the point in the frame the Descent simulation's swarm loop mirrors: after
@@ -1529,13 +1548,15 @@ namespace Cryptforge.Combat
             // An overrun floor's horde pays nothing (HordeClock.PaysExperience): the overrun is a reason to leave.
             spawn.Experience = !horde ? definition.ExperienceReward :
                 _horde != null && !HordeClock.PaysExperience(_horde.Seconds) ? 0 :
-                HordeRule.Experience(definition.ExperienceReward);
+                HordeExperienceOf(definition);
             // TryGetComponent: a horde enemy has none, and a failed GetComponent allocates in the Editor.
             spawn.Enrage = enemy.TryGetComponent(out EnrageBehaviour enrage) ? enrage : null;
             spawn.Defeated = false;
             spawn.FellAt = 0f;
             // A horde enemy's hits and death are the horde's: they never count towards the node wave's fight.
             spawn.Horde = horde;
+            spawn.Keeper = false;
+            spawn.Bell = false;
             spawn.OnDied ??= spawn.ReportDied;
             if (!horde)
                 enemy.Changed += _enemyChanged ??= OnEnemyChanged;
@@ -1561,6 +1582,8 @@ namespace Cryptforge.Combat
 
         private void OnEnemyChanged()
         {
+            // docs/62 P0a: a strike on the Keeper's pack turns it on the hero (nothing without the Outworks).
+            NoteKeeperStruck();
             _fight.RecordHit();
             ProgressChanged?.Invoke();
         }
@@ -1568,6 +1591,9 @@ namespace Cryptforge.Combat
         private void OnEnemyDied(SpawnedEnemy enemy)
         {
             if (enemy.Defeated)
+                return;
+            // docs/62 P0a's Keeper and Bell answer their own deaths (EncounterController.Outworks.cs).
+            if (OnOutworksEnemyDied(enemy))
                 return;
 
             enemy.Defeated = true;
@@ -1605,7 +1631,11 @@ namespace Cryptforge.Combat
             // docs/57's slows (SlowStatus), handed to the pack before it steps; nothing while no skill has touched an enemy.
             if (SlowStatus.AnyLive)
                 PushSlows(_motion, _wave);
-            _motion.Step(deltaTime, HeroFloorX, HeroFloorY);
+            // docs/62 P0a's Keeper walks its loop until it turns on the hero (never without the Outworks).
+            if (KeeperPackGoal(out float keeperX, out float keeperY))
+                _motion.Step(deltaTime, keeperX, keeperY);
+            else
+                _motion.Step(deltaTime, HeroFloorX, HeroFloorY);
             for (int i = 0; i < _wave.Count; i++)
             {
                 Health enemy = _wave[i].Health;
@@ -1760,10 +1790,14 @@ namespace Cryptforge.Combat
                     RetireHordeBody(enemy);
             }
 
-            bool bossRoom = _rooms[_floorProgress.RoomIndex].Kind == RoomKind.Boss;
-            // An enraged gate boss draws the horde's Horde crowd round it; Pressure there killed the autopilot in three
-            // fights of six (docs/41, 2026-10-26).
-            HordeState state = bossRoom && _bossEnraged ? HordeState.Horde : HordeRule.StateFor(HallsCleared(), bossRoom);
+            // docs/62 P0a's Outworks: the state by the phase's clock (never without the Outworks).
+            if (!OutworksHordeState(out HordeState state))
+            {
+                bool bossRoom = _rooms[_floorProgress.RoomIndex].Kind == RoomKind.Boss;
+                // An enraged gate boss draws the horde's Horde crowd round it; Pressure there killed the autopilot in three
+                // fights of six (docs/41, 2026-10-26).
+                state = bossRoom && _bossEnraged ? HordeState.Horde : HordeRule.StateFor(HallsCleared(), bossRoom);
+            }
             if (state != _horde.State)
                 _horde.SetState(state);
             _horde.Tick(deltaTime, HordeAliveCount, AliveEnemyCount, _hordeSpawns);

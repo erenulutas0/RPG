@@ -391,6 +391,9 @@ namespace Cryptforge.Core
                 gx = encounter.ExitFloorX; gy = encounter.ExitFloorY;
                 return true;
             }
+            // docs/62 P0a: leaving the Outworks, the stair before anything else (the simulation's OutworksLeaveGoal).
+            if (OutworksLeaveGoal(x, y, out gx, out gy, out stop))
+                return true;
             // The Warden's mark under the hero: out of it first, as a player who reads it does - away from the Warden, with
             // room, not across the glowing band if it can help it (FootworkRule.EscapeMark; from the mark itself, the
             // nearest way out, if the Warden cannot be found). The clumsy cohorts take the nearest way out, wherever the
@@ -446,6 +449,9 @@ namespace Cryptforge.Core
                 stop = 0f;
                 return true;
             }
+            // docs/62 P0a: the Outworks' Keeper or nearest anvil after the kite (the simulation's OutworksObjectiveGoal).
+            if (OutworksObjectiveGoal(x, y, out gx, out gy, out stop))
+                return true;
             // A node fight is drawn to the pit's rim while the pit runs, but not while a guarded band glows: then the hero
             // waits out of it. The horde alone is fought wherever the hero is going. Never in a swarm room, where the pit
             // does not run (PitEruptionService.IsRunning): the careful pilot spent about 44 s of the finale dragging the
@@ -497,6 +503,82 @@ namespace Cryptforge.Core
                 return true;
             }
             return false;
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+        // docs/62 P0a: the Outworks phase (development/outworks.txt), as the simulation's pilot plays it
+        // (DescentSimulation.Outworks.cs): the objective by OutworksPilot, a pad where it saves the walk and the cohort takes
+        // pads, the drops beside the way; with nothing to go for, the altars, the drops in sight, else hold ground.
+        // ---------------------------------------------------------------------------------------------------------------
+
+        private bool OutworksLeaveGoal(float x, float y, out float gx, out float gy, out float stop)
+        {
+            gx = x; gy = y;
+            stop = OutworksPilot.StairStop;
+            EncounterController encounter = _setup.Encounters;
+            if (!encounter.IsInOutworks)
+                return false;
+            OutworksPilot.Habits habits = OutworksPilot.Of(_cohort);
+            if (!OutworksPilot.Leaving(encounter.Outworks, habits, x, y, null))
+                return false;
+            gx = encounter.Outworks.StairX; gy = encounter.Outworks.StairY;
+            ByPad(habits, encounter, x, y, ref gx, ref gy, ref stop);
+            return true;
+        }
+
+        private bool OutworksObjectiveGoal(float x, float y, out float gx, out float gy, out float stop)
+        {
+            gx = x; gy = y;
+            stop = Arrived;
+            EncounterController encounter = _setup.Encounters;
+            if (!encounter.IsInOutworks)
+                return false;
+            OutworksPilot.Habits habits = OutworksPilot.Of(_cohort);
+            Health keeper = encounter.KeeperLeader;
+            float keeperX = 0f, keeperY = 0f;
+            bool keeperStands = keeper != null && encounter.TryFloorPositionOf(keeper, out keeperX, out keeperY);
+            OutworksPilot.Objective objective = OutworksPilot.Choose(encounter.Outworks, habits, x, y, keeperStands, keeperX,
+                keeperY, null, out float wx, out float wy, out stop);
+            if (objective == OutworksPilot.Objective.None)
+            {
+                if (NearestAltar(x, y, out gx, out gy))
+                {
+                    stop = .1f;
+                    return true;
+                }
+                if (DropDetourRule.Nearest(_setup.Drops, x, y, DropDetour, out gx, out gy))
+                {
+                    stop = DropRule.PickupRadius * .5f;
+                    return true;
+                }
+                gx = x; gy = y;
+                stop = Arrived;
+                return true;
+            }
+            float before = stop;
+            gx = wx; gy = wy;
+            ByPad(habits, encounter, x, y, ref gx, ref gy, ref stop);
+            bool byPad = stop != before;
+            bool inRing = objective == OutworksPilot.Objective.Anvil &&
+                          OutworksRule.Within(x, y, wx, wy, OutworksRule.AnvilRadius);
+            if (!byPad && !inRing && _detour.Choose(_setup.Drops, x, y, wx, wy, Time.deltaTime, out float dx, out float dy))
+            {
+                gx = dx; gy = dy;
+                stop = DropRule.PickupRadius * .5f;
+            }
+            return true;
+        }
+
+        private static void ByPad(OutworksPilot.Habits habits, EncounterController encounter, float x, float y, ref float gx,
+            ref float gy, ref float stop)
+        {
+            if (!habits.UsesPads || (encounter.Leap != null && encounter.Leap.IsAirborne))
+                return;
+            int pad = OutworksRule.PadShortcut(x, y, gx, gy);
+            if (pad < 0)
+                return;
+            OutworksRule.PadLaunch(pad, out gx, out gy);
+            stop = 0f;
         }
 
         // From the floor's second room on, in the walk to its next hall: where a measurement mode stops playing.

@@ -45,6 +45,9 @@ namespace Cryptforge.UI
         // docs/57's Shield Rush (AbilityController.Dash, handed over by CombatSetup): while it travels it moves the hero in
         // the stick's place. Null for a hero without the Rush.
         public HeroDash Dash { get; set; }
+        // docs/62 P0a's pads (EncounterController.Leap, handed over by CombatSetup on an Outworks run): a pad under the hero's
+        // feet launches it while the phase runs, and mid-arc the leap has the walk step. Null without the Outworks.
+        public HeroLeap Leap { get; set; }
 
         // Holds a steer without any touch, until cleared; tests and later an auto-battle option drive the hero this way.
         public void Hold(Vector2 floorSteer) => _heldSteer = floorSteer;
@@ -95,11 +98,19 @@ namespace Cryptforge.UI
             // simulation only steps frames while a wave is alive, and a frame that spends nothing still refills, so a
             // scene frame the simulation does not have would otherwise hand the hero a little more bar than it earned.
             bool fighting = _setup.Encounters != null && _setup.Encounters.AliveEnemyCount > 0;
+            // docs/62 P0a's pad, mid-arc, has the walk step (HeroLeap.Move, the simulation's one body), over the pit and past
+            // anything in the way; the stick waits. Never without the Outworks.
+            if (Leap != null && Leap.IsAirborne)
+                IsMoving = Leap.Move(_motion, Time.deltaTime);
             // docs/57's Shield Rush, travelling, has the walk step (HeroDash.Move, the simulation's one body); the stick
             // waits. Null for a hero without the Rush.
-            IsMoving = Dash != null && Dash.IsDashing
-                ? Dash.Move(_motion, _arena.Geometry, Time.deltaTime)
-                : _motion.Move(_steer.x, _steer.y, Time.deltaTime * Stamina.SpeedFactor, _arena.Geometry);
+            else
+                IsMoving = Dash != null && Dash.IsDashing
+                    ? Dash.Move(_motion, _arena.Geometry, Time.deltaTime)
+                    : _motion.Move(_steer.x, _steer.y, Time.deltaTime * Stamina.SpeedFactor, _arena.Geometry);
+            // ...and after the walk a pad under the hero's feet launches it, while the Outworks phase runs.
+            if (Leap != null && !Leap.IsAirborne && _setup.Encounters != null && _setup.Encounters.IsInOutworks)
+                Leap.TryLaunch(_motion.X, _motion.Y);
             Stamina.Step(Time.deltaTime, fighting && IsMoving);
             if (IsMoving)
                 transform.position = new Vector3(_motion.X, ArenaFloor.WorldY(_motion.Y), transform.position.z);

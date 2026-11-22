@@ -39,6 +39,9 @@ namespace Cryptforge.UI
         private bool _shownGate;
         private bool _underBoss;
         private float _beatStart = -1f;
+        // docs/62 P0a's Outworks: the label says the Bell's count, or that it has rung, while the phase runs.
+        private bool _shownOutworks;
+        private bool _shownBell;
 
         // For tests and for anything that wants to read what the player is being shown.
         public bool IsShown => _label != null && _label.gameObject.activeSelf;
@@ -115,6 +118,34 @@ namespace Cryptforge.UI
             {
                 _underBoss = underBoss;
                 _label.rectTransform.anchoredPosition = new Vector2(0f, -(underBoss ? TopUnderBoss : Top));
+            }
+
+            // docs/62 P0a: while the Outworks phase runs the clock counts down to its Bell, then says it has rung, in ember
+            // and without the beat; the floor's own clock takes over from the first hall, written afresh.
+            if (_encounters.IsInOutworks)
+            {
+                OutworksPhase phase = _encounters.Outworks;
+                bool rung = phase.BellRung;
+                int left = rung ? 0 : Mathf.CeilToInt(Mathf.Max(0f, phase.BellSeconds - phase.Seconds));
+                if (_shownOutworks && rung == _shownBell && left == _shownSecond)
+                    return;
+                _shownOutworks = true;
+                _shownBell = rung;
+                _shownSecond = left;
+                _shownGate = false;
+                _shownOverrun = false;
+                _beatStart = -1f;
+                _label.rectTransform.localScale = Vector3.one;
+                _label.text = rung
+                    ? Loc.Text("outworks.bell_rung", "THE BELL - Reach the stair")
+                    : string.Format(Loc.Numbers, Loc.Text("outworks.bell_in_format", "Bell in {0}:{1:00}"), left / 60, left % 60);
+                _label.color = Ember;
+                return;
+            }
+            if (_shownOutworks)
+            {
+                _shownOutworks = false;
+                _shownSecond = -1;
             }
 
             float clock = _encounters.FloorClockSeconds;
