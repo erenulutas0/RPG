@@ -1682,7 +1682,8 @@ namespace Cryptforge.Tests
                     _stride.Tick(Step);
                 // HeroMovementInput: the steer held from last frame, unless the boss's arrival has the stick - or, for the
                 // Riftblade, its dash's step, and the walk fed to its stride.
-                if (!_revealHold && _heroHealth.IsAlive)
+                // docs/64's Myrr: a hero her roots caught stands planted (never without her).
+                if (!_revealHold && _heroHealth.IsAlive && !Planted)
                 {
                     // docs/62 P0a's pad, mid-arc, has the walk step (LeapWalk); never without the Outworks.
                     if (LeapWalk())
@@ -1926,7 +1927,8 @@ namespace Cryptforge.Tests
                 {
                     float mx = x - _markX;
                     float my = y - _markY;
-                    float reach = WardenRule.SlamRadius + .6f;
+                    // docs/64's Myrr's snare is a ring of its own radius (DescentSimulation.Myrr.cs).
+                    float reach = IsMyrr(_slamBoss) ? _levers.MyrrSnareRadius + .6f : WardenRule.SlamRadius + .6f;
                     if (mx * mx + my * my < reach * reach &&
                         cohort.EscapeMark(x, y, _markX, _markY, reach + .4f, _slamBoss.X, _slamBoss.Y, glowing, out float gx, out float gy))
                     {
@@ -3097,6 +3099,9 @@ namespace Cryptforge.Tests
                 foe.Defeated = true;
                 if (GlassCopyFell(foe))
                     return;
+                // docs/64's Myrr's saplings and grown Thornlings (DescentSimulation.Myrr.cs): none without her.
+                if (_garden != null && GardenFell(foe))
+                    return;
                 if (foe.EliteLeader)
                     EliteLeaderFell(foe);
                 // docs/52's research pollen clouds (DescentSimulation.Gloam.cs), off by default.
@@ -3216,6 +3221,8 @@ namespace Cryptforge.Tests
                 if (VaultsOn || _sentryFloor)
                     VaultsTaken(context, taken);
                 EliteTaken(context, taken);
+                if (_garden != null)
+                    MyrrTaken(context, taken);
                 if (context.Source is Foe foe)
                 {
                     _lastAttacker = foe;
@@ -3641,6 +3648,8 @@ namespace Cryptforge.Tests
                     _bossEnraged = false;
                     _slam.Reset();
                     RegentTune(gate);
+                    // docs/64's Myrr keeps a beat of her own (DescentSimulation.Myrr.cs); nothing for any other gate boss.
+                    MyrrTune(gate);
                 }
                 Foe boss = _slamBoss != null && _slamBoss.IsAlive ? _slamBoss : null;
                 if (boss == null)
@@ -3653,9 +3662,13 @@ namespace Cryptforge.Tests
                     _bossEnraged = true;
                     if (IsRegent(boss))
                         RegentPhaseTwo(boss);
+                    if (IsMyrr(boss))
+                        MyrrPhaseTwo(boss);
                 }
                 if (IsRegent(boss))
                     RegentFeet(boss);
+                if (IsMyrr(boss))
+                    MyrrCreep();
                 switch (_slam.Advance(Step, _slamEnraged))
                 {
                     case WardenSlamClock.Step.Marked:
@@ -3664,6 +3677,8 @@ namespace Cryptforge.Tests
                         WatchMark(boss);
                         if (IsRegent(boss))
                             RegentMarked(boss);
+                        if (IsMyrr(boss))
+                            MyrrMarked(boss);
                         if (_trace != null)
                             Emit($"slam_mark enraged={_slamEnraged} x={N(_markX)} y={N(_markY)} hp={N(_heroHealth.Current)}");
                         break;
@@ -3672,15 +3687,20 @@ namespace Cryptforge.Tests
                         WatchBlow();
                         float distanceSquared = ArenaFloor.FloorDistanceSquared(HeroX, HeroY, _markX, _markY);
                         bool regent = IsRegent(boss);
+                        bool myrr = IsMyrr(boss);
                         bool hit = regent
                             ? RegentLanesHit()
-                            : _heroHealth.IsAlive && distanceSquared <= WardenRule.SlamRadius * WardenRule.SlamRadius;
+                            : myrr
+                                ? MyrrSnareHit()
+                                : _heroHealth.IsAlive && distanceSquared <= WardenRule.SlamRadius * WardenRule.SlamRadius;
                         if (hit)
                         {
                             _result.SlamHits++;
                             _harmIsSlam = true;
                             if (regent)
                                 _hero.ApplyDamage(new DamageContext(_heroHealth.Maximum * RegentBlowShare(), boss));
+                            else if (myrr)
+                                _hero.ApplyDamage(new DamageContext(MyrrRule.SnareDamage(_heroHealth.Maximum, _levers.MyrrSnareShare), boss));
                             else
                                 _hero.ApplyDamage(new DamageContext(_heroHealth.Maximum * WardenRule.HeroShare, boss));
                             _harmIsSlam = false;
@@ -4002,7 +4022,8 @@ namespace Cryptforge.Tests
                 {
                     float mx = x - _markX;
                     float my = y - _markY;
-                    float reach = WardenRule.SlamRadius + .6f;
+                    // docs/64's Myrr's snare is a ring of its own radius (DescentSimulation.Myrr.cs).
+                    float reach = IsMyrr(_slamBoss) ? _levers.MyrrSnareRadius + .6f : WardenRule.SlamRadius + .6f;
                     // The Riftblade's late escape (research 2026-11-11): with its dash ready it holds at the Daggers' reach
                     // of the Warden through the telegraph, and the dash leaves as the blow comes due (PilotDash).
                     if (_dash != null && _rift.HoldsForTheDash && mx * mx + my * my < reach * reach &&

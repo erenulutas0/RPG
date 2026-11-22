@@ -334,7 +334,8 @@ namespace Cryptforge.Tests
 
             // Neither the Clerk nor a glass copy strikes in melee: no weapon ticks, and the pilot does not kite from them.
             private static bool Harmless(Foe foe) =>
-                ReferenceEquals(foe.Definition, FacelessClerk) || ReferenceEquals(foe.Definition, GlassCopy);
+                ReferenceEquals(foe.Definition, FacelessClerk) || ReferenceEquals(foe.Definition, GlassCopy) ||
+                ReferenceEquals(foe.Definition, GraftedSapling);
 
             // Where the packs walk: to the newest standing Clerk copy (ClerkDrawsPacks), else to the hero.
             private float PackGoalX => DrawingCopy(out HazardMark copy) ? copy.X : HeroX;
@@ -739,6 +740,9 @@ namespace Cryptforge.Tests
             // free through the telegraph (research) the recovery's alone.
             private bool GateBossHeld(Foe foe)
             {
+                // docs/64's Myrr: her hook free at her feet and after roots caught the hero (DescentSimulation.Myrr.cs).
+                if (IsMyrr(foe))
+                    return MyrrHookHeld();
                 if (!IsRegent(foe))
                     return _slam.HoldsWeaponFor(_levers.WardenRecoverySeconds);
                 float recovery = _levers.RegentRodRecovery >= 0f ? _levers.RegentRodRecovery : _levers.WardenRecoverySeconds;

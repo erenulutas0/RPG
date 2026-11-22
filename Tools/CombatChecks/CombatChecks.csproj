@@ -57,6 +57,8 @@
     <!-- docs/52's Pollen Wraith and Thornling, simulation research only (2026-11-15): the pollen and the dive. -->
     <Compile Include="../../Assets/_Project/Scripts/Combat/PollenRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/ThornlingRule.cs" />
+    <!-- docs/64's Rootmother Myrr, simulation research only (2026-11-23): her root snare, her feet, her saplings. -->
+    <Compile Include="../../Assets/_Project/Scripts/Combat/MyrrRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/HallSurgeRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/AltarRule.cs" />
     <Compile Include="../../Assets/_Project/Scripts/Combat/PitEruptionRule.cs" />
@@ -129,6 +131,8 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/BloomRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PollenRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/ThornlingRuleTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/MyrrRuleTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/FoundryMyrrTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/BurnRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/UpgradeSittingTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/GroundDropsTests.cs" />
@@ -152,6 +156,8 @@
     <Compile Include="../../Assets/_Project/Tests/Support/DescentSimulation.Vaults.cs" />
     <!-- The Gloam Gardens' own enemies (docs/52, research 2026-11-12): the Cinder Bloom as a research lever on floor 3. -->
     <Compile Include="../../Assets/_Project/Tests/Support/DescentSimulation.Gloam.cs" />
+    <!-- docs/64's Rootmother Myrr at floor 3's gate (research 2026-11-23): FoundryLevers.GloamMyrr, off by default. -->
+    <Compile Include="../../Assets/_Project/Tests/Support/DescentSimulation.Myrr.cs" />
     <!-- docs/57's skills 2 and 3 in the foundry simulation (phase 1, 2026-11-18): FoundryLevers.Skills, off by default. -->
     <Compile Include="../../Assets/_Project/Tests/Support/DescentSimulation.HeroSkills.cs" />
     <!-- docs/62's P0a in the foundry simulation (2026-11-22): the Outworks phase before floor 1's halls, FoundryLevers.Outworks, off by default. -->
@@ -211,6 +217,8 @@
     <Compile Include="GloamEnemiesResearch.cs" />
     <!-- The Glass Regent's design round of 2026-11-17 (docs/50) on demand: its gate fight against the standing hero, the candidates. -->
     <Compile Include="RegentRoundResearch.cs" />
+    <!-- docs/64's Rootmother Myrr (stage 3, 2026-11-23) on demand: her fight at floor 3's gate against the Forge Warden's. -->
+    <Compile Include="MyrrRoundResearch.cs" />
     <!-- docs/54's income on demand: forge gold banked, elites and bosses felled a run, by cohort and hero. -->
     <Compile Include="GearEconomyResearch.cs" />
     <!-- docs/54 section 13's geared cohorts on Forged (phase 5) on demand: completion, the bosses, minutes and income with gear. -->

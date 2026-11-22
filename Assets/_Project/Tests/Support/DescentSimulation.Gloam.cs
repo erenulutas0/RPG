@@ -68,6 +68,9 @@ namespace Cryptforge.Tests
                     Enemy[] wave = (Enemy[])three.Rooms[r][w].Clone();
                     if (three.Kinds[r] == RoomKind.Elite && wave.Length > 0 && wave[0] == CinderBloom)
                         wave[0] = levers.GloamCaptain ? Captain : Bloom(levers);
+                    // docs/64's Rootmother Myrr in the Forge Warden's place at the Warden's Grove, its two Mites kept.
+                    if (levers.GloamMyrr && three.Kinds[r] == RoomKind.Boss && wave.Length > 0 && wave[0] == Warden)
+                        wave[0] = Myrr(levers);
                     // The Wraiths and the Thornling in the halls only (the lead's decision 4): Thorn Post's and the Grove's
                     // Cinder Mites stay.
                     if (three.Kinds[r] == RoomKind.Combat)
@@ -83,6 +86,8 @@ namespace Cryptforge.Tests
             }
             // Floor 2 is VaultsChain's own copy (Reshaped), so its next floor can be set without touching another chain.
             FoundryFloor shaped = three.Reshaped(rooms, three.Kinds);
+            if (levers.GloamMyrr && levers.MyrrHealthShare > 0f)
+                shaped.GateHealthShare = levers.MyrrHealthShare;
             if (levers.GloamWraiths || levers.GloamThornlings)
             {
                 var roles = (Enemy[])three.HordeRoles.Clone();
@@ -168,7 +173,7 @@ namespace Cryptforge.Tests
             public int NudgeDraws = 1;
 
             // Whether GloamChain reshapes floor 3.
-            public bool Gloam => GloamCaptain || !ShippedBloom(this) || GloamWraiths || GloamThornlings;
+            public bool Gloam => GloamCaptain || !ShippedBloom(this) || GloamWraiths || GloamThornlings || GloamMyrr;
         }
 
         // One elite room's leader felled: its kind, from walking in to falling, the seconds it stood within reach of the
@@ -263,6 +268,8 @@ namespace Cryptforge.Tests
             private void StepGloam()
             {
                 StepBlooms();
+                // docs/64's Myrr's garden (DescentSimulation.Myrr.cs): nothing unless she is fought.
+                StepGarden();
                 if (!ReferenceEquals(_floor, _gloamFloor))
                     GloamFloorBegan();
                 if (_pollen != null)
