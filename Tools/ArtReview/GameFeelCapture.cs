@@ -79,9 +79,22 @@ namespace Cryptforge.Tests
             foreach (var attack in Object.FindObjectsByType<AttackController>(FindObjectsSortMode.None)) attack.enabled = false;
         }
 
+        // Takes each open choice's first card that is not a new weapon. The hero section fills the later slots itself
+        // (AttackController.AddWeapon), outside the loadout the offers count, so a weapon card taken after that would be
+        // a fourth weapon, and an attacker fires at most three (WeaponLoadout.MaxSlots). An offer always holds a card that
+        // is not a weapon: only two weapons can be new beside the first.
         private static void ResolveChoices(CombatSetup setup)
         {
-            for (int i = 0; i < 8 && setup.Choices.IsOpen; i++) setup.Choices.TrySelect(setup.Choices.Current, 0);
+            for (int i = 0; i < 8 && setup.Choices.IsOpen; i++) setup.Choices.TrySelect(setup.Choices.Current, NotAWeapon(setup));
+        }
+
+        private static int NotAWeapon(CombatSetup setup)
+        {
+            UpgradeOffer offer = setup.Choices.Current.Kind == ChoiceKind.Upgrade ? setup.Upgrades.CurrentOffer : null;
+            if (offer == null) return 0;
+            for (int c = 0; c < offer.Choices.Count; c++)
+                if (offer.Choices[c].Category != OfferCategory.NewWeapon) return c;
+            return 0;
         }
 
         // Frames of a section, one a frame (or every second frame), framed on a subject.
@@ -118,8 +131,11 @@ namespace Cryptforge.Tests
             }
             // The cues among real strikes: the Staff and the Daggers fired beside the first weapon for two seconds.
             var attack = hero.GetComponent<AttackController>();
-            attack.AddWeapon(new WeaponRuntime(1f, .7f, 3f, 0f, new AttackPattern(WeaponBehavior.Area, 1f, .5f)));
-            attack.AddWeapon(new WeaponRuntime(1f, .45f, 3f, 0f, new AttackPattern(WeaponBehavior.DirectHit)));
+            // Only into free slots: the attacker fires at most three weapons, the first among them.
+            if (attack.WeaponCount < WeaponLoadout.MaxSlots)
+                attack.AddWeapon(new WeaponRuntime(1f, .7f, 3f, 0f, new AttackPattern(WeaponBehavior.Area, 1f, .5f)));
+            if (attack.WeaponCount < WeaponLoadout.MaxSlots)
+                attack.AddWeapon(new WeaponRuntime(1f, .45f, 3f, 0f, new AttackPattern(WeaponBehavior.DirectHit)));
             hero.GetComponent<Targeting>().SetCandidates(new[] { target });
             attack.enabled = true;
             yield return Frames("slot-strikes", 120, on, 1.35f, 2);
