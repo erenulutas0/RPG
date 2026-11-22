@@ -8,7 +8,8 @@ namespace Cryptforge.UI
 {
     // The HUD pause button and the pause overlay. The button shows only while the player can pause (a live run with no
     // choice open); the overlay follows RunPause, so leaving the app also shows it on return. The overlay is the game's
-    // settings for now: the language toggle stands between Resume and the hint (docs/60).
+    // settings for now: the language toggle stands between Resume and the hint (docs/60), and "Skip reward videos" (docs/58
+    // 7.4, the store's one product) above it, as low key.
     public sealed class PauseView : MonoBehaviour
     {
         // The toggle under Resume: this far above its top edge, this tall, this much narrower on each side.
@@ -16,6 +17,10 @@ namespace Cryptforge.UI
         private const float LanguageHeight = 140f;
         private const float LanguageInset = 160f;
         private const int LanguageFontSize = 48;
+        // The skip's entry above the toggle: this far above its top edge, this tall, as narrow.
+        private const float SkipGap = 24f;
+        private const float SkipHeight = 120f;
+        private const int SkipFontSize = 44;
         [SerializeField] private CombatSetup _setup;
         [SerializeField] private PrototypeTextDefinition _text;
         [SerializeField] private Button _pauseButton;
@@ -30,10 +35,13 @@ namespace Cryptforge.UI
         private bool _awaitingInputDelay;
         private bool _subscribed;
         private LanguageToggleView _language;
+        private SkipVideosButton _skip;
 
         public bool IsOpen => _panel != null && _panel.activeSelf;
         // The language toggle on the overlay, for tests and captures.
         public LanguageToggleView LanguageToggle => _language;
+        // "Skip reward videos" on the overlay, for tests and captures.
+        public SkipVideosButton SkipVideos => _skip;
 
         private void Start()
         {
@@ -71,6 +79,11 @@ namespace Cryptforge.UI
                 resume.pivot,
                 new Vector2(resume.anchoredPosition.x, resume.anchoredPosition.y + resume.sizeDelta.y + LanguageGap),
                 new Vector2(resume.sizeDelta.x - 2f * LanguageInset, LanguageHeight));
+            // The settings' other entry, on the same plate and as wide, above the toggle and under the hint.
+            float skipY = resume.anchoredPosition.y + resume.sizeDelta.y + LanguageGap + LanguageHeight + SkipGap;
+            _skip = SkipVideosButton.Create(parent, SkipVideosButton.ObjectName, _resumeLabel, SkipFontSize, true,
+                resume.anchorMin, resume.anchorMax, resume.pivot, new Vector2(resume.anchoredPosition.x, skipY),
+                new Vector2(resume.sizeDelta.x - 2f * LanguageInset, SkipHeight));
         }
 
         private void Refresh()
@@ -83,6 +96,8 @@ namespace Cryptforge.UI
                 _resumeButton.interactable = false;
                 if (_language != null)
                     _language.Button.interactable = false;
+                if (_skip != null)
+                    _skip.SetInputEnabled(false);
                 _inputEnabledAt = Time.unscaledTime + _inputDelay;
                 _awaitingInputDelay = paused;
             }
@@ -98,6 +113,8 @@ namespace Cryptforge.UI
             _resumeButton.interactable = true;
             if (_language != null)
                 _language.Button.interactable = true;
+            if (_skip != null)
+                _skip.SetInputEnabled(true);
         }
 
         private void OnPause() => _setup.Pause.TryPause();

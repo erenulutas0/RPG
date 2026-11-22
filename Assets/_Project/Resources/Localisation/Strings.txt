@@ -489,6 +489,20 @@ map.start_fresh	Floor {0}. A fresh hero, the whole Ascent ahead.	Kat {0}. Taze b
 result.loot_nothing	nothing	hiçbir şey	Result loot line: what was banked when the run banked nothing but lost loot ("Ganimet: hiçbir şey  |  kayıp: ...").
 result.loot_pieces	{0} pieces (see the Bag)	{0} eşya (Çanta'ya bak)	Result loot line when the full line would not fit. {0} the count of items and materials; no plural after a number.
 
+# ---- docs/58 7.4, the result screen's rewarded offer (RewardOfferText) and the one product the store sells, "Skip reward videos" (a link under the offer, an entry on the pause overlay). Plain words, never a nag. rewarded video = ödüllü video, bonus = bonus (the Turkish game word)
+result.offer_video	Watch a video: +{bonus} gold	Video izle: +{bonus} altın	Result screen, the offer's button with a video ready, 760 px wide. {bonus} the gold a watched video adds (the run's gold x1.5, rounded up).
+result.offer_skip	Skip owned: +{bonus} gold	Videosuz al: +{bonus} altın	The same button for an owner of "Skip reward videos": the bonus without a video. "Videosuz al" = take it without a video.
+result.offer_no_ad	No video right now	Şu an video yok	The same button with no video ready: the run's own gold stands; a tap asks for one.
+result.offer_credited	+{bonus} gold added	+{bonus} altın eklendi	In the button's place once the bonus is credited. {bonus} the gold added.
+result.offer_skipped	The video was closed early: no bonus	Video erken kapandı: bonus yok	In the button's place: the player closed the video before its reward.
+result.offer_failed_retry	The video could not play: try once more	Video oynatılamadı: bir kez daha dene	Under the button after a first failure (no fault of the player's): the same button offers one retry.
+result.offer_failed	The video could not play: no bonus	Video oynatılamadı: bonus yok	In the button's place after the retry failed too.
+store.skip_videos	Skip reward videos	Ödüllü videoları atla	The product's name: the result screen's link under the offer, and the pause overlay's entry above the language toggle.
+store.skip_videos_owned	Skip reward videos: owned	Ödüllü videolar atlanıyor	The pause overlay's entry once bought ("reward videos are being skipped").
+store.purchasing	Opening the store...	Mağaza açılıyor...	The link or the entry while the store's purchase is open.
+store.purchase_pending	Purchase pending	Satın alma bekliyor	The store took the order but has not been paid yet (Google Play's pending purchase): nothing unlocks until it is.
+store.purchase_failed	The store did not answer: try later	Mağaza yanıt vermedi: sonra dene	The purchase failed (offline, or the store's error).
+
 # ---- docs/62 P0a, the Outworks probe (development/outworks.txt; off by default): OutworksView, FloorClockView, ExitSealView. Working names (docs/62 section 11): Outworks = Dış Avlular, Tithe Anvil = Öşür Örsü, Keeper = Muhafız, the Bell = Çan, Ascent Stair = Tırmanış Merdiveni, Stair Key = Merdiven Anahtarı; the owner reviews them with docs/60's glossary
 outworks.bell_in_format	Bell in {0}:{1:00}	Çanın çalmasına {0}:{1:00}	HUD floor clock while the Outworks phase runs, before the Bell. {0} minutes, {1} seconds. 420 px wide, as the gate's count (prototype.gate_opens_format).
 outworks.bell_rung	THE BELL - Reach the stair	ÇAN ÇALDI - Merdivene ulaş	HUD floor clock once the Bell has rung: the swarm rises and the Ascent Stair is open. 420 px wide.

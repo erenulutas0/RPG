@@ -13,8 +13,9 @@ namespace Cryptforge.UI
     // Shows why and how far the run went, what the Forge holds now, and offers a single restart or the Relic Forge.
     // Both buttons are briefly disabled after opening so a tap aimed at combat cannot act by accident. In the language the
     // game speaks (docs/60): the hero's name through HeroText, the numbers in the language's format, the buttons' words
-    // following a language change.
-    public sealed class RunResultView : MonoBehaviour
+    // following a language change. From the second completed run, the one rewarded offer under the gold and the "Skip
+    // reward videos" link under it (docs/58 7.4; RunResultView.Offer.cs).
+    public sealed partial class RunResultView : MonoBehaviour
     {
         [SerializeField] private CombatSetup _setup;
         [SerializeField] private EncounterController _encounters;
@@ -60,6 +61,7 @@ namespace Cryptforge.UI
             LocalisedLabel.Bind(_forgeButtonLabel, () => _text.ForgeButtonLabel);
             _restartButton.onClick.AddListener(OnRestart);
             _forgeButton.onClick.AddListener(OnForge);
+            BuildOffer();
             // RunBank subscribed in CombatSetup.Awake, so the run's gold is already in the profile when Show runs.
             _setup.Run.Ended += Show;
             _subscribed = true;
@@ -110,20 +112,30 @@ namespace Cryptforge.UI
             _titleLabel.text = TierText.AfterTitle(_titleLabel.text, _setup.Tier);
             _progressLabel.text = string.Format(Loc.Numbers, _text.ResultProgressFormat, _encounters.FloorNumber, _encounters.TotalRoomsCleared,
                 run.Level, run.Experience);
-            _goldLabel.text = run.GoldLost > 0
-                ? string.Format(Loc.Numbers, _text.ResultGoldLostFormat, run.GoldBanked, run.GoldLost)
-                : string.Format(Loc.Numbers, _text.ResultGoldFormat, run.GoldBanked);
+            DrawGold();
             _buildLabel.text = string.Format(Loc.Numbers, _text.ResultBuildFormat, _setup.HeroWeapon.DisplayName, DescribeBuild());
             // The run's loot (docs/54) as the build label's last line, one short line ("Loot: Ember 4, Seal 1, 1 item"); the
             // Bag tab names each item. Never past the label's foot: a line that would overflow gives way to the bare count,
             // and that to nothing.
             AppendLoot();
             _forgeHintLabel.text = DescribeForge();
+            // After the labels: the offer may make room for itself under the gold and write the gold again once credited.
+            OpenOffer();
 
             _panel.SetActive(true);
             SetButtonsInteractable(false);
             _inputEnabledAt = Time.unscaledTime + _inputDelay;
             _awaitingInputDelay = true;
+        }
+
+        // The run's banked gold, and the offer's bonus with it once credited (docs/58 7.4).
+        private void DrawGold()
+        {
+            RunState run = _setup.Run;
+            int gold = run.GoldBanked + OfferCreditedGold;
+            _goldLabel.text = run.GoldLost > 0
+                ? string.Format(Loc.Numbers, _text.ResultGoldLostFormat, gold, run.GoldLost)
+                : string.Format(Loc.Numbers, _text.ResultGoldFormat, gold);
         }
 
         // The loot line as shown, for tests and captures; empty when the run dropped nothing or the label had no room.
@@ -229,6 +241,7 @@ namespace Cryptforge.UI
         {
             _restartButton.interactable = interactable;
             _forgeButton.interactable = interactable;
+            SetOfferInteractable(interactable);
         }
 
         private void OnRestart()
@@ -237,6 +250,8 @@ namespace Cryptforge.UI
                 return;
 
             SetButtonsInteractable(false);
+            // Leaving the screen ends its offer: declined, or as its video or its ask ended (RewardOfferCoordinator.Close).
+            CloseOffer();
             _setup.RestartRun();
         }
 
@@ -250,6 +265,7 @@ namespace Cryptforge.UI
 
         private void OnDestroy()
         {
+            DestroyOffer();
             if (!_subscribed)
                 return;
 
