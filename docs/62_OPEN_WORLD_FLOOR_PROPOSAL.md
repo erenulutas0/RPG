@@ -819,3 +819,30 @@ Short and plain; the lead translates them.
     which one you want to play again?
 11. Are the names OK as working names: **Outworks** (the world), **Tithe Anvil** (the shrine), **Keeper**, **the Bell**,
     **Ascent Stair**, **sanctum**? Turkish names go through docs/60.
+
+## 11. The owner's answers and the lead's decisions (2026-11-22)
+
+**The owner:**
+1. **When:** P0a now; the full world after the first release.
+2. **Halls:** the world comes **in addition to** the three halls, not in place of them. The floor runs as world, then
+   halls, then the sanctum's boss.
+3. **Jumping:** automatic. Pads launch the hero and narrow gaps take an auto-hop; there is no new button.
+4. **Length:** the climb stays **13-16 minutes**. It is revisited after P0a if the world proves to be the fun.
+
+Answers 2 and 4 together mean the floor's time is shared. In P0a the world segment gets about 1:30-2:00, and the halls'
+time is trimmed so a floor stays about 4:30-5:15. The split is set by measurement in the simulation and confirmed on the
+S23, not guessed. Power parity at the boss (section 4) still holds: the hero meets the Warden at today's level and
+health.
+
+**The lead** (gameplay calls are delegated):
+- **Q3, the shape:** each run is a seeded arrangement of hand-authored pieces. The shapes are the same and their order is
+  shuffled, so the world stays readable and is never pure noise.
+- **Q5, the Final Swarm** stays at the top of the tower.
+- **Q6, yes:** a Keeper's key opens the Ascent Stair early and skips the Bell. Skill is rewarded.
+- **Q7, chests are free in P0a.** A vendor and paid chests wait for P1.
+- **Q9, asset purchases:** decided when the verified tools list (docs/research/2026-11-22_ai_tools_verified.md) is in.
+  Buying is the owner's.
+- **Q10, the A/B on the S23:** asked when P0a is ready.
+- **Q11, the working names stand** (Outworks, Tithe Anvil, Keeper, the Bell, Ascent Stair, sanctum). Their Turkish goes
+  into the table with the owner's glossary review.
+
