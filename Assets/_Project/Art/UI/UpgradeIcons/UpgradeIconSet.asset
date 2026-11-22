@@ -115,3 +115,27 @@ MonoBehaviour:
   - _id: upgrade_attack_speed
     _card: {fileID: -4951901537402991512, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
     _slot: {fileID: 0}
+  - _id: weapon_magma_mortar
+    _card: {fileID: -3655056187501890228, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: -5095549540481480082, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+  - _id: line_magma_mortar_damage
+    _card: {fileID: -1563529281388239558, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 0}
+  - _id: line_magma_mortar_area
+    _card: {fileID: -3869962592358688122, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 0}
+  - _id: line_magma_mortar_attack_speed
+    _card: {fileID: 5712007941100330844, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 0}
+  - _id: weapon_forge_bow
+    _card: {fileID: -3151506322733148653, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: -3510428398378456262, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+  - _id: line_forge_bow_damage
+    _card: {fileID: 8521286929830998655, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 0}
+  - _id: line_forge_bow_crit
+    _card: {fileID: -3006974103885873834, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 0}
+  - _id: line_forge_bow_range
+    _card: {fileID: 4201730284938526230, guid: 52bf72cc1a77477c9cad1d80dbd7d630, type: 3}
+    _slot: {fileID: 0}

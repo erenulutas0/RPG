@@ -104,6 +104,20 @@ namespace Cryptforge.Core
             return FoundryRegion() && !string.IsNullOrEmpty(line) && !string.Equals(line, "off", StringComparison.Ordinal);
         }
 
+        // docs/63's weapon roster, a research lever: any text in it but "off" has a foundry run's cards draw from the roster -
+        // the hero's own weapon, then the shared weapons (the Daggers, the Magma Mortar, the Forge Bow), every other hero's
+        // own weapon never (CombatSetup, WeaponRoster). Only the Editor and a development build look; nothing without the
+        // file, so a release build and the default batch play today's catalogue.
+        public const string WeaponRosterFileName = "weapon-roster.txt";
+        public static string WeaponRosterPath => Path.Combine(ProfileLocation.Resolve(), FolderName, WeaponRosterFileName);
+        public static bool WeaponRoster()
+        {
+            if (!Application.isEditor && !Debug.isDebugBuild)
+                return false;
+            string line = ReadFirstLine(WeaponRosterPath);
+            return FoundryRegion() && !string.IsNullOrEmpty(line) && !string.Equals(line, "off", StringComparison.Ordinal);
+        }
+
         // A hero id in it plays that hero whatever the profile chose (docs/45). Nothing without the file.
         public static string HeroPath => Path.Combine(ProfileLocation.Resolve(), FolderName, "hero.txt");
         public static string HeroId() => Application.isEditor || Debug.isDebugBuild ? ReadFirstLine(HeroPath) : null;

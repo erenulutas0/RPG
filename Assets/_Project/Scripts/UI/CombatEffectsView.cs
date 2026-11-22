@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Cryptforge.Art;
 using Cryptforge.Combat;
 using Cryptforge.Content;
+using Cryptforge.Core;
 using UnityEngine;
 
 namespace Cryptforge.UI
@@ -99,6 +100,14 @@ namespace Cryptforge.UI
         private const float NumberJitter = 0.35f;
         private const float StrikeFrameDuration = 0.05f;
         private const float StaffPulseDuration = .21f;
+        // docs/63's shared weapons: the tracer's two frames over its short life (the shell's and the shot's), the shell's
+        // last stretch above its target, the longest shot drawn whole (a farther target shows the shot's last 2.5 units),
+        // and the Mortar's ember ring (BurnTint's ember, a little hotter).
+        private const float TracerFrameDuration = .06f;
+        private const float TracerSeconds = .16f;
+        private const float MortarShellLength = 1.1f;
+        private const float BowTracerLength = 2.5f;
+        private static readonly Color MortarTint = new Color(1f, .52f, .18f, 1f);
         // The painted Staff hit's frame times: its floor ring a little longer than the procedural ring's 0.21 s, so its
         // break into four arcs reads as it fades, and the burst on the struck body over its first part.
         private const float PaintedStaffRingFrameDuration = .048f;
@@ -285,6 +294,11 @@ namespace Cryptforge.UI
         private Sprite[] _doubleSlash;
         private Sprite[] _star;
         private Sprite[] _spark;
+        // docs/63's shared weapons: the Forge Bow's tracer and the Magma Mortar's falling shell (EffectArt.TracerFrames),
+        // pinned at their heads and stretched along the shot.
+        private Sprite[] _tracer;
+        // The scene's setup, for the id of the weapon behind a strike (WeaponIdOf); null in a scene without one.
+        private CombatSetup _setup;
         private Sprite[] _smoke;
         private Sprite[] _coin;
         private Sprite[] _digits;
@@ -466,6 +480,7 @@ namespace Cryptforge.UI
             var arena = FindFirstObjectByType<ArenaView>();
             if (arena != null && arena.IsFoundryRegion)
                 _groundOrder = arena.GroundEffectSortingOrder;
+            _setup = FindFirstObjectByType<CombatSetup>();
         }
 
         private void OnEnable()
@@ -565,6 +580,8 @@ namespace Cryptforge.UI
             }
             _abilityPulse = new[] { AbilityRingArt.Get() }; // Borrowed; never added to _sprites.
             _spark = UsesPaintedStrikes ? _paintedArt.Spark : Build(EffectArt.SparkFrames(), "VFX Spark", PixelSpriteFactory.Centre);
+            _tracer = Build(EffectArt.TracerFrames(), "VFX Tracer",
+                new Vector2((EffectArt.TracerLength - 1.5f) / EffectArt.TracerLength, .5f));
             // Imported references are borrowed; only generated sprites enter the destruction list.
             BuildFeedbackSprites();
 
@@ -983,7 +1000,7 @@ namespace Cryptforge.UI
             EnemyWatch watch = FindWatch(target);
             Vector3 anchor = AnchorOf(watch, target);
             Vector3 ground = FeetOf(watch, target);
-            switch (EffectArt.StrikeFor(weapon.Pattern.Behavior))
+            switch (EffectArt.StrikeFor(WeaponIdOf(weapon), weapon.Pattern.Behavior))
             {
                 case StrikeEffect.SwordSlash:
                     Effect slash = StandOn(ShowMoving(_slash, StrikeFrameDuration, _slash.Length * StrikeFrameDuration, anchor,
@@ -1007,6 +1024,36 @@ namespace Cryptforge.UI
                     if (_staffBurst != null)
                         StandOn(Show(_staffBurst, PaintedStaffBurstFrameDuration, anchor, _sortingOrder + StrikeOrder), ground);
                     break;
+                case StrikeEffect.MortarBlast:
+                {
+                    // docs/63: the shell's last stretch drops onto the struck body, and the blast rings the floor in ember at
+                    // the Staff's scale for the same radius (RingScale), Reach and the area line widening it as it strikes.
+                    Effect shell = StandOn(ShowMoving(_tracer, TracerFrameDuration, TracerSeconds, anchor, _sortingOrder + StrikeOrder,
+                        Vector3.zero, 0f, false), ground);
+                    Stretch(shell, Vector3.down, MortarShellLength);
+                    Vector3 blastFeet = watch != null && watch.Root != null ? watch.Root.position : target.transform.position;
+                    float blastRadius = RingScale(weapon) * EffectArt.RingFullRadius / PixelSpriteFactory.PixelsPerUnit;
+                    Effect blast = ShowMoving(_ring, StaffPulseDuration, StaffPulseDuration, blastFeet, _groundOrder, Vector3.zero, 0,
+                        false, blastRadius * (24f / 38));
+                    blast.StaffPulse = true;
+                    blast.PulseRadius = blastRadius;
+                    blast.Tint = MortarTint;
+                    blast.Renderer.color = MortarTint;
+                    break;
+                }
+                case StrikeEffect.BowShot:
+                {
+                    // docs/63: a hot tracer from the hero's body to the struck one, its head on the target, at most
+                    // BowTracerLength long; a crit's star as the Daggers' (the first weapon's crits are paired, OnHeroStruck).
+                    Vector3 from = _hero.transform.position + Vector3.up * DefaultBodyHeight;
+                    Vector3 shot = anchor - from;
+                    Effect tracer = StandOn(ShowMoving(_tracer, TracerFrameDuration, TracerSeconds, anchor, _sortingOrder + StrikeOrder,
+                        Vector3.zero, 0f, false), ground);
+                    Stretch(tracer, shot, Mathf.Min(shot.magnitude, BowTracerLength));
+                    if (critical)
+                        StandOn(Show(_star, _starFrameDuration, anchor, _sortingOrder + StarOrder), ground);
+                    break;
+                }
                 default:
                     Effect cuts = StandOn(Show(_doubleSlash, _doubleSlashFrameDuration, anchor, _sortingOrder + StrikeOrder),
                         ground);
@@ -1017,6 +1064,34 @@ namespace Cryptforge.UI
                         StandOn(Show(_star, _starFrameDuration, anchor, _sortingOrder + StarOrder), ground);
                     break;
             }
+        }
+
+        // The id of the hero's weapon behind a strike: the loadout's slot holding this runtime on the foundry, the run's own
+        // weapon in the legacy engine; null for any other (an enemy's, or a scene without a setup), which strikes by its
+        // behaviour. At most three slots to look at, and no allocation.
+        private string WeaponIdOf(WeaponRuntime weapon)
+        {
+            if (_setup == null || weapon == null)
+                return null;
+            WeaponLoadout loadout = _setup.Upgrades != null ? _setup.Upgrades.Loadout : null;
+            if (loadout != null)
+            {
+                for (int i = 0; i < loadout.Count; i++)
+                    if (ReferenceEquals(loadout.At(i).Runtime, weapon))
+                        return loadout.At(i).WeaponId;
+                return null;
+            }
+            return ReferenceEquals(weapon, _setup.Weapon) && _setup.HeroWeapon != null ? _setup.HeroWeapon.Id : null;
+        }
+
+        // A tracer along a direction, its head where it was placed: turned to the direction and stretched to the length, then
+        // faded over its short life.
+        private static void Stretch(Effect effect, Vector3 direction, float length)
+        {
+            float texels = EffectArt.TracerLength / PixelSpriteFactory.PixelsPerUnit;
+            effect.Transform.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg);
+            effect.Transform.localScale = new Vector3(Mathf.Max(.25f, length / texels), 1f, 1f);
+            effect.Fade = true;
         }
 
         // The ring sprite's full frame reaches RingFullRadius texels either side; scale it to the shown part of the splash.

@@ -770,6 +770,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 10000000000000000000000000000001, type: 2}
   - {fileID: 11400000, guid: 1000000000000000000000000000001b, type: 2}
   - {fileID: 11400000, guid: 1000000000000000000000000000001c, type: 2}
+  _rosterWeapons:
+  - {fileID: 11400000, guid: c471296293ca402297e3c4cc86297f05, type: 2}
+  - {fileID: 11400000, guid: c1ad6810fdc1435ba4d4c9422f3fb773, type: 2}
   _text: {fileID: 11400000, guid: 10000000000000000000000000000004, type: 2}
   _hero: {fileID: 202}
   _attack: {fileID: 204}

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Cryptforge.Art;
@@ -19,14 +20,17 @@ namespace Cryptforge.Tests
     // table keeps their old painted icons only as a fallback); the weapons, their evolutions and the tomes have socket icons for the loadout row too. The
     // sheet's import and its cost on the phone, and what the icons paint, read back from the sheet as painted (the
     // imported texture is compressed and unreadable): clear at their edges and the painted icons' navy laid over it,
-    // their glyphs filling the square, and each evolution throwing more light than what it evolves from.
+    // their glyphs filling the square, and each evolution throwing more light than what it evolves from. The weapon
+    // roster's shared weapons (docs/63: the Magma Mortar and the Forge Bow, CombatSetup._rosterWeapons) are offers too
+    // behind its lever, so they have theirs.
     public sealed class UpgradeIconSetTests
     {
         private const string SetPath = "Assets/_Project/Art/UI/UpgradeIcons/UpgradeIconSet.asset";
         private const string ScenePath = "Assets/_Project/Scenes/Gameplay/Gameplay.unity";
         private const string GoldIconPath = "Assets/_Project/Art/UI/UI_Icon_Gold_v1.png";
-        // Every icon of the set together, as ASTC 4x4 (a byte a texel): about 0.8 MB on the phone at most.
-        private const long BudgetBytes = 838860;
+        // Every icon of the set together, as ASTC 4x4 (a byte a texel): 1 MiB on the phone at most since docs/63's two
+        // weapons and their lines took the sheet from 1020x788 (0.77 MiB) to 1020x1020 (0.99 MiB).
+        private const long BudgetBytes = 1048576;
         private const int CardSize = 144;
         private const int SlotSize = 56;
 
@@ -60,7 +64,7 @@ namespace Cryptforge.Tests
                 if (card.EvolvesFrom != null)
                     _evolvesFrom[card.Id] = card.EvolvesFrom.Id;
             }
-            foreach (string guid in Guids(setup, "_weapons", "{fileID"))
+            foreach (string guid in Guids(setup, "_weapons", "{fileID").Concat(Guids(setup, "_rosterWeapons", "{fileID")))
             {
                 var weapon = Load<WeaponDefinition>(guid);
                 _weaponIds.Add(weapon.Id);
@@ -106,16 +110,18 @@ namespace Cryptforge.Tests
         [Test]
         public void EveryIdAnOfferCanShowHasAnIcon()
         {
-            Assert.That(_weaponIds, Is.EquivalentTo(new[] { "weapon_sword", "weapon_staff", "weapon_daggers" }),
-                "The three hero weapons a foundry run can carry.");
-            Assert.That(_lineIds.Count, Is.EqualTo(9), "Three lines on each of them.");
-            Assert.That(_evolutionIds.Count, Is.EqualTo(3), "And an evolution each.");
+            Assert.That(_weaponIds, Is.EquivalentTo(new[]
+                {
+                    "weapon_sword", "weapon_staff", "weapon_daggers", "weapon_magma_mortar", "weapon_forge_bow"
+                }), "The three hero weapons a foundry run can carry, and the roster's two shared ones (docs/63).");
+            Assert.That(_lineIds.Count, Is.EqualTo(15), "Three lines on each of them.");
+            Assert.That(_evolutionIds.Count, Is.EqualTo(3), "And an evolution each of the three; none yet for the roster's two.");
             Assert.That(_tomeIds.Count, Is.EqualTo(5), "Five tomes.");
             Assert.That(_generalIds.Count, Is.EqualTo(14), "Fourteen general cards in the pool.");
             Assert.That(_tableIds, Is.EquivalentTo(new[] { "upgrade_damage", "upgrade_attack_speed" }),
                 "The scene's own table keeps the two painted legacy icons, as a fallback the set now covers.");
             var offerable = new HashSet<string>(OfferableIds());
-            Assert.That(offerable.Count, Is.EqualTo(34), "No id names two cards.");
+            Assert.That(offerable.Count, Is.EqualTo(42), "No id names two cards.");
             foreach (string id in offerable)
                 Assert.That(_set.CardIconFor(id), Is.Not.Null, $"{id} has its icon in the set, the table's two included.");
             var inSet = new HashSet<string>();
@@ -229,7 +235,7 @@ namespace Cryptforge.Tests
             Assert.That((sheet.width, sheet.height), Is.EqualTo((_painted.width, _painted.height)), $"{path}: at its painted size.");
             Assert.That(android.maxTextureSize, Is.GreaterThanOrEqualTo(Mathf.Max(sheet.width, sheet.height)), $"{path}: whole on the phone.");
             Assert.That(sheet.width % 4 == 0 && sheet.height % 4 == 0, Is.True, $"{path}: whole ASTC blocks.");
-            Assert.That((long)sheet.width * sheet.height, Is.LessThanOrEqualTo(BudgetBytes), "About 0.8 MB on the phone at most.");
+            Assert.That((long)sheet.width * sheet.height, Is.LessThanOrEqualTo(BudgetBytes), "1 MiB on the phone at most.");
             // The sprites never touch: two clear texels between neighbours, so bilinear filtering never reaches across.
             var rects = new List<Rect>();
             for (int i = 0; i < _set.Count; i++)

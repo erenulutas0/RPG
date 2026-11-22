@@ -1106,6 +1106,85 @@ def daggers_line(mark, **kw):
     return line(lambda g, t: daggers(g, t), mark, t=T(dx=-7.0, dy=-8.0, k=0.96), **kw)
 
 
+# docs/63's two shared weapons (2026-11-23), in the weapons' family: the Magma Mortar and the Forge Bow, each pointed to
+# the top right as the Sword and the Staff are, the Mortar's molten mouth and shell and the Bow's forged arrowhead the
+# ember the game draws their strikes in.
+
+def mortar(g, t=T(), barrel=IRON, bands=GOLD, bed=WOOD, shell=EMBER):
+    """The Magma Mortar: a squat iron barrel bound in gold, tilted to the top right on a low wooden bed, its mouth
+    glowing molten, and its ember shell flying out of it with a short trail."""
+    b0, b1 = (30.0, 70.0), (56.0, 44.0)
+    d = unit((b1[0] - b0[0], b1[1] - b0[1]))
+    x = np.array([-d[1], d[0]], np.float32)
+    bd = polygon([t.p(14, 84), t.p(72, 84), t.p(66, 70), t.p(20, 70)])
+    bm = mask_of(bd)
+    part(g, bm, skin_pillow(bm, bed, 3, 2.0), bed, inline=0)
+    for cx in (26.0, 60.0):
+        wheel = ellipse(*t.p(cx, 84.0), t.w(5.6))
+        part(g, wheel, skin_dome(wheel, bands, 3, 2.0), bands)
+    br = blade(t.p(*b0), t.p(*b1), [t.w(10.5), t.w(9.6), t.w(10.2), t.w(11.6)])
+    part(g, br, skin_tube(br, barrel, 3, 2), barrel)
+    length = float(np.hypot(b1[0] - b0[0], b1[1] - b0[1]))
+    for at in (0.22, 0.6):
+        b = blade(t.p(*along(b0, d, at * length - 2.2)), t.p(*along(b0, d, at * length + 2.2)), [t.w(12.2)])
+        part(g, b, skin_tube(b, bands, 3, 2), bands)
+    mz = blade(t.p(*along(b1, d, -3.4)), t.p(*along(b1, d, 1.6)), [t.w(13.4)])
+    part(g, mz, skin_tube(mz, bands, 3, 2), bands)
+    mc = t.p(*along(b1, d, 1.8))
+    mouth = ellipse(mc[0], mc[1], t.w(10.4), t.w(4.2), angle=math.degrees(math.atan2(x[1], x[0])))
+    part(g, mouth, colours(MOLTEN, 5), MOLTEN, inline=3, separate=False, emit=1.2)
+    sc = along(b1, d, 24.0)
+    trail = blade(t.p(*along(b1, d, 6.0)), t.p(*sc), [t.w(0.8), t.w(3.0), t.w(4.6)])
+    part(g, trail, colours(shell, 4), shell, inline=2, emit=1.0)
+    sh = ellipse(*t.p(*sc), t.w(7.2))
+    part(g, sh, skin_dome(sh, shell, 4, 2.2), shell, emit=1.3)
+    g.sparkle(*t.p(*along(sc, x, 11.0)), 1, shell[5], emit=1.4)
+    return dict(mouth=mc, shell=t.p(*sc), d=d, x=x, t=t)
+
+
+def forge_bow(g, t=T(), limb=WOOD, metal=GOLD, string=PALE, shaft=WOOD, head=EMBER, fletch=STEEL):
+    """The Forge Bow: a recurve bow, its back to the top right, dark wood tipped and gripped in gold, its string drawn
+    to the bottom left, and on it a forged arrow aimed to the top right, its head glowing from the forge."""
+    o = (38.0, 62.0)
+    tip_a = along(o, (math.cos(math.radians(-110.0)), math.sin(math.radians(-110.0))), 34.0)
+    tip_b = along(o, (math.cos(math.radians(20.0)), math.sin(math.radians(20.0))), 34.0)
+    nock = (36.0, 64.0)
+    for end in (tip_a, tip_b):
+        s = blade(t.p(*end), t.p(*nock), [t.w(0.9)])
+        part(g, s, colours(string, 4), string, inline=2)
+    arc = crescent(*t.p(*o), t.w(34.0), t.w(9.2), -110.0, 20.0)
+    am = mask_of(arc)
+    part(g, am, skin_pillow(am, limb, 3, 1.6), limb, inline=0)
+    for end in (tip_a, tip_b):
+        cap = ellipse(*t.p(*end), t.w(3.0))
+        part(g, cap, skin_dome(cap, metal, 3, 2.0), metal)
+    mid = along(o, unit((1, -1)), 30.5)
+    grip = blade(t.p(*along(mid, unit((1, 1)), -5.0)), t.p(*along(mid, unit((1, 1)), 5.0)), [t.w(4.2)])
+    part(g, grip, skin_tube(grip, metal, 3, 2), metal)
+    d = unit((1, -1))
+    tip = along(nock, d, 54.0)
+    sh = blade(t.p(*nock), t.p(*along(tip, d, -9.0)), [t.w(1.5)])
+    part(g, sh, skin_tube(sh, shaft, 3, 1), shaft, inline=0)
+    for side in (-1, 1):
+        fx = np.array([-d[1], d[0]], np.float32) * side
+        f0 = along(nock, d, 2.0)
+        f1 = along(along(nock, d, 11.0), fx, 0.0)
+        vane = polygon([t.p(*f0), t.p(*along(f0, fx, 5.6)), t.p(*along(f1, fx, 3.2)), t.p(*f1)])
+        part(g, vane, colours(fletch, 4), fletch)
+    hd = blade(t.p(*along(tip, d, -11.0)), t.p(*tip), [t.w(2.2), t.w(5.4), t.w(4.6)], tip=0.55)
+    part(g, hd, skin_blade(hd, head, tipzone=0.55), head, emit=1.2)
+    g.sparkle(*t.p(*along(tip, d, 4.0)), 2, head[5], emit=1.5)
+    return dict(tip=t.p(*tip), nock=t.p(*nock), d=d, t=t)
+
+
+def mortar_line(mark, **kw):
+    return line(lambda g, t: mortar(g, t), mark, **kw)
+
+
+def bow_line(mark, **kw):
+    return line(lambda g, t: forge_bow(g, t), mark, **kw)
+
+
 FORCE_COVER = Ramp("#200608", "#4A0E12", "#741A1C", "#9A2A26", "#BE4234")
 PRECISION_COVER = Ramp("#14062A", "#2A0E52", "#44187E", "#5E26A6", "#7C3CCC")
 REACH_COVER = Ramp("#031C22", "#063A44", "#0A5A68", "#127C8C", "#1E9CAE")
@@ -1320,6 +1399,15 @@ ICONS = [
     # moves none of the icons before them.
     ("upgrade_damage", legacy_card("TemperedEdge", 96), BLUE_HALO, False),
     ("upgrade_attack_speed", legacy_card("QuickenedGrip", 90), BLUE_HALO, False),
+    # docs/63's shared weapons (2026-11-23) and their lines; appended, so the grid moves none of the icons before them.
+    ("weapon_magma_mortar", lambda g: mortar(g, T(k=1.04)), EMBER_HALO, False),
+    ("line_magma_mortar_damage", mortar_line(burst), EMBER_HALO, False),
+    ("line_magma_mortar_area", mortar_line(rings), EMBER_HALO, False),
+    ("line_magma_mortar_attack_speed", mortar_line(bolts), EMBER_HALO, False),
+    ("weapon_forge_bow", lambda g: forge_bow(g, T(k=1.22)), EMBER_HALO, False),
+    ("line_forge_bow_damage", bow_line(burst), EMBER_HALO, False),
+    ("line_forge_bow_crit", bow_line(crit_star), EMBER_HALO, False),
+    ("line_forge_bow_range", bow_line(range_arrow), EMBER_HALO, False),
 ]
 
 
@@ -1772,7 +1860,8 @@ SLOT = 56
 # The ids whose icon the loadout row shows: what a weapon socket holds (a weapon, or its evolution once taken) and what a
 # tome socket holds.
 SLOT_IDS = ("weapon_sword", "evolution_sword", "weapon_staff", "evolution_staff", "weapon_daggers", "evolution_daggers",
-            "tome_force", "tome_precision", "tome_reach", "tome_tempo", "tome_vitality")
+            "tome_force", "tome_precision", "tome_reach", "tome_tempo", "tome_vitality", "weapon_magma_mortar",
+            "weapon_forge_bow")
 
 
 def paint_icon(draw):

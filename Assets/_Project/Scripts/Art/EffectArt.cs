@@ -1,15 +1,20 @@
 using System;
 using System.Collections.Generic;
 using Cryptforge.Combat;
+using Cryptforge.Progression;
 
 namespace Cryptforge.Art
 {
-    // Which strike effect a hero weapon shows at the enemy it struck.
+    // Which strike effect a hero weapon shows at the enemy it struck. Appended, never renumbered.
     public enum StrikeEffect
     {
         SwordSlash,
         StaffBlast,
-        DaggerSlash
+        DaggerSlash,
+        // docs/63's shared weapons: the Magma Mortar's shell falling onto its target and its ember blast ring, and the
+        // Forge Bow's tracer from the hero to its target.
+        MortarBlast,
+        BowShot
     }
 
     // Combat effect placeholders drawn from code in the astral foundry palette: the hero's strike effects, hit sparks, crit
@@ -43,6 +48,9 @@ namespace Cryptforge.Art
         public const int ShockwaveWidth = 2 * ShockwaveRadius + 5;
         public const int ShockwaveHeight = ShockwaveRadius + 5;
         public const int ForgeSparkWidth = 9;
+        // The tracer (TracerFrames): drawn facing +x, its head at the right edge, stretched along a shot by the view.
+        public const int TracerLength = 32;
+        public const int TracerHeight = 5;
         public const int ForgeSparkHeight = 5;
         // The spark's head, where the view pins the sprite, so the streak trails behind the point it flies through.
         public const int ForgeSparkHeadX = 7;
@@ -139,6 +147,22 @@ namespace Cryptforge.Art
         };
 
         // The Sword cleaves, the Staff blasts an area and the Daggers strike one target.
+        // A weapon's strike by its id first - docs/63's two shared weapons have their own - and otherwise by its behaviour, so
+        // every weapon without one of its own (and a weapon whose id is unknown, an enemy's or a legacy run's) strikes as
+        // before.
+        public static StrikeEffect StrikeFor(string weaponId, WeaponBehavior behavior)
+        {
+            switch (weaponId)
+            {
+                case WeaponRoster.MagmaMortarId:
+                    return StrikeEffect.MortarBlast;
+                case WeaponRoster.ForgeBowId:
+                    return StrikeEffect.BowShot;
+                default:
+                    return StrikeFor(behavior);
+            }
+        }
+
         public static StrikeEffect StrikeFor(WeaponBehavior behavior)
         {
             switch (behavior)
@@ -242,6 +266,31 @@ namespace Cryptforge.Art
                 Ring(RingFullRadius, RingFullRadius / 2, true, false),
                 Ring(RingFullRadius, RingFullRadius / 2, true, true)
             };
+
+        // The Forge Bow's shot and the Magma Mortar's falling shell (docs/63 section 7.2): a hot streak facing +x, white at its
+        // head, ember hot then ember light then ember down the tail, two texels thick over its front half and one behind,
+        // outlined dark ember; then the same with its back half broken into a checker as it fades. Instant hits both: the
+        // streak is drawn on the strike's frame and gone in a tenth of a second, nothing the fight has to follow.
+        public static PixelCanvas[] TracerFrames() => new[] { Tracer(false), Tracer(true) };
+
+        private static PixelCanvas Tracer(bool fading)
+        {
+            var canvas = new PixelCanvas(TracerLength, TracerHeight);
+            int middle = TracerHeight / 2;
+            for (int x = 1; x < TracerLength - 1; x++)
+            {
+                float along = (x + .5f) / TracerLength;
+                if (fading && along < .5f && (x & 1) == 1)
+                    continue;
+                Rgba colour = along > .88f ? Rgba.White : along > .62f ? PixelPalette.EmberHot
+                    : along > .34f ? PixelPalette.EmberLight : PixelPalette.Ember;
+                canvas.Set(x, middle, colour);
+                if (along > .5f)
+                    canvas.Set(x, middle + 1, along > .88f ? PixelPalette.EmberHot : colour);
+            }
+            canvas.Outline(PixelPalette.EmberDark);
+            return canvas;
+        }
 
         // The daggers' double slash: the first cut, the crossed pair, then both fading.
         public static PixelCanvas[] DoubleSlashFrames()

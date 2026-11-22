@@ -291,6 +291,22 @@ line_daggers_crit.name	Daggers	Hançerler	Weapon line card.
 line_daggers_crit.description	+{0:0.#%} crit chance	+{0:%0.#} kritik şansı	"%0.#" puts the sign first: +%2,5.
 line_daggers_damage.name	Daggers	Hançerler	Weapon line card.
 line_daggers_damage.description	+{0:0.##} damage	+{0:0.##} hasar	
+weapon_magma_mortar.name	Magma Mortar	Magma Havanı	Shared weapon behind the weapon roster's lever (docs/63); badge "Mag". The owner may prefer another name.
+weapon_magma_mortar.description	{0:0} damage every {1:0.0#}s from afar. Its blast hits every enemy near the target for {2:0}%	Her {1:0.0#} sn'de uzaktan {0:0} hasar. Patlaması hedefin yakınındaki her düşmana %{2:0} vurur	{2} blast percent (100).
+weapon_forge_bow.name	Forge Bow	Ocak Yayı	Shared weapon behind the weapon roster's lever (docs/63); badge "For".
+weapon_forge_bow.description	{0:0} damage every {1:0.0#}s at the longest reach. Crits for {3:0}% once every {4} shots	Her {1:0.0#} sn'de en uzak menzilden {0:0} hasar. Her {4} atışta bir %{3:0} kritik	{3} crit percent, {4} shots.
+line_magma_mortar_area.name	Magma Mortar	Magma Havanı	Weapon line card.
+line_magma_mortar_area.description	+{0:0.#}% area	+%{0:0.#} alan	
+line_magma_mortar_attack_speed.name	Magma Mortar	Magma Havanı	Weapon line card.
+line_magma_mortar_attack_speed.description	+{0:0.#}% attack speed	+%{0:0.#} saldırı hızı	
+line_magma_mortar_damage.name	Magma Mortar	Magma Havanı	Weapon line card.
+line_magma_mortar_damage.description	+{0:0.##} damage	+{0:0.##} hasar	
+line_forge_bow_crit.name	Forge Bow	Ocak Yayı	Weapon line card.
+line_forge_bow_crit.description	+{0:0.#%} crit chance	+{0:%0.#} kritik şansı	"%0.#" puts the sign first: +%7.
+line_forge_bow_damage.name	Forge Bow	Ocak Yayı	Weapon line card.
+line_forge_bow_damage.description	+{0:0.##} damage	+{0:0.##} hasar	
+line_forge_bow_range.name	Forge Bow	Ocak Yayı	Weapon line card.
+line_forge_bow_range.description	+{0:0.0#} reach	+{0:0.0#} menzil	
 
 # ---- Level-up cards, evolutions and tomes
 upgrade_armor.name	Iron Skin	Demir Deri	Card.

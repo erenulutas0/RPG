@@ -28,6 +28,10 @@ namespace Cryptforge.Core
         // The hero weapons a run's cards can hand over, in card order; every hero's starting weapon must be one of them.
         // Since 2026-11-23 the Relic Forge sells none: every hero starts with its own weapon (docs/63).
         [SerializeField] private WeaponDefinition[] _weapons;
+        // docs/63's shared weapons built behind the weapon roster's lever (the Magma Mortar, the Forge Bow): offered only
+        // when development/weapon-roster.txt turns the roster on, after _weapons, every hero's own weapon then kept to that
+        // hero (WeaponRoster). Off - every release build and the default batch - a run's cards are _weapons' alone.
+        [SerializeField] private WeaponDefinition[] _rosterWeapons;
         [SerializeField] private PrototypeTextDefinition _text;
         [SerializeField] private Health _hero;
         [SerializeField] private AttackController _attack;
@@ -128,6 +132,7 @@ namespace Cryptforge.Core
                 _ability == null || _relicBehaviour == null || _encounters == null || _heroDefinition.StartingWeapon == null ||
                 _heroDefinition.Ability == null ||
                 !AllPresent(_upgrades) || !AllPresent(_relics) || !AllPresent(_weapons) ||
+                (_rosterWeapons != null && _rosterWeapons.Length > 0 && !AllPresent(_rosterWeapons)) ||
                 Array.IndexOf(_weapons, _heroDefinition.StartingWeapon) < 0)
             {
                 Debug.LogError("CombatSetup is missing required scene or definition references.", this);
@@ -135,8 +140,9 @@ namespace Cryptforge.Core
                 return;
             }
 
-            // The weapons are checked here too (their combat data, ids and texts), though the forge sells none of them now.
-            if (!ForgeCatalog.TryCreate(_relics, _weapons, out RelicOption[] relics, out WeaponOption[] _, out string catalogError))
+            // The weapons are checked here too (their combat data, ids and texts), though the forge sells none of them now -
+            // the roster's with the rest, so a broken one is reported at startup whether or not the lever is on.
+            if (!ForgeCatalog.TryCreate(_relics, AllWeapons(), out RelicOption[] relics, out WeaponOption[] _, out string catalogError))
             {
                 Debug.LogError($"CombatSetup cannot build the Relic Forge catalog. {catalogError}", this);
                 enabled = false;
@@ -216,9 +222,11 @@ namespace Cryptforge.Core
             {
                 loadout = new WeaponLoadout(Run.Seed);
                 loadout.TryAdd(HeroWeapon.Id, Weapon);
-                weaponCards = new WeaponCard[_weapons.Length];
-                for (int i = 0; i < _weapons.Length; i++)
-                    weaponCards[i] = _weapons[i].CreateCard();
+                // Today's catalogue, or docs/63's roster behind its development file (RunCatalogue).
+                WeaponDefinition[] catalogue = RunCatalogue();
+                weaponCards = new WeaponCard[catalogue.Length];
+                for (int i = 0; i < catalogue.Length; i++)
+                    weaponCards[i] = catalogue[i].CreateCard();
                 tomes = new UpgradeOption[_economy.TomeCount];
                 for (int i = 0; i < tomes.Length; i++)
                     tomes[i] = _economy.TomeAt(i).CreateOption();
@@ -614,17 +622,62 @@ namespace Cryptforge.Core
             return _heroDefinition;
         }
 
-        // The catalogue's weapon development/start-weapon.txt names; null without the file, outside the Editor and a
-        // development build, or for an id the catalogue lacks.
+        // The catalogue's weapon development/start-weapon.txt names - the roster's shared weapons included, so a scene test
+        // can start a run with one; null without the file, outside the Editor and a development build, or for an id the
+        // catalogue lacks.
         private WeaponDefinition DevelopmentStartWeapon()
         {
             string id = DevelopmentStart.StartWeaponId();
             if (id == null)
                 return null;
-            for (int i = 0; i < _weapons.Length; i++)
-                if (_weapons[i] != null && _weapons[i].Id == id)
-                    return _weapons[i];
+            WeaponDefinition[] all = AllWeapons();
+            for (int i = 0; i < all.Length; i++)
+                if (all[i] != null && all[i].Id == id)
+                    return all[i];
             return null;
+        }
+
+        // Every hero weapon the scene holds: _weapons, then the roster's shared weapons not already among them.
+        private WeaponDefinition[] AllWeapons()
+        {
+            if (_rosterWeapons == null || _rosterWeapons.Length == 0)
+                return _weapons;
+            var all = new List<WeaponDefinition>(_weapons);
+            for (int i = 0; i < _rosterWeapons.Length; i++)
+                if (!all.Contains(_rosterWeapons[i]))
+                    all.Add(_rosterWeapons[i]);
+            return all.ToArray();
+        }
+
+        // The weapons this run's cards draw from (docs/63): _weapons as shipped; with development/weapon-roster.txt, every
+        // hero weapon (AllWeapons) filtered by WeaponRoster - this run's own weapon, then every weapon no hero of the roster
+        // starts with - the body the simulation's RosterCatalogue calls, over the same order.
+        internal WeaponDefinition[] RunCatalogue()
+        {
+            if (!DevelopmentStart.WeaponRoster())
+                return _weapons;
+            WeaponDefinition[] all = AllWeapons();
+            var ids = new string[all.Length];
+            for (int i = 0; i < all.Length; i++)
+                ids[i] = all[i].Id;
+            List<int> kept = WeaponRoster.Catalogue(HeroWeapon.Id, ids, RosterSignatures());
+            var catalogue = new WeaponDefinition[kept.Count];
+            for (int i = 0; i < catalogue.Length; i++)
+                catalogue[i] = all[kept[i]];
+            return catalogue;
+        }
+
+        // The roster heroes' own weapons: the starting weapon of every hero the scene can play (Heroes), each once.
+        internal string[] RosterSignatures()
+        {
+            var ids = new List<string>(Heroes.Count);
+            for (int i = 0; i < Heroes.Count; i++)
+            {
+                WeaponDefinition own = Heroes[i] != null ? Heroes[i].StartingWeapon : null;
+                if (own != null && !ids.Contains(own.Id))
+                    ids.Add(own.Id);
+            }
+            return ids.ToArray();
         }
 
         // The weapon a hero would carry from this start (the map choice's hero cards, the forge's hero weapon, the Anvil's
