@@ -261,6 +261,7 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/RunRandomTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/OfferEngineTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/OfferCategoryTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/FullSlotRuleTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/WeaponEvolutionTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/KillBurstTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/CategoryBookTests.cs" />
