@@ -153,7 +153,7 @@ namespace Cryptforge.Tests
                     {
                         if (!line.enabled)
                             continue;
-                        Assert.That(line.endColor.a, Is.LessThanOrEqualTo(.7f + 1e-4f), cue + ": a thin translucent trail.");
+                        Assert.That(line.endColor.a, Is.LessThanOrEqualTo(.7f + 1f / 255f), cue + ": a thin translucent trail."); // a colour channel is a byte: 0.7 lands on 179/255
                         Assert.That(Mathf.Max(line.startWidth, line.endWidth), Is.LessThanOrEqualTo(.06f), cue + ": thin.");
                     }
                 }
