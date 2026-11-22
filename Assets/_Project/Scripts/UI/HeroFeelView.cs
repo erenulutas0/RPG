@@ -1,6 +1,7 @@
 using Cryptforge.Art;
 using Cryptforge.Combat;
 using Cryptforge.Core;
+using Cryptforge.Progression;
 using UnityEngine;
 
 namespace Cryptforge.UI
@@ -24,6 +25,20 @@ namespace Cryptforge.UI
     // after that: no allocation per strike or per frame. Being a child of the hero it moves with it, sorts inside its
     // group and stands at its depth on the foundry (FoundryVisibilityView moves an actor's children). Scaled time: a pause
     // holds a cue as it holds the strike. It reads the attacker and writes nothing to it.
+    //
+    // The hero's reactions (stage 2), over what its look already plays - the puppet's flinch, stride, idle and collapse,
+    // Ilya's rendered hit, walk, idle and death frames, the painted frames' swing, bob and breath, and CombatantView's flash,
+    // all kept as they are:
+    // - a blow squashes the figure away from it and shoves it a few texels back (GameFeel.Squash, HitEnvelope), on the
+    //   puppet's rig roots and its root's place, on the rendered drawing (RenderedCharacterAnimator.Squash) or on the
+    //   painted frames' weight transform; never on the hero, its shadow or its weapons' loadouts;
+    // - death lets the collapse play while a thin stream of ash rises off the falling body, then the body bursts into ash
+    //   and embers along where it lies, over a fading ember glow;
+    // - a level stretches the figure up and settles it (GameFeel.PopEnvelope) over a gold halo behind it - RunFeedbackView's
+    //   ring and sparks at the feet stay the level's burst;
+    // - a weapon picked up rises over the hero's head as a ghost of itself, turning once over a glow, and the figure pops -
+    //   on scaled time, so a pick made under the offer's pause plays as the run moves again.
+    // The motes, halos and the picked weapon's ghost are pooled with the cues and made with them; nothing is made after.
     [DisallowMultipleComponent]
     public sealed class HeroFeelView : MonoBehaviour
     {
@@ -91,17 +106,123 @@ namespace Cryptforge.UI
             public int Shown;
         }
 
+        // Death: the collapse's ash stream every StreamEvery until AshDelay (the puppet's topple is nearly down at 0.8 s of
+        // its 1 s, PuppetGait.DeathSeconds; Ilya's death frames likewise), then the burst along the body. The painted
+        // frames have no collapse, so their burst is at once where the hero stood.
+        internal const float AshDelay = .8f;
+        private const float StreamEvery = .09f;
+        private const int BurstMotes = 14;
+        internal const int MoteSlots = 24;
+        private const float DeathGlowSeconds = .45f;
+        // The level's halo behind the figure and the picked weapon's rise over the head.
+        private const float LevelGlowSeconds = .4f;
+        internal const float PickupSeconds = .7f;
+        private const float PickupFrom = .95f;
+        private const float PickupRise = .7f;
+        private static readonly Color Ash = new Color(.36f, .34f, .34f, .9f);
+        private static readonly Color Ember = new Color(1f, .55f, .22f, .95f);
+        private static readonly Color LevelGold = new Color(1f, .82f, .35f, 1f);
+
+        private sealed class Mote
+        {
+            public SpriteRenderer Renderer;
+            public bool Active;
+            public float Elapsed;
+            public float Lifetime;
+            public Vector3 Origin;
+            public Vector3 Velocity;
+            public float Size;
+            public Color Colour;
+        }
+
+        // A glow disc that swells and fades once: the level's halo, the death's ember glow, the pick's.
+        private sealed class Glow
+        {
+            public SpriteRenderer Renderer;
+            public bool Active;
+            public float Elapsed;
+            public float Lifetime;
+            public float FromRadius;
+            public float ToRadius;
+            public Color Colour;
+        }
+
         private AttackController _attack;
         private HeroLookView _look;
+        private Health _health;
+        private RunState _run;
+        private UpgradeService _upgrades;
         private Transform _root;
         private Material _material;
         private Cue[] _cues;
         private float _side = 1f;
         private bool _subscribed;
         private System.Action<Health, WeaponRuntime> _onStruckWith;
+        private System.Action<DamageContext> _onDamaged;
+        private System.Action _onDied;
+        private System.Action _onLevelChanged;
+        private System.Action<WeaponCard, WeaponRuntime> _onWeaponAcquired;
+
+        // The figure the reactions move: whichever draws the hero - the puppet, the rendered drawing or the painted
+        // frames' weight transform - found when a reaction starts.
+        private PuppetAnimator _puppet;
+        private RenderedCharacterAnimator _drawn;
+        private Transform _pose;
+        private bool _hitting;
+        private float _hitElapsed;
+        private float _awayX;
+        private float _awayY;
+        private float _shove;
+        private bool _popping;
+        private float _popElapsed;
+        // A squash is written on the figure (and must be taken off once it ends); this frame's, for the painted frames'
+        // weight, which its animator rewrites every frame before LateUpdate.
+        private bool _felt;
+        private float _scaleX = 1f;
+        private float _scaleY = 1f;
+        private Vector3 _offset;
+
+        private Mote[] _motes;
+        private int _nextMote;
+        private int _moteSeed;
+        private bool _dying;
+        private float _deathElapsed;
+        private float _ashDelay;
+        private float _nextStream;
+        private bool _burst;
+        private Glow _halo;
+        private Glow _pickGlow;
+        private SpriteRenderer _pickGhost;
+        private bool _picking;
+        private bool _pickStarted;
+        private float _pickElapsed;
 
         // The child every cue lives under, for tests and the perf census.
         internal Transform Root => _root;
+        // The reactions, for tests and the capture: the blow's recoil (0 to 1) and the level's pop now, whether the death's
+        // ash is under way and has burst, the motes on show, and the picked weapon's rise.
+        public float Recoil => _hitting ? GameFeel.HitEnvelope(_hitElapsed / GameFeel.HitSeconds) : 0f;
+        public float Pop => _popping ? GameFeel.PopEnvelope(_popElapsed / GameFeel.PopSeconds) : 0f;
+        public bool IsDissolving => _dying;
+        public bool HasBurstIntoAsh => _burst;
+        public int ShownMotes
+        {
+            get
+            {
+                int shown = 0;
+                for (int i = 0; _motes != null && i < _motes.Length; i++)
+                    if (_motes[i].Active)
+                        shown++;
+                return shown;
+            }
+        }
+        public bool IsPickupShowing => _picking;
+        public int PickupsShown { get; private set; }
+        public int LevelPopsShown { get; private set; }
+        // The scale and offset the reactions put on the figure this frame ((1, 1) and zero at rest).
+        public Vector2 FigureScale => new Vector2(_scaleX, _scaleY);
+        public Vector3 FigureOffset => _offset;
+        internal SpriteRenderer PickupGhost => _pickGhost;
         public bool IsCueShowing(SlotCue cue) => _cues != null && _cues[(int)cue].Active;
         // How many times each cue has played this scene.
         public int CuesShown(SlotCue cue) => _cues != null ? _cues[(int)cue].Shown : 0;
@@ -109,11 +230,16 @@ namespace Cryptforge.UI
         internal SpriteRenderer[] CueSprites(SlotCue cue) => _cues[(int)cue].Sprites;
         internal LineRenderer[] CueLines(SlotCue cue) => _cues[(int)cue].Lines;
 
-        internal void Initialize(AttackController attack)
+        // attack drives the slot cues; health, run and upgrades the reactions (each may be null: that reaction never plays).
+        internal void Initialize(AttackController attack, Health health = null, RunState run = null,
+            UpgradeService upgrades = null)
         {
             if (_root != null)
                 return;
             _attack = attack;
+            _health = health;
+            _run = run;
+            _upgrades = upgrades;
             _look = GetComponent<HeroLookView>();
             _material = SharedSpriteMaterial.For(FindFirstObjectByType<ArenaView>());
             _root = new GameObject(RootName).transform;
@@ -130,7 +256,28 @@ namespace Cryptforge.UI
             SpriteRenderer glow = _cues[(int)SlotCue.Pulse].Sprites[1];
             glow.sprite = FeelArt.Disc();
             glow.sortingOrder = order + OverFigure;
+
+            // The reactions' motes over the figure, the halos behind it, the picked weapon over it.
+            _motes = new Mote[MoteSlots];
+            for (int i = 0; i < _motes.Length; i++)
+                _motes[i] = new Mote { Renderer = Disc("Ash Mote " + i, layer, order + OverFigure) };
+            _halo = new Glow { Renderer = Disc("Hero Halo", layer, order - BehindFigure - 1) };
+            _pickGlow = new Glow { Renderer = Disc("Pickup Glow", layer, order + OverFigure - 1) };
+            _pickGhost = Disc("Pickup Ghost", layer, order + OverFigure);
+            _pickGhost.sprite = null;
             Subscribe();
+        }
+
+        private SpriteRenderer Disc(string name, int layer, int order)
+        {
+            var sprite = new GameObject(name).AddComponent<SpriteRenderer>();
+            sprite.transform.SetParent(_root, false);
+            sprite.sharedMaterial = _material;
+            sprite.sprite = FeelArt.Disc();
+            sprite.sortingLayerID = layer;
+            sprite.sortingOrder = order;
+            sprite.enabled = false;
+            return sprite;
         }
 
         private LineRenderer Line(SlotCue cue, int index) => _cues[(int)cue].Lines[index];
@@ -180,6 +327,7 @@ namespace Cryptforge.UI
                 return;
             for (int i = 0; i < _cues.Length; i++)
                 End(_cues[i]);
+            EndReactions();
         }
 
         private void OnDestroy() => Unsubscribe();
@@ -189,6 +337,15 @@ namespace Cryptforge.UI
             if (_subscribed || _attack == null)
                 return;
             _attack.StruckWith += _onStruckWith ??= OnStruckWith;
+            if (_health != null)
+            {
+                _health.Damaged += _onDamaged ??= OnDamaged;
+                _health.Died += _onDied ??= OnDied;
+            }
+            if (_run != null)
+                _run.LevelChanged += _onLevelChanged ??= OnLevelChanged;
+            if (_upgrades != null)
+                _upgrades.WeaponAcquired += _onWeaponAcquired ??= OnWeaponAcquired;
             _subscribed = true;
         }
 
@@ -198,6 +355,15 @@ namespace Cryptforge.UI
                 return;
             if (_attack != null)
                 _attack.StruckWith -= _onStruckWith;
+            if (_health != null)
+            {
+                _health.Damaged -= _onDamaged;
+                _health.Died -= _onDied;
+            }
+            if (_run != null)
+                _run.LevelChanged -= _onLevelChanged;
+            if (_upgrades != null)
+                _upgrades.WeaponAcquired -= _onWeaponAcquired;
             _subscribed = false;
         }
 
@@ -248,13 +414,434 @@ namespace Cryptforge.UI
             return _look.WeaponSprite(part);
         }
 
+        // Before every look's LateUpdate: this frame's squash and shove are on the puppet's rig and the rendered drawing
+        // before the puppet places its weapons on its hands and the drawing is shown.
+        private void Update()
+        {
+            if (_cues == null)
+                return;
+            using (PerformanceMarkers.LateHeroFeel.Auto())
+                Advance(Time.deltaTime);
+        }
+
         private void LateUpdate()
         {
             if (_cues == null)
                 return;
             using (PerformanceMarkers.LateHeroFeel.Auto())
-                Tick(Time.deltaTime);
+            {
+                float dt = Time.deltaTime;
+                WeighPaintedFrames(dt);
+                Tick(dt);
+                TickDeath(dt);
+                TickMotes(dt);
+                TickGlow(_halo, dt);
+                TickGlow(_pickGlow, dt);
+                TickPickup(dt);
+            }
         }
+
+        // ---- The hero's reactions (stage 2) ----
+
+        private void OnDamaged(DamageContext context)
+        {
+            if (!isActiveAndEnabled || _dying || _health == null || !_health.IsAlive)
+                return;
+            // Away from whoever dealt it, along the floor. A blow with no one behind it squashes without a shove.
+            _awayX = 0f;
+            _awayY = 1f;
+            _shove = 0f;
+            if (context.Source is Component source && source != null)
+            {
+                Vector3 from = source.transform.position;
+                Vector3 at = transform.position;
+                float dx = at.x - from.x;
+                float dy = ArenaFloor.FloorY(at.y) - ArenaFloor.FloorY(from.y);
+                float length = Mathf.Sqrt(dx * dx + dy * dy);
+                if (length > 1e-4f)
+                {
+                    _awayX = dx / length;
+                    _awayY = dy / length;
+                    _shove = 1f;
+                }
+            }
+            FindFigure();
+            _hitting = true;
+            _hitElapsed = 0f;
+            ApplyFigure();
+        }
+
+        private void OnDied()
+        {
+            if (_dying)
+                return;
+            FindFigure();
+            _dying = true;
+            _deathElapsed = 0f;
+            _nextStream = 0f;
+            _burst = false;
+            // The collapse plays on the figure's own shape; the painted frames have none, so they burst at once.
+            _hitting = false;
+            _popping = false;
+            ApplyFigure();
+            _ashDelay = _puppet != null || _drawn != null ? AshDelay : 0f;
+            for (int i = 0; i < _cues.Length; i++)
+                End(_cues[i]);
+            EndPickup();
+        }
+
+        private void OnLevelChanged()
+        {
+            if (!isActiveAndEnabled || _dying || _cues == null)
+                return;
+            LevelPopsShown++;
+            StartPop();
+            Color halo = LevelGold;
+            halo.a = .5f;
+            ArmGlow(_halo, new Vector3(0f, .65f, 0f), LevelGlowSeconds, .35f, .8f, halo);
+        }
+
+        // Shown once the run moves: a pick is made under the offer's pause.
+        private void OnWeaponAcquired(WeaponCard card, WeaponRuntime runtime)
+        {
+            if (!isActiveAndEnabled || _dying || runtime == null || _cues == null)
+                return;
+            PickupsShown++;
+            _picking = true;
+            _pickStarted = false;
+            _pickElapsed = 0f;
+            _pickGhost.sprite = GhostOf(GameFeel.CueFor(runtime.Pattern.Behavior));
+            _pickGhost.enabled = false;
+        }
+
+        private void StartPop()
+        {
+            FindFigure();
+            _popping = true;
+            _popElapsed = 0f;
+            ApplyFigure();
+        }
+
+        // Whichever draws the hero now: a test may swap the drawing, so it is found again as each reaction starts.
+        private void FindFigure()
+        {
+            if (_puppet == null)
+                TryGetComponent(out _puppet);
+            if (_drawn == null)
+                TryGetComponent(out _drawn);
+            _pose = null;
+            if (_puppet == null && _drawn == null && _look != null && _look.UsesPaintedArt && _look.Body != null)
+            {
+                // The painted frames' weight transform sits between the hero and its body (VanguardAnimator.PoseName).
+                Transform parent = _look.Body.transform.parent;
+                if (parent != null && parent != transform)
+                    _pose = parent;
+            }
+        }
+
+        private void Advance(float dt)
+        {
+            if (dt <= 0f)
+                return;
+            if (_hitting)
+            {
+                _hitElapsed += dt;
+                if (_hitElapsed >= GameFeel.HitSeconds)
+                    _hitting = false;
+            }
+            if (_popping)
+            {
+                _popElapsed += dt;
+                if (_popElapsed >= GameFeel.PopSeconds)
+                    _popping = false;
+            }
+            ApplyFigure();
+        }
+
+        // This frame's squash and shove from the blow and the pop, written on the figure while either plays and once more,
+        // at rest, as the last ends.
+        private void ApplyFigure()
+        {
+            float hit = Recoil;
+            float pop = Pop;
+            GameFeel.Squash(hit, _awayX, _awayY, out float scaleX, out float scaleY);
+            scaleX *= 1f - .5f * GameFeel.PopStretch * pop;
+            scaleY *= 1f + GameFeel.PopStretch * pop;
+            float shove = GameFeel.ShoveDistance * hit * _shove;
+            _scaleX = scaleX;
+            _scaleY = scaleY;
+            _offset = new Vector3(_awayX * shove, ArenaFloor.WorldY(_awayY * shove), 0f);
+            bool active = hit > 0f || pop > 0f;
+            if (!active && !_felt)
+                return;
+            WriteFigure(scaleX, scaleY, _offset);
+            _felt = active;
+        }
+
+        // The puppet squashes on its rigs' roots (at the feet; their mirror kept) and is shoved on its own root's place,
+        // which nothing else moves; the rendered drawing squashes through its mirror and is shoved on its root's place. The
+        // painted frames' weight is rewritten every frame by its animator, so LateUpdate weighs it (WeighPaintedFrames).
+        private void WriteFigure(float scaleX, float scaleY, Vector3 offset)
+        {
+            if (_puppet != null)
+            {
+                SquashRig(_puppet.RearRig, scaleX, scaleY);
+                SquashRig(_puppet.FrontRig, scaleX, scaleY);
+                if (_puppet.Root != null)
+                    _puppet.Root.localPosition = offset;
+            }
+            if (_drawn != null)
+            {
+                _drawn.Squash = new Vector2(scaleX, scaleY);
+                if (_drawn.Root != null)
+                    _drawn.Root.localPosition = offset;
+            }
+        }
+
+        private static void SquashRig(PuppetRig rig, float scaleX, float scaleY)
+        {
+            if (rig == null || rig.Root == null)
+                return;
+            Transform root = rig.Root.transform;
+            root.localScale = new Vector3(root.localScale.x < 0f ? -scaleX : scaleX, scaleY, 1f);
+        }
+
+        // After the painted frames' animator has written this frame's weight (HeroLookView's Update): the reactions on top.
+        // Only on a frame it wrote, so a pause never compounds them.
+        private void WeighPaintedFrames(float dt)
+        {
+            if (_pose == null || dt <= 0f || !_felt)
+                return;
+            _pose.localScale = Vector3.Scale(_pose.localScale, new Vector3(_scaleX, _scaleY, 1f));
+            _pose.localPosition += _offset;
+        }
+
+        // The collapse's ash: a thin stream off the falling body, then the burst along where it lies.
+        private void TickDeath(float dt)
+        {
+            if (!_dying || _burst || dt <= 0f)
+                return;
+            _deathElapsed += dt;
+            while (_nextStream < _ashDelay && _deathElapsed >= _nextStream)
+            {
+                StreamMote();
+                _nextStream += StreamEvery;
+            }
+            if (_deathElapsed < _ashDelay)
+                return;
+            _burst = true;
+            BodyLine(out Vector3 from, out Vector3 to);
+            _moteSeed++;
+            for (int i = 0; i < BurstMotes; i++)
+            {
+                float n = PixelNoise.Value(i, _moteSeed, 71);
+                float m = PixelNoise.Value(i, _moteSeed, 73);
+                Vector3 at = Vector3.Lerp(from, to, (i + .5f) / BurstMotes) + new Vector3((n - .5f) * .16f, (m - .5f) * .12f, 0f);
+                var velocity = new Vector3((m - .5f) * .6f, .5f + .6f * n, 0f);
+                ArmMote(at, velocity, .6f + .35f * m, .04f + .035f * n, i % 3 == 0 ? Ember : Ash);
+            }
+            Color glow = Ember;
+            glow.a = .55f;
+            ArmGlow(_halo, Vector3.Lerp(from, to, .5f), DeathGlowSeconds, .25f, .8f, glow);
+        }
+
+        private void StreamMote()
+        {
+            BodyLine(out Vector3 from, out Vector3 to);
+            _moteSeed++;
+            float n = PixelNoise.Value(_moteSeed, 1, 79);
+            float m = PixelNoise.Value(_moteSeed, 2, 79);
+            Vector3 at = Vector3.Lerp(from, to, .2f + .7f * n) + new Vector3((m - .5f) * .2f, 0f, 0f);
+            ArmMote(at, new Vector3((m - .5f) * .3f, .55f + .25f * n, 0f), .45f + .15f * m, .035f + .015f * n,
+                (_moteSeed % 3) == 0 ? Ember : Ash);
+        }
+
+        // Where the body is, from its feet to its head, in the root's space: the puppet's head bone as it falls; Ilya's
+        // death lies across the feet; the painted frames' body is hidden where it stood.
+        private void BodyLine(out Vector3 from, out Vector3 to)
+        {
+            from = new Vector3(0f, .1f, 0f);
+            PuppetRig rig = _puppet != null ? _puppet.ActiveRig : null;
+            int head = rig != null ? rig.IndexOf(PuppetBone.Head) : -1;
+            if (head >= 0)
+            {
+                Vector3 h = rig.Bone(head).position - transform.position;
+                to = new Vector3(h.x, Mathf.Max(.08f, h.y), 0f);
+                return;
+            }
+            if (_drawn != null)
+            {
+                from = new Vector3(-.45f, .14f, 0f);
+                to = new Vector3(.45f, .14f, 0f);
+                return;
+            }
+            to = new Vector3(0f, 1f, 0f);
+        }
+
+        private void ArmMote(Vector3 origin, Vector3 velocity, float lifetime, float size, Color colour)
+        {
+            Mote mote = _motes[_nextMote];
+            _nextMote = (_nextMote + 1) % _motes.Length;
+            mote.Active = true;
+            mote.Elapsed = 0f;
+            mote.Lifetime = lifetime;
+            mote.Origin = origin;
+            mote.Velocity = velocity;
+            mote.Size = size;
+            mote.Colour = colour;
+            DrawMote(mote);
+        }
+
+        // Rising and slowing, thinning and shrinking to nothing: ash lifting off.
+        private static void DrawMote(Mote mote)
+        {
+            float u = Mathf.Clamp01(mote.Elapsed / mote.Lifetime);
+            Transform at = mote.Renderer.transform;
+            at.localPosition = mote.Origin + mote.Velocity * (mote.Elapsed * (1f - .35f * u));
+            float size = mote.Size * (1f - .55f * u);
+            at.localScale = new Vector3(size, size, 1f);
+            Color colour = mote.Colour;
+            colour.a *= Mathf.Min(1f, u / .12f) * (1f - u);
+            mote.Renderer.color = colour;
+            mote.Renderer.enabled = true;
+        }
+
+        private void TickMotes(float dt)
+        {
+            if (dt <= 0f)
+                return;
+            for (int i = 0; i < _motes.Length; i++)
+            {
+                Mote mote = _motes[i];
+                if (!mote.Active)
+                    continue;
+                mote.Elapsed += dt;
+                if (mote.Elapsed >= mote.Lifetime)
+                {
+                    mote.Active = false;
+                    mote.Renderer.enabled = false;
+                    continue;
+                }
+                DrawMote(mote);
+            }
+        }
+
+        private static void ArmGlow(Glow glow, Vector3 centre, float lifetime, float fromRadius, float toRadius, Color colour)
+        {
+            glow.Active = true;
+            glow.Elapsed = 0f;
+            glow.Lifetime = lifetime;
+            glow.FromRadius = fromRadius;
+            glow.ToRadius = toRadius;
+            glow.Colour = colour;
+            glow.Renderer.transform.localPosition = centre;
+            DrawGlow(glow);
+        }
+
+        private static void DrawGlow(Glow glow)
+        {
+            float u = Mathf.Clamp01(glow.Elapsed / glow.Lifetime);
+            float radius = Mathf.Lerp(glow.FromRadius, glow.ToRadius, EaseOut(u));
+            glow.Renderer.transform.localScale = new Vector3(radius, radius, 1f);
+            Color colour = glow.Colour;
+            colour.a *= (1f - u) * (1f - u);
+            glow.Renderer.color = colour;
+            glow.Renderer.enabled = true;
+        }
+
+        private static void TickGlow(Glow glow, float dt)
+        {
+            if (!glow.Active || dt <= 0f)
+                return;
+            glow.Elapsed += dt;
+            if (glow.Elapsed >= glow.Lifetime)
+            {
+                glow.Active = false;
+                glow.Renderer.enabled = false;
+                return;
+            }
+            DrawGlow(glow);
+        }
+
+        // The picked weapon: from the shoulders up over the head, turning once about its middle, over a warm glow.
+        private void TickPickup(float dt)
+        {
+            if (!_picking || dt <= 0f)
+                return;
+            if (!_pickStarted)
+            {
+                _pickStarted = true;
+                StartPop();
+                Color warm = Ember;
+                warm.a = .5f;
+                ArmGlow(_pickGlow, new Vector3(0f, PickupFrom, 0f), PickupSeconds, .18f, .42f, warm);
+            }
+            else
+                _pickElapsed += dt;
+            if (_pickElapsed >= PickupSeconds)
+            {
+                EndPickup();
+                return;
+            }
+            float t = Mathf.Clamp01(_pickElapsed / PickupSeconds);
+            float rise = EaseOut(t);
+            var at = new Vector3(0f, PickupFrom + PickupRise * rise, 0f);
+            if (_pickGlow.Active)
+                _pickGlow.Renderer.transform.localPosition = at;
+            Sprite sprite = _pickGhost.sprite;
+            if (sprite == null)
+                return;
+            float strength = t < .15f ? t / .15f : t > .6f ? 1f - (t - .6f) / .4f : 1f;
+            float scale = Mathf.Lerp(.9f, 1.15f, rise);
+            Quaternion turn = Quaternion.Euler(0f, 0f, 360f * rise);
+            Transform ghost = _pickGhost.transform;
+            ghost.localRotation = turn;
+            ghost.localScale = new Vector3(scale, scale, 1f);
+            ghost.localPosition = at - turn * (sprite.bounds.center * scale);
+            _pickGhost.color = new Color(1f, 1f, 1f, strength);
+            _pickGhost.enabled = true;
+        }
+
+        private void EndPickup()
+        {
+            _picking = false;
+            _pickStarted = false;
+            if (_pickGhost != null)
+                _pickGhost.enabled = false;
+            if (_pickGlow != null)
+            {
+                _pickGlow.Active = false;
+                if (_pickGlow.Renderer != null)
+                    _pickGlow.Renderer.enabled = false;
+            }
+        }
+
+        // Everything back at rest and hidden (the view disabled, the scene going).
+        private void EndReactions()
+        {
+            _hitting = false;
+            _popping = false;
+            if (_felt)
+                WriteFigure(1f, 1f, Vector3.zero);
+            _felt = false;
+            _scaleX = _scaleY = 1f;
+            _offset = Vector3.zero;
+            for (int i = 0; _motes != null && i < _motes.Length; i++)
+            {
+                _motes[i].Active = false;
+                if (_motes[i].Renderer != null)
+                    _motes[i].Renderer.enabled = false;
+            }
+            if (_halo != null)
+            {
+                _halo.Active = false;
+                if (_halo.Renderer != null)
+                    _halo.Renderer.enabled = false;
+            }
+            EndPickup();
+        }
+
+        // ---- The slot cues (stage 1) ----
 
         private void Tick(float dt)
         {

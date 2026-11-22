@@ -300,8 +300,9 @@ namespace Cryptforge.Core
             gameObject.AddComponent<WardenSlamView>().Initialize(Warden);
             gameObject.AddComponent<MirrorGlintView>().Initialize(Mirrors, _encounters, _hero);
             gameObject.AddComponent<RunFeedbackView>().Initialize(Run, Upgrades, _hero, _runFeedbackArt);
-            // The game-feel pass on the hero (docs/43 section 1, 2026-11-22): presentation only, it reads the attacker.
-            _hero.gameObject.AddComponent<HeroFeelView>().Initialize(_attack);
+            // The game-feel pass on the hero (docs/43 section 1, 2026-11-22): presentation only - it reads the attacker, the
+            // hero's health, the run's level and the weapons picked up, and writes nothing to any of them.
+            _hero.gameObject.AddComponent<HeroFeelView>().Initialize(_attack, _hero, Run, Upgrades);
             telemetry.WatchFoundry(Altars, Pit, () => HeroStats.Difficulty);
             if (movement != null && DevelopmentStart.Autopilot())
                 gameObject.AddComponent<DevelopmentAutopilot>().Initialize(this, movement, _hero.transform);

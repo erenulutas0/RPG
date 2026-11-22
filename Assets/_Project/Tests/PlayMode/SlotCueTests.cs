@@ -184,7 +184,9 @@ namespace Cryptforge.Tests
                 rigs.AddRange(_feel.CueSprites(cue));
                 rigs.AddRange(_feel.CueLines(cue));
             }
-            Assert.That(rigs.Count, Is.EqualTo(renderers), "Every renderer under the root belongs to a cue's rig.");
+            foreach (Object rig in rigs)
+                Assert.That(((Component)rig).transform.parent, Is.SameAs(_feel.Root), "Every cue's rig lives under the root.");
+            Assert.That(rigs.Count, Is.LessThanOrEqualTo(renderers));
             AddTheOtherWeapons();
             _attack.enabled = true;
             for (int i = 0; i < 150; i++)
