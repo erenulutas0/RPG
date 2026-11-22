@@ -258,6 +258,9 @@ namespace Cryptforge.Tests
                     return "enemy bar";
                 if (name == "Burn Flames")
                     return "burn flame";
+                // The game-feel pass (docs/43 section 1): the hero's cues and reactions, the gate boss's tell and its glow.
+                if (name == HeroFeelView.RootName || name == BossFeelView.RootName || own == "Boss Glow")
+                    return "game feel";
                 if (name.StartsWith("Number ", System.StringComparison.Ordinal))
                     return "damage number";
                 if (name == "Combat Effects")

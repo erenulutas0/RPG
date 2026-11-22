@@ -60,6 +60,9 @@ namespace Cryptforge.UI
         // RunFeedbackView's evolution flash, from 0 to 1, while no hit flash shows: the body this animator hides cannot
         // carry it.
         internal float OverlayFlash { get; set; }
+        // HeroFeelView's squash of the drawing (a blow's recoil, a level's pop; docs/43 section 1), (1, 1) at rest: the
+        // drawing's scale is its mirror times this. Visual only, like the mirror.
+        internal Vector2 Squash { get; set; } = Vector2.one;
 
         // The run's hero's rendered set, when it has one; null keeps the painted Vanguard. An incomplete set is reported
         // and ignored, so a broken import never leaves the hero invisible.
@@ -192,8 +195,10 @@ namespace Cryptforge.UI
             // Mirror the drawing only (a set without the west facings, drawn west); movement, targeting and the floor
             // shadow are not touched.
             float x = _player.Mirrored ? -1f : 1f;
-            if (_root.localScale.x != x)
-                _root.localScale = new Vector3(x, 1f, 1f);
+            Vector2 squash = Squash;
+            var scale = new Vector3(x * squash.x, squash.y, 1f);
+            if (_root.localScale.x != scale.x || _root.localScale.y != scale.y)
+                _root.localScale = scale;
         }
 
         private void RefreshFlash()

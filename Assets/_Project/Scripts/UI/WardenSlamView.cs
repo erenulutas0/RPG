@@ -17,11 +17,11 @@ namespace Cryptforge.UI
     // sprites (GlassRegent.LaneEdge and LaneFill; Tools/ArtReview/BuildRegentLaneMark.py) at the lane's start, turned in
     // floor space along it, under a parent that squashes y by ArenaFloor.DepthScale so the stripe lies on the floor.
     //
-    // And the Regent's feet (RegentRule.FeetReach; docs/50 "The Regent's bite for the standing hero"): a faint violet ring
-    // round it while it is fought - violet, a creature's mark that never hurts by itself (docs/49 rule 4) - that brightens
-    // and pulses through a beat whose mark found the hero inside it, when the Regent keeps its rod swinging through the cast
-    // (WardenSlamService.RodAtItsFeet) and raises no windup. A hero beyond the ring as the lane goes down sees the Regent
-    // raise its mirror and hold its rod, as the Warden raises its hammer.
+    // And the Regent's feet (RegentRule.FeetReach; docs/50 "The Regent's bite for the standing hero"): a violet ring over a
+    // dark shade round it while it is fought - violet, a creature's mark that never hurts by itself (docs/49 rule 4) -
+    // that brightens, widens and pulses through a beat whose mark found the hero inside it, when the Regent keeps its rod
+    // swinging through the cast (WardenSlamService.RodAtItsFeet) and raises no windup. A hero beyond the ring as the lane
+    // goes down sees the Regent raise its mirror and hold its rod, as the Warden raises its hammer.
     [DefaultExecutionOrder(100)]
     public sealed class WardenSlamView : MonoBehaviour
     {
@@ -31,9 +31,18 @@ namespace Cryptforge.UI
         private static readonly Color Hot = new Color(1f, .82f, .45f, 1f);
         // The fill's narrowest, as a share of the lane's width, at the mark.
         private const float LaneFillFloor = .05f;
-        // The Regent's feet ring: docs/49's aurora violet, faint at rest and pulsing on a beat that found the hero inside.
-        private static readonly Color Violet = new Color(.545f, .424f, .91f, 1f);
-        private const float FeetRest = .3f;
+        // The Regent's feet ring: docs/49's aurora violet, quiet at rest and pulsing on a beat that found the hero inside.
+        // The game-feel pass (docs/43 section 1, 2026-11-22) made it read on the floor: at 0.3 alpha and 0.05 wide it was
+        // lost on the Vaults' pale stone at phone size (about 3 px), so it rests at 0.6 and 0.075 wide over a dark violet
+        // shade line twice as wide that separates it from light and dark floors alike, and widens as it pulses. Still
+        // violet - a creature's mark that never hurts by itself (docs/49 rule 4) - and still under every actor.
+        private static readonly Color Violet = new Color(.6f, .48f, 1f, 1f);
+        private static readonly Color VioletShade = new Color(.14f, .07f, .28f, 1f);
+        internal const float FeetRest = .6f;
+        internal const float FeetWidth = .075f;
+        internal const float FeetPulseWidth = .1f;
+        private const float FeetShadeWidth = .15f;
+        private const float FeetShadeAlpha = .45f;
         private WardenSlamService _service;
         private ArenaView _arena;
         private Material _material;
@@ -51,8 +60,11 @@ namespace Cryptforge.UI
         private readonly float[] _laneWidths = new float[RegentRule.MaxLanes];
         private int _lanes;
         private bool _laneMark;
-        // The ring round the Regent's feet, made as a Regent is first fought.
+        // The ring round the Regent's feet and its shade under it, made as a Regent is first fought.
         private LineRenderer _feet;
+        private LineRenderer _feetShade;
+        internal LineRenderer FeetRingLine => _feet;
+        internal LineRenderer FeetShadeLine => _feetShade;
         public bool IsMarkShown => _mark != null && _mark.gameObject.activeSelf;
         // Whether the ring round the Regent's feet shows, and whether it pulses (the beat down found the hero inside it).
         public bool IsFeetShown => _feet != null && _feet.gameObject.activeSelf;
@@ -196,17 +208,31 @@ namespace Cryptforge.UI
             if (_arena != null && _arena.IsFoundryRegion) p.y += FoundrySurface.Lift(p, _arena.transform.position);
             _feet.transform.position = new Vector3(p.x, p.y, 0f);
             IsFeetPulsing = _service.RodAtItsFeet && _service.Clock.HoldsWeapon;
+            float beat = IsFeetPulsing ? .5f + .5f * Mathf.Sin(Time.time * 18f) : 0f;
             Color ring = Violet;
-            ring.a = IsFeetPulsing ? .6f + .4f * Mathf.Sin(Time.time * 18f) : FeetRest;
+            ring.a = IsFeetPulsing ? .8f + .2f * beat : FeetRest;
             _feet.startColor = _feet.endColor = ring;
+            _feet.startWidth = _feet.endWidth = IsFeetPulsing ? Mathf.Lerp(FeetWidth, FeetPulseWidth, beat) : FeetWidth;
+            Color shade = VioletShade;
+            shade.a = IsFeetPulsing ? FeetShadeAlpha + .15f * beat : FeetShadeAlpha;
+            _feetShade.startColor = _feetShade.endColor = shade;
         }
 
         private LineRenderer FeetRing()
         {
-            var line = new GameObject("Regent Feet").AddComponent<LineRenderer>();
-            line.transform.SetParent(transform, false);
+            LineRenderer line = FeetLine("Regent Feet", transform, 0, FeetWidth);
+            // The shade rides under the ring, on its transform, one order lower: still over the floor (its effects sort
+            // well under 0) and under every actor.
+            _feetShade = FeetLine("Regent Feet Shade", line.transform, -1, FeetShadeWidth);
+            return line;
+        }
+
+        private LineRenderer FeetLine(string name, Transform parent, int order, float width)
+        {
+            var line = new GameObject(name).AddComponent<LineRenderer>();
+            line.transform.SetParent(parent, false);
             line.sharedMaterial = _material; line.useWorldSpace = false; line.loop = true; line.numCapVertices = 2;
-            line.sortingOrder = 0; line.positionCount = Segments; line.startWidth = line.endWidth = .05f;
+            line.sortingOrder = order; line.positionCount = Segments; line.startWidth = line.endWidth = width;
             for (int k = 0; k < Segments; k++)
             {
                 float a = k * Mathf.PI * 2 / Segments;

@@ -53,6 +53,12 @@ namespace Cryptforge.Core
         public const string LateScreenArtName = "Cryptforge.Late.ScreenArt";
         public const string LateVisibilityName = "Cryptforge.Late.Visibility";
         public const string LateBackdropName = "Cryptforge.Late.Backdrop";
+        // The game-feel pass (docs/43 section 1, 2026-11-22): the hero's slot cues and reactions (HeroFeelView).
+        public const string LateHeroFeelName = "Cryptforge.Late.HeroFeel";
+        // CombatEffectsView moving its pooled effects every frame, the game-feel pass's ash and ember motes among them.
+        public const string EffectsTickName = "Cryptforge.Effects.Tick";
+        // The gate boss's tell, phase-two burst and death (BossFeelView).
+        public const string LateBossFeelName = "Cryptforge.Late.BossFeel";
         public const string DepthPlaceName = "Cryptforge.Depth.Place";
         public const string DepthRestoreName = "Cryptforge.Depth.Restore";
 
@@ -99,6 +105,7 @@ namespace Cryptforge.Core
             PickAddWeaponName, PickHeroStatsName, PickPauseName, PickHudName, PickLoadoutName,
             LateCameraName, LateEffectsName, LateShadowsName, LateExitSealName, LateHudArtName, LatePitName, LatePuppetName,
             LateFramesName, LateAltarName, LateWardenName, LateScreenArtName, LateVisibilityName, LateBackdropName,
+            LateHeroFeelName, EffectsTickName, LateBossFeelName,
             DepthPlaceName, DepthRestoreName, GroundPrewarmName, GroundMaterialName, GroundGridName, GroundApplyName,
             ThemeApplyName, ThemeRetintName, ThemeTexturesName, ThemeCrystalsName, ThemePropsName, ThemeBackdropName,
             ThemeTransitionName, ThemeFrostName, ThemePrepareName, ThemeReleaseName
@@ -134,6 +141,9 @@ namespace Cryptforge.Core
         public static readonly ProfilerMarker LateScreenArt = new ProfilerMarker(ProfilerCategory.Scripts, LateScreenArtName);
         public static readonly ProfilerMarker LateVisibility = new ProfilerMarker(ProfilerCategory.Scripts, LateVisibilityName);
         public static readonly ProfilerMarker LateBackdrop = new ProfilerMarker(ProfilerCategory.Scripts, LateBackdropName);
+        public static readonly ProfilerMarker LateHeroFeel = new ProfilerMarker(ProfilerCategory.Scripts, LateHeroFeelName);
+        public static readonly ProfilerMarker EffectsTick = new ProfilerMarker(ProfilerCategory.Scripts, EffectsTickName);
+        public static readonly ProfilerMarker LateBossFeel = new ProfilerMarker(ProfilerCategory.Scripts, LateBossFeelName);
         public static readonly ProfilerMarker DepthPlace = new ProfilerMarker(ProfilerCategory.Scripts, DepthPlaceName);
         public static readonly ProfilerMarker DepthRestore = new ProfilerMarker(ProfilerCategory.Scripts, DepthRestoreName);
         public static readonly ProfilerMarker GroundPrewarm = new ProfilerMarker(ProfilerCategory.Scripts, GroundPrewarmName);

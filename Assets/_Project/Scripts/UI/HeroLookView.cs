@@ -122,6 +122,28 @@ namespace Cryptforge.UI
             PixelSpriteFactory.Destroy(_litOrb);
         }
 
+        // A weapon as the game-feel cues draw its ghost (HeroFeelView): the puppet's painted one, else the painted frames',
+        // else the loadout renderer's own sprite - so a weapon the hero does not hold in its hand is still drawn as the
+        // hero's. Null when none is drawn (only the Sword, the Staff's shaft and the Daggers have painted ones).
+        internal Sprite WeaponSprite(HeroWeaponPart part)
+        {
+            Sprite painted = null;
+            if (_puppetArt != null)
+                painted = part == HeroWeaponPart.Sword ? _puppetArt.Sword
+                    : part == HeroWeaponPart.StaffShaft ? _puppetArt.Staff
+                    : part == HeroWeaponPart.DaggerLeft || part == HeroWeaponPart.DaggerRight ? _puppetArt.Dagger
+                    : part == HeroWeaponPart.Shield ? _puppetArt.Shield : null;
+            if (painted == null && _paintedArt != null)
+                painted = part == HeroWeaponPart.Sword ? _paintedArt.Sword
+                    : part == HeroWeaponPart.StaffShaft ? _paintedArt.Staff
+                    : part == HeroWeaponPart.DaggerLeft || part == HeroWeaponPart.DaggerRight ? _paintedArt.Dagger
+                    : part == HeroWeaponPart.Shield ? _paintedArt.Shield : null;
+            if (painted != null)
+                return painted;
+            SpriteRenderer own = _weapons[(int)part];
+            return own != null ? own.sprite : null;
+        }
+
         // The pre-built white silhouette of one of the body frames, for CombatantView's hit flash; null for any other sprite.
         public Sprite SilhouetteOf(Sprite bodySprite)
         {

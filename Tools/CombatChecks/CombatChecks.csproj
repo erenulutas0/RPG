@@ -275,6 +275,8 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/PuppetMotionTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PuppetStrideTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PuppetFacingTests.cs" />
+    <!-- The game-feel pass's timings and curves (docs/43 section 1, 2026-11-22): GameFeel lives in Scripts/Art (above). -->
+    <Compile Include="../../Assets/_Project/Tests/EditMode/GameFeelTests.cs" />
     <!-- Pure telemetry only: the Unity subfolder is compiled by Unity and UnityCompileCheck. -->
     <Compile Include="../../Assets/_Project/Scripts/Analytics/*.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/TelemetryJsonTests.cs" />
