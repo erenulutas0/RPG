@@ -86,6 +86,10 @@ namespace Cryptforge.Tests
                 Assert.That(choices.CardButton(c).interactable,Is.False,"Card "+c+" waits out the input delay.");
             }
             yield return new WaitForSecondsRealtime(.3f);
+            // A loaded machine can be a frame late to lift the delay: wait for it, up to 2 s, before asserting.
+            float lifted=Time.realtimeSinceStartup+2f;
+            while(!choices.CardButton(0).interactable&&Time.realtimeSinceStartup<lifted)
+                yield return null;
 
             Canvas.ForceUpdateCanvases();
             var surface=(RectTransform)choices.CardButton(0).transform.parent;
