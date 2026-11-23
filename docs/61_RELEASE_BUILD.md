@@ -200,3 +200,18 @@ From docs/59 sections 3 and 4, in the order they block the first upload:
    to upload or symbols inside the bundle); decide before the first upload. The pipeline does not change it yet.
 7. **The closed track:** at least 12 testers opted in for 14 continuous days (docs/59 section 4); Play's pre-launch report
    runs on every upload and is worth reading.
+
+## The first run (2026-11-23, the lead, in the main checkout)
+
+The command was `pwsh -File Tools/Build-Release.ps1`, run with no CRYPTFORGE_* variables set. It produced
+`Builds/Release/Cryptforge-0.1.0-1-debugkey.aab`, stamped **NOT FOR PLAY: debug key**.
+
+- **Size:** 57,309,047 bytes (54.7 MB); the base module, compressed, is 57,261,131 bytes, under the 200 MB limit.
+- **Manifest:** com.cryptforge.prototype 0.1.0 (1), minSdk 26, targetSdk 36.
+- **16 KB alignment:** every LOAD segment of the five arm64-v8a libraries is aligned to 0x4000 or more (libunity,
+  libil2cpp, libmain, libswappywrapper, libc++_shared).
+- **Signature:** `jarsigner -verify` reports "jar verified" (debug key).
+- **Settings:** 14 changed and restored. ProjectSettings/ was unchanged on disk afterwards; `git status` was clean.
+- **Time:** 975 s in Unity, the first IL2CPP release build.
+- **Not run:** bundletool's size and APK checks. They need a download, which is the owner's call.
+
