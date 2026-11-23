@@ -1,9 +1,10 @@
 """The balance rule's read (docs/56): a paired, seed-level bootstrap of four-floor completion changes.
 
 usage: python Tools/BalanceRule/paired_bootstrap.py <folder> [first-seed last-seed]
-<folder> holds GloamEnemiesResearch, HeroSkillsDescentResearch, DifficultyTiersResearch or WeaponRosterResearch outputs
-(gloam-enemies.csv, hero-skills-rule.csv for docs/57's skills, difficulty-tiers.csv, weapon-roster.csv for docs/63's weapon
-roster), one run each in a subfolder (FOUNDRY_OUT=<folder>/<name>),
+<folder> holds GloamEnemiesResearch, HeroSkillsDescentResearch, DifficultyTiersResearch, WeaponRosterResearch or
+MyrrRoundResearch outputs (gloam-enemies.csv, hero-skills-rule.csv for docs/57's skills, difficulty-tiers.csv,
+weapon-roster.csv for docs/63's weapon roster, myrr-round.csv for docs/64's Rootmother Myrr), one run each in a subfolder
+(FOUNDRY_OUT=<folder>/<name>),
 every one with `shipped` or paired against a `shipped` run of the same seeds elsewhere in <folder>. Typical hands only. A
 difficulty tier (docs/54 section 21) is its matched geared cohort on the tier against the same cohort ungeared on Forged;
 every tier option found (a candidate "tempered@1.10/1.08" included) gets its row. For each
@@ -25,7 +26,8 @@ from collections import defaultdict
 root = sys.argv[1] if len(sys.argv) > 1 else os.path.dirname(os.path.abspath(__file__))
 runs = {}
 tier_options = set()
-for name in ('gloam-enemies.csv', 'hero-skills-rule.csv', 'difficulty-tiers.csv', 'weapon-roster.csv'):
+myrr_options = set()
+for name in ('gloam-enemies.csv', 'hero-skills-rule.csv', 'difficulty-tiers.csv', 'weapon-roster.csv', 'myrr-round.csv'):
     for path in glob.glob(os.path.join(root, '*', name)):
         with open(path, newline='') as f:
             for r in csv.DictReader(f):
@@ -34,6 +36,8 @@ for name in ('gloam-enemies.csv', 'hero-skills-rule.csv', 'difficulty-tiers.csv'
                 runs[(r['option'], r['cohort'], r['hero'], int(r['seed']))] = r['finale_outcome'] == 'WalkedOut'
                 if name == 'difficulty-tiers.csv' and r['option'] != 'shipped':
                     tier_options.add(r['option'])
+                if name == 'myrr-round.csv' and r['option'] not in ('shipped', 'aa-f3'):
+                    myrr_options.add(r['option'])
 
 COMPARISONS = [
     # (label, option, flip[, base]): the base is `shipped` unless named
@@ -80,6 +84,9 @@ COMPARISONS = [
 ]
 COMPARISONS += [(f'Tier candidate `{o}` vs Forged ungeared', o, False)
                 for o in sorted(tier_options) if o not in {c[1] for c in COMPARISONS}]
+# docs/64's Rootmother Myrr (MyrrRoundResearch): every option read against `shipped`, the Forge Warden at floor 3's gate.
+COMPARISONS += [(f'Rootmother Myrr `{o}` vs the Forge Warden (floor 3 gate)', o, False)
+                for o in sorted(myrr_options) if o not in {c[1] for c in COMPARISONS}]
 # first-card is read from now on (docs/56, the lead's decisions of 2026-11-17, point 2).
 COHORTS = ['clumsy', 'careful', 'first-card', 'standing']
 HEROES = ['Vanguard', 'Ilya']
