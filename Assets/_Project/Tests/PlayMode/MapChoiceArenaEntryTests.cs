@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using Cryptforge.Art;
 using Cryptforge.Core;
 using Cryptforge.Localisation;
 using Cryptforge.Save;
@@ -212,6 +213,96 @@ namespace Cryptforge.Tests
 
             TurkishScreensTests.AssertNoKeyShows();
             LogAssert.NoUnexpectedReceived();
+        }
+
+        // The title's painted plate holds the title's lines (ChoiceCardPainter.FitTitleToLines). "Kahramanını ve / haritanı
+        // seç" wraps to two lines, and the plate's rules and crest, laid for one, crossed the second (the 2026-11-17
+        // capture, 03-tempered-chosen). In each language, at a short and a tall phone: a wrapped title's crest stands wholly
+        // under its lowest glyph, the upper rule over its highest, and the crest above the hero row; a title on one line
+        // keeps the set's margins exactly, as before.
+        [UnityTest, Timeout(180000)]
+        public IEnumerator TheTitlesPlateHoldsItsLinesWithTheCrestClearInBothLanguages()
+        {
+            Loc.Override = Language.Turkish;
+            yield return LoadWithTheMapChoice();
+            var view = Object.FindFirstObjectByType<MapChoiceView>();
+            Assert.That(view, Is.Not.Null, "The map choice is open.");
+            Assert.That(view.PaintsCards, Is.True, "The scene's set paints the panel and its title's plate.");
+            ChoiceCardArtSet art = Object.FindFirstObjectByType<RunChoiceView>(FindObjectsInactive.Include).CardArt;
+            Text title = Title(view);
+            RectTransform plate = (RectTransform)title.transform.parent.Find(ChoiceCardPainter.TitlePlateName);
+            Assert.That(plate, Is.Not.Null, "The title's plate.");
+            Assert.That(plate.GetSiblingIndex(), Is.EqualTo(title.transform.GetSiblingIndex() - 1), "Behind the title.");
+            var crest = (RectTransform)plate.Find(ChoiceCardPainter.TitleCrestName);
+            Assert.That(crest, Is.Not.Null, "The plate's crest.");
+            var safe = (RectTransform)view.Panel.transform.Find("Map Choice Safe Area");
+            safe.GetComponent<SafeAreaFitter>().enabled = false;
+            safe.anchorMin = safe.anchorMax = new Vector2(.5f, .5f);
+
+            foreach (Language language in new[] { Language.Turkish, Language.English })
+            {
+                Loc.Override = language;
+                yield return null;
+                Assert.That(view.TitleText, Is.EqualTo(MapChoiceView.HeroAndMapTitle));
+                foreach (float height in SafeHeights)
+                {
+                    string where = language + " at " + height + ": \"" + title.text + "\"";
+                    safe.sizeDelta = new Vector2(1080f, height);
+                    Canvas.ForceUpdateCanvases();
+                    view.FitNow();
+                    Canvas.ForceUpdateCanvases();
+                    int lines = title.cachedTextGenerator.lineCount;
+                    Assert.That(view.TitleLines, Is.EqualTo(lines), where + ": the plate was fitted to the lines drawn.");
+                    if (language == Language.Turkish)
+                        Assert.That(lines, Is.EqualTo(2), where + ": the Turkish title wraps, the case the plate failed.");
+                    if (lines < 2)
+                    {
+                        Vector4 m = art.TitlePlateMargin;
+                        RectTransform label = title.rectTransform;
+                        Assert.That(plate.offsetMin, Is.EqualTo(label.offsetMin - new Vector2(m.x, m.y)), where + ": one line, the set's margins.");
+                        Assert.That(plate.offsetMax, Is.EqualTo(label.offsetMax + new Vector2(m.z, m.w)), where + ": one line, the set's margins.");
+                        continue;
+                    }
+                    GlyphRows(title, out float lowest, out float highest);
+                    var corners = new Vector3[4];
+                    crest.GetWorldCorners(corners);
+                    float crestTop = title.rectTransform.InverseTransformPoint(corners[1]).y;
+                    float crestFoot = corners[0].y;
+                    plate.GetWorldCorners(corners);
+                    float upperRule = title.rectTransform.InverseTransformPoint(corners[1]).y - art.TitleRuleHeight;
+                    Assert.That(crestTop, Is.LessThanOrEqualTo(lowest + .5f), where + ": the crest stands wholly under the last line.");
+                    Assert.That(upperRule, Is.GreaterThanOrEqualTo(highest - .5f), where + ": the upper rule over the first line.");
+                    view.HeroCardButton(0).GetComponent<RectTransform>().GetWorldCorners(corners);
+                    Assert.That(crestFoot, Is.GreaterThan(corners[1].y), where + ": the crest above the hero row.");
+                }
+            }
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // The lowest and highest edge of the glyphs the title draws, in its own units (the generator's pixels at the
+        // canvas's scale); empty quads (spaces, the end) ignored.
+        private static void GlyphRows(Text title, out float lowest, out float highest)
+        {
+            IList<UIVertex> verts = title.cachedTextGenerator.verts;
+            lowest = float.MaxValue;
+            highest = float.MinValue;
+            for (int i = 0; i + 3 < verts.Count; i += 4)
+            {
+                float minX = float.MaxValue, maxX = float.MinValue, minY = float.MaxValue, maxY = float.MinValue;
+                for (int v = i; v < i + 4; v++)
+                {
+                    Vector3 p = verts[v].position;
+                    minX = Mathf.Min(minX, p.x);
+                    maxX = Mathf.Max(maxX, p.x);
+                    minY = Mathf.Min(minY, p.y);
+                    maxY = Mathf.Max(maxY, p.y);
+                }
+                if (maxX - minX < .01f || maxY - minY < .01f)
+                    continue;
+                lowest = Mathf.Min(lowest, minY / title.pixelsPerUnit);
+                highest = Mathf.Max(highest, maxY / title.pixelsPerUnit);
+            }
+            Assert.That(lowest < highest, Is.True, "The title draws glyphs.");
         }
     }
 }

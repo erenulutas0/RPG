@@ -126,6 +126,9 @@ namespace Cryptforge.UI
         private bool _listening;
         private ChoiceCardArtSet _art;
         private Text _title;
+        // The words and the canvas scale the title's plate was last fitted to.
+        private string _fittedTitle;
+        private float _fittedTitleScale;
         private RectTransform _safe;
         private RectTransform _surface;
         private float _height;
@@ -158,6 +161,8 @@ namespace Cryptforge.UI
 
         public bool IsOpen => _canvas != null && _canvas.activeSelf;
         public string TitleText => _title != null ? _title.text : string.Empty;
+        // The lines the title's plate was last fitted to (0 before a painted plate is fitted).
+        public int TitleLines { get; private set; }
         // The hero row, in the roster's order; empty while the roster has one hero.
         public int HeroCardCount => _heroCards.Count;
         public Button HeroCardButton(int slot) => _heroCards[slot].Button;
@@ -284,7 +289,10 @@ namespace Cryptforge.UI
             _title = title;
 
             if (art != null)
+            {
                 _painter = new ChoiceCardPainter(art, backdrop, surface, title);
+                FitTitlePlate();
+            }
             _language = LanguageToggleView.Create(surfaceRect, descriptionSource, LanguageFontSize, Vector2.one, Vector2.one,
                 Vector2.one, new Vector2(-CardInset, -(TitleTop + (TitleHeight - LanguageHeight) / 2f)),
                 new Vector2(LanguageWidth, LanguageHeight));
@@ -743,13 +751,34 @@ namespace Cryptforge.UI
             if (Time.unscaledTime >= _inputEnabledAt && !_chosen && _cards.Count > 0 && !_cards[0].interactable)
                 SetInteractable(true);
             FitToSafeArea();
+            FitTitlePlate();
             if (_painter != null)
                 _painter.Tick(Time.unscaledTime);
         }
 
         // Fits the surface to the safe area the canvas measures now - a capture tool calls it after it redraws the canvases
-        // at a phone's size, since Update would only fit them a frame later (as AnvilView.FitNow).
-        public void FitNow() => FitToSafeArea();
+        // at a phone's size, since Update would only fit them a frame later (as AnvilView.FitNow) - and the title's plate
+        // to its lines.
+        public void FitNow()
+        {
+            FitToSafeArea();
+            FitTitlePlate();
+        }
+
+        // The painted title plate round the title's lines (ChoiceCardPainter.FitTitleToLines): the title wraps to two lines
+        // in Turkish and the plate's rules and crest, laid for one, crossed the second. Measured again only when the words
+        // (a language change) or the canvas's scale change.
+        private void FitTitlePlate()
+        {
+            if (_painter == null || _title == null)
+                return;
+            float scale = _title.pixelsPerUnit;
+            if (_fittedTitle == _title.text && _fittedTitleScale == scale)
+                return;
+            _fittedTitle = _title.text;
+            _fittedTitleScale = scale;
+            TitleLines = _painter.FitTitleToLines();
+        }
 
         // A screen whose safe area is shorter (or narrower) than the panel shows it whole, scaled down; never up.
         private void FitToSafeArea()

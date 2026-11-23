@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Cryptforge.Art;
 using UnityEngine;
 using UnityEngine.UI;
@@ -33,7 +34,14 @@ namespace Cryptforge.UI
         private const float BreathDepth = .16f;
         private static readonly Color Clear = new Color(1f, 1f, 1f, 0f);
 
+        // How far the plate's top reaches over a wrapped title's lines (FitTitleToLines), so its upper rule clears the
+        // words' accents; its foot reaches far enough under them for the crest's whole sprite.
+        internal const float TitleLinesPad = 12f;
+
         private readonly ChoiceCardArtSet _art;
+        private readonly Text _title;
+        private readonly RectTransform _titlePlate;
+        private TextGenerator _titleLines;
         // Each slot's aura and crest, while its card wears them: they breathe while the panel is open.
         private Image[] _glows = new Image[2 * 3];
 
@@ -61,7 +69,44 @@ namespace Cryptforge.UI
                 rect.pivot = new Vector2(.5f, .5f);
                 rect.anchoredPosition = new Vector2(0f, art.TitleRuleHeight);
                 rect.sizeDelta = NativeSize(art.TitleCrest);
+                _title = title;
+                _titlePlate = plate.rectTransform;
             }
+        }
+
+        // The title's plate round the words the title holds now, for a view whose title can wrap (MapChoiceView: "Kahramanını
+        // ve / haritanı seç" in Turkish). A title on one line keeps the set's margins, exactly as before. For a wrapped one
+        // the plate reaches past its lines - its top TitleLinesPad over the first, its foot under the last by the crest's
+        // rule height and half its height, so the crest's whole sprite stands below the words - and is never shorter than
+        // the set's; neither rule nor the crest crosses a word. The title is centred in its rect, so its lines are found
+        // there from their height alone, measured as the label lays them out: its own settings and best fit, at its
+        // canvas's scale. Returns how many lines it holds (0 with no title or no words).
+        internal int FitTitleToLines()
+        {
+            if (_title == null || _titlePlate == null)
+                return 0;
+            RectTransform label = _title.rectTransform;
+            Vector4 margin = _art.TitlePlateMargin;
+            Fit(_titlePlate, label, margin);
+            Rect rect = label.rect;
+            if (!(rect.width > 0f) || !(rect.height > 0f) || string.IsNullOrEmpty(_title.text))
+                return 0;
+            if (_titleLines == null)
+                _titleLines = new TextGenerator();
+            _titleLines.Populate(_title.text, _title.GetGenerationSettings(rect.size));
+            IList<UILineInfo> lines = _titleLines.lines;
+            if (lines.Count < 2)
+                return lines.Count;
+            // The generator's lines are in the canvas's pixels, as its vertices are (Text draws them at 1/pixelsPerUnit).
+            UILineInfo last = lines[lines.Count - 1];
+            float half = (lines[0].topY - (last.topY - last.height)) / _title.pixelsPerUnit * .5f;
+            float centre = rect.center.y;
+            float under = _art.TitleRuleHeight + (_art.TitleCrest != null ? NativeSize(_art.TitleCrest).y * .5f : 0f);
+            float top = Mathf.Max(rect.yMax + margin.w, centre + half + TitleLinesPad);
+            float foot = Mathf.Min(rect.yMin - margin.y, centre - half - under);
+            _titlePlate.offsetMax = new Vector2(_titlePlate.offsetMax.x, label.offsetMax.y + top - rect.yMax);
+            _titlePlate.offsetMin = new Vector2(_titlePlate.offsetMin.x, label.offsetMin.y + foot - rect.yMin);
+            return lines.Count;
         }
 
         // The card in the given slot, in the given treatment.
