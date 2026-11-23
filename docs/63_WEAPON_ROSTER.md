@@ -373,3 +373,19 @@ four cohorts, paired against `shipped` on the same code.
    after the roster's balance is settled?
 7. **The forge's empty space.** With the rack gone, the forge shows the hero's weapon and the relics, and the band above
    the start button is empty. Leave it, or put something there (the hero's passive, or the skills)?
+
+## 12. The lead's answers (2026-11-23, the night shift; Q1 is put to the owner)
+
+1. **Strict exclusivity waits** until the shared pool can carry a hero's crowds. The lever stays off, so today's game
+   keeps the Staff and the Daggers open to both heroes. The next round measures C2 first (the Cinder Saw aura beside
+   c-mortar15's Mortar), then C1 (a guaranteed crowd weapon while a slot is free), on exploration seeds, then one
+   confirmation on the fresh block from 11601. **For the owner:** strict "each hero's own weapon" costs the Vanguard
+   36 points of completion until the pool has two crowd weapons.
+2. **No refund for old weapon purchases.** There are no players yet, and the records stay.
+3. **Names:** Magma Mortar / Magma Havanı and Forge Bow / Ocak Yayı stand as working names, pending the owner's docs/60
+   review.
+4. **Ilya unlocks on any clear of The Foundry under the roster.** The hint text follows when the roster goes live.
+5. **The Cinder Saw is the next shared weapon** (C2).
+6. **Evolutions** for the new weapons come after the roster's balance is settled.
+7. **The forge's empty band** will show the hero's skills entry (docs/57 section 14). A small follow-up.
+
