@@ -1,10 +1,11 @@
 # 63 - The weapon roster: each hero its own weapon, a shared pool, three slots (2026-11-23)
 
-Phase 1 of the owner's weapon request. Sections 1-4 are built and on by default (the rack's removal, the full-slot rule's
-tests, Ilya's unlock rule); sections 5-8 are a design with two shared weapons built **behind a research lever that is off
-by default** (`FoundryLevers.WeaponRoster` in the simulation, `development/weapon-roster.txt` in the scene). With the
-lever off, everything a player meets is today's game and the default batch is byte-identical. Section 9 holds the
-measurement on the exploration seeds 1-2000 (docs/56 rule 1); section 10 the candidate for a later confirmation read.
+Phase 1 of the owner's weapon request. Built and on by default: the full-slot rule's tests (section 4), the forge's
+weapon rack removed (section 5) and Ilya's unlock rule (section 6). Built **behind a research lever that is off by
+default** (`FoundryLevers.WeaponRoster` in the simulation, `development/weapon-roster.txt` in the scene): the roster of
+sections 2-3 and the two shared weapons of section 7. With the lever off, everything a player meets is today's game and
+the default batch is byte-identical. Section 9 holds the measurement on the exploration seeds 1-2000 (docs/56 rule 1);
+section 10 why no candidate is ready for a confirmation read, and the next round's two.
 
 **The owner's request (2026-11-22, translated from Turkish):** "Like Megabonk: weapons distributed to characters, each
 character with its own weapon; characters pick 3 weapons as they level up, and once they have 3, only those 3 appear as
@@ -31,6 +32,12 @@ fixed** (docs/40 section 5.1): no slot meta-progression.
 - **Ilya's unlock** stays "Clear The Foundry with the Staff" with today's catalogue, where the Vanguard can take the
   Staff as a card (97-100 % of its floor-1 clears carry it); under the roster no card can hand it over, and the clear
   alone unlocks (section 6).
+- **Measured (section 9): the roster as asked fails docs/56's rule by 9-18 points a cohort, and the whole cost is the
+  Vanguard's** (careful 96 % -> 60 % of full climbs; Ilya 96 % -> 98 %). The Staff did two thirds of the Vanguard's damage;
+  under the roster only the Mortar holds a crowd, it is held in about 55 % of runs, and the runs without it almost never
+  finish. Stronger Mortar numbers, an area-first pilot and a Sword sweep each close part of the gap, none enough. No
+  candidate is ready for a confirmation read; section 10 proposes the next round's two (a crowd weapon guaranteed, or a
+  second shared crowd weapon).
 
 ## 1. Where the weapons stood on 2026-11-22
 
@@ -212,16 +219,157 @@ come with the exception argued then: a pooled, capped count, stepped by the enco
   `CombatSetup` adds `_rosterWeapons` (Magma Mortar, Forge Bow) to `_weapons` and filters them with `WeaponRoster`
   against `_heroes`' starting weapons. `development/start-weapon.txt` may also name a roster weapon, so a scene test can
   start a run with it.
+- **Research only:** `FoundryLevers.RosterPool` and `RosterSignatureIds` hand the roster another pool or other signatures
+  (section 9's decomposition and candidates), and `WeaponRosterResearch`'s `pref-area` reading uses `FoundryLevers.Picker`.
 - **Byte-identical default.** With the lever off nothing the default batch reads changed (section 9.1).
 
 ## 9. Measurements (exploration seeds 1-2000)
 
-Pending: filled in by the measurement commit.
+### 9.1 The default batch, the lever off
+
+`FOUNDRY_SEEDS=200 FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_REALISM=typical FOUNDRY_FLOORS=2`, filter
+`FullyQualifiedName~FoundryBatchReport.TheFoundryFloorOverASeedBatch`, on the merged base (b525281c), on the rack's
+removal (77f660bf) and on the roster's commit (4775964c), each from a clean snapshot: every CSV byte-identical
+(foundry-batch.csv, foundry-batch-floor2.csv, foundry-cohorts-floor2.csv), and the three reports identical once the two
+things that change from run to run are masked (the header's timestamp and the floor-time table's wall-clock seconds).
+
+### 9.2 The roster as built, against today (seeds 1-2000, all five cohorts, typical hands, the whole climb)
+
+`WeaponRosterResearch` (`ROSTER_OPTIONS=shipped,roster`, 40,000 runs). Completion: the finale walked out of. The change
+in points is paired on the seeds, its 90 % CI from `Tools/BalanceRule/paired_bootstrap.py` (10,000 resamples of seeds,
+both heroes of a seed together):
+
+| Cohort | Shipped | Roster | Change (points) | 90 % CI | SD per 400 seeds |
+|---|---|---|---|---|---|
+| careful | 95.9 % | 79.0 % | **-16.88** | -17.93 to -15.82 | 11.4 |
+| standing | 81.6 % | 68.5 % | **-13.10** | -14.43 to -11.78 | 14.3 |
+| first-card | 82.2 % | 63.9 % | **-18.25** | -19.55 to -16.95 | 14.3 |
+| clumsy | 37.6 % | 28.9 % | **-8.75** | -10.32 to -7.17 | 17.4 |
+| auto-farmer | 0.9 % | 0.8 % | -0.10 | - | - |
+
+**It fails docs/56's rule by a wide margin, and the whole cost is the Vanguard's.** By hero (completion, change):
+
+| Cohort | Vanguard shipped | Vanguard roster | Ilya shipped | Ilya roster |
+|---|---|---|---|---|
+| careful | 96.0 % | 60.0 % (-36.1) | 95.7 % | 98.0 % (+2.4) |
+| standing | 81.0 % | 48.3 % (-32.7) | 82.2 % | 88.7 % (+6.5) |
+| first-card | 77.5 % | 36.4 % (-41.2) | 86.8 % | 91.5 % (+4.7) |
+| clumsy | 26.4 % | 6.3 % (-20.1) | 48.9 % | 51.5 % (+2.6) |
+
+Floor 1 alone tells the same story: the careful Vanguard clears it in 70.8 % of runs under the roster against 98.5 % today.
+
+**Why.** Today the Vanguard's damage is Ilya's Staff's: of the weapons' damage in the Vanguard's runs that held it, the
+Staff dealt **64.8 %**, the Sword 29.8 %, the Daggers 5.9 % (all cohorts but the auto-farmer). Under the roster the Staff
+is gone, and of the three shared weapons only the Mortar fights a crowd:
+
+| Hero, roster | Sword / Staff (own) | Daggers | Magma Mortar | Forge Bow |
+|---|---|---|---|---|
+| Vanguard: held | 100 % | 59 % | 55 % | 58 % |
+| Vanguard: share of the weapons' damage among holders | 29.7 % | 13.2 % | **55.2 %** | 27.5 % |
+| Ilya: held | 100 % | 65 % | 60 % | 63 % |
+| Ilya: share among holders | 53.9 % | 6.2 % | 39.0 % | 25.6 % |
+
+The Vanguard's runs that took the Mortar completed **65.5 %** (4,384 runs); the runs that were offered it and passed it
+**2.6 %** (2,725 runs). The Sword, the Daggers and the Bow hold no crowd on the horde floor. The autopilot takes new weapons
+in the order the offer shows them (the first of equal scores, `AutopilotCohort.Pick`), so it passes the Mortar in two
+runs of five that see it; with the Staff in the pool there was no wrong pick to make, since the Staff and the Daggers were
+the only two to take.
+
+Ilya gains a little: it loses the Sword (a quarter of its damage today) and takes the Mortar and the Bow instead; its own
+Staff and Ember Memory already hold the crowd.
+
+**No weapon dominates in the sense of crowding the others out.** The Mortar's 55 % of the Vanguard's damage is less than
+the Staff's 65 % today; the Bow takes a quarter wherever it is held; the Daggers are the weak pick for both (6-13 %) and
+were already today (6 %). Pick rates are the autopilot's order, not a preference: each shared weapon is offered in about
+90 % of runs and held in 55-65 %. What does dominate is the **need**: a Vanguard without an area weapon cannot finish.
+
+### 9.3 Follow-up reads (seeds 1-1000, the four docs/56 cohorts)
+
+Each reading's design reason was written in `WeaponRosterResearch` before it was read. Paired change against `shipped`
+on the same seeds, points, 90 % CI; the roster's own row on these seeds for comparison:
+
+| Option | What | careful | standing | first-card | clumsy |
+|---|---|---|---|---|---|
+| roster | as built | -16.25 (-17.75 to -14.75) | -11.35 (-13.15 to -9.55) | -17.85 (-19.75 to -15.95) | -10.15 (-12.45 to -7.80) |
+| exclusive | each hero's own weapon, no new weapon (Vanguard: Sword + Daggers) | -50.65 | -45.80 | -43.45 | -15.40 |
+| open | the two new weapons for both, no exclusivity (five weapons each) | -6.70 (-7.95 to -5.45) | -1.85 (-3.60 to -0.10) | -5.35 (-7.00 to -3.70) | +1.35 (-0.95 to +3.60) |
+| pref-area | the roster, the pilot taking the Mortar first among new weapons | -10.45 (-11.85 to -9.05) | -5.80 (-7.55 to -4.05) | -17.85 (unchanged: it scores nothing) | -7.90 (-10.25 to -5.55) |
+| c-mortar15 | the roster, the Mortar's blast at 3.0 every 1.5 s | -12.20 (-13.70 to -10.70) | -3.80 (-5.75 to -1.85) | -7.55 (-9.60 to -5.50) | -2.40 (-4.90 to +0.05) |
+| c-sweep | the roster, the Vanguard's Sword sweeping (2.5 round the hero, 60 %, reach 2.5; simulation only) | -14.00 (-15.40 to -12.55) | -10.95 (-12.75 to -9.15) | -14.65 (-16.55 to -12.65) | -8.70 (-11.00 to -6.35) |
+| c-sweep-m15 | c-sweep and c-mortar15 together | -10.35 (-11.80 to -8.90) | -3.25 (-5.15 to -1.35) | -5.75 (-7.75 to -3.70) | -1.65 (-4.15 to +0.85) |
+
+The Vanguard alone (completion, careful / clumsy; shipped 96.0 % / 28.1 % on these seeds, the roster 60.7 % / 7.2 %):
+exclusive 2.8 / 0.1, pref-area 72.1 / 9.2, c-mortar15 68.4 / 19.0, c-sweep 65.2 / 10.1, c-sweep-m15 72.1 / 20.5, open
+80.0 / 20.5. Ilya never loses: careful 98-99 % in every roster reading (95.5 % shipped), clumsy 51-60 % (50.1 %).
+
+What the reads say:
+
+- **The Vanguard must hold a crowd weapon, and its own Sword is not one.** Exclusivity alone leaves it the Sword and the
+  Daggers: 2.8 % careful. A sweep on the Sword (the 2026-11-04 sword-role research's "2.5 round the hero, 60 %") adds about
+  two points; the Vanguard runs without the Mortar still finish 4.5 %.
+- **The Mortar's strength matters when it is held**: the Vanguard's runs holding it finish 65.5 % as built, 88.2 % with
+  c-mortar15; but it is held in about 57 % of runs whatever its numbers, and the other 43 % finish 2 %.
+- **Picking it on sight is not enough** (pref-area): the careful pilot takes the first new weapon it is offered while a
+  slot is free, and a third of its runs fill both slots before the Mortar shows.
+- **More weapons dilute the old answer too** (open): with five weapons and no exclusivity the Vanguard holds the Staff in
+  43 % of runs instead of 85 %, and the careful cohort loses 6.7 points - even "adding weapons" costs the Vanguard until
+  its picks reliably include a crowd weapon.
+- **Dominance.** c-mortar15 makes the Mortar 65 % of the Vanguard's weapon damage among holders (the Staff's 65 % today)
+  and 51 % of Ilya's - a sign that at those numbers it would crowd out Ilya's own Staff (46 %). The Bow stays at a quarter
+  wherever it is held in every reading; the Daggers stay the weak pick (5-13 %).
+
+How to rerun (exploration seeds only; the probe refuses a seed past 2000):
+
+```text
+# seeds 1-2000, every cohort (40,000 runs, about an hour on 12 threads)
+FOUNDRY_SEEDS=2000 ROSTER_OPTIONS=shipped,roster FOUNDRY_OUT=<out>/a dotnet test Tools/CombatChecks -c Release -p:NuGetAudit=false --filter "FullyQualifiedName~WeaponRosterResearch"
+# seeds 1-1000, the four docs/56 cohorts (about 10 minutes an option)
+FOUNDRY_SEEDS=1000 ROSTER_COHORTS=careful,standing,first-card,clumsy ROSTER_OPTIONS=exclusive,open,pref-area,c-mortar15,c-sweep,c-sweep-m15 FOUNDRY_OUT=<out>/b dotnet test ...
+python Tools/BalanceRule/paired_bootstrap.py <out> 1 2000    # or 1 1000 for the follow-ups
+```
 
 ## 10. The candidate for a confirmation read
 
-Pending: filled in by the measurement commit.
+**None yet; no confirmation block should be spent on what is measured here.** Every reading of the roster fails docs/56's
+rule for the careful cohort by 10 points or more, and the cost is the Vanguard's alone. The reads point at one design
+fact, not at numbers: on the horde floor a hero must hold a crowd weapon, the Vanguard's own Sword is not one, and today's
+answer was another hero's weapon.
+
+**Proposed for the next design round (exploration first, then at most two to the confirmation block):**
+
+1. **C1, "a crowd weapon guaranteed"** - the roster with c-mortar15's Mortar (34 damage every 1.5 s, reach 4, blast 3.0 at
+   the full damage; lines as built), and an offer rule: while a hero holds no crowd weapon (an Area weapon or a sweep) and
+   a slot is free, a new-weapon card it is shown is a crowd weapon when the pool holds one (docs/40 section 9.2's step 3,
+   "early-game guarantee"). The reason: the Vanguard's runs that hold the strong Mortar finish 88 % (shipped 96 %), and
+   the 43 % that never hold it finish 2 %; the guarantee removes exactly that failure. Ilya is unaffected (its Staff is
+   its crowd weapon).
+2. **C2, "a second shared crowd weapon"** - the roster with c-mortar15's Mortar and docs/40's Cinder Saw (an aura round
+   the hero: 5 every 0.2 s within a short radius) in the shared pool, so two of the Vanguard's four shared choices hold a
+   crowd. The reason: the same failure, removed by the pool's shape instead of a rule. It needs the aura strike built in
+   `Combat` (section 3.2).
+3. A guard against the Mortar crowding out Ilya's Staff at c-mortar15's numbers (51 % of Ilya's damage): read Ilya's
+   shares beside the completion, and if needed keep the Mortar's damage at 30 for Ilya's sake (a number, not a rule).
+
+The confirmation read for whichever candidate passes on exploration seeds: the fresh block from **seed 11601** (the lead's
+note), 3,200 seeds (a change from floor 1 diverges over all four floors, docs/56 rule 1), both heroes, typical hands, the
+four cohorts, paired against `shipped` on the same code.
 
 ## 11. Owner questions
 
-Pending: filled in by the measurement commit.
+1. **The roster as asked costs the Vanguard its finish today.** Keeping each hero's own weapon to that hero takes Ilya's
+   Staff from the Vanguard, and the Staff did two thirds of the Vanguard's damage. With the two new shared weapons the
+   careful player's full climb drops from 96 % to 60 % for the Vanguard (Ilya goes from 96 % to 98 %). Do you still want
+   the Staff kept to Ilya alone, knowing the Vanguard then needs a crowd weapon guaranteed (C1) or a second crowd weapon in
+   the shared pool (C2) before this can ship?
+2. **The old weapon purchases.** The forge no longer sells weapons. A save that bought the Staff or the Daggers keeps the
+   record but the gold is not given back. Refund it, or leave it (there are no players yet)?
+3. **Names.** "Magma Mortar" (TR "Magma Havanı") and "Forge Bow" (TR "Ocak Yayı") - keep, or rename?
+4. **Ilya's unlock.** Under the roster the Vanguard can never carry the Staff, so the closest fair rule is "Clear The
+   Foundry" with any weapon (built, behind the roster's switch). Is that the rule you want, or something harder (for
+   example clearing The Foundry on a higher tier)?
+5. **The Riftblade's Daggers.** When the Riftblade ships, the Daggers become its own and leave the shared pool; the pool
+   then needs a third shared weapon. Is the Cinder Saw the one to build first?
+6. **Evolutions for the new weapons** (Magma Pool for the Mortar, Piercing Volley for the Bow): in the next phase, or
+   after the roster's balance is settled?
+7. **The forge's empty space.** With the rack gone, the forge shows the hero's weapon and the relics, and the band above
+   the start button is empty. Leave it, or put something there (the hero's passive, or the skills)?
