@@ -256,6 +256,8 @@
     <Compile Include="WeaponRosterResearch.cs" />
     <!-- docs/62's P0a measured (2026-11-22): the Outworks phase against the shipped climb, exploration seeds only. -->
     <Compile Include="OutworksResearch.cs" />
+    <!-- docs/57 section 15 (2026-11-23): the skills over a profile's campaign, the unlock and the tiers as built, on demand. -->
+    <Compile Include="SkillsCampaignResearch.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackMotionTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackSpacingTests.cs" />

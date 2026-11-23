@@ -201,11 +201,13 @@ once any option on it has been read, whatever the verdict; the next confirmation
 | 2001-5200 | the Glass Regent's round (docs/50 "The Regent's bite for the standing hero") | 2026-11-17/18 | `regent-feet` against `f2-warden`, beside `shipped` and `aa-f2`; careful, standing, first-card, clumsy; both heroes, typical hands | `regent-feet` passes (standing -1.12, clumsy -0.25, careful +1.06, first-card +1.34 points against the Warden; the A/A probe within -0.31 to +0.56); one candidate read |
 | 5201-8400 | docs/54 phase 6, the difficulty tiers (docs/54 section 21) | 2026-11-17..19 | Tempered, Inferno and Abyssal, each with its matched geared cohort against the cohort ungeared on Forged; clumsy, careful, first-card; one candidate a tier | all three pass; seven of nine cells an easing |
 | 8401-11600 | docs/57's hero skills, phases 1-2 (docs/57 section 13.3) | 2026-11-18/19 | `c1` (the three skills a hero as phase 2 chose them) against `shipped`; careful, standing, first-card, clumsy; both heroes, typical hands; the A/A `aa-f1` (one unread draw as floor 1 begins) for the clumsy cohort | `c1` passes as an easing (clumsy +15.00, CI +14.02 to +15.98; careful +1.45, +1.08 to +1.83; first-card +3.88, +3.27 to +4.48; standing +4.33); one candidate read; `aa-f1` +0.77 (-0.19 to +1.73), SD 13.0 completions per 400 seeds |
+| 11601-14800 | docs/57's skills live, the re-read of its 13.8 with the unlock as built (docs/57 section 15), and docs/54 21's standing and auto-farmer cohorts on the same block | 2026-11-23 | `live` (`SkillsCampaignResearch`): 32 campaigns of 100 runs a cohort and hero, campaign k on seeds 11601 + 100k .. + 99, both heroes and every cohort on the same seeds; the skills, the Forge, the Anvil and the tiers as built; each run beside its shadow (the same seed, gear and tier, skill 1 alone); clumsy, careful, first-card, standing, auto-farmer; typical hands | under 13.8's ceiling: the clumsy cohort's pooled completion with all three skills 57.0 % (55.8 to 58.3) against 60 %, no trim; against the shadows (paired_bootstrap.py, every run) clumsy +12.52 (CI +11.58 to +13.47), careful +0.88 (+0.61 to +1.16), first-card +2.12 (+1.66 to +2.61), standing +3.81 (+3.12 to +4.50): an easing; one design read |
 
 A change that is on from floor 1 (docs/57's skills) reads the floor-2 count,
 3,200 seeds, and nudges floor 1 for its A/A (`HeroSkillsDescentResearch`'s `aa-f1`), whose SD per 400 seeds (13.0 for the
-clumsy cohort) is wider than `aa-f2`'s 8.1: the divergence runs over four floors. The next fresh block after these starts
-at seed **11601**.
+clumsy cohort) is wider than `aa-f2`'s 8.1: the divergence runs over four floors. A campaign read (docs/57 section 15)
+spends its block as campaigns of runs, each run a fresh seed: 32 campaigns of 100 runs are 3,200 seeds a hero, the same
+count. The next fresh block after these starts at seed **14801**.
 
 The tiers' read was begun on 2026-11-17 and stopped by a shutdown in its last tier (Abyssal). It was read again whole on
 the same code on 2026-11-18/19, and the rows the first read had written came back byte for byte (the simulation is

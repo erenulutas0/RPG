@@ -1,9 +1,10 @@
 """The balance rule's read (docs/56): a paired, seed-level bootstrap of four-floor completion changes.
 
 usage: python Tools/BalanceRule/paired_bootstrap.py <folder> [first-seed last-seed]
-<folder> holds GloamEnemiesResearch, HeroSkillsDescentResearch, DifficultyTiersResearch, WeaponRosterResearch or
-MyrrRoundResearch outputs (gloam-enemies.csv, hero-skills-rule.csv for docs/57's skills, difficulty-tiers.csv,
-weapon-roster.csv for docs/63's weapon roster, myrr-round.csv for docs/64's Rootmother Myrr), one run each in a subfolder
+<folder> holds GloamEnemiesResearch, HeroSkillsDescentResearch, DifficultyTiersResearch, WeaponRosterResearch,
+MyrrRoundResearch or SkillsCampaignResearch outputs (gloam-enemies.csv, hero-skills-rule.csv for docs/57's skills,
+difficulty-tiers.csv, weapon-roster.csv for docs/63's weapon roster, myrr-round.csv for docs/64's Rootmother Myrr,
+skills-campaign.csv for docs/57 section 15's campaigns, each run read against its shadow), one run each in a subfolder
 (FOUNDRY_OUT=<folder>/<name>),
 every one with `shipped` or paired against a `shipped` run of the same seeds elsewhere in <folder>. Typical hands only. A
 difficulty tier (docs/54 section 21) is its matched geared cohort on the tier against the same cohort ungeared on Forged;
@@ -38,6 +39,17 @@ for name in ('gloam-enemies.csv', 'hero-skills-rule.csv', 'difficulty-tiers.csv'
                     tier_options.add(r['option'])
                 if name == 'myrr-round.csv' and r['option'] not in ('shipped', 'aa-f3'):
                     myrr_options.add(r['option'])
+# docs/57 section 15 (SkillsCampaignResearch): each campaign run as the option, and beside it its shadow - the same seed,
+# gear and tier with skill 1 alone (a run that carries skill 1 alone is its own) - as `<option>-shadow`.
+for path in glob.glob(os.path.join(root, '*', 'skills-campaign.csv')):
+    with open(path, newline='') as f:
+        for r in csv.DictReader(f):
+            if r['realism'] != 'typical human':
+                continue
+            key = (r['cohort'], r['hero'], int(r['seed']))
+            done = r['completed'] == '1'
+            runs[(r['option'],) + key] = done
+            runs[(r['option'] + '-shadow',) + key] = (r['shadow_completed'] == '1') if r['shadow_completed'] else done
 
 COMPARISONS = [
     # (label, option, flip[, base]): the base is `shipped` unless named
@@ -81,6 +93,8 @@ COMPARISONS = [
     ('docs/63: the roster, the pilot taking the area weapon first (pref-area)', 'pref-area', False),
     ('docs/63: candidate, the Vanguard Sword sweeping (c-sweep)', 'c-sweep', False),
     ('docs/63: candidate, the sweep and the Mortar at 3.0 every 1.5 s (c-sweep-m15)', 'c-sweep-m15', False),
+    # docs/57 section 15: the skills as built over a profile's campaign, against the same runs with skill 1 alone.
+    ('docs/57 15: the skills live over a campaign (`live`) vs the same runs with skill 1 alone', 'live', False, 'live-shadow'),
 ]
 COMPARISONS += [(f'Tier candidate `{o}` vs Forged ungeared', o, False)
                 for o in sorted(tier_options) if o not in {c[1] for c in COMPARISONS}]

@@ -1212,7 +1212,10 @@ chooses nothing).
    finds Forged. That is the reward for the gear, and the tier's rewards pay for the time. The damage multipliers stay;
    phase 7's device week reads who plays which tier with what.
 3. **The standing and auto-farmer cohorts** are read when the skills go live (docs/57 13.8), on the same fresh block as
-   that read, so the two whole-Descent changes are seen together.
+   that read, so the two whole-Descent changes are seen together. *Read 2026-11-23 (docs/57 section 15, seeds
+   11601-14800, a campaign per pilot with the matched rule):* standing reaches Tempered at run 34-40 and completes about
+   90 % on Forged and on Tempered alike; the auto-farmer completes 0.7-2.0 % and only one campaign of 64 reached Tempered
+   within 100 runs.
 4. **The tier row's layout** is judged on the capture (`Run-TierUiProof.ps1`) after the merge, and with the Turkish
    strings of localisation pass 2.
 
