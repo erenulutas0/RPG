@@ -735,7 +735,10 @@ namespace Cryptforge.UI
             BuildBuildPage((RectTransform)_pages[(int)Page.Build].transform);
             BuildLadderPage((RectTransform)_pages[(int)Page.Ladder].transform);
             // The playback's speed and skip act at once (its own buttons); the other pages' wait out the input delay.
-            _playback = new DuelPlaybackView(_ui, (RectTransform)_pages[(int)Page.Playback].transform);
+            // The lane's ground in the Foundry's own materials, which the scene's arena already holds.
+            var arena = FindFirstObjectByType<ArenaView>(FindObjectsInactive.Include);
+            _playback = new DuelPlaybackView(_ui, (RectTransform)_pages[(int)Page.Playback].transform,
+                arena != null ? arena.PlatformMaterials : null);
             BuildResultPage((RectTransform)_pages[(int)Page.Result].transform);
         }
 

@@ -106,10 +106,12 @@ namespace Cryptforge.Tests
 
             DuelEvent strike = Find(log, e => e.Kind == DuelEventKind.Strike && e.Round == 0 && (e.Aux & 1) != 0 && e.Value > 0) ??
                                Find(log, e => e.Kind == DuelEventKind.Strike && e.Round == 0 && e.Value > 0) ?? default;
-            playback.Seek(timeline.RoundStart(0) + DuelTimeline.IntroTicks + strike.Tick + 4);
+            // Just after the hit flash (the struck hero's white silhouette, DuelFigure), so the frame shows both heroes in
+            // their own colours, the struck one flinching under its rising number.
+            playback.Seek(timeline.RoundStart(0) + DuelTimeline.IntroTicks + strike.Tick + DuelPlaybackState.FlashTicks + 2);
             yield return null;
             Shoot(screen, "04-playback-strike", $"A strike landing in round 1, tick {strike.Tick}: side {strike.Side} hits for {DuelNumbers.Points(strike.Value)}" +
-                                                ((strike.Aux & 1) != 0 ? " (a crit)" : string.Empty) + ".");
+                                                ((strike.Aux & 1) != 0 ? " (a crit)" : string.Empty) + $", {DuelPlaybackState.FlashTicks + 2} ticks on.");
 
             DuelEvent skill = Find(log, e => e.Kind == DuelEventKind.Skill && e.Effect == ArenaEffect.FlameSigil) ??
                               Find(log, e => e.Kind == DuelEventKind.Skill && e.Effect == ArenaEffect.IronResolve) ??

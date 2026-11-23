@@ -5,18 +5,24 @@ using UnityEngine.UI;
 
 namespace Cryptforge.UI
 {
-    // One hero in the arena's lane, drawn with the run's own art as UI images (docs/55 section 11): Ilya from its
-    // pre-rendered set (RenderedCharacterArtSet, the frames the run draws, chosen by the run's pure RenderedCharacterPlayer
-    // - walk by distance, strike, cast, flinch, death), the Vanguard from its painted frames and painted weapons
-    // (VanguardArtSet: the run's painted Vanguard, the cut-out puppet's own fallback), each weapon in its hand as
-    // VanguardAnimator places it. The cut-out puppet itself needs a hero's SpriteRenderers and combat components, so the
-    // lane draws the painted frames (an open question in docs/55 section 11). Without art a plain figure stands in.
+    // One hero in the arena's lane, drawn with the run's own art as UI images (docs/55 section 11). A hero whose
+    // HeroDefinition carries a pre-rendered set (RenderedCharacterArtSet) is drawn from it, as the run draws it: Ilya, and
+    // the Vanguard since 2026-11-22 (VanguardRenderedArtSet, the Blender Vanguard of docs/08, its sword and buckler drawn
+    // whatever the duel's weapon); the frames are chosen by the run's pure RenderedCharacterPlayer - walk by distance,
+    // strike, cast, the Shield Rush's dash, flinch, death - and a blow taken shows the frame's silhouette in white over it,
+    // RenderedCharacterAnimator's flash (a tint would darken the navy plate to a purple the player cannot read). Only a
+    // hero without a rendered set falls back to the painted Vanguard and its painted weapons (VanguardArtSet, each weapon
+    // in its hand as VanguardAnimator places it); without art a plain figure stands in.
     //
     // Presentation only: DuelPlaybackView tells it where the feet are, which way it faces, how far it walked this frame
-    // and what the log said (a strike, a skill, a blow taken, the round lost); the playback's own clock drives every
-    // motion, so x2 plays them twice as fast and a skip never plays them at all.
+    // and what the log said (a strike, a skill, a Shield Rush, a blow taken, the round lost); the playback's own clock
+    // drives every motion, so x2 plays them twice as fast and a skip never plays them at all.
     internal sealed class DuelFigure
     {
+        public const string FlashSuffix = " Flash";
+        // Without the flash shader the frame is tinted this way instead (multiplying can only darken).
+        private static readonly Color FallbackTint = new Color(1f, .5f, .45f, 1f);
+
         // UI units a world unit of the hero's art: the Vanguard's 1.375-unit figure stands about 260 units tall in the
         // lane, larger against the lane than in the run (the lane's unit is 80) so the two heroes read on a phone; at the
         // Sword's reach they meet, a little overlapped, as melee does.
@@ -28,6 +34,7 @@ namespace Cryptforge.UI
         private readonly RectTransform _root;
         private readonly RectTransform _pose;
         private readonly Image _body;
+        private readonly Image _flashImage;
         private readonly Image _right;
         private readonly Image _left;
         private readonly VanguardArtSet _painted;
@@ -46,6 +53,15 @@ namespace Cryptforge.UI
         public RectTransform Root => _root;
         public bool Fallen => _fallen;
         public Sprite BodySprite => _body.sprite;
+        public Color BodyColour => _body.color;
+        // The set it is drawn from: the rendered one, else the painted Vanguard (null when it has the other, or no art).
+        public RenderedCharacterArtSet RenderedArt => _rendered;
+        public VanguardArtSet PaintedArt => _painted;
+        // What the rendered player shows now (Idle for a painted or plain figure).
+        public RenderedMotion Motion => _player != null ? _player.Motion : RenderedMotion.Idle;
+        public RenderedFacing Facing => _player != null ? _player.Facing : RenderedFacing.East;
+        // The white silhouette over a rendered frame while a blow lands.
+        public bool FlashShown => _flashImage != null && _flashImage.enabled;
         // The figure's height in UI units, for what stands over its head.
         public float Height { get; }
 
@@ -74,6 +90,15 @@ namespace Cryptforge.UI
                 _player = new RenderedCharacterPlayer(_rendered.Timings(), _rendered.StrideLength, _rendered.DrawsWest);
                 _right.enabled = _left.enabled = false;
                 Height = Measure(_rendered.Frame(RenderedMotion.Idle, RenderedFacing.East, 0));
+                // The flash: the body's own rect, so it follows each frame's size and pivot, drawn over it.
+                Material flash = ui.FlashMaterial;
+                if (flash != null)
+                {
+                    _flashImage = ui.Part(_body.rectTransform, name + FlashSuffix, new Color(1f, 1f, 1f, RenderedCharacterAnimator.FlashAlpha));
+                    _flashImage.material = flash;
+                    ArenaUi.Stretch(_flashImage.rectTransform, Vector2.zero, Vector2.zero);
+                    _flashImage.enabled = false;
+                }
             }
             else if (_painted != null)
             {
@@ -175,6 +200,20 @@ namespace Cryptforge.UI
             Show();
         }
 
+        // docs/57's Shield Rush: a set that draws the dash plays it once on the playback's clock, over the leap the log
+        // draws (the Vanguard's, as RenderedCharacterAnimator plays it in the run); any other figure plays its cast.
+        public void Rush()
+        {
+            if (_fallen)
+                return;
+            if (_player != null && _player.Dash())
+            {
+                Show();
+                return;
+            }
+            Cast();
+        }
+
         public void Hit() => _player?.Hit();
 
         public void Flash(bool on)
@@ -240,7 +279,17 @@ namespace Cryptforge.UI
             // The rendered set mirrors the east for the west unless it draws the west itself: the pose's scale already
             // faces the figure, so the facing the player chose is drawn unflipped.
             _pose.localScale = new Vector3(player.Mirrored ? -1f : 1f, 1f, 1f);
-            _body.color = _flash ? new Color(1f, .5f, .45f, 1f) : Color.white;
+            if (_flashImage == null)
+            {
+                _body.color = _flash ? FallbackTint : Color.white;
+                return;
+            }
+            _body.color = Color.white;
+            bool on = _flash && !player.IsDying;
+            if (on && _flashImage.sprite != frame)
+                _flashImage.sprite = frame;
+            if (_flashImage.enabled != on)
+                _flashImage.enabled = on;
         }
 
         private void ShowPainted()

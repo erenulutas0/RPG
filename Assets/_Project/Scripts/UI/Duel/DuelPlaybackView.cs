@@ -7,7 +7,8 @@ using UnityEngine.UI;
 
 namespace Cryptforge.UI
 {
-    // The art one side of a duel is drawn with: the hero's rendered set (Ilya), else the painted Vanguard.
+    // The art one side of a duel is drawn with: the hero's rendered set (Ilya, and the Vanguard since 2026-11-22), else
+    // the painted Vanguard.
     internal readonly struct DuelSideArt
     {
         public readonly VanguardArtSet Painted;
@@ -21,7 +22,8 @@ namespace Cryptforge.UI
     }
 
     // The duel played from its log (docs/55 section 11), the heart of P0's verdict on whether watching is fun. The lane runs
-    // across the portrait screen - its 12 units 960 UI units wide, the walls at its ends, the heroes entering at +-4 - with
+    // across the portrait screen - its 12 units 960 UI units wide, the walls at its ends, the heroes entering at +-4 - on
+    // a strip of the Foundry (DuelLaneBackdrop: its masonry wall, flagstone floor, low end walls and braziers), with
     // the two heroes in the run's own art over coloured floor marks (the player's blue, the rival's red, so a mirror reads),
     // their health bars, names, boons and the round's score above, and under it the last skills used. Everything it draws
     // comes from DuelPlaybackState at the playback clock's tick (DuelTimeline, DuelPlaybackClock): each event crossed is
@@ -49,6 +51,7 @@ namespace Cryptforge.UI
         private readonly ArenaUi _ui;
         private readonly RectTransform _page;
         private readonly RectTransform _lane;
+        private readonly DuelLaneBackdrop _backdrop;
         private readonly Text _round;
         private readonly Text _score;
         private readonly Text _banner;
@@ -115,7 +118,9 @@ namespace Cryptforge.UI
             public Color Colour;
         }
 
-        public DuelPlaybackView(ArenaUi ui, RectTransform page)
+        // materials: the scene's Foundry materials the lane's ground is drawn with (ArenaView.PlatformMaterials); null
+        // draws it in plain colours.
+        public DuelPlaybackView(ArenaUi ui, RectTransform page, PlatformMaterialSet materials = null)
         {
             _ui = ui;
             _page = page;
@@ -128,15 +133,8 @@ namespace Cryptforge.UI
 
             _lane = ArenaUi.Node(page, "Arena Lane");
             ArenaUi.Place(_lane, 0f, LaneTop, 1000f, LaneHeight);
-            Image floor = ui.Part(_lane, "Arena Lane Floor", new Color(.16f, .13f, .14f, 1f), ui.White);
-            ArenaUi.Place(floor.rectTransform, LaneCentre - 6 * UnitWidth, FloorY - 40f, 12 * UnitWidth, 110f);
-            Image edge = ui.Part(_lane, "Arena Lane Edge", new Color(.42f, .3f, .2f, 1f), ui.White);
-            ArenaUi.Place(edge.rectTransform, LaneCentre - 6 * UnitWidth, FloorY - 44f, 12 * UnitWidth, 4f);
-            for (int wall = -1; wall <= 1; wall += 2)
-            {
-                Image post = ui.Part(_lane, wall < 0 ? "Arena Lane West Wall" : "Arena Lane East Wall", new Color(.42f, .3f, .2f, 1f), ui.White);
-                ArenaUi.Centre(post.rectTransform, LaneCentre + wall * 6 * UnitWidth, FloorY - 60f, 10f, 220f);
-            }
+            // The Foundry's ground under everything else in the lane (DuelLaneBackdrop): wall, floor, end walls, braziers.
+            _backdrop = new DuelLaneBackdrop(ui, _lane, materials);
             for (int side = 0; side < 2; side++)
             {
                 SideView view = _sides[side];
@@ -195,6 +193,9 @@ namespace Cryptforge.UI
             return shown;
         }
         public DuelFigure Figure(int side) => _sides[side].Figure;
+        public DuelLaneBackdrop Backdrop => _backdrop;
+        public RectTransform Lane => _lane;
+        public Vector2 MarkCentre(int side) => _sides[side].Mark.rectTransform.anchoredPosition;
         // How many damage numbers and flares are on screen.
         public int NumbersShown
         {
@@ -266,7 +267,8 @@ namespace Cryptforge.UI
             Restart();
         }
 
-        // The lane's draw order, back to front: the floor, the glyphs and the floor marks; the rival, then the player in
+        // The lane's draw order, back to front: the backdrop (its first child, never moved), the glyphs and the floor
+        // marks; the rival, then the player in
         // front of it where they meet; each side's ward, guard, daze and burn; the flares; the call-outs; the numbers.
         private void Layer()
         {
@@ -439,7 +441,12 @@ namespace Cryptforge.UI
                     ShowNumber(1 - side, DuelNumbers.Points(e.Value).ToString(), new Color(1f, .58f, .2f, 1f), 40);
                     break;
                 case DuelEventKind.Skill:
-                    _sides[side].Figure.Cast();
+                    // The Shield Rush throws the hero along its leap (DuelPlaybackState.Position): a set that draws the
+                    // dash plays it; every other skill, and a figure without the dash, plays the cast.
+                    if (e.Effect == ArenaEffect.ShieldRush)
+                        _sides[side].Figure.Rush();
+                    else
+                        _sides[side].Figure.Cast();
                     Callout(side, ArenaText.SkillName(e.Effect));
                     Feed(side, ArenaText.SkillName(e.Effect));
                     if (e.Effect == ArenaEffect.ForgeBurst)
@@ -526,6 +533,7 @@ namespace Cryptforge.UI
         {
             DuelMoment moment = Moment;
             float now = Now;
+            _backdrop.Flicker(now);
             for (int side = 0; side < 2; side++)
             {
                 SideView view = _sides[side];
