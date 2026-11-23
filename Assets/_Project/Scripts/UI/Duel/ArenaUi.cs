@@ -9,7 +9,8 @@ namespace Cryptforge.UI
     // The arena screen's parts, built in code as the Anvil builds its own (AnvilView): legacy uGUI on the built-in
     // LegacyRuntime font, rects placed from their parent's top-left on the 1080-wide canvas, the forge's painted plates on
     // the buttons where the scene has them (ScreenArtSet) and plain colours where it does not. The generated sprites (a
-    // white square, a soft disc, a ring) are made once per screen and destroyed with it.
+    // white square, a soft disc, a ring, a fade) and the rendered heroes' flash material are made once per screen and
+    // destroyed with it.
     internal sealed class ArenaUi : IDisposable
     {
         public static readonly Color Gold = new Color32(238, 191, 108, 255);
@@ -38,13 +39,39 @@ namespace Cryptforge.UI
                 float d = Mathf.Sqrt(x * x + y * y);
                 return Mathf.Clamp01(1f - Mathf.Abs(d - .9f) * 14f);
             });
+            Fade = MakeSprite("Arena Fade", 32, (x, y) => (y + 1f) * .5f);
         }
 
         public Font Font { get; }
         public Sprite White { get; }
         public Sprite Disc { get; }
         public Sprite Ring { get; }
+        // Opaque along its top edge, clear along its bottom: a shade laid over an edge.
+        public Sprite Fade { get; }
         public bool Painted => _screens != null;
+
+        private Material _flash;
+        private bool _flashLoaded;
+
+        // The rendered heroes' hit flash in the lane: the run's silhouette shader (Resources/RenderedCharacterFlash, as
+        // RenderedCharacterAnimator draws it), made the first time it is asked for. Null where the shader is missing or
+        // unsupported; the figure then tints its frame instead.
+        public Material FlashMaterial
+        {
+            get
+            {
+                if (_flashLoaded)
+                    return _flash;
+                _flashLoaded = true;
+                var shader = Resources.Load<Shader>("RenderedCharacterFlash");
+                if (shader != null && shader.isSupported)
+                {
+                    _flash = new Material(shader) { name = "Arena hero flash" };
+                    _owned.Add(_flash);
+                }
+                return _flash;
+            }
+        }
 
         // A square sprite drawn by alpha(x, y) over -1..1 on both axes, white.
         private Sprite MakeSprite(string name, int size, Func<float, float, float> alpha)

@@ -5,6 +5,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Cryptforge.Analytics;
 using Cryptforge.Arena;
+using Cryptforge.Art;
+using Cryptforge.Content;
 using Cryptforge.Core;
 using Cryptforge.Localisation;
 using Cryptforge.Save;
@@ -186,6 +188,120 @@ namespace Cryptforge.Tests
             Assert.That(playback.Clock.Ticks, Is.LessThan(atX1 + 1), "Watch again plays the same log from the start.");
             Assert.That(playback.Clock.Speed, Is.EqualTo(DuelPlaybackClock.Normal), "The speed chosen stays.");
             LogAssert.NoUnexpectedReceived();
+        }
+
+        // The duel's figures and ground (the 2026-11-19 capture): the Vanguard is drawn from its own rendered set, the run's
+        // Blender Vanguard (VanguardRenderedArtSet through its HeroDefinition), never the scene's painted frames; a blow
+        // taken shows the white silhouette over the frame's own colours rather than tinting the navy plate; a Shield Rush
+        // plays the set's dash. The lane stands on the Foundry (DuelLaneBackdrop): the lane's first child, behind the floor
+        // marks, the figures and every effect, in the scene's Foundry textures, with two braziers, clear of the health bars
+        // and taking no touch; the feet stand on its floor.
+        [UnityTest]
+        public IEnumerator TheDuelDrawsTheRenderedVanguardOnTheFoundrysGround()
+        {
+            ArenaScreen screen = ArenaScreen.Open(_setup);
+            yield return null;
+            Assert.That(screen.HeroId, Is.EqualTo(ArenaRules.Vanguard));
+            screen.ConfirmBuild();
+            screen.FightSelected();
+            // The test moves the duel itself, as the arena's capture does: the screen's own clock stops.
+            screen.enabled = false;
+            DuelPlaybackView playback = screen.Playback;
+            HeroDefinition vanguard = null;
+            foreach (HeroDefinition hero in _setup.Heroes)
+                if (hero != null && hero.Id == ArenaRules.Vanguard)
+                    vanguard = hero;
+            Assert.That(vanguard, Is.Not.Null);
+            Assert.That(vanguard.RenderedArt != null && vanguard.RenderedArt.IsValid, Is.True, "The Vanguard carries its rendered set.");
+
+            playback.Restart();
+            DuelFigure figure = playback.Figure(0);
+            Assert.That(figure.RenderedArt, Is.SameAs(vanguard.RenderedArt), "The duel draws the Vanguard's own rendered set.");
+            Assert.That(figure.RenderedArt.name, Is.EqualTo("VanguardRenderedArtSet"));
+            Assert.That(figure.PaintedArt, Is.Null, "Not the scene's painted frames.");
+            Assert.That((figure.Motion, figure.Facing), Is.EqualTo((RenderedMotion.Idle, RenderedFacing.East)), "Standing, facing the rival.");
+            Assert.That(figure.BodySprite, Is.SameAs(figure.RenderedArt.Frame(RenderedMotion.Idle, RenderedFacing.East, 0)));
+
+            // A blow on the Vanguard: the silhouette over its frame, the frame's colours its own.
+            DuelLog log = screen.LastLog;
+            DuelTimeline timeline = playback.State.Timeline;
+            DuelEvent? blow = null;
+            for (int i = 0; i < log.Count && blow == null; i++)
+                if (log[i].Round == 0 && log[i].Side == 1 && log[i].Value > 0 &&
+                    (log[i].Kind == DuelEventKind.Strike || log[i].Kind == DuelEventKind.Hit))
+                    blow = log[i];
+            Assert.That(blow.HasValue, Is.True, "The rival lands a blow in round 1.");
+            playback.Seek(timeline.RoundStart(0) + DuelTimeline.IntroTicks + blow.Value.Tick + 2);
+            Assert.That(playback.State.Flashing(0), Is.True);
+            if (playback.State.Side(0).Health > 0)
+            {
+                var flash = Resources.Load<Shader>("RenderedCharacterFlash");
+                bool silhouette = flash != null && flash.isSupported;
+                Assert.That(figure.FlashShown, Is.EqualTo(silhouette), "The run's flash: the frame's silhouette in white.");
+                if (silhouette)
+                    Assert.That(figure.BodyColour, Is.EqualTo(Color.white), "The navy plate is not tinted.");
+            }
+
+            // The Shield Rush: through the log where the Vanguard rushed (unless another of its skills or the round's end
+            // falls in the same two ticks), and on a fresh figure either way.
+            DuelEvent? rush = null;
+            for (int i = 0; i < log.Count && rush == null; i++)
+                if (log[i].Kind == DuelEventKind.Skill && log[i].Side == 0 && log[i].Effect == ArenaEffect.ShieldRush)
+                    rush = log[i];
+            if (rush.HasValue)
+            {
+                bool alone = true;
+                for (int i = 0; i < log.Count; i++)
+                {
+                    DuelEvent e = log[i];
+                    if (e.Round == rush.Value.Round && e.Tick >= rush.Value.Tick && e.Tick <= rush.Value.Tick + 2 &&
+                        (e.Kind == DuelEventKind.RoundEnd || (e.Kind == DuelEventKind.Skill && e.Side == 0 && e.Effect != ArenaEffect.ShieldRush)))
+                        alone = false;
+                }
+                playback.Seek(timeline.RoundStart(rush.Value.Round) + DuelTimeline.IntroTicks + rush.Value.Tick + 2);
+                if (alone)
+                    Assert.That(playback.Figure(0).Motion, Is.EqualTo(RenderedMotion.Dash), "The log's Shield Rush plays the dash.");
+            }
+            playback.Restart();
+            playback.Figure(0).Rush();
+            Assert.That(playback.Figure(0).Motion, Is.EqualTo(RenderedMotion.Dash), "A Shield Rush plays the set's dash.");
+
+            // The ground.
+            DuelLaneBackdrop backdrop = playback.Backdrop;
+            Assert.That(backdrop, Is.Not.Null);
+            Assert.That(backdrop.Root.parent, Is.SameAs(playback.Lane));
+            Assert.That(backdrop.Root.GetSiblingIndex(), Is.EqualTo(0), "The lane's first child: behind everything in it.");
+            Assert.That(backdrop.UsesFoundryArt, Is.True, "Drawn in the scene's Foundry textures.");
+            Assert.That(backdrop.Braziers, Is.EqualTo(2));
+            for (int side = 0; side < 2; side++)
+            {
+                Assert.That(playback.Figure(side).Root.parent, Is.SameAs(playback.Lane));
+                Assert.That(playback.Figure(side).Root.GetSiblingIndex(), Is.GreaterThan(backdrop.Root.GetSiblingIndex()), "A figure stands in front of the ground.");
+                Assert.That(-playback.MarkCentre(side).y, Is.InRange(DuelLaneBackdrop.FloorBack, DuelLaneBackdrop.FloorFront), "The feet on the floor.");
+            }
+            Graphic[] parts = backdrop.Root.GetComponentsInChildren<Graphic>(true);
+            Assert.That(parts.Length, Is.GreaterThan(10));
+            Canvas.ForceUpdateCanvases();
+            var bars = new List<Rect>();
+            foreach (Image image in screen.Panel.GetComponentsInChildren<Image>(true))
+                if (image.name == "Arena Bar 0" || image.name == "Arena Bar 1")
+                    bars.Add(WorldRect(image.rectTransform));
+            Assert.That(bars.Count, Is.EqualTo(2));
+            foreach (Graphic part in parts)
+            {
+                Assert.That(part.raycastTarget, Is.False, part.name);
+                Rect area = WorldRect(part.rectTransform);
+                foreach (Rect bar in bars)
+                    Assert.That(area.Overlaps(bar), Is.False, part.name + " stays clear of the health bars.");
+            }
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        private static Rect WorldRect(RectTransform rect)
+        {
+            var corners = new Vector3[4];
+            rect.GetWorldCorners(corners);
+            return Rect.MinMaxRect(corners[0].x, Mathf.Min(corners[0].y, corners[1].y), corners[2].x, Mathf.Max(corners[0].y, corners[1].y));
         }
 
         [UnityTest]
