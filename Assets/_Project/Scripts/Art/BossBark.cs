@@ -112,7 +112,7 @@ namespace Cryptforge.Art
         // The squared distance from the segment (ax, ay)-(bx, by) to the box [left, right] x [bottom, top]: 0 where they meet,
         // else the least of its ends' distances to the box and the box's corners' distances to it (two convex shapes apart
         // are nearest at a vertex of one).
-        internal static float SegmentToBoxSquared(float ax, float ay, float bx, float by, float left, float right,
+        public static float SegmentToBoxSquared(float ax, float ay, float bx, float by, float left, float right,
             float bottom, float top)
         {
             if (SegmentMeetsBox(ax, ay, bx, by, left, right, bottom, top))
