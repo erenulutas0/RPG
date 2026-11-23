@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   _id: weapon_cinder_saw
   _displayName: Cinder Saw
-  _damage: 5
+  _damage: 8
   _interval: 0.2
   _range: 2
   _initialDelay: 0

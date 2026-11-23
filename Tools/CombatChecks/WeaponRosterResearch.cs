@@ -204,7 +204,7 @@ namespace Cryptforge.Tests
                 Set = l =>
                 {
                     l.WeaponRoster = true;
-                    l.RosterPool = MortarAt(3f, 1.5f, DescentSimulation.RosterWeapons());
+                    l.RosterPool = MortarAt(3f, 1.5f, PhaseTwoSaw());
                 }
             };
             yield return new Option
@@ -223,7 +223,7 @@ namespace Cryptforge.Tests
                 Set = l =>
                 {
                     l.WeaponRoster = true;
-                    l.RosterPool = MortarAt(3f, 1.5f, DescentSimulation.RosterWeapons());
+                    l.RosterPool = MortarAt(3f, 1.5f, PhaseTwoSaw());
                     l.CrowdWeaponGuarantee = true;
                 }
             };
@@ -288,7 +288,7 @@ namespace Cryptforge.Tests
             };
         }
 
-        // Phase 2's next candidate (docs/63 section 13.7), written after the 1-200 probes and before its 1-2000 read: one
+        // Phase 2's next candidate (docs/63 section 13.6), written after the 1-200 probes and before its 1-2000 read: one
         // Mortar cannot serve both heroes - strong enough for the Vanguard it out-deals Ilya's Staff where it is held, weak
         // enough for her Staff it leaves the Vanguard short - while the Saw's circle round the hero serves the hero who
         // stands in the crowd (at 2.0 it barely touches Ilya's Staff). So: the guarantee, the Mortar as built (phase 1's
@@ -314,6 +314,10 @@ namespace Cryptforge.Tests
                 };
             }
         }
+
+        // Phase 2's read pool: the six hero weapons with the Cinder Saw at the numbers C2 was read at (docs/40's 5 every 0.2 s
+        // within 2.0), so p2-c2 and p2-c1c2 read what they read whatever the asset's Saw becomes.
+        private static DescentSimulation.HeroWeapon[] PhaseTwoSaw() => SawAt(5f, .2f, 2f, DescentSimulation.RosterWeapons());
 
         // Phase 1's pool (docs/63 section 7): the five hero weapons, the Magma Mortar at its phase-1 numbers (blast 2.5 every
         // 1.8 s), no Cinder Saw.

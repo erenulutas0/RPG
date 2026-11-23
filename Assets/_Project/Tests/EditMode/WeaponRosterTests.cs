@@ -187,7 +187,7 @@ namespace Cryptforge.Tests
 
         // ---- Phase 2 (docs/63 section 13): the Cinder Saw and the crowd-weapon guarantee ----
 
-        // The Saw is an aura: every enemy within its circle round the hero takes the full 5 once a strike, wherever it stands
+        // The Saw is an aura: every enemy within its circle round the hero takes the full 8 once a strike, wherever it stands
         // about the hero - beside or behind it as much as the nearest - and nothing outside the circle does. The circle is
         // also its reach: with nothing inside it, it does not strike, whatever its Range; Area widens both together. The
         // simulation's legacy strike (StrikeInSlotOrder) gathers the circle round the hero as AttackController does.
@@ -195,16 +195,16 @@ namespace Cryptforge.Tests
         public void TheCinderSawStrikesEveryEnemyRoundTheHeroAndNothingBeyondItsCircle()
         {
             WeaponRuntime saw = Runtime(DescentSimulation.CinderSaw());
-            Assert.That((saw.Damage, saw.Interval, saw.Range, saw.SplashRadius, saw.TargetReach), Is.EqualTo((5f, .2f, 2f, 2f, 2f)));
+            Assert.That((saw.Damage, saw.Interval, saw.Range, saw.SplashRadius, saw.TargetReach), Is.EqualTo((8f, .2f, 2f, 2f, 2f)));
             Assert.That((saw.Pattern.Behavior, saw.Pattern.SplashFraction), Is.EqualTo((WeaponBehavior.Aura, 1f)));
             Assert.That(saw.Pattern.StrikesRoundWielder && saw.Pattern.HoldsACrowd, Is.True);
             var loadout = new WeaponLoadout(0);
             loadout.TryAdd(WeaponRoster.CinderSawId, saw);
             // In front 1.5 out (the nearest: the strike's target), 1.9 to the left (2.42 from the target: beyond a 2-unit
             // splash round it, inside the circle round the hero), 1.70 out on the right, and 2.3 out: outside the circle.
-            var front = new HealthState(5f);
-            var left = new HealthState(5f);
-            var right = new HealthState(5f);
+            var front = new HealthState(8f);
+            var left = new HealthState(8f);
+            var right = new HealthState(8f);
             var beyond = new HealthState(100f);
             var enemies = new[] { front, left, right, beyond };
             var motion = new PackMotion(DescentSimulation.BodySpacing, PackLayout.HalfWidth);
@@ -214,7 +214,7 @@ namespace Cryptforge.Tests
             motion.Add(beyond, 2.3f, 0f, 0f, 1f);
             Assert.That(DescentSimulation.StrikeInSlotOrder(loadout, motion, enemies, 0f, 0f), Is.EqualTo(1));
             Assert.That(enemies.Select(e => e.Current).ToArray(), Is.EqualTo(new[] { 0f, 0f, 0f, 100f }),
-                "The full 5 on each of the three inside the circle, once; nothing on the one outside.");
+                "The full 8 on each of the three inside the circle, once; nothing on the one outside.");
             Assert.That(saw.IsReady, Is.False);
             saw.Tick(.2f);
             Assert.That(saw.IsReady, Is.True, "Its cadence: 0.2 s.");
@@ -227,11 +227,11 @@ namespace Cryptforge.Tests
             Assert.That(saw.TargetReach, Is.EqualTo(2f * 1.18f).Within(1e-5f));
             Assert.That(saw.Range, Is.EqualTo(2f), "Its Range is not what it acquires within.");
             Assert.That(DescentSimulation.StrikeInSlotOrder(loadout, motion, enemies, 0f, 0f), Is.EqualTo(1));
-            Assert.That(beyond.Current, Is.EqualTo(95f));
-            // Its damage line is Flat, before Force's percent (docs/42): (5 + 0.8) x 1.08.
+            Assert.That(beyond.Current, Is.EqualTo(92f));
+            // Its damage line is Flat, before Force's percent (docs/42): (8 + 0.8) x 1.08.
             saw.AddModifier(UpgradeStat.Damage, DescentSimulation.CinderSawLines()[0].ModifierFor(UpgradeRarity.Common));
             saw.AddModifier(UpgradeStat.Damage, DescentSimulation.Force().ModifierFor(UpgradeRarity.Common));
-            Assert.That(saw.Damage, Is.EqualTo(5.8f * 1.08f).Within(1e-4f));
+            Assert.That(saw.Damage, Is.EqualTo(8.8f * 1.08f).Within(1e-4f));
         }
 
         // Every other weapon acquires within its Range exactly, as before the aura existed: TargetReach is Range for them,

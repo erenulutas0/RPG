@@ -282,11 +282,12 @@ namespace Cryptforge.Tests
         public static HeroWeapon ForgeBow() =>
             new HeroWeapon { Id = WeaponRoster.ForgeBowId, DisplayName = "Forge Bow", Lines = ForgeBowLines(), Damage = 25f, Interval = 1.2f, Range = 5f, Pattern = new AttackPattern(WeaponBehavior.DirectHit, 0f, 0f, 4, 2f) };
 
-        // Weapon_CinderSaw.asset (docs/63 section 13, phase 2's second shared crowd weapon; docs/40 section 5.2's 5 / 0.2 s):
-        // an aura - every enemy within 2 units of the hero takes the full 5 every 0.2 s while one stands inside the circle
-        // (WeaponBehavior.Aura; its reach is its circle, WeaponRuntime.TargetReach). One base for both engines, no evolution.
+        // Weapon_CinderSaw.asset (docs/63 section 13, phase 2's second shared crowd weapon): an aura - every enemy within 2
+        // units of the hero takes the full 8 every 0.2 s while one stands inside the circle (WeaponBehavior.Aura; its reach
+        // is its circle, WeaponRuntime.TargetReach). Built at docs/40 section 5.2's 5 and read so as C2; 8 since section
+        // 13.6's next candidate, which strikes harder rather than wider. One base for both engines, no evolution.
         public static HeroWeapon CinderSaw() =>
-            new HeroWeapon { Id = WeaponRoster.CinderSawId, DisplayName = "Cinder Saw", Lines = CinderSawLines(), Damage = 5f, Interval = 0.2f, Range = 2f, Pattern = new AttackPattern(WeaponBehavior.Aura, 2f, 1f) };
+            new HeroWeapon { Id = WeaponRoster.CinderSawId, DisplayName = "Cinder Saw", Lines = CinderSawLines(), Damage = 8f, Interval = 0.2f, Range = 2f, Pattern = new AttackPattern(WeaponBehavior.Aura, 2f, 1f) };
 
         public static readonly Floor EmberHalls = new Floor
         {
