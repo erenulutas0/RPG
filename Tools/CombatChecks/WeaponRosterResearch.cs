@@ -131,16 +131,80 @@ namespace Cryptforge.Tests
                     Set = l =>
                     {
                         l.WeaponRoster = true;
-                        l.RosterPool = DescentSimulation.RosterWeapons().Select(w => w.Id == WeaponRoster.MagmaMortarId
-                            ? Tuned(w, m =>
-                            {
-                                m.Pattern = new AttackPattern(WeaponBehavior.Area, r, 1f);
-                                m.Interval = s;
-                            })
-                            : w).ToArray();
+                        l.RosterPool = MortarAt(r, s);
                     }
                 };
             }
+            // Read after `roster` (seeds 1-2000): the Vanguard's runs that were offered the Mortar and passed it completed 2 %,
+            // those that took it 53 % - its Sword, the Daggers and the Bow hold no crowd. Two readings of that, written before
+            // their read: `pref-area` is the roster as built with a pilot that, when it takes a new weapon, takes the area weapon
+            // first (the card order is otherwise the cohort's own; the first-card cohort, which scores nothing, is unchanged):
+            // how much of the cost is the autopilot passing the only crowd weapon, which a player on a horde floor would not.
+            // `c-sweep` gives the Vanguard's own Sword the crowd: the sweep FoundryBatch.SwordLevers measured in 2026-11-04's
+            // research (every enemy within 2.5 of the hero takes 60 %, reach 2.5) - a signature that carries its hero, as Ilya's
+            // Staff carries Ilya; simulation only (the scene's Sword is not reshaped). `c-sweep-m15` adds c-mortar15's Mortar.
+            yield return new Option
+            {
+                Key = "pref-area", What = "the roster as built, the pilot taking the area weapon (the Magma Mortar) first among new weapons",
+                Set = l =>
+                {
+                    l.WeaponRoster = true;
+                    AutopilotCohort cohort = l.Cohort;
+                    l.Picker = (pick, upgrades) => AreaFirst(cohort, pick, upgrades);
+                }
+            };
+            yield return new Option
+            {
+                Key = "c-sweep", What = "the roster as built with the Vanguard's Sword sweeping (every enemy within 2.5 of the hero takes 60 %, reach 2.5)",
+                Set = l =>
+                {
+                    l.WeaponRoster = true;
+                    Sweep(l);
+                }
+            };
+            yield return new Option
+            {
+                Key = "c-sweep-m15", What = "c-sweep with c-mortar15's Mortar (blast 3.0 every 1.5 s)",
+                Set = l =>
+                {
+                    l.WeaponRoster = true;
+                    l.RosterPool = MortarAt(3f, 1.5f);
+                    Sweep(l);
+                }
+            };
+        }
+
+        private static DescentSimulation.HeroWeapon[] MortarAt(float radius, float interval) =>
+            DescentSimulation.RosterWeapons().Select(w => w.Id == WeaponRoster.MagmaMortarId
+                ? Tuned(w, m =>
+                {
+                    m.Pattern = new AttackPattern(WeaponBehavior.Area, radius, 1f);
+                    m.Interval = interval;
+                })
+                : w).ToArray();
+
+        // FoundryBatch.SwordLevers' "Sweep 2.5 round the hero, 60%".
+        private static void Sweep(DescentSimulation.FoundryLevers levers)
+        {
+            levers.SwordReach = 2.5f;
+            levers.SwordSweepRadius = 2.5f;
+            levers.SwordSweepShare = .6f;
+        }
+
+        // The cohort's own pick (AutopilotCohort.Pick); when that is a new weapon and the offer also shows the Mortar as one,
+        // the Mortar instead.
+        private static int AreaFirst(AutopilotCohort cohort, DescentSimulation.FoundryPick pick, UpgradeService upgrades)
+        {
+            int own = cohort.Pick(pick.Offer, pick.Low, upgrades);
+            if (pick.Offer.Choices[own].Category != OfferCategory.NewWeapon)
+                return own;
+            for (int i = 0; i < pick.Offer.Choices.Count; i++)
+            {
+                UpgradeOption card = pick.Offer.Choices[i];
+                if (card.Category == OfferCategory.NewWeapon && card.Id == WeaponRoster.MagmaMortarId)
+                    return i;
+            }
+            return own;
         }
 
         private sealed class RunRead

@@ -74,6 +74,9 @@ COMPARISONS = [
     ('docs/63: the roster without the Magma Mortar (roster-no-mortar)', 'roster-no-mortar', False),
     ('docs/63: candidate, the Mortar\'s blast at 3.0 (c-blast3)', 'c-blast3', False),
     ('docs/63: candidate, the Mortar at 3.0 every 1.5 s (c-mortar15)', 'c-mortar15', False),
+    ('docs/63: the roster, the pilot taking the area weapon first (pref-area)', 'pref-area', False),
+    ('docs/63: candidate, the Vanguard Sword sweeping (c-sweep)', 'c-sweep', False),
+    ('docs/63: candidate, the sweep and the Mortar at 3.0 every 1.5 s (c-sweep-m15)', 'c-sweep-m15', False),
 ]
 COMPARISONS += [(f'Tier candidate `{o}` vs Forged ungeared', o, False)
                 for o in sorted(tier_options) if o not in {c[1] for c in COMPARISONS}]
