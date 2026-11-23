@@ -21,6 +21,14 @@ three buttons at section 5.2's anchors (a skill locked until forged). Save versi
 simulation keeps its skills off by default, so the default batch is byte-identical; the easing re-read with the unlock as
 built (13.8, decision 1) is the lead's next read.
 
+**Status 2026-11-23: the live re-read (section 15).** Each pilot played as a campaign of 100 runs on one profile, the
+unlock, the Forge, the Anvil and the tiers as built, read once on the fresh block 11601-14800: the clumsy cohort
+completes **57.0 %** of its runs with all three skills (90 % CI 55.8 to 58.3), **under 13.8's 60 % ceiling**; no trim.
+The skills arrive by run 3 (careful, first-card, standing) and run 5 (clumsy, P50); at the same seed, gear and tier they
+add +12.5 points to the clumsy cohort, +0.9 to careful, +2.1 to first-card, +3.8 to standing, every CI above 0. The
+pooled number hides a hero gap: the clumsy Ilya completes 75.1 %, the clumsy Vanguard 38.6 %. The ward's size does not
+move the clumsy Ilya; its window does (section 15.2).
+
 Nothing in the game is built: no code under `Assets/`, no asset, scene, setting or package changed. One research file
 is added and the duel core grows: `Tools/CombatChecks/HeroSkillsResearch.cs` (the six skills as numbers, a cheap pinned
 test in every plain `dotnet test`, and two reports run by name) and six skill kinds, Ember Memory's burn, a bold policy
@@ -1041,6 +1049,275 @@ cohort's pooled completion with all three skills at a ceiling of **60 %**. What 
 5. **The easing re-read** at the 60 % pooled-clumsy ceiling (13.8) waits for a per-pilot campaign model, in which the
    skills join after the clear and the gold, not from the first frame. It is the lead's next balance task, on the next
    fresh block from seed 11601.
+
+## 15. The live re-read (2026-11-23)
+
+13.8's decision 1 accepted the skills' easing with a ceiling: once phases 3-4 made the skills live, the confirmation is
+read again with the unlock as built, and if the clumsy cohort's pooled completion with all three skills goes above
+**60 %**, the ward is trimmed first (its size, then its window), then the glyph's slow. docs/54 section 21's lead
+decision 3 reads the standing and auto-farmer cohorts on the same block, so the tiers and the skills, the two
+whole-Descent changes, are seen together. Phase 2's `c1` read (13.3) gave every run all three skills from its first
+frame; the game opens them after the floors' first clears and the Forge's gold, and plays them on the tier and in the
+gear the profile has by then. This read plays each pilot's profile run after run.
+
+**Verdict: under the ceiling.** On the fresh block 11601-14800 the clumsy cohort completes **57.0 %** of the runs it
+plays with all three skills, both heroes pooled (90 % CI 55.8 to 58.3), against 60 %. No trim is proposed. Two things
+sit behind the pooled number and are the lead's to weigh (15.4): the clumsy Ilya alone completes 75.1 % and the clumsy
+Vanguard 38.6 %, and the unlock delays the skills by only a few runs.
+
+### 15.1 The model: a campaign per pilot
+
+`Tools/CombatChecks/SkillsCampaignResearch.cs` (explicit; nothing a plain `dotnet test`, the batch or the gate runs). A
+**campaign** is one cohort playing one hero on a fresh profile for 100 runs on fresh seeds. Between runs the profile
+moves as the game moves it:
+- **The run** carries the skills the profile has forged for the hero (`FoundryLevers.Skills` 1, 2 or 3), on its tier
+  (`FoundryHero.Tier`), in its gear (the hero's weapon and an armour, amulet and ring at their basma levels, main stats
+  only; `GearLoadout.None` while all four are +0, so an ungeared profile plays the shipped run to the bit).
+- **The unlock** (`HeroSkillUnlock`): the run's floors cleared raise the profile's depth record; floor 2's first clear
+  opens skill 2, floor 3's skill 3 (section 14.1).
+- **The gold**: the run banks what the scene pays (`GearEconomyResearch.Read`, the tier's reward included: kills, half
+  the chests, half the dying floor's gold lost); its floor materials and boosters are drawn as `gear_economy.py`'s
+  `run_loot` draws them (the tier's reward on amounts and chances).
+- **The Forge, skills first**: an open skill is forged as soon as the purse holds its price (skill 2 for 300, then skill
+  3 for 500); while one waits the pilot saves (no Anvil, all of the run's gold kept).
+- **The Anvil**, once no skill waits: docs/54's habit (`gear_economy.py`'s `spend`): a quarter of each run's gold set aside
+  for efsun (not modelled), the rest struck into the weapon to +9, then the armour, the amulet and the ring, at
+  `AnvilTable`'s odds, pity and ceilings, the Hammer on +6 and the Seals on +9 (and +8 while three are kept).
+- **The tiers**, docs/54 21's matched rule (docs/58 4a's "moves up when matched"): after a run, up one tier when the
+  profile has walked out of the Descent on its tier and its gear power reaches the next tier's matched set
+  (`DifficultyTiers.MatchedGearPower`: +14.7 % Tempered, +30.9 % Inferno, +41.9 % Abyssal).
+- **The shadow**: beside every run that carries skill 2 or 3, the same seed, gear and tier with skill 1 alone - the run
+  as it would have gone without the skills at that point of that profile. The auto-farmer presses no skill (its runs
+  with the skills are its shipped runs to the field, checked on 40 runs), so its run is its own shadow.
+
+Campaign k's run r plays seed first + 100k + (r - 1): every cohort and both heroes play the same seeds, as docs/56's
+reads pair them, and the bootstrap resamples the campaigns (both heroes of a campaign together; 10,000 resamples). Each
+campaign's loot and Anvil dice are its own streams, the same for every option.
+
+**Assumptions, stated plainly.**
+1. **One hero a profile.** The unlock is the profile's; a player of both heroes opens a skill with whichever clears
+   first and forges it per hero. 14.7 asked for each hero's own campaign.
+2. **Skills before the Anvil.** A player who strikes first and forges later gets each skill a run or two later; the
+   clumsy cohort carries both by run 4-6 (P50) either way (15.3).
+3. **Gear: four items from run 1, main stats only.** As `gear_economy.py`: no efsun lines (Abyssal's matched set needs
+   them, so the ladder ends at Inferno), no item drops waited for, no Relic Forge goods bought. Unlike docs/58's model,
+   **gear feeds back**: a geared run is played geared, so it completes and banks what the simulation says.
+4. **The matched rule** is the policy; a player who moves up early or stays down is not modelled.
+5. **The auto-farmer forges skills it never presses**: the Forge's gold plate calls every player; its gear waits 800
+   gold.
+6. **A campaign is 100 runs**: about 12 hours of play for the clumsy pilot (7 minutes a run), 24 for the careful one;
+   long enough for every cohort but the auto-farmer to reach Tempered, too short for Inferno (a +9 set).
+
+### 15.2 Exploration (spent seeds 1-1000) and the design fixed before the read
+
+Ten campaigns a cohort and hero on seeds 1-1000 (docs/56: tuning seeds): the clumsy cohort's pooled completion with all
+three skills **57.9 %** (56.5 to 59.4), their shadows 44.8 %. The design of the confirmatory read was written down
+before the block was read (`design.txt` beside its outputs): seeds 11601-14800, 32 campaigns of 100 runs a cohort and
+hero - 3,200 seeds a hero, docs/56 rule 1's count for a change on from floor 1 - the five cohorts, typical hands, option
+`live` with shadows; the verdict the clumsy pooled completion over every run carrying all three skills in runs 1-100,
+both heroes, its point estimate against 60.0 %.
+
+**The ward's levers, read ahead** (clumsy Ilya, seeds 1-1000, the same ten campaigns; completion of the runs with all
+three skills; the Vanguard is untouched by the ward):
+
+| Option | Clumsy Ilya, all three | Change | Pooled with the live Vanguard |
+|---|---|---|---|
+| `live` (ward 20 % for 2 s) | 75.2 % | - | 57.9 % |
+| `ward15` (15 %, 2 s) | 74.9 % | -0.3 | 57.8 % |
+| `ward10` (10 %, 2 s) | 74.4 % | -0.8 | 57.6 % |
+| `ward20w15` (20 %, 1.5 s) | 72.8 % | -2.4 | 56.7 % |
+| `ward20w1` (20 %, 1 s) | 71.0 % | -4.2 | 55.8 % |
+| `no-third` (skill 3 forged, never carried; a probe) | 63.0 % (runs 10-100; live 75.1 %) | -12.1 | - |
+
+**The ward's size does nothing; its window does.** As section 6.3's replay found ("an absorb's worth is its window,
+not its size"), a 2 s window rarely holds a tenth of the hero's health, so 15 % or 10 % soaks what 20 % soaks; each half
+second off the window costs the clumsy Ilya about 2 points (about 1 point of the pooled cohort). The ward carries about
+two thirds of the clumsy Ilya's gain from the skills (the probe: 63.0 % without it, its shadows about 57 %).
+
+### 15.3 The confirmation (seeds 11601-14800)
+
+Read once, as designed (`1bb2076a`; its report rewritten from the CSV by `febfd0b3`, which adds the per-hero tier and
+late-run rows and keeps the bosses' seconds in the CSV's hundredths - completions identical, bosses within 0.1 s):
+32 campaigns of 100 runs a cohort and hero, both heroes, the five cohorts, typical hands, 32,000 campaign runs and
+25,200 shadows, 3 h 32 min at `FOUNDRY_PARALLEL=6` beside other agents' builds. The paired read is docs/56's
+(`Tools/BalanceRule/paired_bootstrap.py <folder> 11601 14800`, which now reads `skills-campaign.csv`: each run against
+its shadow, both heroes of a seed together, 10,000 resamples of seeds); the campaign CIs resample the 32 campaigns.
+
+**When the skills and the tiers arrive** (the first run that carries each; P50 run index, P25-P75 in brackets, and the
+share of campaigns that had it within 100 runs where under all; no campaign reached Inferno):
+
+| Cohort | Hero | Skill 2 | Skill 3 | Tempered |
+|---|---|---|---|---|
+| clumsy | Vanguard | 4 (2-5) | 6 (5-8) | 70 (53-95), 78 % |
+| clumsy | Ilya | 2 (2-3) | 4 (3-5) | 48 (34-58), 97 % |
+| careful | Vanguard / Ilya | 2 | 3 | 40 (33-49) / 36 (25-49) |
+| first-card | Vanguard / Ilya | 2 | 3 | 37 (28-44) / 37 (28-50) |
+| standing | Vanguard / Ilya | 2 | 3 | 34 (27-48), 97 % / 40 (28-54) |
+| auto-farmer | Vanguard | 28 (17-48), 91 % | over 100 (46 to over 100), 50 % | none |
+| auto-farmer | Ilya | 16 (10-27) | 44 (22-99), 81 % | one campaign of 32, at run 88 |
+
+**Completion before and after the skills arrive.** Runs grouped by the skills they carried; with all three, each run
+against its shadow (the same seed, gear and tier, skill 1 alone):
+
+| Cohort | Skill 1 alone: runs, completed | Skills 1-2: runs, with / without | All three: runs, with / without | All three: change, points (campaign 90 % CI) | docs/56's read, every run: change (90 % CI; SD per 400 seeds) |
+|---|---|---|---|---|---|
+| clumsy | 159, 36.5 % | 130, 38.5 % / 30.8 % | 6,111, **57.0 %** / 44.1 % | **+12.94** (+11.88 to +13.97) | **+12.52** (+11.58 to +13.47; 12.9) |
+| careful | 64, 100.0 % | 64, 96.9 % / 93.8 % | 6,272, 99.0 % / 98.2 % | +0.86 (+0.61 to +1.13) | **+0.88** (+0.61 to +1.16; 3.8) |
+| first-card | 71, 83.1 % | 69, 87.0 % / 79.7 % | 6,260, 91.1 % / 89.0 % | +2.09 (+1.63 to +2.56) | **+2.12** (+1.66 to +2.61; 6.7) |
+| standing | 80, 77.5 % | 76, 80.3 % / 73.7 % | 6,244, 90.7 % / 86.9 % | +3.83 (+3.19 to +4.49) | +3.81 (+3.12 to +4.50; 9.4) |
+| auto-farmer | 1,782, 1.0 % | 2,092, 1.2 % (its own) | 2,526, 1.7 % (its own) | 0 (it presses no skill) | - (not gated) |
+
+By hero, the runs with all three skills (with / without, change in points, campaign 90 % CI):
+
+| Cohort | Vanguard | Ilya |
+|---|---|---|
+| clumsy | 38.6 % / 29.9 %, +8.72 (+7.81 to +9.63) | **75.1 %** / 58.0 %, +17.08 (+15.52 to +18.62) |
+| careful | 99.0 % / 98.1 %, +0.89 (+0.57 to +1.24) | 99.0 % / 98.2 %, +0.83 (+0.48 to +1.21) |
+| first-card | 86.7 % / 84.2 %, +2.49 (+1.98 to +3.04) | 95.5 % / 93.8 %, +1.69 (+0.99 to +2.40) |
+| standing | 90.4 % / 86.5 %, +3.91 (+3.10 to +4.73) | 91.0 % / 87.3 %, +3.75 (+2.88 to +4.64) |
+| auto-farmer | 0.5 % (its own) | 2.4 % (its own) |
+
+**The ceiling** (every clumsy run carrying all three skills; with / without; 90 % CIs over the campaigns):
+
+| Runs | Both heroes | Vanguard | Ilya |
+|---|---|---|---|
+| **1-100 (the verdict)** | **57.0 %** (55.8 to 58.3) / 44.1 % | 38.6 % (37.1 to 40.1) / 29.9 % | 75.1 % (73.7 to 76.5) / 58.0 % |
+| 11-20 | 56.3 % (53.3 to 59.5) / 44.9 % | | |
+| 21-40 | 56.1 % (53.4 to 58.8) / 43.4 % | | |
+| 41-60 | 56.5 % (54.1 to 58.9) / 42.7 % | | |
+| 61-80 | 58.1 % (55.6 to 60.5) / 44.7 % | | |
+| 81-100 | 57.8 % (55.8 to 59.9) / 45.9 % | | |
+| 61-100 | 58.0 % (56.4 to 59.5) / 45.3 % | 39.6 % (37.6 to 41.7) / 31.3 % | 76.3 % (74.6 to 78.0) / 59.2 % |
+| on Forged | 53.6 % (51.6 to 55.6) / 40.7 % | 38.8 % (37.0 to 40.5) / 29.4 % | 76.0 % (74.3 to 77.6) / 57.8 % |
+| on Tempered | 61.7 % (59.1 to 64.4) / 48.7 % | 38.3 % (36.0 to 40.4) / 31.0 % | 74.3 % (72.6 to 76.2) / 58.2 % |
+
+**The campaign by run index** (both heroes; completed / without the skills; the share on Tempered; gear power, mean):
+
+| Cohort | Run 1 | Runs 6-10 | 21-40 | 41-60 | 81-100 | Tempered at 81-100 | Power at 81-100 |
+|---|---|---|---|---|---|---|---|
+| clumsy | 37.5 % / 37.5 % | 54.7 % / 39.4 % | 56.1 % / 43.4 % | 56.5 % / 42.7 % | 57.8 % / 45.9 % | 83 % | +20.5 % |
+| careful | 100.0 % / 100.0 % | 99.1 % / 97.2 % | 99.0 % / 98.6 % | 98.7 % / 97.9 % | 98.8 % / 98.0 % | 100 % | +27.4 % |
+| first-card | 82.8 % / 82.8 % | 85.6 % / 85.3 % | 91.2 % / 88.8 % | 91.0 % / 88.9 % | 92.6 % / 90.2 % | 100 % | +26.9 % |
+| standing | 73.4 % / 73.4 % | 89.1 % / 85.3 % | 89.5 % / 85.4 % | 90.5 % / 85.6 % | 91.0 % / 88.5 % | 98 % | +26.6 % |
+| auto-farmer | 0.0 % | 1.3 % | 1.5 % | 1.9 % | 1.2 % | 1 % | +7.1 % |
+
+**Each hero's completion on each tier** (every run; with / without the skills), the matched rule at work:
+
+| Cohort | Vanguard on Forged | Vanguard on Tempered | Ilya on Forged | Ilya on Tempered |
+|---|---|---|---|---|
+| clumsy | 38.3 % / 29.4 % | 38.3 % / 31.0 % | 73.7 % / 56.6 % | 74.3 % / 58.2 % |
+| careful | 99.2 % / 98.3 % | 98.9 % / 98.0 % | 99.1 % / 98.3 % | 99.0 % / 98.1 % |
+| first-card | 85.0 % / 82.9 % | 87.4 % / 84.6 % | 94.5 % / 92.4 % | 96.1 % / 94.6 % |
+| standing | 89.6 % / 84.7 % | 90.4 % / 87.1 % | 90.6 % / 86.8 % | 90.8 % / 87.2 % |
+| auto-farmer | 0.7 % (3,200 runs) | - | 2.0 % (3,187 runs) | 0 of 13 |
+
+**The bosses and the Descent** (the runs with all three skills; P50 s, the share in 45-65 s in brackets; none felled
+within 5 s in any cohort; the shadows' P50 after the slash; the Descent's P50 of the completed runs):
+
+| Cohort | Hero | Floor 1 Warden | Floor 2 Regent | Floor 3 Warden | Descent, min |
+|---|---|---|---|---|---|
+| careful | Vanguard | 49.6 (67 %) / 49.6 | 47.6 (61 %) / 47.5 | 58.8 (67 %) / 58.8 | 14.42 / 14.42 |
+| careful | Ilya | **44.8** (48 %) / 44.8 | **44.4** (45 %) / 45.0 | 55.3 (75 %) / 55.4 | 14.21 / 14.24 |
+| first-card | Vanguard | 47.4 (63 %) / 47.3 | 46.7 (58 %) / 46.7 | 55.3 (77 %) / 55.2 | 14.23 / 14.23 |
+| first-card | Ilya | 43.4 (35 %) / 43.7 | 43.4 (42 %) / 44.2 | 51.8 (79 %) / 52.8 | 14.05 / 14.09 |
+| clumsy | Vanguard | 44.9 (45 %) / 46.8 | 43.9 (45 %) / 46.1 | 58.6 (68 %) / 60.4 | 14.15 / 14.27 |
+| clumsy | Ilya | 47.2 (53 %) / 47.7 | 47.3 (56 %) / 47.9 | 61.0 (60 %) / 61.7 | 14.31 / 14.35 |
+| standing | Vanguard | 40.7 (24 %) / 40.6 | 35.9 (7 %) / 35.7 | 46.7 (60 %) / 46.6 | 13.91 / 13.90 |
+| standing | Ilya | 37.4 (7 %) / 37.8 | 34.8 (4 %) / 34.5 | 45.3 (52 %) / 45.5 | 13.80 / 13.81 |
+
+Every completed run of the four playing cohorts but one lies within 13-16 minutes (a careful Vanguard's 16.2 minutes,
+its shadow 15.9); the P50s are 13.8-14.4 minutes, and the skills move none by more than 0.12 minutes.
+
+### 15.4 What the read says
+
+1. **The ceiling holds.** 57.0 % of the clumsy runs with all three skills complete, both heroes pooled, the whole CI
+   (55.8 to 58.3) under 60 %. Every band of the campaign from run 11 on reads 56-58 %, the late runs (61-100) 58.0 %
+   (56.4 to 59.5): the number does not creep toward the ceiling as the gear grows, because the matched tier takes the
+   gear back.
+2. **The unlock delays the skills by a few runs, not more.** The clumsy pilot carries skill 2 from run 3 and all three
+   from run 5 (P50; the Vanguard 4 and 6, Ilya 2 and 4), so 95 % of its first 100 runs carry all three. 13.8's "a new
+   player's first Descents are not eased" holds for the first two to six Descents; after that the clumsy cohort plays
+   the eased game. The careful, first-card and standing pilots carry all three from run 3.
+3. **Gear and tiers move the base, the skills sit on it.** Against phase 2's `c1` (13.3, all three on Forged ungeared,
+   seeds 8401-11600: the clumsy cohort 53.5 %, the Vanguard about 37 %, Ilya 70.1 %), the campaign's clumsy runs read
+   57.0 % (the Vanguard 38.6 %, Ilya 75.1 %). The gear the Anvil works on Forged before the matched move lifts the runs
+   without the skills (the shadows: the Vanguard 29.9 % against about 27 % shipped on 8401-11600, Ilya 58.0 % against
+   49.6 %), and the skills then add a little less on top (+8.7 and +17.1 points against `c1`'s +9.4 and +20.6). Once
+   matched, the tier gives the gear back by design: each hero completes on Tempered what it completed on Forged (the
+   clumsy Vanguard 38.8 / 38.3 %, Ilya 76.0 / 74.3 %, with all three; the other cohorts within two and a half points,
+   Tempered the higher, table above). The pooled tier rows (Forged 53.6 %, Tempered 61.7 %) differ only because Ilya, who
+   completes twice as often, reaches Tempered sooner (run 48 against 70) and so plays more of the Tempered runs.
+4. **The skills' easing, by docs/56's read.** At the same seed, gear and tier, the skills as built add **+12.52 points**
+   to the clumsy cohort (90 % CI +11.58 to +13.47), **+0.88** to careful (+0.61 to +1.16), **+2.12** to first-card (+1.66
+   to +2.61) and +3.81 to standing (+3.12 to +4.50), over every run of the campaigns. Every CI lies above 0: under docs/56
+   rule 3 the skills pass as an easing for every gated cohort, as in 13.3 (+15.00 / +1.45 / +3.88 / +4.33 there, from
+   the first frame and ungeared).
+5. **The hero gap is what the pooled number hides.** The clumsy Ilya completes 75.1 % with all three skills, the clumsy
+   Vanguard 38.6 %; without them (the shadows) 58.0 % and 29.9 %. The skills widen the gap from 28 to 37 points, because
+   the ward and the glyph give Ilya twice what the guard and the Rush give the Vanguard (+17.1 against +8.7). The pooled
+   ceiling holds because the two heroes average out; read alone, the clumsy Ilya stands 15 points over 60 % and the clumsy
+   Vanguard 21 under it - and the first-card Ilya's 95.5 % against the Vanguard's 86.7 % is the same gap one cohort up.
+6. **Standing and the auto-farmer** (docs/54 21, decision 3). The **standing** cohort reaches Tempered at run 34-40 (P50)
+   and completes about 90 % on both tiers (the Vanguard 89.6 % on Forged, 90.4 % on Tempered; Ilya 90.6 / 90.8 %): the
+   matched tier holds it level, as it holds the gated cohorts. The skills add +3.81 points to it (phase 2: +4.33). Its
+   gate fights stay as short as they were before the skills (the floor-1 Warden 37-41 s, the Regent 35-36 s; 13.7, item
+   5): the skills move them under half a second. The **auto-farmer** completes 0.7 % (the Vanguard) and 2.0 % (Ilya) of
+   its runs and clears 0.09 and 0.27 floors a run. It opens skill 2 at run 28 and 16 (P50) and skill 3 in half and four
+   fifths of its campaigns, forges them and never presses them; 800 gold is about ten of its runs' income (75-85 gold a
+   run), and its gear reaches +7 % by run 100. One campaign of 64 (Ilya's, at run 88) reached Tempered: in 100 runs the
+   tiers barely meet the auto-farmer, and the skills do not reach it at all.
+7. **The bosses and the Descent.** The careful Vanguard's three fights stay in 45-65 s (49.6 / 47.6 / 58.8 s). The
+   careful Ilya's floor-1 Warden (44.8 s) and Regent (44.4 s) sit just under the band, and their shadows with them (44.8
+   / 45.0 s): that is the gear's doing (docs/54 section 20 found Ilya's gate fights under 45 s from a +5 set; the
+   campaign plays most of its runs geared above its tier's matched set), and the skills move the Regent 0.6 s. The
+   first-card Ilya's fights sit under the band as they did before the skills (43.4 / 43.4 s; docs/54 21: 44.1 s on every
+   tier), and the standing cohort's well under it. The clumsy Vanguard's fights are about 2 s shorter with the skills.
+   None is felled within 5 s. The Descent stays 13-16 minutes (15.3).
+
+### 15.5 Recommendation
+
+- **No trim.** The clumsy cohort's pooled completion with all three skills is 57.0 % on the fresh block, under the 60 %
+  ceiling with its whole CI; 13.8's ceiling is met as built. The ward, the glyph and the Rush keep their numbers.
+- **If the lead ever trims, the window, not the size.** 15.2's probes: the ward's size moves the clumsy Ilya by under a
+  point (15 %: -0.3, 10 %: -0.8), its window by about 2 points a half second (1.5 s: -2.4, 1 s: -4.2), about 1 point of
+  the pooled cohort. 13.8's order (size, then window) should read: the window first, then the glyph's slow. A candidate
+  such as `ward20w15` (20 % for 1.5 s) would need, under docs/56: a design reason written before its read; one read on a
+  fresh block from seed 14801; this campaign design at its size (32 campaigns of 100 runs a cohort and hero, 3,200 seeds
+  a hero, about 3.5 hours on this machine at six threads); clumsy, careful and first-card (standing reported) with their
+  shadows - its pooled clumsy completion against 60 % and docs/56's bar on each gated cohort's change against the
+  shadows - and the bosses' bands. It would touch Ilya alone.
+- **The hero gap is a design question, not a ceiling one.** If the lead wants the clumsy Ilya nearer 60 % for its own
+  sake, the same window lever applies to Ilya alone (about 2 points of Ilya's completion a half second; 1 s still leaves
+  71 %); the clumsy Vanguard's 39 % is the gap from the other side, where the guard and the Rush add 9 points.
+- **The careful Ilya's gate fights under 45 s** (44.8 / 44.4 s) are the gear's, not the skills': the shadows read the
+  same. Section 6.2's band row holds for the careful Vanguard; for Ilya it is docs/54's open gap, which the tiers close
+  only at the matched set.
+
+### 15.6 How to re-run
+
+    FOUNDRY_FIRST_SEED=11601 CAMPAIGN_COUNT=32 CAMPAIGN_RUNS=100 FOUNDRY_PARALLEL=6 FOUNDRY_OUT=<folder>/live \
+      dotnet test Tools/CombatChecks -c Release -p:NuGetAudit=false --filter "FullyQualifiedName~SkillsCampaignResearch"
+      # the confirmation (3 h 32 min here); CAMPAIGN_OPTIONS (live; never; ward15, ward10, ward20w15, ward15w15,
+      # ward10w15, ward10w1, ward20w1, sigil30, sigil20; the probe no-third), CAMPAIGN_COHORTS, CAMPAIGN_HEROES,
+      # CAMPAIGN_SHADOW, FOUNDRY_REALISM; CAMPAIGN_RESUME=1 keeps a CSV's finished campaigns and plays the rest (with all
+      # of them there it writes the report alone); writes skills-campaign.csv and skills-campaign.md
+    python Tools/BalanceRule/paired_bootstrap.py <folder> 11601 14800
+      # docs/56's read: each campaign run against its shadow (`live` vs `live-shadow`), seed-level 90 % CIs
+    CAMPAIGN_OPTIONS=ward15,ward10,ward20w15 CAMPAIGN_COHORTS=clumsy CAMPAIGN_HEROES=Ilya CAMPAIGN_COUNT=10 ...
+      # 15.2's probes on the spent seeds 1-1000 (with ward20w1,no-third likewise)
+
+The runs of 2026-11-23 lie in `E:/skills-campaign-research` on the development machine, outside the repository:
+`explore-live-1-1000`, `explore-ward-1-1000`, `explore-ward2-1-1000`, `confirm-11601-14800` (its `design.txt`, the run's
+own report, and `report/` rewritten by `febfd0b3`), `rule-11601-14800/paired-bootstrap.txt`, and `batch` (the default
+batch on 8121816c and on this branch).
+
+**The default batch.** `FOUNDRY_SEEDS=200 FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_REALISM=typical FOUNDRY_FLOORS=2`
+(`TheFoundryFloorOverASeedBatch`), on this branch and on its base 8121816c (exported and built apart), each into an
+empty folder with the same empty `FOUNDRY_EDITOR` and `FOUNDRY_DEVICE=none`: `foundry-batch.csv`,
+`foundry-batch-floor2.csv`, `foundry-cohorts-floor2.csv`, `foundry-cohorts.md` and `foundry-gate.md` byte-identical; in
+`foundry-batch.md` only the clock in its header and the wall-seconds column differ. Nothing the simulation runs changed:
+the research is one explicit file, and `paired_bootstrap.py` gained a reader. CombatChecks green (`Başarılı`, 1,119).
+
 ## How to re-run
 
     dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~HeroSkillDuelTests"
@@ -1063,6 +1340,9 @@ cohort's pooled completion with all three skills at a ceiling of **60 %**. What 
       # the confirmation (section 13.3): every cohort's change and its seed-level 90 % CI
     dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~HeroSkillsDescentResearch.TheEditorSeedsWithTheSkills"
       # the parity table's simulation side (section 13.5): hero-skills-parity.md
+    FOUNDRY_FIRST_SEED=11601 CAMPAIGN_COUNT=32 CAMPAIGN_RUNS=100 dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~SkillsCampaignResearch"
+      # the live re-read (section 15): a campaign per pilot, the unlock, the Forge, the Anvil and the tiers as built;
+      # its environment and the paired read in 15.6
 
 The limits. The duel is docs/55's one lane: the Rush's escape and the Sigil's lure have no crowd to show in, and its
 autopilot is two hand-written policies. The Descent's numbers are the shipped game's; the guards are a first-order
