@@ -99,6 +99,35 @@ namespace Cryptforge.Tests
             Assert.That(EffectArt.StrikeFor("weapon_daggers", WeaponBehavior.DirectHit), Is.EqualTo(StrikeEffect.DaggerSlash));
             Assert.That(EffectArt.StrikeFor(null, WeaponBehavior.Cleave), Is.EqualTo(StrikeEffect.SwordSlash));
             Assert.That(EffectArt.StrikeFor("weapon_unknown", WeaponBehavior.Area), Is.EqualTo(StrikeEffect.StaffBlast));
+            // docs/63 phase 2's Cinder Saw, by its id and as any aura.
+            Assert.That(EffectArt.StrikeFor(Cryptforge.Progression.WeaponRoster.CinderSawId, WeaponBehavior.Aura),
+                Is.EqualTo(StrikeEffect.SawBite));
+            Assert.That(EffectArt.StrikeFor(WeaponBehavior.Aura), Is.EqualTo(StrikeEffect.SawBite));
+        }
+
+        // The Cinder Saw's blade: a square, odd-sized disc so it turns about its middle texel, white-hot at its teeth and
+        // ember inward, lava-outlined round an open hub, its corners clear; each frame a third of a tooth on, so the loop
+        // spins it - every frame differs and none is empty.
+        [Test]
+        public void TheSawIsAToothedEmberDiscThatTurnsFrameByFrame()
+        {
+            PixelCanvas[] frames = EffectArt.SawFrames();
+            Assert.That(frames.Length, Is.EqualTo(EffectArt.SawFrameCount));
+            int middle = EffectArt.SawSize / 2;
+            foreach (PixelCanvas frame in frames)
+            {
+                Assert.That((frame.Width, frame.Height), Is.EqualTo((EffectArt.SawSize, EffectArt.SawSize)));
+                Assert.That(EffectArt.SawSize % 2, Is.EqualTo(1), "Odd: a middle texel to turn about.");
+                Assert.That(frame.Get(0, 0), Is.EqualTo(Rgba.Transparent));
+                Assert.That(frame.Get(EffectArt.SawSize - 1, EffectArt.SawSize - 1), Is.EqualTo(Rgba.Transparent));
+                Assert.That(frame.Get(middle, middle), Is.Not.EqualTo(PixelPalette.EmberHot), "The hub is not the teeth.");
+                Assert.That(Has(frame, PixelPalette.EmberHot), Is.True, "White-hot teeth.");
+                Assert.That(Has(frame, PixelPalette.Ember), Is.True, "An ember plate.");
+                Assert.That(Has(frame, PixelPalette.Lava), Is.True, "Outlined in lava.");
+                Assert.That(frame.CountVisible(), Is.GreaterThan(EffectArt.SawSize * EffectArt.SawSize / 3));
+            }
+            for (int i = 0; i < frames.Length; i++)
+                Assert.That(Differ(frames[i], frames[(i + 1) % frames.Length]), Is.True, $"frame {i} turns into the next");
         }
 
         // The tracer: a streak facing +x, white at its head (the right edge), ember down its tail, dark-ember outlined, its

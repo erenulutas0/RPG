@@ -20,10 +20,16 @@ namespace Cryptforge.Art
     {
         // The hero's weapons by how they strike, as CombatEffectsView draws their strikes (EffectArt.StrikeFor): the
         // Sword cleaves, the Staff strikes an area, the Daggers strike one target.
+        // docs/63 phase 2's Cinder Saw, an aura, shows the Staff's glow when it is picked up.
         public static SlotCue CueFor(WeaponBehavior behavior) =>
             behavior == WeaponBehavior.Cleave ? SlotCue.Flourish
-            : behavior == WeaponBehavior.Area ? SlotCue.Pulse
+            : behavior == WeaponBehavior.Area || behavior == WeaponBehavior.Aura ? SlotCue.Pulse
             : SlotCue.Flick;
+
+        // Whether a weapon in a later slot cues on the hero at each strike. An aura strikes five times a second and its saw
+        // already circles the hero (CombatEffectsView), so a cue on every strike would only flicker: it cues once, when it
+        // is picked up.
+        public static bool CuesEachStrike(WeaponBehavior behavior) => behavior != WeaponBehavior.Aura;
 
         // Each cue's length; never more than CueShare of its weapon's interval, so a quick weapon's cue ends before its next
         // strike, and never less than MinimumCueSeconds, so it is seen at all. The Daggers' 0.3 s category interval keeps

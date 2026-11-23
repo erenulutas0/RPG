@@ -282,6 +282,12 @@ namespace Cryptforge.Tests
         public static HeroWeapon ForgeBow() =>
             new HeroWeapon { Id = WeaponRoster.ForgeBowId, DisplayName = "Forge Bow", Lines = ForgeBowLines(), Damage = 25f, Interval = 1.2f, Range = 5f, Pattern = new AttackPattern(WeaponBehavior.DirectHit, 0f, 0f, 4, 2f) };
 
+        // Weapon_CinderSaw.asset (docs/63 section 13, phase 2's second shared crowd weapon; docs/40 section 5.2's 5 / 0.2 s):
+        // an aura - every enemy within 2 units of the hero takes the full 5 every 0.2 s while one stands inside the circle
+        // (WeaponBehavior.Aura; its reach is its circle, WeaponRuntime.TargetReach). One base for both engines, no evolution.
+        public static HeroWeapon CinderSaw() =>
+            new HeroWeapon { Id = WeaponRoster.CinderSawId, DisplayName = "Cinder Saw", Lines = CinderSawLines(), Damage = 5f, Interval = 0.2f, Range = 2f, Pattern = new AttackPattern(WeaponBehavior.Aura, 2f, 1f) };
+
         public static readonly Floor EmberHalls = new Floor
         {
             Rooms = new[]
@@ -570,6 +576,15 @@ namespace Cryptforge.Tests
             Line("line_forge_bow_damage", "Forge Bow", "+{0:0.##} damage", UpgradeStat.Damage, ModifierOperation.Flat, 4.5f, 5.625f, 6.75f, 9f),
             Line("line_forge_bow_crit", "Forge Bow", "+{0:0.#%} crit chance", UpgradeStat.CritChance, ModifierOperation.Flat, 0.07f, 0.0875f, 0.105f, 0.14f),
             Line("line_forge_bow_range", "Forge Bow", "+{0:0.0#} reach", UpgradeStat.Range, ModifierOperation.Flat, 0.5f, 0.625f, 0.75f, 1f)
+        };
+
+        // docs/63 section 13: the Cinder Saw's +0.8 damage (docs/40 section 5.2's common), +10 % area (its circle; docs/40's
+        // "+10 % duration" has no stat here, and the circle is what an aura's size is) and +8 % attack speed.
+        public static UpgradeOption[] CinderSawLines() => new[]
+        {
+            Line("line_cinder_saw_damage", "Cinder Saw", "+{0:0.##} damage", UpgradeStat.Damage, ModifierOperation.Flat, 0.8f, 1f, 1.2f, 1.6f),
+            Line("line_cinder_saw_area", "Cinder Saw", "+{0:0.#}% area", UpgradeStat.Area, ModifierOperation.Percent, 0.1f, 0.125f, 0.15f, 0.2f),
+            Line("line_cinder_saw_attack_speed", "Cinder Saw", "+{0:0.#}% attack speed", UpgradeStat.AttackSpeed, ModifierOperation.Percent, 0.08f, 0.1f, 0.12f, 0.16f)
         };
 
         // Data/Upgrades/Evolutions (docs/42, PR 5): what a weapon becomes at level 5 with its tome at level 2, each an
@@ -1422,10 +1437,13 @@ namespace Cryptforge.Tests
             for (int slot = 0; slot < loadout.Count; slot++)
             {
                 WeaponRuntime weapon = loadout.At(slot).Runtime;
-                int target = Acquire(motion, enemies, weapon.Range, heroX, heroY);
+                int target = Acquire(motion, enemies, weapon.TargetReach, heroX, heroY);
                 if (target >= 0 && weapon.IsReady &&
                     weapon.TryAttack(enemies[target], null,
-                        Nearby(motion, enemies, target, weapon.SplashRadius),
+                        // An aura's circle is round the hero (docs/63's Cinder Saw), every other splash's round the target.
+                        weapon.Pattern.StrikesRoundWielder
+                            ? WithinReachOfHero(motion, enemies, weapon.SplashRadius, heroX, heroY)
+                            : Nearby(motion, enemies, target, weapon.SplashRadius),
                         // The pulse's circle is drawn round the hero, so it is gathered by the same body
                         // Targeting.CollectNear mirrors for the burst.
                         weapon.PulseDamage > 0f

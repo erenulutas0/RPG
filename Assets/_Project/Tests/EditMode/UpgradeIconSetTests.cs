@@ -29,7 +29,8 @@ namespace Cryptforge.Tests
         private const string ScenePath = "Assets/_Project/Scenes/Gameplay/Gameplay.unity";
         private const string GoldIconPath = "Assets/_Project/Art/UI/UI_Icon_Gold_v1.png";
         // Every icon of the set together, as ASTC 4x4 (a byte a texel): 1 MiB on the phone at most since docs/63's two
-        // weapons and their lines took the sheet from 1020x788 (0.77 MiB) to 1020x1020 (0.99 MiB).
+        // weapons and their lines took the sheet from 1020x788 (0.77 MiB) to 1020x1020 (0.99 MiB); phase 2's Cinder Saw and its
+        // lines fill the last row's free cells, the sockets moved beside them, at the same size.
         private const long BudgetBytes = 1048576;
         private const int CardSize = 144;
         private const int SlotSize = 56;
@@ -112,16 +113,16 @@ namespace Cryptforge.Tests
         {
             Assert.That(_weaponIds, Is.EquivalentTo(new[]
                 {
-                    "weapon_sword", "weapon_staff", "weapon_daggers", "weapon_magma_mortar", "weapon_forge_bow"
-                }), "The three hero weapons a foundry run can carry, and the roster's two shared ones (docs/63).");
-            Assert.That(_lineIds.Count, Is.EqualTo(15), "Three lines on each of them.");
-            Assert.That(_evolutionIds.Count, Is.EqualTo(3), "And an evolution each of the three; none yet for the roster's two.");
+                    "weapon_sword", "weapon_staff", "weapon_daggers", "weapon_magma_mortar", "weapon_forge_bow", "weapon_cinder_saw"
+                }), "The three hero weapons a foundry run can carry, and the roster's three shared ones (docs/63).");
+            Assert.That(_lineIds.Count, Is.EqualTo(18), "Three lines on each of them.");
+            Assert.That(_evolutionIds.Count, Is.EqualTo(3), "And an evolution each of the three; none yet for the roster's three.");
             Assert.That(_tomeIds.Count, Is.EqualTo(5), "Five tomes.");
             Assert.That(_generalIds.Count, Is.EqualTo(14), "Fourteen general cards in the pool.");
             Assert.That(_tableIds, Is.EquivalentTo(new[] { "upgrade_damage", "upgrade_attack_speed" }),
                 "The scene's own table keeps the two painted legacy icons, as a fallback the set now covers.");
             var offerable = new HashSet<string>(OfferableIds());
-            Assert.That(offerable.Count, Is.EqualTo(42), "No id names two cards.");
+            Assert.That(offerable.Count, Is.EqualTo(46), "No id names two cards.");
             foreach (string id in offerable)
                 Assert.That(_set.CardIconFor(id), Is.Not.Null, $"{id} has its icon in the set, the table's two included.");
             var inSet = new HashSet<string>();

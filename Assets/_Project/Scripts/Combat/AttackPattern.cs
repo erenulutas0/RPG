@@ -7,7 +7,8 @@ namespace Cryptforge.Combat
     public readonly struct AttackPattern
     {
         public WeaponBehavior Behavior { get; }
-        // How far from the target splash reaches, and the fraction of the attack's damage it deals; zero for DirectHit.
+        // How far from the target splash reaches, and the fraction of the attack's damage it deals; zero for DirectHit. For
+        // an Aura the circle is round the wielder instead of the target (StrikesRoundWielder).
         public float SplashRadius { get; }
         public float SplashFraction { get; }
         // Every CritEvery-th attack is critical and multiplies its damage, splash included. Zero never crits and keeps the
@@ -26,6 +27,7 @@ namespace Cryptforge.Combat
                     break;
                 case WeaponBehavior.Cleave:
                 case WeaponBehavior.Area:
+                case WeaponBehavior.Aura:
                     if (float.IsNaN(splashRadius) || float.IsInfinity(splashRadius) || splashRadius <= 0f)
                         throw new ArgumentOutOfRangeException(nameof(splashRadius));
                     if (!(splashFraction > 0f && splashFraction <= 1f))
@@ -52,5 +54,13 @@ namespace Cryptforge.Combat
 
         // attackNumber counts from 1 for the first attack.
         public bool IsCritical(int attackNumber) => CritEvery > 0 && attackNumber % CritEvery == 0;
+
+        // Whether the splash circle is drawn round the wielder rather than round the target: an aura's (docs/63's Cinder
+        // Saw). The scene's AttackController and both simulations gather the splash round the attacker when it is.
+        public bool StrikesRoundWielder => Behavior == WeaponBehavior.Aura;
+
+        // Whether the weapon holds a crowd: it strikes every enemy in a circle (an Area or an Aura), rather than one target
+        // (DirectHit) or one neighbour (Cleave). docs/63's crowd-weapon guarantee reads it (UpgradeService).
+        public bool HoldsACrowd => Behavior == WeaponBehavior.Area || Behavior == WeaponBehavior.Aura;
     }
 }

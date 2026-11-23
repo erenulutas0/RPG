@@ -14,7 +14,10 @@ namespace Cryptforge.Art
         // docs/63's shared weapons: the Magma Mortar's shell falling onto its target and its ember blast ring, and the
         // Forge Bow's tracer from the hero to its target.
         MortarBlast,
-        BowShot
+        BowShot,
+        // docs/63 phase 2's Cinder Saw (an aura): no strike at its target - the saw circling the hero is its look - and
+        // once in a while a faint ember ring at the aura's edge round the hero (CombatEffectsView).
+        SawBite
     }
 
     // Combat effect placeholders drawn from code in the astral foundry palette: the hero's strike effects, hit sparks, crit
@@ -51,6 +54,11 @@ namespace Cryptforge.Art
         // The tracer (TracerFrames): drawn facing +x, its head at the right edge, stretched along a shot by the view.
         public const int TracerLength = 32;
         public const int TracerHeight = 5;
+        // The Cinder Saw's blade (SawFrames): a toothed ember disc, square and odd so it turns about its middle texel, and
+        // its frames - each a third of a tooth on from the last - played in a loop so it spins.
+        public const int SawSize = 15;
+        public const int SawTeeth = 8;
+        public const int SawFrameCount = 3;
         public const int ForgeSparkHeight = 5;
         // The spark's head, where the view pins the sprite, so the streak trails behind the point it flies through.
         public const int ForgeSparkHeadX = 7;
@@ -158,6 +166,8 @@ namespace Cryptforge.Art
                     return StrikeEffect.MortarBlast;
                 case WeaponRoster.ForgeBowId:
                     return StrikeEffect.BowShot;
+                case WeaponRoster.CinderSawId:
+                    return StrikeEffect.SawBite;
                 default:
                     return StrikeFor(behavior);
             }
@@ -171,6 +181,8 @@ namespace Cryptforge.Art
                     return StrikeEffect.SwordSlash;
                 case WeaponBehavior.Area:
                     return StrikeEffect.StaffBlast;
+                case WeaponBehavior.Aura:
+                    return StrikeEffect.SawBite;
                 default:
                     return StrikeEffect.DaggerSlash;
             }
@@ -272,6 +284,48 @@ namespace Cryptforge.Art
         // outlined dark ember; then the same with its back half broken into a checker as it fades. Instant hits both: the
         // streak is drawn on the strike's frame and gone in a tenth of a second, nothing the fight has to follow.
         public static PixelCanvas[] TracerFrames() => new[] { Tracer(false), Tracer(true) };
+
+        // The Cinder Saw (docs/63 section 13): a disc of SawTeeth hooked teeth, white-hot at their tips, ember light then
+        // ember inward, a dark ember plate and an open hub, outlined in lava; each frame a third of a tooth turned from the
+        // last, so the loop spins it. Drawn once, shown by one renderer circling the hero while the Saw is held - no object
+        // the fight follows, and nothing per strike.
+        public static PixelCanvas[] SawFrames()
+        {
+            var frames = new PixelCanvas[SawFrameCount];
+            for (int i = 0; i < frames.Length; i++)
+                frames[i] = Saw((float)i / SawFrameCount);
+            return frames;
+        }
+
+        private static PixelCanvas Saw(float turn)
+        {
+            var canvas = new PixelCanvas(SawSize, SawSize);
+            float centre = (SawSize - 1) * .5f;
+            const float Body = 4.6f;
+            const float ToothDepth = 2.3f;
+            for (int y = 0; y < SawSize; y++)
+            for (int x = 0; x < SawSize; x++)
+            {
+                float dx = x - centre;
+                float dy = y - centre;
+                float r = (float)Math.Sqrt(dx * dx + dy * dy);
+                if (r < 1.2f)
+                    continue;
+                // Where in its tooth this texel's angle falls, 0 at a tooth's root to 1 at its tip: a hooked ramp.
+                float along = (float)((Math.Atan2(dy, dx) / (2.0 * Math.PI) + 1.0) * SawTeeth + turn);
+                along -= (float)Math.Floor(along);
+                float edge = Body + ToothDepth * along;
+                if (r > edge)
+                    continue;
+                Rgba colour = r > Body + ToothDepth * .45f ? PixelPalette.EmberHot
+                    : r > Body - .8f ? PixelPalette.EmberLight
+                    : r > 2.6f ? PixelPalette.Ember
+                    : PixelPalette.EmberDark;
+                canvas.Set(x, y, colour);
+            }
+            canvas.Outline(PixelPalette.Lava);
+            return canvas;
+        }
 
         private static PixelCanvas Tracer(bool fading)
         {

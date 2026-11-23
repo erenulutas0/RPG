@@ -143,16 +143,18 @@ namespace Cryptforge.Combat
             if (Slow != null && Slow.IsDazed)
                 return;
 
-            Health target = _targeting.Acquire(weapon.Range);
+            // Its Range, or an aura's own circle (WeaponRuntime.TargetReach).
+            Health target = _targeting.Acquire(weapon.TargetReach);
             if (target == null)
                 return;
 
             // Splash candidates are gathered only for a ready attack, into a reused list. The lists are shared by every
-            // slot because each slot fills and spends them before the next one starts.
+            // slot because each slot fills and spends them before the next one starts. An aura's circle is round this
+            // attacker, as the pulse's is (docs/63's Cinder Saw); every other splash's round the target.
             _nearby.Clear();
             float splashRadius = weapon.SplashRadius;
             if (splashRadius > 0f)
-                _targeting.CollectNear(target, splashRadius, _nearby);
+                _targeting.CollectNear(weapon.Pattern.StrikesRoundWielder ? _owner : target, splashRadius, _nearby);
             // The same, for the pulse, round this attacker. Nothing pulses until a card grants one, so this costs a
             // float comparison on every attack any enemy ever makes.
             _inPulseRadius.Clear();

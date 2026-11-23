@@ -17,8 +17,8 @@ namespace Cryptforge.Tests
         public static readonly string[] RosterSignatures = { SwordId, StaffId };
 
         // Every hero weapon in the scene's order: CombatSetup._weapons (Sword, Staff, Daggers), then _rosterWeapons
-        // (Magma Mortar, Forge Bow).
-        public static HeroWeapon[] RosterWeapons() => new[] { Sword(), Staff(), Daggers(), MagmaMortar(), ForgeBow() };
+        // (Magma Mortar, Forge Bow, and phase 2's Cinder Saw, docs/63 section 13).
+        public static HeroWeapon[] RosterWeapons() => new[] { Sword(), Staff(), Daggers(), MagmaMortar(), ForgeBow(), CinderSaw() };
 
         // The weapons a run that starts with ownWeaponId draws its cards from under the roster: WeaponRoster's body over
         // RosterWeapons and RosterSignatures, in their order - the scene's CombatSetup calls the same body. The research may

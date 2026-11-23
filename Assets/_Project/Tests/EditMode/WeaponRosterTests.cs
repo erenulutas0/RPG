@@ -27,7 +27,7 @@ namespace Cryptforge.Tests
             Assert.That(WeaponRoster.Offers(Sword, Staff, Shipped), Is.False, "Ilya's Staff is never the Vanguard's.");
             Assert.That(WeaponRoster.Offers(Staff, Sword, Shipped), Is.False, "The Vanguard's Sword is never Ilya's.");
             Assert.That(WeaponRoster.Offers(Staff, Staff, Shipped), Is.True);
-            foreach (string shared in new[] { Daggers, WeaponRoster.MagmaMortarId, WeaponRoster.ForgeBowId })
+            foreach (string shared in new[] { Daggers, WeaponRoster.MagmaMortarId, WeaponRoster.ForgeBowId, WeaponRoster.CinderSawId })
             {
                 Assert.That(WeaponRoster.Offers(Sword, shared, Shipped), Is.True, shared);
                 Assert.That(WeaponRoster.Offers(Staff, shared, Shipped), Is.True, shared);
@@ -69,11 +69,13 @@ namespace Cryptforge.Tests
         {
             Assert.That(DescentSimulation.RosterSignatures, Is.EqualTo(new[] { Sword, Staff }));
             Assert.That(Ids(DescentSimulation.RosterCatalogue(Sword)),
-                Is.EqualTo(new[] { Sword, Daggers, WeaponRoster.MagmaMortarId, WeaponRoster.ForgeBowId }), "The Vanguard.");
+                Is.EqualTo(new[] { Sword, Daggers, WeaponRoster.MagmaMortarId, WeaponRoster.ForgeBowId, WeaponRoster.CinderSawId }),
+                "The Vanguard.");
             Assert.That(Ids(DescentSimulation.RosterCatalogue(Staff)),
-                Is.EqualTo(new[] { Staff, Daggers, WeaponRoster.MagmaMortarId, WeaponRoster.ForgeBowId }), "Ilya.");
+                Is.EqualTo(new[] { Staff, Daggers, WeaponRoster.MagmaMortarId, WeaponRoster.ForgeBowId, WeaponRoster.CinderSawId }),
+                "Ilya.");
             Assert.That(Ids(DescentSimulation.RosterCatalogue(Daggers)),
-                Is.EqualTo(new[] { Daggers, WeaponRoster.MagmaMortarId, WeaponRoster.ForgeBowId }),
+                Is.EqualTo(new[] { Daggers, WeaponRoster.MagmaMortarId, WeaponRoster.ForgeBowId, WeaponRoster.CinderSawId }),
                 "The simulated Riftblade: the Daggers its own, and no other hero's.");
             Assert.That(Ids(DescentSimulation.CatalogueFor(Sword, new DescentSimulation.FoundryLevers())),
                 Is.EqualTo(new[] { Sword, Staff, Daggers }), "Off, today's catalogue for every hero.");
@@ -181,6 +183,76 @@ namespace Cryptforge.Tests
             // Its reach line lengthens its reach, flat.
             bow.AddModifier(UpgradeStat.Range, DescentSimulation.ForgeBowLines()[2].ModifierFor(UpgradeRarity.Common));
             Assert.That(bow.Range, Is.EqualTo(5.5f).Within(1e-5f));
+        }
+
+        // ---- Phase 2 (docs/63 section 13): the Cinder Saw and the crowd-weapon guarantee ----
+
+        // The Saw is an aura: every enemy within its circle round the hero takes the full 5 once a strike, wherever it stands
+        // about the hero - beside or behind it as much as the nearest - and nothing outside the circle does. The circle is
+        // also its reach: with nothing inside it, it does not strike, whatever its Range; Area widens both together. The
+        // simulation's legacy strike (StrikeInSlotOrder) gathers the circle round the hero as AttackController does.
+        [Test]
+        public void TheCinderSawStrikesEveryEnemyRoundTheHeroAndNothingBeyondItsCircle()
+        {
+            WeaponRuntime saw = Runtime(DescentSimulation.CinderSaw());
+            Assert.That((saw.Damage, saw.Interval, saw.Range, saw.SplashRadius, saw.TargetReach), Is.EqualTo((5f, .2f, 2f, 2f, 2f)));
+            Assert.That((saw.Pattern.Behavior, saw.Pattern.SplashFraction), Is.EqualTo((WeaponBehavior.Aura, 1f)));
+            Assert.That(saw.Pattern.StrikesRoundWielder && saw.Pattern.HoldsACrowd, Is.True);
+            var loadout = new WeaponLoadout(0);
+            loadout.TryAdd(WeaponRoster.CinderSawId, saw);
+            // In front 1.5 out (the nearest: the strike's target), 1.9 to the left (2.42 from the target: beyond a 2-unit
+            // splash round it, inside the circle round the hero), 1.70 out on the right, and 2.3 out: outside the circle.
+            var front = new HealthState(5f);
+            var left = new HealthState(5f);
+            var right = new HealthState(5f);
+            var beyond = new HealthState(100f);
+            var enemies = new[] { front, left, right, beyond };
+            var motion = new PackMotion(DescentSimulation.BodySpacing, PackLayout.HalfWidth);
+            motion.Add(front, 0f, 1.5f, 0f, 1f);
+            motion.Add(left, -1.9f, 0f, 0f, 1f);
+            motion.Add(right, 1.2f, 1.2f, 0f, 1f);
+            motion.Add(beyond, 2.3f, 0f, 0f, 1f);
+            Assert.That(DescentSimulation.StrikeInSlotOrder(loadout, motion, enemies, 0f, 0f), Is.EqualTo(1));
+            Assert.That(enemies.Select(e => e.Current).ToArray(), Is.EqualTo(new[] { 0f, 0f, 0f, 100f }),
+                "The full 5 on each of the three inside the circle, once; nothing on the one outside.");
+            Assert.That(saw.IsReady, Is.False);
+            saw.Tick(.2f);
+            Assert.That(saw.IsReady, Is.True, "Its cadence: 0.2 s.");
+            Assert.That(DescentSimulation.StrikeInSlotOrder(loadout, motion, enemies, 0f, 0f), Is.Zero,
+                "Nothing inside the circle: no strike, though the one outside stands 2.3 away.");
+
+            // Its area line (+10 %) and the Reach tome (+8 %): 2 x 1.18 = 2.36 - the circle and its reach together.
+            saw.AddModifier(UpgradeStat.Area, DescentSimulation.CinderSawLines()[1].ModifierFor(UpgradeRarity.Common));
+            saw.AddModifier(UpgradeStat.Area, DescentSimulation.Reach().ModifierFor(UpgradeRarity.Common));
+            Assert.That(saw.TargetReach, Is.EqualTo(2f * 1.18f).Within(1e-5f));
+            Assert.That(saw.Range, Is.EqualTo(2f), "Its Range is not what it acquires within.");
+            Assert.That(DescentSimulation.StrikeInSlotOrder(loadout, motion, enemies, 0f, 0f), Is.EqualTo(1));
+            Assert.That(beyond.Current, Is.EqualTo(95f));
+            // Its damage line is Flat, before Force's percent (docs/42): (5 + 0.8) x 1.08.
+            saw.AddModifier(UpgradeStat.Damage, DescentSimulation.CinderSawLines()[0].ModifierFor(UpgradeRarity.Common));
+            saw.AddModifier(UpgradeStat.Damage, DescentSimulation.Force().ModifierFor(UpgradeRarity.Common));
+            Assert.That(saw.Damage, Is.EqualTo(5.8f * 1.08f).Within(1e-4f));
+        }
+
+        // Every other weapon acquires within its Range exactly, as before the aura existed: TargetReach is Range for them,
+        // and the Area that widens their circles never moves their reach.
+        [Test]
+        public void EveryWeaponButAnAuraAcquiresWithinItsRange()
+        {
+            foreach (DescentSimulation.HeroWeapon weapon in DescentSimulation.RosterWeapons())
+            {
+                WeaponRuntime runtime = Runtime(weapon);
+                runtime.AddModifier(UpgradeStat.Area, DescentSimulation.Reach().ModifierFor(UpgradeRarity.Common));
+                if (weapon.Id == WeaponRoster.CinderSawId)
+                    Assert.That(runtime.TargetReach, Is.EqualTo(runtime.SplashRadius), weapon.Id);
+                else
+                    Assert.That(runtime.TargetReach, Is.EqualTo(runtime.Range), weapon.Id);
+                Assert.That(runtime.Pattern.HoldsACrowd,
+                    Is.EqualTo(weapon.Id == Staff || weapon.Id == WeaponRoster.MagmaMortarId || weapon.Id == WeaponRoster.CinderSawId),
+                    $"{weapon.Id}: the Staff, the Mortar and the Saw hold a crowd; the Sword cleaves one neighbour");
+            }
+            Assert.Throws<ArgumentOutOfRangeException>(() => new AttackPattern(WeaponBehavior.Aura, 0f, 1f), "An aura needs its circle.");
+            Assert.Throws<ArgumentOutOfRangeException>(() => new AttackPattern(WeaponBehavior.Aura, 2f, 0f), "And a share in (0, 1].");
         }
     }
 }

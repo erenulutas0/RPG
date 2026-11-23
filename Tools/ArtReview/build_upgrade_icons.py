@@ -1177,6 +1177,45 @@ def forge_bow(g, t=T(), limb=WOOD, metal=GOLD, string=PALE, shaft=WOOD, head=EMB
     return dict(tip=t.p(*tip), nock=t.p(*nock), d=d, t=t)
 
 
+def cinder_saw(g, t=T(), disc=IRON, teeth=EMBER, hub=GOLD, groove=None, teeth_count=10):
+    """docs/63 phase 2's Cinder Saw (2026-11-23): a round saw blade of dark iron, its hooked teeth glowing ember from the
+    forge, three curved molten vents through its plate, a gold hub with a dark eye, and ember sparks flung off its rim as
+    it spins - counter-clockwise, as the game's blade circles the hero."""
+    groove = MOLTEN if groove is None else groove
+    c = (47.0, 49.0)
+    r_tip, r_root, r_plate = 32.0, 22.5, 20.5
+
+    def at(r, deg):
+        a = math.radians(deg)
+        return t.p(c[0] + r * math.cos(a), c[1] + r * math.sin(a))
+
+    step = 360.0 / teeth_count
+    pts = []
+    for i in range(teeth_count):
+        a0 = -90.0 + i * step
+        # Each tooth climbs slowly from its root to its tip and drops back sharply: a hook, leaning the way it turns.
+        pts += [at(r_root, a0), at(r_tip, a0 + step * 0.74), at(r_tip - 2.6, a0 + step * 0.86)]
+    tm = mask_of(polygon(pts))
+    part(g, tm, skin_pillow(tm, teeth, 4, 1.6, hi=6, lo=3), teeth, inline=2, emit=0.9)
+    plate = ellipse(*at(0.0, 0.0), t.w(r_plate))
+    part(g, plate, skin_dome(plate, disc, 3, 2.2, glint=False), disc)
+    for k in range(3):
+        a0 = -70.0 + 120.0 * k
+        vent = ring(*at(0.0, 0.0), t.w(r_plate * 0.50), t.w(r_plate * 0.72), a0=a0, a1=a0 + 62.0)
+        part(g, vent, colours(groove, 5), groove, inline=3, separate=False, emit=1.0)
+    hb = ellipse(*at(0.0, 0.0), t.w(7.0))
+    part(g, hb, skin_dome(hb, hub, 3, 2.4), hub)
+    eye = mask_of(ellipse(*at(0.0, 0.0), t.w(2.3)))
+    g.paint(eye, disc[0], separate=False)
+    for deg, arm in ((-38.0, 2), (-62.0, 1), (148.0, 1)):
+        g.sparkle(*at(r_tip + 5.5, deg), arm, teeth[5], emit=1.4)
+    return dict(centre=at(0.0, 0.0), t=t)
+
+
+def saw_line(mark, **kw):
+    return line(lambda g, t: cinder_saw(g, t), mark, **kw)
+
+
 def mortar_line(mark, **kw):
     return line(lambda g, t: mortar(g, t), mark, **kw)
 
@@ -1408,6 +1447,11 @@ ICONS = [
     ("line_forge_bow_damage", bow_line(burst), EMBER_HALO, False),
     ("line_forge_bow_crit", bow_line(crit_star), EMBER_HALO, False),
     ("line_forge_bow_range", bow_line(range_arrow), EMBER_HALO, False),
+    # docs/63 phase 2's Cinder Saw (2026-11-23) and its lines; appended likewise.
+    ("weapon_cinder_saw", lambda g: cinder_saw(g, T(k=1.02)), EMBER_HALO, False),
+    ("line_cinder_saw_damage", saw_line(burst), EMBER_HALO, False),
+    ("line_cinder_saw_area", saw_line(rings), EMBER_HALO, False),
+    ("line_cinder_saw_attack_speed", saw_line(bolts), EMBER_HALO, False),
 ]
 
 
@@ -1861,7 +1905,7 @@ SLOT = 56
 # tome socket holds.
 SLOT_IDS = ("weapon_sword", "evolution_sword", "weapon_staff", "evolution_staff", "weapon_daggers", "evolution_daggers",
             "tome_force", "tome_precision", "tome_reach", "tome_tempo", "tome_vitality", "weapon_magma_mortar",
-            "weapon_forge_bow")
+            "weapon_forge_bow", "weapon_cinder_saw")
 
 
 def paint_icon(draw):

@@ -13,8 +13,8 @@ namespace Cryptforge.Tests
     {
         private static readonly string[] HeroWeapons = { "Sword", "Staff", "Daggers" };
         // docs/63's shared weapons, behind the weapon roster's lever: lines and bases, no evolution yet.
-        private static readonly string[] RosterWeapons = { "MagmaMortar", "ForgeBow" };
-        private static readonly string[] AllHeroWeapons = { "Sword", "Staff", "Daggers", "MagmaMortar", "ForgeBow" };
+        private static readonly string[] RosterWeapons = { "MagmaMortar", "ForgeBow", "CinderSaw" };
+        private static readonly string[] AllHeroWeapons = { "Sword", "Staff", "Daggers", "MagmaMortar", "ForgeBow", "CinderSaw" };
         private static readonly string[] TomeAssets = { "Tome_Force", "Tome_Tempo", "Tome_Reach", "Tome_Precision", "Tome_Vitality" };
 
         private static WeaponDefinition Weapon(string name)
@@ -30,6 +30,7 @@ namespace Cryptforge.Tests
             "Staff" => DescentSimulation.Staff(),
             "MagmaMortar" => DescentSimulation.MagmaMortar(),
             "ForgeBow" => DescentSimulation.ForgeBow(),
+            "CinderSaw" => DescentSimulation.CinderSaw(),
             _ => DescentSimulation.Daggers()
         };
 
@@ -218,11 +219,11 @@ namespace Cryptforge.Tests
                     lines++;
                 }
             }
-            Assert.That(lines, Is.EqualTo(15),
-                "Three lines on each of the Sword, the Staff, the Daggers, the Magma Mortar and the Forge Bow.");
+            Assert.That(lines, Is.EqualTo(18),
+                "Three lines on each of the Sword, the Staff, the Daggers, the Magma Mortar, the Forge Bow and the Cinder Saw.");
         }
 
-        // docs/63's two shared weapons as the simulation plays them (DescentSimulation.MagmaMortar, ForgeBow): the same
+        // docs/63's shared weapons as the simulation plays them (DescentSimulation.MagmaMortar, ForgeBow, CinderSaw): the same
         // attack, reach and cadence, one base for the legacy engine and the category mode (they have no legacy role), no
         // evolution yet, and the ids WeaponRoster names. The roster's weapon list in the scene is CombatSetup's
         // _rosterWeapons (FoundrySimulationSceneValueTests).
@@ -249,6 +250,7 @@ namespace Cryptforge.Tests
             }
             Assert.That(Weapon("MagmaMortar").Id, Is.EqualTo(WeaponRoster.MagmaMortarId));
             Assert.That(Weapon("ForgeBow").Id, Is.EqualTo(WeaponRoster.ForgeBowId));
+            Assert.That(Weapon("CinderSaw").Id, Is.EqualTo(WeaponRoster.CinderSawId));
         }
     }
 }

@@ -96,6 +96,17 @@ namespace Cryptforge.Combat
             get => KillBurstRule.Radius * _area.Value;
         }
 
+        // The reach this weapon acquires its target within: its Range, except an aura's (docs/63's Cinder Saw), which
+        // strikes whatever stands inside its own circle - SplashRadius, round the wielder - so the circle that strikes is
+        // the circle that sets it off, and Area (the Reach tome, its own line) widens both at once. The scene's
+        // AttackController and the simulations acquire through it; one body, never inlined, since it is squared into a
+        // reach comparison the moment it is read. Every other weapon's is its Range exactly.
+        public float TargetReach
+        {
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            get => Pattern.StrikesRoundWielder ? SplashRadius : _range.Value;
+        }
+
         // The run seed the crit roll is drawn from; 0 for every weapon that never rolls, which is all of them until a
         // card grants a chance. A weapon in a loadout's later slot is handed a seed of its own (WeaponLoadout.SeedFor).
         public int Seed { get; set; }
@@ -250,7 +261,8 @@ namespace Cryptforge.Combat
 
         // source is the attacker, passed on so targets know who hit them. nearby lists other enemies within
         // SplashRadius of the target, nearest first: a cleave strikes the first living one, an area attack every living
-        // one, and a direct hit ignores the list. inPulseRadius lists the enemies within PulseRadius of the attacker
+        // one, and a direct hit ignores the list. An aura's nearby is drawn round the attacker instead (AttackPattern.
+        // StrikesRoundWielder) and holds the target too, which is struck once, as the strike's own. inPulseRadius lists the enemies within PulseRadius of the attacker
         // itself, which is a different circle from nearby's and drawn round a different centre; a caller whose weapon
         // has no pulse may leave it null, and every enemy weapon does. inCritSplashRadius is a third circle, round the
         // target again but at CritSplashRadius rather than the splash's, for the splinter a critical strike throws;

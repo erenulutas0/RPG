@@ -29,7 +29,8 @@ namespace Cryptforge.Core
         // The hero weapons a run's cards can hand over, in card order; every hero's starting weapon must be one of them.
         // Since 2026-11-23 the Relic Forge sells none: every hero starts with its own weapon (docs/63).
         [SerializeField] private WeaponDefinition[] _weapons;
-        // docs/63's shared weapons built behind the weapon roster's lever (the Magma Mortar, the Forge Bow): offered only
+        // docs/63's shared weapons built behind the weapon roster's lever (the Magma Mortar, the Forge Bow, and phase 2's
+        // Cinder Saw, section 13): offered only
         // when development/weapon-roster.txt turns the roster on, after _weapons, every hero's own weapon then kept to that
         // hero (WeaponRoster). Off - every release build and the default batch - a run's cards are _weapons' alone.
         [SerializeField] private WeaponDefinition[] _rosterWeapons;
