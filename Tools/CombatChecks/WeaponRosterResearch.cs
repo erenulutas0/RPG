@@ -227,6 +227,8 @@ namespace Cryptforge.Tests
                     l.CrowdWeaponGuarantee = true;
                 }
             };
+            foreach (Option next in NextCandidates())
+                yield return next;
         }
 
         // An option by its key: one of Options(), or - for exploring a candidate's numbers on the exploration seeds - a base
@@ -284,6 +286,33 @@ namespace Cryptforge.Tests
                         change(l);
                 }
             };
+        }
+
+        // Phase 2's next candidate (docs/63 section 13.7), written after the 1-200 probes and before its 1-2000 read: one
+        // Mortar cannot serve both heroes - strong enough for the Vanguard it out-deals Ilya's Staff where it is held, weak
+        // enough for her Staff it leaves the Vanguard short - while the Saw's circle round the hero serves the hero who
+        // stands in the crowd (at 2.0 it barely touches Ilya's Staff). So: the guarantee, the Mortar as built (phase 1's
+        // 2.5 every 1.8 s, which leaves Ilya's Staff first), and the Saw striking harder within the same 2.0 - harder rather
+        // than wider, since widening it to 2.5 brought it level with her Staff. `p3-saw8` and `p3-saw10` are the same
+        // settings as the 1-2000 read's "p2-c1c2~blast=2.5/1.8~saw=8/0.2/2" and "...~saw=10/0.2/2".
+        private static IEnumerable<Option> NextCandidates()
+        {
+            foreach (float damage in new[] { 8f, 10f })
+            {
+                float d = damage;
+                yield return new Option
+                {
+                    Key = "p3-saw" + d.ToString(CultureInfo.InvariantCulture),
+                    What = string.Format(CultureInfo.InvariantCulture,
+                        "C1 + C2 with the Mortar as built (2.5 every 1.8 s) and the Saw {0} every 0.2 s within 2.0", d),
+                    Set = l =>
+                    {
+                        l.WeaponRoster = true;
+                        l.RosterPool = SawAt(d, .2f, 2f, MortarAt(2.5f, 1.8f, DescentSimulation.RosterWeapons()));
+                        l.CrowdWeaponGuarantee = true;
+                    }
+                };
+            }
         }
 
         // Phase 1's pool (docs/63 section 7): the five hero weapons, the Magma Mortar at its phase-1 numbers (blast 2.5 every
