@@ -26,27 +26,32 @@ namespace Cryptforge.Tests
     // - the decomposition: `exclusive` (each hero's own kept to it, no new weapon: the Vanguard holds the Sword and the
     //   Daggers, Ilya the Staff and the Daggers) and `open` (all five weapons for both heroes, no exclusivity), and the A/A
     //   probe from floor 1 (`aa-f1`: the shipped game with one unread draw of the pilot's dice).
+    // - phase 2 (docs/63 section 13): the lead's two candidates, `p2-c2` (a second shared crowd weapon, the Cinder Saw) and
+    //   `p2-c1` (the crowd-weapon guarantee), and both (`p2-c1c2`), each beside c-mortar15's Mortar; each hero's own weapon's
+    //   share of its damage (Ilya's Staff must stay her main damage) and the runs that held a crowd weapon.
     //
     // Explicit, so a plain `dotnet test` skips it:
     //
     //   dotnet test Tools/CombatChecks -c Release -p:NuGetAudit=false --filter "FullyQualifiedName~WeaponRosterResearch"
     //
-    // Environment, all optional: FOUNDRY_SEEDS (200), FOUNDRY_FIRST_SEED (1; the probe refuses a seed past 2000),
+    // Environment, all optional: FOUNDRY_SEEDS (200), FOUNDRY_FIRST_SEED (1; the probe refuses a seed past 2000 unless
+    // ROSTER_CONFIRM names the fresh block it reads, "<first>-<last>", for one candidate beside `shipped` and the A/A),
     // FOUNDRY_PARALLEL (the processors), FOUNDRY_OUT (the repository's TestResults), FOUNDRY_REALISM (typical; slow;
-    // frame-perfect for none), ROSTER_OPTIONS (comma separated option keys; shipped,roster by default, "all" for every one),
+    // frame-perfect for none), ROSTER_OPTIONS (comma separated option keys; shipped,roster by default, "all" for every one;
+    // a key may change a phase-2 candidate's numbers, "p2-c2~saw=5/0.2/2.5~mortar=30", see Named),
     // ROSTER_COHORTS (comma separated cohort names; careful, standing, first-card, clumsy, auto-farmer). Writes
     // weapon-roster.md and weapon-roster.csv (a row a run), rewritten after each option.
     [Explicit("docs/63's measurement: run it by name.")]
     public sealed class WeaponRosterResearch
     {
-        // The five hero weapons in the scene's order (CombatSetup._weapons, then _rosterWeapons).
+        // The six hero weapons in the scene's order (CombatSetup._weapons, then _rosterWeapons; phase 2 added the Cinder Saw).
         private static readonly string[] WeaponIds =
         {
             DescentSimulation.SwordId, DescentSimulation.StaffId, DescentSimulation.DaggersId, WeaponRoster.MagmaMortarId,
-            WeaponRoster.ForgeBowId
+            WeaponRoster.ForgeBowId, WeaponRoster.CinderSawId
         };
 
-        private static readonly string[] Short = { "sword", "staff", "daggers", "mortar", "bow" };
+        private static readonly string[] Short = { "sword", "staff", "daggers", "mortar", "bow", "saw" };
 
         private sealed class Option
         {
@@ -71,10 +76,16 @@ namespace Cryptforge.Tests
                 Key = "aa-f1", What = "A/A: the shipped game, one unread draw of the pilot's dice on entering floor 1",
                 Set = l => l.NudgeFloor = 1
             };
+            // Phase 1's readings (docs/63 section 9) keep their pool - the five weapons, the Mortar at 2.5 every 1.8 s, no Cinder
+            // Saw (PhaseOne) - so they read the same runs they read on 2026-11-23 whatever phase 2 adds to RosterWeapons.
             yield return new Option
             {
-                Key = "roster", What = "docs/63's roster as built: each hero's own weapon its alone (Vanguard Sword, Ilya Staff), the Daggers, the Magma Mortar (34 / 1.8 s, reach 4, blast 2.5 at full damage) and the Forge Bow (25 / 1.2 s, reach 5, a crit every 4th) shared",
-                Set = l => l.WeaponRoster = true
+                Key = "roster", What = "docs/63's roster as built in phase 1: each hero's own weapon its alone (Vanguard Sword, Ilya Staff), the Daggers, the Magma Mortar (34 / 1.8 s, reach 4, blast 2.5 at full damage) and the Forge Bow (25 / 1.2 s, reach 5, a crit every 4th) shared",
+                Set = l =>
+                {
+                    l.WeaponRoster = true;
+                    l.RosterPool = PhaseOne();
+                }
             };
             yield return new Option
             {
@@ -91,6 +102,7 @@ namespace Cryptforge.Tests
                 Set = l =>
                 {
                     l.WeaponRoster = true;
+                    l.RosterPool = PhaseOne();
                     l.RosterSignatureIds = new string[0];
                 }
             };
@@ -100,7 +112,7 @@ namespace Cryptforge.Tests
                 Set = l =>
                 {
                     l.WeaponRoster = true;
-                    l.RosterPool = DescentSimulation.RosterWeapons().Where(w => w.Id != WeaponRoster.ForgeBowId).ToArray();
+                    l.RosterPool = PhaseOne().Where(w => w.Id != WeaponRoster.ForgeBowId).ToArray();
                 }
             };
             yield return new Option
@@ -109,7 +121,7 @@ namespace Cryptforge.Tests
                 Set = l =>
                 {
                     l.WeaponRoster = true;
-                    l.RosterPool = DescentSimulation.RosterWeapons().Where(w => w.Id != WeaponRoster.MagmaMortarId).ToArray();
+                    l.RosterPool = PhaseOne().Where(w => w.Id != WeaponRoster.MagmaMortarId).ToArray();
                 }
             };
             // Candidates (exploration only), one design reason written before the read (docs/63 section 9): under the roster
@@ -131,7 +143,7 @@ namespace Cryptforge.Tests
                     Set = l =>
                     {
                         l.WeaponRoster = true;
-                        l.RosterPool = MortarAt(r, s);
+                        l.RosterPool = MortarAt(r, s, PhaseOne());
                     }
                 };
             }
@@ -149,6 +161,7 @@ namespace Cryptforge.Tests
                 Set = l =>
                 {
                     l.WeaponRoster = true;
+                    l.RosterPool = PhaseOne();
                     AutopilotCohort cohort = l.Cohort;
                     l.Picker = (pick, upgrades) => AreaFirst(cohort, pick, upgrades);
                 }
@@ -159,6 +172,7 @@ namespace Cryptforge.Tests
                 Set = l =>
                 {
                     l.WeaponRoster = true;
+                    l.RosterPool = PhaseOne();
                     Sweep(l);
                 }
             };
@@ -168,18 +182,166 @@ namespace Cryptforge.Tests
                 Set = l =>
                 {
                     l.WeaponRoster = true;
-                    l.RosterPool = MortarAt(3f, 1.5f);
+                    l.RosterPool = MortarAt(3f, 1.5f, PhaseOne());
                     Sweep(l);
+                }
+            };
+
+            // Phase 2 (docs/63 section 13, 2026-11-23): the lead's two candidates of section 10, both on c-mortar15's Mortar
+            // (blast 3.0 every 1.5 s), each with its design reason written before its read. The roster failed because the
+            // Vanguard's runs that never hold the Mortar - 43 % of them - finish 2 %: its Sword, the Daggers and the Bow hold no
+            // crowd, and the Staff that held it today is Ilya's alone.
+            // - `p2-c2` removes that failure by the pool's shape: a second shared crowd weapon, the Cinder Saw (an aura round
+            //   the hero, docs/40 section 5.2's 5 every 0.2 s within 2 units), so two of the Vanguard's four shared choices
+            //   hold a crowd and a run that passes one is still likely to take the other.
+            // - `p2-c1` removes it by a rule: UpgradeService's crowd-weapon guarantee (while a hero holds no crowd weapon and a
+            //   slot is free, every new-weapon card is one), so the first new weapon the Vanguard takes holds a crowd; Ilya's
+            //   Staff already does, so Ilya is untouched. The pool is phase 1's five, the Mortar at c-mortar15.
+            // - `p2-c1c2` both: the guarantee picks between two crowd weapons.
+            yield return new Option
+            {
+                Key = "p2-c2", What = "C2: the roster with c-mortar15's Mortar (blast 3.0 every 1.5 s) and the Cinder Saw (an aura: 5 every 0.2 s to every enemy within 2 of the hero) shared",
+                Set = l =>
+                {
+                    l.WeaponRoster = true;
+                    l.RosterPool = MortarAt(3f, 1.5f, PhaseTwoSaw());
+                }
+            };
+            yield return new Option
+            {
+                Key = "p2-c1", What = "C1: phase 1's roster with c-mortar15's Mortar and the crowd-weapon guarantee (no Saw)",
+                Set = l =>
+                {
+                    l.WeaponRoster = true;
+                    l.RosterPool = MortarAt(3f, 1.5f, PhaseOne());
+                    l.CrowdWeaponGuarantee = true;
+                }
+            };
+            yield return new Option
+            {
+                Key = "p2-c1c2", What = "C1 + C2: the roster with c-mortar15's Mortar and the Cinder Saw, and the crowd-weapon guarantee",
+                Set = l =>
+                {
+                    l.WeaponRoster = true;
+                    l.RosterPool = MortarAt(3f, 1.5f, PhaseTwoSaw());
+                    l.CrowdWeaponGuarantee = true;
+                }
+            };
+            foreach (Option next in NextCandidates())
+                yield return next;
+        }
+
+        // An option by its key: one of Options(), or - for exploring a candidate's numbers on the exploration seeds - a base
+        // option with the Cinder Saw's or the Mortar's numbers changed, "<base>~saw=<damage>/<interval>/<radius>",
+        // "<base>~blast=<radius>/<interval>" and "<base>~mortar=<damage>", applied in order (for example
+        // "p2-c2~saw=5/0.2/2.5~mortar=30").
+        private static Option Named(string key)
+        {
+            Option known = Options().FirstOrDefault(o => o.Key == key);
+            if (known != null)
+                return known;
+            string[] parts = key.Split('~');
+            Option baseOption = Options().FirstOrDefault(o => o.Key == parts[0]);
+            if (baseOption == null || parts.Length < 2)
+                throw new ArgumentException($"No option {key}.");
+            var changes = new List<Action<DescentSimulation.FoundryLevers>>();
+            var what = new StringBuilder(baseOption.What);
+            for (int i = 1; i < parts.Length; i++)
+            {
+                string[] pair = parts[i].Split('=');
+                float[] n = pair.Length == 2
+                    ? pair[1].Split('/').Select(s => float.Parse(s, CultureInfo.InvariantCulture)).ToArray()
+                    : new float[0];
+                if (pair[0] == "saw" && n.Length == 3)
+                {
+                    float d = n[0], s = n[1], r = n[2];
+                    changes.Add(l => l.RosterPool = SawAt(d, s, r, l.RosterPool ?? DescentSimulation.RosterWeapons()));
+                    what.Append(string.Format(CultureInfo.InvariantCulture, "; the Saw at {0} every {1} s within {2}", d, s, r));
+                }
+                else if (pair[0] == "blast" && n.Length == 2)
+                {
+                    float r = n[0], s = n[1];
+                    changes.Add(l => l.RosterPool = MortarAt(r, s, l.RosterPool ?? DescentSimulation.RosterWeapons()));
+                    what.Append(string.Format(CultureInfo.InvariantCulture, "; the Mortar's blast {0} every {1} s", r, s));
+                }
+                else if (pair[0] == "mortar" && n.Length == 1)
+                {
+                    float d = n[0];
+                    changes.Add(l => l.RosterPool = (l.RosterPool ?? DescentSimulation.RosterWeapons())
+                        .Select(w => w.Id == WeaponRoster.MagmaMortarId ? Tuned(w, m => m.Damage = d) : w).ToArray());
+                    what.Append(string.Format(CultureInfo.InvariantCulture, "; the Mortar's damage {0}", d));
+                }
+                else
+                {
+                    throw new ArgumentException($"Option {key}: {parts[i]} is not saw=D/I/R, blast=R/I or mortar=D.");
+                }
+            }
+            return new Option
+            {
+                Key = key, What = what.ToString(),
+                Set = l =>
+                {
+                    baseOption.Set(l);
+                    foreach (Action<DescentSimulation.FoundryLevers> change in changes)
+                        change(l);
                 }
             };
         }
 
-        private static DescentSimulation.HeroWeapon[] MortarAt(float radius, float interval) =>
-            DescentSimulation.RosterWeapons().Select(w => w.Id == WeaponRoster.MagmaMortarId
+        // Phase 2's next candidate (docs/63 section 13.6), written after the 1-200 probes and before its 1-2000 read: one
+        // Mortar cannot serve both heroes - strong enough for the Vanguard it out-deals Ilya's Staff where it is held, weak
+        // enough for her Staff it leaves the Vanguard short - while the Saw's circle round the hero serves the hero who
+        // stands in the crowd (at 2.0 it barely touches Ilya's Staff). So: the guarantee, the Mortar as built (phase 1's
+        // 2.5 every 1.8 s, which leaves Ilya's Staff first), and the Saw striking harder within the same 2.0 - harder rather
+        // than wider, since widening it to 2.5 brought it level with her Staff. `p3-saw8` and `p3-saw10` are the same
+        // settings as the 1-2000 read's "p2-c1c2~blast=2.5/1.8~saw=8/0.2/2" and "...~saw=10/0.2/2".
+        private static IEnumerable<Option> NextCandidates()
+        {
+            foreach (float damage in new[] { 8f, 10f })
+            {
+                float d = damage;
+                yield return new Option
+                {
+                    Key = "p3-saw" + d.ToString(CultureInfo.InvariantCulture),
+                    What = string.Format(CultureInfo.InvariantCulture,
+                        "C1 + C2 with the Mortar as built (2.5 every 1.8 s) and the Saw {0} every 0.2 s within 2.0", d),
+                    Set = l =>
+                    {
+                        l.WeaponRoster = true;
+                        l.RosterPool = SawAt(d, .2f, 2f, MortarAt(2.5f, 1.8f, DescentSimulation.RosterWeapons()));
+                        l.CrowdWeaponGuarantee = true;
+                    }
+                };
+            }
+        }
+
+        // Phase 2's read pool: the six hero weapons with the Cinder Saw at the numbers C2 was read at (docs/40's 5 every 0.2 s
+        // within 2.0), so p2-c2 and p2-c1c2 read what they read whatever the asset's Saw becomes.
+        private static DescentSimulation.HeroWeapon[] PhaseTwoSaw() => SawAt(5f, .2f, 2f, DescentSimulation.RosterWeapons());
+
+        // Phase 1's pool (docs/63 section 7): the five hero weapons, the Magma Mortar at its phase-1 numbers (blast 2.5 every
+        // 1.8 s), no Cinder Saw.
+        private static DescentSimulation.HeroWeapon[] PhaseOne() =>
+            MortarAt(2.5f, 1.8f, DescentSimulation.RosterWeapons().Where(w => w.Id != WeaponRoster.CinderSawId).ToArray());
+
+        private static DescentSimulation.HeroWeapon[] MortarAt(float radius, float interval, DescentSimulation.HeroWeapon[] pool) =>
+            pool.Select(w => w.Id == WeaponRoster.MagmaMortarId
                 ? Tuned(w, m =>
                 {
                     m.Pattern = new AttackPattern(WeaponBehavior.Area, radius, 1f);
                     m.Interval = interval;
+                })
+                : w).ToArray();
+
+        // A pool with the Cinder Saw's numbers changed (exploration of its numbers only).
+        private static DescentSimulation.HeroWeapon[] SawAt(float damage, float interval, float radius, DescentSimulation.HeroWeapon[] pool) =>
+            pool.Select(w => w.Id == WeaponRoster.CinderSawId
+                ? Tuned(w, s =>
+                {
+                    s.Damage = damage;
+                    s.Interval = interval;
+                    s.Range = radius;
+                    s.Pattern = new AttackPattern(WeaponBehavior.Aura, radius, 1f);
                 })
                 : w).ToArray();
 
@@ -220,11 +382,11 @@ namespace Cryptforge.Tests
             public float Seconds;
             // Per weapon (WeaponIds' order): held at any point of the climb, the floor it was first held on (1-4, 0 never),
             // the offers that showed it as a new weapon, and the damage it dealt over the climb.
-            public bool[] Held = new bool[5];
-            public int[] FirstFloor = new int[5];
-            public int[] Offered = new int[5];
-            public float[] Dealt = new float[5];
-            public int[] Kills = new int[5];
+            public bool[] Held = new bool[WeaponIds.Length];
+            public int[] FirstFloor = new int[WeaponIds.Length];
+            public int[] Offered = new int[WeaponIds.Length];
+            public float[] Dealt = new float[WeaponIds.Length];
+            public int[] Kills = new int[WeaponIds.Length];
             public int WeaponsAtEnd;
             public int WeaponsAfterFloorOne;
         }
@@ -234,14 +396,28 @@ namespace Cryptforge.Tests
         {
             int count = Setting("FOUNDRY_SEEDS", 200);
             int first = Setting("FOUNDRY_FIRST_SEED", 1);
-            Assert.That(first >= 1 && first + count - 1 <= 2000, Is.True,
-                "docs/63's probe: the exploration seeds 1-2000 only (docs/56 rule 1), no confirmation block.");
+            // docs/56 rule 1: explore on seeds 1-2000; a confirmation reads one fresh block once, named in ROSTER_CONFIRM as
+            // "<first>-<last>" (the block docs/56 section 10 records), with `shipped`, at most one candidate and the A/A.
+            string confirm = Environment.GetEnvironmentVariable("ROSTER_CONFIRM");
+            if (string.IsNullOrEmpty(confirm))
+            {
+                Assert.That(first >= 1 && first + count - 1 <= 2000, Is.True,
+                    "docs/63's probe: the exploration seeds 1-2000 only (docs/56 rule 1); a confirmation names its block in ROSTER_CONFIRM.");
+            }
+            else
+            {
+                Assert.That(confirm, Is.EqualTo($"{first}-{first + count - 1}"), "The confirmation reads exactly the block it names.");
+                Assert.That(first, Is.GreaterThan(2000), "A confirmation block is fresh: past the exploration seeds.");
+                string[] read = List(Environment.GetEnvironmentVariable("ROSTER_OPTIONS") ?? string.Empty);
+                Assert.That(read.Count(o => o != "shipped" && !o.StartsWith("aa-", StringComparison.Ordinal)), Is.EqualTo(1),
+                    "One candidate a confirmation (docs/56 rule 4), beside `shipped` and the A/A.");
+            }
             int parallel = Setting("FOUNDRY_PARALLEL", Environment.ProcessorCount);
             int[] seeds = FoundryBatch.Seeds(first, count);
             string output = Environment.GetEnvironmentVariable("FOUNDRY_OUT") ?? Path.Combine(RepositoryRoot(), "TestResults");
             Directory.CreateDirectory(output);
             string optionWord = Environment.GetEnvironmentVariable("ROSTER_OPTIONS") ?? "shipped,roster";
-            Option[] options = Options().Where(o => optionWord == "all" || List(optionWord).Contains(o.Key)).ToArray();
+            Option[] options = optionWord == "all" ? Options().ToArray() : List(optionWord).Select(Named).ToArray();
             Assert.That(options.Length, Is.GreaterThan(0), "an option named exists");
             string[] cohorts = List(Environment.GetEnvironmentVariable("ROSTER_COHORTS") ?? "careful,standing,first-card,clumsy,auto-farmer");
             string pilot = Environment.GetEnvironmentVariable("FOUNDRY_REALISM") ?? "typical";
@@ -418,6 +594,72 @@ namespace Cryptforge.Tests
                                     $"{Pct(holders.Sum(r => (double)r.Dealt[w]), holdersAll)} | {Pct(mine.Sum(r => (double)r.Dealt[w]), all)} | " +
                                     $"{Pct(mine.Sum(r => (double)r.Kills[w]), kills)} |");
                 }
+            }
+            text.AppendLine();
+
+            // docs/63 phase 2's guard (section 13): Ilya's own Staff must stay her main damage, so a shared weapon that
+            // out-damages it is read here, overall and in the runs that hold that weapon.
+            text.AppendLine("### Each hero's own weapon: its share of the hero's weapon damage, and the runs it led");
+            text.AppendLine();
+            text.AppendLine("Own share: the signature's damage over all the hero's weapon damage (all cohorts but the auto-farmer). Top other: the shared weapon with the largest share overall. " +
+                            "Led: the runs in which the signature dealt more than any other weapon. Against each shared weapon, in the runs that hold it: the signature's share and that weapon's.");
+            text.AppendLine();
+            text.AppendLine("| Option | Hero | Own share | Top other (share) | Led | " + string.Join(" | ", Short.Skip(2).Select(s => $"With {s}: own / {s}")) + " |");
+            text.AppendLine("|---|---|---|---|---|" + string.Concat(Short.Skip(2).Select(_ => "---|")));
+            foreach (Option option in options)
+            foreach ((string hero, int own) in new[] { ("Vanguard", 0), ("Ilya", 1) })
+            {
+                RunRead[] mine = reads.Where(r => r.Option == option.Key && r.Hero == hero && r.Cohort != "auto-farmer").ToArray();
+                if (mine.Length == 0)
+                    continue;
+                double all = mine.Sum(r => (double)r.Dealt.Sum());
+                int top = -1;
+                double topShare = -1;
+                for (int w = 0; w < WeaponIds.Length; w++)
+                {
+                    if (w == own)
+                        continue;
+                    double share = mine.Sum(r => (double)r.Dealt[w]);
+                    if (share > topShare)
+                    {
+                        topShare = share;
+                        top = w;
+                    }
+                }
+                int led = mine.Count(r => Enumerable.Range(0, WeaponIds.Length).All(w => w == own || r.Dealt[own] > r.Dealt[w]));
+                var cells = new List<string>();
+                for (int w = 2; w < WeaponIds.Length; w++)
+                {
+                    RunRead[] holders = mine.Where(r => r.Held[w]).ToArray();
+                    double holdersAll = holders.Sum(r => (double)r.Dealt.Sum());
+                    cells.Add(holders.Length == 0 || w == own ? "-"
+                        : $"{Pct(holders.Sum(r => (double)r.Dealt[own]), holdersAll)} / {Pct(holders.Sum(r => (double)r.Dealt[w]), holdersAll)}");
+                }
+                text.AppendLine($"| {option.Key} | {hero} | {Pct(mine.Sum(r => (double)r.Dealt[own]), all)} | {Short[top]} ({Pct(topShare, all)}) | " +
+                                $"{Pct(led, mine.Length)} | {string.Join(" | ", cells)} |");
+            }
+            text.AppendLine();
+
+            // The failure phase 1 found (section 9.2): a hero that never holds a crowd weapon - the Staff, the Mortar or the
+            // Saw - almost never finishes. Both candidates of phase 2 aim at that share of runs.
+            int[] crowd = { Array.IndexOf(Short, "staff"), Array.IndexOf(Short, "mortar"), Array.IndexOf(Short, "saw") };
+            text.AppendLine("### Runs that held a crowd weapon (the Staff, the Mortar or the Saw) and runs that never did, by cohort");
+            text.AppendLine();
+            text.AppendLine("| Option | Hero | Cohort | Held one | Held one: completed | Never: completed | First held on floor (mean) |");
+            text.AppendLine("|---|---|---|---|---|---|---|");
+            foreach (Option option in options)
+            foreach (string hero in new[] { "Vanguard", "Ilya" })
+            foreach (string cohort in cohorts)
+            {
+                RunRead[] mine = reads.Where(r => r.Option == option.Key && r.Hero == hero && r.Cohort == cohort).ToArray();
+                if (mine.Length == 0)
+                    continue;
+                RunRead[] held = mine.Where(r => crowd.Any(w => r.Held[w])).ToArray();
+                RunRead[] never = mine.Where(r => !crowd.Any(w => r.Held[w])).ToArray();
+                string firstHeld = held.Length == 0 ? "-"
+                    : held.Average(r => crowd.Where(w => r.Held[w]).Min(w => r.FirstFloor[w])).ToString("0.00", CultureInfo.InvariantCulture);
+                text.AppendLine($"| {option.Key} | {hero} | {cohort} | {Pct(held.Length, mine.Length)} | {Pct(held.Count(r => r.Completed), held.Length)} | " +
+                                $"{Pct(never.Count(r => r.Completed), never.Length)} of {never.Length} | {firstHeld} |");
             }
             text.AppendLine();
 

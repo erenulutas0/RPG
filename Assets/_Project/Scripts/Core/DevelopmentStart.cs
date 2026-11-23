@@ -105,7 +105,7 @@ namespace Cryptforge.Core
         }
 
         // docs/63's weapon roster, a research lever: any text in it but "off" has a foundry run's cards draw from the roster -
-        // the hero's own weapon, then the shared weapons (the Daggers, the Magma Mortar, the Forge Bow), every other hero's
+        // the hero's own weapon, then the shared weapons (the Daggers, the Magma Mortar, the Forge Bow, the Cinder Saw), every other hero's
         // own weapon never (CombatSetup, WeaponRoster). Only the Editor and a development build look; nothing without the
         // file, so a release build and the default batch play today's catalogue.
         public const string WeaponRosterFileName = "weapon-roster.txt";

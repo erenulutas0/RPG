@@ -1510,8 +1510,9 @@ namespace Cryptforge.Tests
                 var cards = new WeaponCard[catalogue.Length];
                 for (int i = 0; i < cards.Length; i++)
                     cards[i] = FoundrySword(catalogue[i], levers).CreateCard();
+                // docs/63's crowd-weapon guarantee (FoundryLevers.CrowdWeaponGuarantee, off by default), the scene's same body.
                 _upgrades = new UpgradeService(_run, weapon, Pool(), FoundryChoiceCount, _heroStats, _stamina.Enabled,
-                    _loadout, cards, Tomes());
+                    _loadout, cards, Tomes(), levers.CrowdWeaponGuarantee);
                 _upgrades.OfferChanged += OnOfferChanged;
                 _forge = new ForgeService(_run, _heroHealth);
                 _choices = new RunChoices(_upgrades, _forge);
@@ -3394,7 +3395,8 @@ namespace Cryptforge.Tests
                     weapon.Tick(Step);
                     if (!weapon.IsReady)
                         continue;
-                    Foe target = Acquire(weapon.Range);
+                    // Its Range, or an aura's own circle (WeaponRuntime.TargetReach), as AttackController acquires.
+                    Foe target = Acquire(weapon.TargetReach);
                     // The Daggers' throw or lunge (research 2026-11-11), off at the shipped levers.
                     if (target == null && _levers.ReachesForDaggers && _loadout.At(slot).WeaponId == DaggersId)
                         target = DaggersReach();
@@ -3404,6 +3406,9 @@ namespace Cryptforge.Tests
                     float splashRadius = weapon.SplashRadius;
                     if (_levers.SwordSweepRadius > 0f && WorkAt(slot).Id == SwordId)
                         SwordSweep(target, WorkAt(slot).EvolvedAt >= 0f);
+                    else if (splashRadius > 0f && weapon.Pattern.StrikesRoundWielder)
+                        // docs/63's Cinder Saw: an aura's circle round the hero, as AttackController gathers it.
+                        CollectNear(null, HeroX, HeroY, splashRadius, _nearby);
                     else if (splashRadius > 0f)
                         CollectNear(target, splashRadius, _nearby);
                     _pulse.Clear();

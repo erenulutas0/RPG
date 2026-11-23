@@ -29,7 +29,8 @@ namespace Cryptforge.Core
         // The hero weapons a run's cards can hand over, in card order; every hero's starting weapon must be one of them.
         // Since 2026-11-23 the Relic Forge sells none: every hero starts with its own weapon (docs/63).
         [SerializeField] private WeaponDefinition[] _weapons;
-        // docs/63's shared weapons built behind the weapon roster's lever (the Magma Mortar, the Forge Bow): offered only
+        // docs/63's shared weapons built behind the weapon roster's lever (the Magma Mortar, the Forge Bow, and phase 2's
+        // Cinder Saw, section 13): offered only
         // when development/weapon-roster.txt turns the roster on, after _weapons, every hero's own weapon then kept to that
         // hero (WeaponRoster). Off - every release build and the default batch - a run's cards are _weapons' alone.
         [SerializeField] private WeaponDefinition[] _rosterWeapons;
@@ -254,9 +255,12 @@ namespace Cryptforge.Core
                 for (int i = 0; i < tomes.Length; i++)
                     tomes[i] = _economy.TomeAt(i).CreateOption();
             }
+            // docs/63 section 13's crowd-weapon guarantee goes with the roster's development file: while the hero holds no
+            // crowd weapon and a slot is free, its new-weapon cards are crowd weapons (UpgradeService, the simulation's body).
             Upgrades = new UpgradeService(Run, Weapon, options,
                 categories ? _economy.CategoryChoiceCount : _economy.UpgradeChoiceCount, HeroStats,
-                movement != null ? movement.Stamina.Enabled : HeroStamina.CurrentRulesEnabled, loadout, weaponCards, tomes);
+                movement != null ? movement.Stamina.Enabled : HeroStamina.CurrentRulesEnabled, loadout, weaponCards, tomes,
+                categories && DevelopmentStart.WeaponRoster());
             // A weapon taken from an offer joins the hero's attack after the ones it already carries.
             Upgrades.WeaponAcquired += (card, runtime) =>
             {

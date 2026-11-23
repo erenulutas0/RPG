@@ -13,9 +13,11 @@ namespace Cryptforge.Progression
     // catalogue is the same list, in the same order, in both. Off - the shipped game - neither calls it.
     public static class WeaponRoster
     {
-        // The two shared weapons docs/63 section 7 built behind the lever (docs/40 section 5.2).
+        // The two shared weapons docs/63 section 7 built behind the lever (docs/40 section 5.2), and the third, phase 2's
+        // second crowd weapon (docs/63 section 13): an aura of saws round the hero.
         public const string MagmaMortarId = "weapon_magma_mortar";
         public const string ForgeBowId = "weapon_forge_bow";
+        public const string CinderSawId = "weapon_cinder_saw";
 
         // Whether a run that starts with ownWeaponId may be handed weaponId by a card: its own weapon (for its levels and
         // its evolution), or any weapon that is no hero's signature. signatureIds are the roster heroes' starting weapons.

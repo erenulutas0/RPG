@@ -28,6 +28,9 @@ root = sys.argv[1] if len(sys.argv) > 1 else os.path.dirname(os.path.abspath(__f
 runs = {}
 tier_options = set()
 myrr_options = set()
+# docs/63 phase 2 (2026-11-23): every option weapon-roster.csv holds gets its row, the candidates' explored numbers
+# ("p2-c2~saw=5/0.2/2.5") included.
+roster_options = set()
 for name in ('gloam-enemies.csv', 'hero-skills-rule.csv', 'difficulty-tiers.csv', 'weapon-roster.csv', 'myrr-round.csv'):
     for path in glob.glob(os.path.join(root, '*', name)):
         with open(path, newline='') as f:
@@ -39,6 +42,8 @@ for name in ('gloam-enemies.csv', 'hero-skills-rule.csv', 'difficulty-tiers.csv'
                     tier_options.add(r['option'])
                 if name == 'myrr-round.csv' and r['option'] not in ('shipped', 'aa-f3'):
                     myrr_options.add(r['option'])
+                if name == 'weapon-roster.csv' and r['option'] != 'shipped':
+                    roster_options.add(r['option'])
 # docs/57 section 15 (SkillsCampaignResearch): each campaign run as the option, and beside it its shadow - the same seed,
 # gear and tier with skill 1 alone (a run that carries skill 1 alone is its own) - as `<option>-shadow`.
 for path in glob.glob(os.path.join(root, '*', 'skills-campaign.csv')):
@@ -95,12 +100,17 @@ COMPARISONS = [
     ('docs/63: candidate, the sweep and the Mortar at 3.0 every 1.5 s (c-sweep-m15)', 'c-sweep-m15', False),
     # docs/57 section 15: the skills as built over a profile's campaign, against the same runs with skill 1 alone.
     ('docs/57 15: the skills live over a campaign (`live`) vs the same runs with skill 1 alone', 'live', False, 'live-shadow'),
+    # docs/63 section 13, phase 2: the lead's two candidates on c-mortar15's Mortar and both together.
+    ('docs/63 phase 2: C2, a second shared crowd weapon, the Cinder Saw (p2-c2)', 'p2-c2', False),
+    ('docs/63 phase 2: C1, the crowd-weapon guarantee (p2-c1)', 'p2-c1', False),
+    ('docs/63 phase 2: C1 and C2 together (p2-c1c2)', 'p2-c1c2', False),
 ]
 COMPARISONS += [(f'Tier candidate `{o}` vs Forged ungeared', o, False)
                 for o in sorted(tier_options) if o not in {c[1] for c in COMPARISONS}]
 # docs/64's Rootmother Myrr (MyrrRoundResearch): every option read against `shipped`, the Forge Warden at floor 3's gate.
 COMPARISONS += [(f'Rootmother Myrr `{o}` vs the Forge Warden (floor 3 gate)', o, False)
                 for o in sorted(myrr_options) if o not in {c[1] for c in COMPARISONS}]
+COMPARISONS += [(f'docs/63: `{o}`', o, False) for o in sorted(roster_options) if o not in {c[1] for c in COMPARISONS}]
 # first-card is read from now on (docs/56, the lead's decisions of 2026-11-17, point 2).
 COHORTS = ['clumsy', 'careful', 'first-card', 'standing']
 HEROES = ['Vanguard', 'Ilya']

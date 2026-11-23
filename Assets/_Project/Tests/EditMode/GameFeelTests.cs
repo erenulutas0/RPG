@@ -17,6 +17,12 @@ namespace Cryptforge.Tests
             Assert.That(GameFeel.CueFor(WeaponBehavior.Cleave), Is.EqualTo(SlotCue.Flourish), "the Sword");
             Assert.That(GameFeel.CueFor(WeaponBehavior.Area), Is.EqualTo(SlotCue.Pulse), "the Staff");
             Assert.That(GameFeel.CueFor(WeaponBehavior.DirectHit), Is.EqualTo(SlotCue.Flick), "the Daggers");
+            // docs/63 phase 2's Cinder Saw, an aura: the Staff's glow when it is picked up, and no cue on each of its five
+            // strikes a second - its blade circling the hero is its look.
+            Assert.That(GameFeel.CueFor(WeaponBehavior.Aura), Is.EqualTo(SlotCue.Pulse), "the Cinder Saw");
+            Assert.That(GameFeel.CuesEachStrike(WeaponBehavior.Aura), Is.False);
+            foreach (WeaponBehavior behavior in new[] { WeaponBehavior.Cleave, WeaponBehavior.Area, WeaponBehavior.DirectHit })
+                Assert.That(GameFeel.CuesEachStrike(behavior), Is.True, behavior.ToString());
         }
 
         [Test]

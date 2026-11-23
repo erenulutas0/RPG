@@ -370,7 +370,8 @@ namespace Cryptforge.UI
         // The first weapon's strike is the body's swing: only the weapons after it cue.
         private void OnStruckWith(Health target, WeaponRuntime weapon)
         {
-            if (weapon == null || ReferenceEquals(weapon, _attack.Weapon) || !isActiveAndEnabled)
+            if (weapon == null || ReferenceEquals(weapon, _attack.Weapon) || !isActiveAndEnabled ||
+                !GameFeel.CuesEachStrike(weapon.Pattern.Behavior))
                 return;
             Play(GameFeel.CueFor(weapon.Pattern.Behavior), target, weapon.Interval);
         }

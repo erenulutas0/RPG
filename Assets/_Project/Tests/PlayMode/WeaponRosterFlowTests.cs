@@ -96,8 +96,10 @@ namespace Cryptforge.Tests
         {
             yield return Load(true);
             Assert.That(_setup.HeroWeapon.Id, Is.EqualTo("weapon_sword"));
-            Assert.That(Catalogue(), Is.EqualTo(new[] { "weapon_sword", "weapon_daggers", WeaponRoster.MagmaMortarId, WeaponRoster.ForgeBowId }),
-                "Its own Sword, then the shared weapons; never Ilya's Staff.");
+            Assert.That(Catalogue(), Is.EqualTo(new[]
+                {
+                    "weapon_sword", "weapon_daggers", WeaponRoster.MagmaMortarId, WeaponRoster.ForgeBowId, WeaponRoster.CinderSawId
+                }), "Its own Sword, then the shared weapons; never Ilya's Staff.");
             Assert.That(_setup.RosterSignatures(), Is.EqualTo(DescentSimulation.RosterSignatures), "The simulation's signatures.");
             Assert.That(Catalogue(), Is.EqualTo(DescentSimulation.RosterCatalogue("weapon_sword").Select(w => w.Id).ToArray()),
                 "The simulation's roster catalogue, in its order.");
@@ -109,7 +111,10 @@ namespace Cryptforge.Tests
         {
             yield return Load(true, arcanist: true);
             Assert.That(_setup.HeroWeapon.Id, Is.EqualTo("weapon_staff"));
-            Assert.That(Catalogue(), Is.EqualTo(new[] { "weapon_staff", "weapon_daggers", WeaponRoster.MagmaMortarId, WeaponRoster.ForgeBowId }));
+            Assert.That(Catalogue(), Is.EqualTo(new[]
+            {
+                "weapon_staff", "weapon_daggers", WeaponRoster.MagmaMortarId, WeaponRoster.ForgeBowId, WeaponRoster.CinderSawId
+            }));
             Assert.That(Catalogue(), Is.EqualTo(DescentSimulation.RosterCatalogue("weapon_staff").Select(w => w.Id).ToArray()));
             LogAssert.NoUnexpectedReceived();
         }
@@ -134,9 +139,10 @@ namespace Cryptforge.Tests
             var loadout = new WeaponLoadout(seed);
             loadout.TryAdd(sword.Id, primary);
             WeaponCard[] cards = DescentSimulation.RosterCatalogue(sword.Id).Select(w => w.CreateCard()).ToArray();
+            // The crowd-weapon guarantee as the scene's roster sets it (docs/63 section 13).
             var simulated = new UpgradeService(run, primary, DescentSimulation.Pool(), DescentSimulation.FoundryChoiceCount,
                 new HeroStats(100f, 2.5f, HeroStamina.DefaultBar), HeroStamina.CurrentRulesEnabled, loadout, cards,
-                DescentSimulation.Tomes());
+                DescentSimulation.Tomes(), _setup.Upgrades.GuaranteesCrowdWeapon);
             run.GrantBonusUpgrade();
             UpgradeOffer expected = simulated.CurrentOffer;
             Assert.That(scene.Choices.Select(c => c.Id).ToArray(), Is.EqualTo(expected.Choices.Select(c => c.Id).ToArray()));
@@ -241,6 +247,104 @@ namespace Cryptforge.Tests
             Assert.That(bowStrikes, Is.GreaterThan(0), "The Bow struck.");
             Assert.That(mortar.AttacksMade, Is.GreaterThan(0));
             Assert.That(bow.AttacksMade, Is.GreaterThan(0));
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // docs/63 section 13's Cinder Saw in the scene: taken from an offer, it joins the hero's attack as an aura - every
+        // strike's target within its circle round the hero (TargetReach, not the Range a target-centred weapon reaches with),
+        // every enemy standing inside that circle at the strike taking the full blow, none outside it - and its blade circles
+        // the hero (CombatEffectsView) just inside the circle while it is held.
+        [UnityTest, Timeout(180000)]
+        public IEnumerator ThePickedUpSawStrikesRoundTheHeroAndItsBladeCircles()
+        {
+            yield return Load(true, seed: 5150);
+            _setup.HeroStats.AddModifier(UpgradeStat.MaxHealth, new StatModifier(ModifierOperation.Flat, 1000000f));
+            _attack.GetComponent<Health>().Heal(1000000f);
+            UpgradeService upgrades = _setup.Upgrades;
+            var effects = Object.FindFirstObjectByType<CombatEffectsView>();
+            Assert.That(effects.SawCircling, Is.False, "No blade before the Saw is held.");
+            for (int i = 0; i < 120 && !upgrades.Loadout.Owns(WeaponRoster.CinderSawId); i++)
+            {
+                if (upgrades.CurrentOffer == null)
+                    _setup.Run.GrantBonusUpgrade();
+                Answer(offer =>
+                {
+                    int take = SlotOf(offer, c => c.Category == OfferCategory.NewWeapon && c.Id == WeaponRoster.CinderSawId);
+                    if (take >= 0)
+                        return take;
+                    take = SlotOf(offer, c => c.Category != OfferCategory.NewWeapon);
+                    return take >= 0 ? take : 0;
+                });
+            }
+            Assert.That(upgrades.Loadout.Owns(WeaponRoster.CinderSawId), Is.True, "Offered and taken within 120 offers.");
+            WeaponRuntime saw = upgrades.Loadout.At(upgrades.Loadout.IndexOf(WeaponRoster.CinderSawId)).Runtime;
+            Assert.That((saw.Pattern.Behavior, saw.TargetReach, saw.Interval), Is.EqualTo((WeaponBehavior.Aura, 2f, .2f)));
+            float FloorDistance(Vector3 at) =>
+                Mathf.Sqrt(ArenaFloor.DistanceSquared(at.x - _attack.transform.position.x, at.y - _attack.transform.position.y));
+            int strikes = 0;
+            int circling = 0;
+            System.Action<Health, WeaponRuntime> count = (target, weapon) =>
+            {
+                if (weapon != saw)
+                    return;
+                strikes++;
+                Assert.That(FloorDistance(target.transform.position), Is.LessThanOrEqualTo(saw.TargetReach + 1e-3f),
+                    "Its target inside its circle.");
+            };
+            _attack.StruckWith += count;
+            try
+            {
+                for (int frame = 0; frame < 60 * 60 && strikes < 10; frame++)
+                {
+                    yield return null;
+                    if (_setup.Choices.IsOpen)
+                        _setup.Choices.TrySelect(_setup.Choices.Current, 0);
+                    if (effects.SawCircling)
+                    {
+                        // The blade stands SawLift above the floor point it circles through.
+                        float outward = FloorDistance(effects.SawPosition - Vector3.up * .18f);
+                        Assert.That(outward, Is.InRange(saw.SplashRadius * .8f, saw.SplashRadius * .9f), "The blade just inside the circle.");
+                        circling++;
+                    }
+                }
+            }
+            finally
+            {
+                _attack.StruckWith -= count;
+            }
+            Assert.That(strikes, Is.GreaterThanOrEqualTo(10), "The Saw struck again and again.");
+            Assert.That(circling, Is.GreaterThan(0), "Its blade circled the hero while it was held.");
+            Assert.That(saw.AttacksMade, Is.GreaterThanOrEqualTo(10));
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // docs/63 section 13's C1 in the scene, behind the roster's file: while the Vanguard holds no crowd weapon, every
+        // new-weapon card it is shown is the Mortar or the Saw; Ilya, whose Staff holds a crowd, is shown every shared weapon.
+        [UnityTest, Timeout(120000)]
+        public IEnumerator TheRostersGuaranteeShowsTheVanguardOnlyCrowdWeaponsFirst()
+        {
+            yield return Load(true, seed: 7311);
+            _attack.enabled = false;
+            Object.FindFirstObjectByType<EncounterController>().enabled = false;
+            UpgradeService upgrades = _setup.Upgrades;
+            Assert.That(upgrades.GuaranteesCrowdWeapon, Is.True, "The roster's file turns the guarantee on.");
+            int shown = 0;
+            for (int i = 0; i < 40 && upgrades.Loadout.Count == 1; i++)
+            {
+                if (upgrades.CurrentOffer == null)
+                    _setup.Run.GrantBonusUpgrade();
+                UpgradeOffer offer = upgrades.CurrentOffer;
+                foreach (UpgradeOption card in offer.Choices)
+                    if (card.Category == OfferCategory.NewWeapon)
+                    {
+                        Assert.That(card.Id == WeaponRoster.MagmaMortarId || card.Id == WeaponRoster.CinderSawId, Is.True,
+                            $"offer {offer.Index}: {card.Id} before a crowd weapon is held");
+                        shown++;
+                    }
+                // Never a new weapon while another card is shown, so the guarantee stays in force (the loop ends if one is taken).
+                Answer(o => System.Math.Max(0, SlotOf(o, c => c.Category != OfferCategory.NewWeapon)));
+            }
+            Assert.That(shown, Is.GreaterThan(0), "New weapons were shown, each a crowd weapon.");
             LogAssert.NoUnexpectedReceived();
         }
 

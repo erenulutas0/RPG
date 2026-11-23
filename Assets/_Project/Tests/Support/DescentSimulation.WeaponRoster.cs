@@ -17,8 +17,8 @@ namespace Cryptforge.Tests
         public static readonly string[] RosterSignatures = { SwordId, StaffId };
 
         // Every hero weapon in the scene's order: CombatSetup._weapons (Sword, Staff, Daggers), then _rosterWeapons
-        // (Magma Mortar, Forge Bow).
-        public static HeroWeapon[] RosterWeapons() => new[] { Sword(), Staff(), Daggers(), MagmaMortar(), ForgeBow() };
+        // (Magma Mortar, Forge Bow, and phase 2's Cinder Saw, docs/63 section 13).
+        public static HeroWeapon[] RosterWeapons() => new[] { Sword(), Staff(), Daggers(), MagmaMortar(), ForgeBow(), CinderSaw() };
 
         // The weapons a run that starts with ownWeaponId draws its cards from under the roster: WeaponRoster's body over
         // RosterWeapons and RosterSignatures, in their order - the scene's CombatSetup calls the same body. The research may
@@ -46,6 +46,10 @@ namespace Cryptforge.Tests
             // of RosterSignatures (none: every weapon for every hero). Null, the roster's own.
             public HeroWeapon[] RosterPool;
             public string[] RosterSignatureIds;
+            // docs/63 section 13's C1: UpgradeService's crowd-weapon guarantee - while the hero holds no crowd weapon (an
+            // Area or an Aura) and a slot is free, every new-weapon card is a crowd weapon while the catalogue holds one.
+            // Off by default; the scene turns it on with the roster's development file.
+            public bool CrowdWeaponGuarantee;
         }
 
         // The weapons a run's cards draw from: the roster's when the lever is on, the shipped catalogue otherwise.

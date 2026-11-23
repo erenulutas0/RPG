@@ -3,6 +3,7 @@ using Cryptforge.Art;
 using Cryptforge.Combat;
 using Cryptforge.Content;
 using Cryptforge.Core;
+using Cryptforge.Progression;
 using UnityEngine;
 
 namespace Cryptforge.UI
@@ -297,6 +298,8 @@ namespace Cryptforge.UI
         // docs/63's shared weapons: the Forge Bow's tracer and the Magma Mortar's falling shell (EffectArt.TracerFrames),
         // pinned at their heads and stretched along the shot.
         private Sprite[] _tracer;
+        // docs/63 phase 2's Cinder Saw: its spinning blade (EffectArt.SawFrames), circling the hero in its own slot.
+        private Sprite[] _saw;
         // The scene's setup, for the id of the weapon behind a strike (WeaponIdOf); null in a scene without one.
         private CombatSetup _setup;
         private Sprite[] _smoke;
@@ -409,13 +412,31 @@ namespace Cryptforge.UI
             get
             {
                 int shown = 0;
-                for (int i = AshStart; _effects != null && i < _effects.Length; i++)
+                for (int i = AshStart; _effects != null && i < AshStart + AshSlots; i++)
                     if (_effects[i].Active)
                         shown++;
                 return shown;
             }
         }
         private int AshStart => _effectPoolSize + PuffSlots + BurstSlots + FallSlots + DeathSlots;
+        // docs/63 phase 2's Cinder Saw: one slot of its own after the motes', for the blade circling the hero while the Saw is
+        // held (TickSaw), so the foundry's depth test sees it as it sees every other effect standing on the floor.
+        private const int SawSlots = 1;
+        private int SawSlot => AshStart + AshSlots;
+        // The saw's blade over the floor, its turn round the hero (a full circle every SawOrbitSeconds) and how far out it
+        // circles as a share of the aura's radius, so it runs just inside the circle that strikes.
+        private const float SawOrbitSeconds = .7f;
+        private const float SawOrbitShare = .85f;
+        private const float SawLift = .18f;
+        private const float SawFrameDuration = .04f;
+        // A faint ember ring at the aura's edge round the hero, once every this many of its strikes (once a second at its
+        // base 0.2 s): the circle shown without a ring on every strike.
+        private const int SawRingEvery = 5;
+        private static readonly Color SawRingTint = new Color(1f, .52f, .18f, .55f);
+        // Whether the saw is circling, and where in its turn it is (radians).
+        internal bool SawCircling => _effects != null && _effects[SawSlot].Active;
+        internal Vector3 SawPosition => _effects != null ? _effects[SawSlot].Transform.position : Vector3.zero;
+        private float _sawTurn;
 
         // Pool slots, and the effect on show above the floor in one with the world height of the floor it stands on, for
         // presentation that depth-tests effects against scenery (FoundryVisibilityView). Floor pulses and numbers are
@@ -582,6 +603,7 @@ namespace Cryptforge.UI
             _spark = UsesPaintedStrikes ? _paintedArt.Spark : Build(EffectArt.SparkFrames(), "VFX Spark", PixelSpriteFactory.Centre);
             _tracer = Build(EffectArt.TracerFrames(), "VFX Tracer",
                 new Vector2((EffectArt.TracerLength - 1.5f) / EffectArt.TracerLength, .5f));
+            _saw = Build(EffectArt.SawFrames(), "VFX Cinder Saw", PixelSpriteFactory.Centre);
             // Imported references are borrowed; only generated sprites enter the destruction list.
             BuildFeedbackSprites();
 
@@ -697,7 +719,7 @@ namespace Cryptforge.UI
             _poolRoot = new GameObject("Combat Effects");
             _poolRoot.transform.SetParent(transform, false);
 
-            _effects = new Effect[_effectPoolSize + PuffSlots + BurstSlots + FallSlots + DeathSlots + AshSlots];
+            _effects = new Effect[_effectPoolSize + PuffSlots + BurstSlots + FallSlots + DeathSlots + AshSlots + SawSlots];
             for (int i = 0; i < _effects.Length; i++)
             {
                 SpriteRenderer renderer = CreateRenderer($"Effect {i}", _poolRoot.transform, _sortingOrder);
@@ -1054,6 +1076,22 @@ namespace Cryptforge.UI
                         StandOn(Show(_star, _starFrameDuration, anchor, _sortingOrder + StarOrder), ground);
                     break;
                 }
+                case StrikeEffect.SawBite:
+                {
+                    // docs/63 phase 2's Cinder Saw: its blade circles the hero (TickSaw) and every struck enemy sparks as any
+                    // hit does, so a strike draws nothing at its target; once every SawRingEvery strikes a faint ember ring
+                    // marks the aura's edge round the hero, at the radius it strikes (RingScale, the Area it carries).
+                    if (weapon.AttacksMade % SawRingEvery != 0)
+                        break;
+                    float sawRadius = RingScale(weapon) * EffectArt.RingFullRadius / PixelSpriteFactory.PixelsPerUnit;
+                    Effect edge = ShowMoving(_ring, StaffPulseDuration, StaffPulseDuration, _hero.transform.position, _groundOrder,
+                        Vector3.zero, 0, false, sawRadius * (24f / 38));
+                    edge.StaffPulse = true;
+                    edge.PulseRadius = sawRadius;
+                    edge.Tint = SawRingTint;
+                    edge.Renderer.color = SawRingTint;
+                    break;
+                }
                 default:
                     Effect cuts = StandOn(Show(_doubleSlash, _doubleSlashFrameDuration, anchor, _sortingOrder + StrikeOrder),
                         ground);
@@ -1394,8 +1432,49 @@ namespace Cryptforge.UI
                 Tick(Time.deltaTime);
         }
 
+        // docs/63 phase 2's Cinder Saw: while the hero's loadout holds it, one blade circles the hero just inside the aura's
+        // radius (the runtime's, Area included), spinning, standing on the floor under it for the depth test; gone the
+        // frame the Saw is not held or the hero has fallen. Nothing here is read by the fight.
+        private void TickSaw(float deltaTime)
+        {
+            Effect saw = _effects[SawSlot];
+            WeaponRuntime held = HeldSaw();
+            if (held == null || !_hero.IsAlive)
+            {
+                if (saw.Active)
+                    Hide(saw);
+                return;
+            }
+            if (!saw.Active)
+            {
+                Arm(saw, _saw, SawFrameDuration, float.MaxValue, _hero.transform.position, _sortingOrder + StrikeOrder,
+                    Vector3.zero, 0f, true, 1f);
+                saw.AboveFloor = true;
+            }
+            _sawTurn = (_sawTurn + deltaTime * (2f * Mathf.PI / SawOrbitSeconds)) % (2f * Mathf.PI);
+            float radius = held.SplashRadius * SawOrbitShare;
+            Vector3 at = _hero.transform.position +
+                         new Vector3(Mathf.Cos(_sawTurn) * radius, ArenaFloor.WorldY(Mathf.Sin(_sawTurn) * radius), 0f);
+            saw.Ground = at;
+            saw.Origin = at + Vector3.up * SawLift;
+            saw.Transform.position = saw.Origin;
+        }
+
+        // The Cinder Saw's runtime in the hero's loadout, or null: at most three slots to look at, no allocation.
+        private WeaponRuntime HeldSaw()
+        {
+            WeaponLoadout loadout = _setup != null && _setup.Upgrades != null ? _setup.Upgrades.Loadout : null;
+            if (loadout == null)
+                return null;
+            for (int i = 0; i < loadout.Count; i++)
+                if (loadout.At(i).WeaponId == WeaponRoster.CinderSawId)
+                    return loadout.At(i).Runtime;
+            return null;
+        }
+
         private void Tick(float deltaTime)
         {
+            TickSaw(deltaTime);
             for (int i = 0; i < _effects.Length; i++)
             {
                 Effect effect = _effects[i];

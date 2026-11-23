@@ -5,7 +5,9 @@ weapon rack removed (section 5) and Ilya's unlock rule (section 6). Built **behi
 default** (`FoundryLevers.WeaponRoster` in the simulation, `development/weapon-roster.txt` in the scene): the roster of
 sections 2-3 and the two shared weapons of section 7. With the lever off, everything a player meets is today's game and
 the default batch is byte-identical. Section 9 holds the measurement on the exploration seeds 1-2000 (docs/56 rule 1);
-section 10 why no candidate is ready for a confirmation read, and the next round's two.
+section 10 why no candidate is ready for a confirmation read, and the next round's two. **Phase 2 (section 13,
+2026-11-23)** built both - the Cinder Saw, an aura round the hero, and the crowd-weapon guarantee - and measured them:
+neither passes both docs/56's bar and Ilya's guard, no block was spent, and section 13.6 proposes the next candidate.
 
 **The owner's request (2026-11-22, translated from Turkish):** "Like Megabonk: weapons distributed to characters, each
 character with its own weapon; characters pick 3 weapons as they level up, and once they have 3, only those 3 appear as
@@ -22,8 +24,8 @@ fixed** (docs/40 section 5.1): no slot meta-progression.
   Conduit, the Sanguine's Sanguine Sickle (docs/40 section 4, docs/44 section 2). The rule is one line of pure code: a
   weapon is a signature exactly when it is a roster hero's starting weapon (`WeaponRoster`).
 - **A shared pool** every hero draws from: today the Daggers (until the Riftblade ships, section 3.3), and from docs/40
-  section 5.2 the **Magma Mortar** and the **Forge Bow**, built behind the lever (section 7). Later: Cinder Saw, Gravity
-  Anvil, Ember Mines (section 3.4).
+  section 5.2 the **Magma Mortar** and the **Forge Bow**, built behind the lever (section 7), and the **Cinder Saw**
+  (phase 2, section 13). Later: Gravity Anvil, Ember Mines (section 3.4).
 - **Three slots, fixed, and the full-slot rule:** slot 1 is the signature weapon, slots 2-3 are picked from the shared
   pool as the hero levels; once three are held, no level-up, bonus offer or chest offers a new weapon - only levels of
   the three, beside the tomes and the general cards. It was already the code's rule; its tests could not see it (section
@@ -38,6 +40,12 @@ fixed** (docs/40 section 5.1): no slot meta-progression.
   finish. Stronger Mortar numbers, an area-first pilot and a Sword sweep each close part of the gap, none enough. No
   candidate is ready for a confirmation read; section 10 proposes the next round's two (a crowd weapon guaranteed, or a
   second shared crowd weapon).
+- **Phase 2 (section 13): both built, neither enough alone.** The Cinder Saw (C2) at docs/40's numbers fails the bar
+  (careful -8, first-card -7 points); the guarantee (C1) passes it as an easing but only with c-mortar15's Mortar, which
+  out-deals Ilya's own Staff where it is held (51 % against 35 %). One Mortar cannot carry the Vanguard and leave Ilya's
+  Staff first; the Saw's circle round the hero can, since it serves the hero who stands in the crowd. The next candidate
+  (13.6): the guarantee, the Mortar as built, the Saw striking 8 within 2.0 - on the exploration seeds it passes the bar
+  (careful -0.15, CI -0.90 to +0.60; the clumsy cohort eased by 14 points) and keeps Ilya's Staff first. No block spent.
 
 ## 1. Where the weapons stood on 2026-11-22
 
@@ -95,7 +103,7 @@ own        = the weapon the run starts with (HeroWeapon: the hero's own, or deve
 | **Daggers** | shipped; leaves with the Riftblade | DirectHit, reach 1.8, crit every 3rd x2, x2 on elites | 7 / 0.3 s | +1 damage, +5 pp crit, +8 % attack speed | Rift Echo with Precision (crits splinter) | the double slash and the crit star |
 | **Magma Mortar** | **built, lever** | Area: lobbed at reach 4.0; the target and every enemy within 2.5 of it take the full blast (fraction 1.0) | 34 / 1.8 s | +6 damage, +15 % area (blast radius), +8 % attack speed | proposed: Magma Pool with Force (a burning pool where it lands: SigilZone and BurnRule for any hero) | an ember shell streak dropping onto the target and an ember floor ring at the blast's radius |
 | **Forge Bow** | **built, lever** | DirectHit at reach 5.0, a crit every 4th shot x2; Precision's chance on top | 25 / 1.2 s | +4.5 damage, +7 pp crit, +0.5 reach | proposed: Piercing Volley with Precision (a crit pierces the line behind its target) | a hot tracer from the hero to the target, the hit spark, the crit star |
-| Cinder Saw | later | a saw orbiting the hero: hits all within a short radius every 0.2 s | 5 / 0.2 s | +0.8 damage, +10 % duration, +8 % bleed | - | needs an aura strike (the pulse's circle round the attacker, on every strike) |
+| **Cinder Saw** | **built in phase 2, lever** (section 13) | an aura: every enemy within 2.0 of the hero, the full strike (`WeaponBehavior.Aura`) | 8 / 0.2 s (read as C2 at docs/40's 5) | +0.8 damage, +10 % area, +8 % attack speed | - | a spinning ember blade circling the hero, an ember ring at its circle once a second |
 | Gravity Anvil | later | Area at the target with a knockback | 42 / 2.0 s | +7 damage, +12 % size, +10 % knockback | - | needs a knockback on the pack (PackMotion) |
 | Ember Mines | later | mines laid on the ground that burst when an enemy steps on them | 28 / 1.5 s | +5 damage, +15 % area, +12 % duration | - | the first weapon with objects: pooled, a capped count (docs/42's projectile rule, section 7.3) |
 
@@ -389,3 +397,268 @@ four cohorts, paired against `shipped` on the same code.
 6. **Evolutions** for the new weapons come after the roster's balance is settled.
 7. **The forge's empty band** will show the hero's skills entry (docs/57 section 14). A small follow-up.
 
+## 13. Phase 2 (2026-11-23)
+
+The lead's next round (section 12, answers 1 and 5): build the second shared crowd weapon (C2, the Cinder Saw) and the
+crowd-weapon guarantee (C1), measure C2 alone, C1 alone and both on the exploration seeds 1-2000, and read at most one
+candidate once on a fresh block, only if it passes docs/56's bar there with room. Everything is still behind the roster's
+lever: with it off the game and the default batch are what they were (13.8).
+
+### 13.1 What was built
+
+**The Cinder Saw (C2)** - `Data/Weapons/Weapon_CinderSaw.asset`, id `weapon_cinder_saw`, a shared weapon after the Mortar
+and the Bow in `CombatSetup._rosterWeapons` and the simulation's `RosterWeapons()`.
+
+| | Cinder Saw |
+|---|---|
+| Behaviour | **`WeaponBehavior.Aura`** (appended, number 3): every enemy within its circle round the **hero** takes the strike, at the full damage (fraction 1.0); the circle is also its reach - it strikes whenever an enemy stands inside it, and only then (`WeaponRuntime.TargetReach`) |
+| Base | built and read as C2 at docs/40 section 5.2's 5 every 0.2 s within 2.0 (the circle the enemies' 1.5-1.7 reach stands inside); **8 every 0.2 s within 2.0 since 13.6** (the asset as the next candidate reads it); one base for both engines; no crits |
+| Lines (`Data/Upgrades/WeaponLines`) | `line_cinder_saw_damage` +0.8 flat (docs/40's common); `line_cinder_saw_area` +10 % (its circle: docs/40's "+10 % duration" has no stat here, and an aura's size is its circle); `line_cinder_saw_attack_speed` +8 %. Rare, epic, gold x1.25 / x1.5 / x2 |
+| Shares | 1 on the gate boss and the elites |
+| Evolution | none yet |
+| Look (`CombatEffectsView`) | one blade (`EffectArt.SawFrames`: a 15-texel toothed ember disc, three frames a third of a tooth apart, played in a loop) circles the hero at 0.85 of the circle's radius once every 0.7 s while the loadout holds the Saw, in a slot of its own after the motes' (`SawSlots`, so the foundry's depth test sees it); every fifth strike (once a second) a faint ember ring at the circle's edge round the hero (the Staff's ring sprite, `StrikeEffect.SawBite`). No effect at a target per strike: the hits spark and number as every hit does. No cue on the hero per strike (`GameFeel.CuesEachStrike`); the Staff's glow when it is picked up |
+| Icon (`build_upgrade_icons.py`) | a round iron blade with ten hooked ember teeth, three molten vents, a gold hub; its lines the blade small with the stat's mark; a socket icon. Appended: the 42 existing sprites keep their ids and pixels (checked against the committed sheet), the socket strip moves into the last row's free cells, the sheet stays 1020x1020 (ASTC 0.99 MiB) |
+| Strings (docs/60) | "Cinder Saw" / "Kor Testeresi" (working name); "{0:0} damage every {1:0.0#}s to every enemy close around the hero" / "Her {1:0.0#} sn'de kahramanın yakın çevresindeki her düşmana {0:0} hasar"; the lines as the Mortar's |
+
+The aura in code, one body for the scene and the simulation:
+
+```text
+AttackPattern.StrikesRoundWielder = Behavior == Aura            // the splash circle is drawn round the attacker
+AttackPattern.HoldsACrowd         = Behavior == Area or Aura    // C1 reads it
+WeaponRuntime.TargetReach  [NoInlining] = StrikesRoundWielder ? SplashRadius (x Area) : Range
+AttackController.Fire:   Acquire(TargetReach); CollectNear(StrikesRoundWielder ? owner : target, SplashRadius)
+FoundryRun.HeroAttacks:  Acquire(TargetReach); CollectNear(hero, SplashRadius) for an aura
+DescentSimulation.StrikeInSlotOrder (the hall's engine): WithinReachOfHero for an aura
+```
+
+`TryAttack` is unchanged: the target is struck as the strike's own, and the circle's list (which holds the target too) is
+struck at the fraction, the target skipped. For every other weapon `TargetReach` returns `Range`'s value and the circle is
+gathered as before. No projectile, no object the fight follows (docs/42 section 4): the blade is a drawing.
+
+**The crowd-weapon guarantee (C1)** - `UpgradeService(..., guaranteesCrowdWeapon)`, the one offer body the scene's
+`CombatSetup` and the simulation's `FoundryRun` build: while the hero holds no weapon that holds a crowd (an Area or an
+Aura: the Staff, the Mortar, the Saw; the Sword's cleave is not one) and a slot is free, a new-weapon card is only ever a
+crowd weapon, as long as the catalogue holds one the hero does not carry. The kinds of pick and their weights are
+untouched - the new-weapon kind is open exactly when it was - so only which weapon its card shows narrows; a hero that
+starts with a crowd weapon (Ilya) and a catalogue with none draw word for word what they drew without it. A card's crowd
+is read off a runtime it makes the first time it is asked (`WeaponCard.HoldsACrowd`), so a run without the guarantee never
+makes one. The simulation's lever is `FoundryLevers.CrowdWeaponGuarantee`; the scene turns it on with the roster's
+development file (`development/weapon-roster.txt`), and a release build never reads that file.
+
+### 13.2 The candidates and their reasons (written in `WeaponRosterResearch` before each read)
+
+The roster failed because the Vanguard's runs that never hold the Mortar - 43 % of them - finish 2 %: its Sword, the
+Daggers and the Bow hold no crowd, and the Staff that held it today is Ilya's alone (section 9). Both candidates sit on
+c-mortar15's Mortar (blast 3.0 every 1.5 s), as section 12 asked.
+
+- **`p2-c2` (C2)**: the failure removed by the pool's shape - a second shared crowd weapon, the Cinder Saw at docs/40's
+  numbers, so two of the Vanguard's four shared choices hold a crowd and a run that passes one is still likely to take
+  the other.
+- **`p2-c1` (C1)**: the failure removed by a rule - the guarantee, so the first new weapon the Vanguard takes holds a
+  crowd. Ilya's Staff already does, so the rule never touches her offers. The pool is phase 1's five.
+- **`p2-c1c2`**: both - the guarantee picks between two crowd weapons.
+- **Ilya's guard** (section 10.3, the lead's condition for this round): her own Staff must stay her main damage, read
+  overall and, as section 9.3 read the Mortar's 51 %, in the runs that hold each shared weapon. Written before the
+  1-2000 read: **the Staff is her main damage when, in the runs that hold each shared weapon, it deals more than that
+  weapon, and it deals the most of her weapons in most of her runs** ("led" below; shipped 100 %, phase 1's roster 75 %).
+  A candidate that passes docs/56's bar and fails this guard does not go to a confirmation block.
+
+### 13.3 The exploration probes (seeds 1-200)
+
+Short reads to set numbers before the 1-2000 read; seeds 1-200 move a cohort's change by about 2.5 points either way.
+Change in completion points against `shipped`; Ilya's columns are her Staff's share against the named weapon's in the
+runs that hold it, and the runs the Staff led.
+
+| Option | careful | first-card | clumsy | Ilya: Staff / Mortar | Ilya: Staff / Saw | Staff led |
+|---|---|---|---|---|---|---|
+| phase 1 `roster` | -18.50 | -22.25 | -9.75 | 46.1 / 38.7 | - | 74.5 % |
+| `p2-c2` (Saw 5 / 0.2 s / 2.0) | -7.50 | -9.25 | +2.50 | 31.8 / 53.4 | 48.3 / 22.4 | 54.5 % |
+| `p2-c2`, Saw within 2.5 | -4.00 | -4.50 | +9.25 | 29.4 / 51.5 | 36.9 / 37.0 | 37.0 % |
+| `p2-c2`, Saw 6 a strike | -6.50 | -7.50 | +6.25 | 31.3 / 53.2 | 46.4 / 24.9 | 53.3 % |
+| `p2-c1` | +1.25 | +4.25 | +15.00 | 35.1 / 50.7 | - | 43.8 % |
+| `p2-c1`, the Mortar's damage 30 (section 10.3) | +1.00 | +3.25 | +13.00 | 37.4 / 49.1 | - | 47.3 % |
+| `p2-c1`, the Mortar 3.0 every 1.8 s | -2.00 | +1.50 | +5.50 | 41.1 / 45.0 | - | 55.5 % |
+| `p2-c1`, the Mortar at phase 1's 2.5 every 1.8 s | -6.00 | -7.75 | -3.25 | 47.3 / 38.3 | - | 75.0 % |
+| `p2-c1c2` | +0.25 | -0.50 | +12.00 | 31.8 / 53.4 | 48.3 / 22.4 | 54.5 % |
+| `p2-c1c2`, the Mortar at phase 1's | -3.00 | -7.00 | +3.00 | 43.4 / 40.4 | 52.4 / 24.2 | 77.0 % |
+| `p2-c1c2`, phase 1's Mortar, the Saw within 2.5 | -1.00 | -1.00 | +13.25 | 39.9 / 38.8 | 39.9 / 39.1 | 56.7 % |
+| `p2-c1c2`, the Mortar's damage 30, the Saw within 2.25 | -0.25 | +3.50 | +18.25 | 31.9 / 51.2 | 43.3 / 29.3 | 50.0 % |
+| `p2-c1c2`, phase 1's Mortar, the Saw 7 a strike within 2.25 | +0.00 | +0.00 | +16.75 | 40.4 / 39.2 | 41.3 / 36.9 | 59.8 % |
+| `p2-c1c2`, phase 1's Mortar, the Saw 8 a strike within 2.0 | -0.75 | -2.25 | +11.25 | 41.9 / 39.7 | 47.0 / 30.4 | 69.8 % |
+| `p2-c1c2`, phase 1's Mortar, the Saw 10 a strike within 2.0 | +0.00 | -0.25 | +19.00 | 41.0 / 39.4 | 43.7 / 34.3 | 61.5 % |
+
+(Ilya's columns pool her careful, standing, first-card and clumsy runs in the first probe's rows - phase 1's, `p2-c2`
+and its two Saws, `p2-c1`, `p2-c1c2` - and her careful, first-card and clumsy runs in the others.)
+
+What they say:
+
+- **One Mortar cannot serve both heroes.** Strong enough to carry the Vanguard (c-mortar15, even at damage 30 or a
+  3.0 blast every 1.8 s), it out-deals Ilya's Staff in the runs that hold it; weak enough to leave her Staff first (phase
+  1's numbers), it leaves the Vanguard 6-8 points short even when the guarantee hands it over first. A lob at reach 4
+  onto a crowd is Ilya's own game played better, so it competes with her Staff directly.
+- **The Saw's circle round the hero splits the heroes.** At 2.0 it barely touches Ilya's Staff (48 / 22: she fights from
+  her Staff's 2.4 and keeps the crowd off), while the Vanguard, who stands in the crowd, finds it worth a third to a half
+  of its damage. Widening it to 2.5 brings it level with Ilya's Staff (37 / 37); a harder strike at 2.0 helps the Vanguard
+  and leaves Ilya's share where it was (46 / 25). An aura is the melee hero's crowd weapon.
+- **The guarantee is what removes the failure**: 96-100 % of the Vanguard's runs hold a crowd weapon under `p2-c1` and
+  `p2-c1c2` (the first-card pilot's misses are runs that never took a new weapon), against 54-87 % under `p2-c2` and
+  35-68 % in phase 1, by cohort. Every reading with it but the weakest Mortar's eases the clumsy cohort, by 3-18 points.
+
+### 13.4 The readings (exploration seeds 1-2000)
+
+`WeaponRosterResearch`, seeds 1-2000, both heroes, typical hands, the whole climb, the four docs/56 cohorts (16,000 runs an
+option; the auto-farmer, 1 % today, left out). Change in completion against `shipped` on the same seeds, points, 90 % CI
+from `paired_bootstrap.py` (10,000 resamples of seeds, both heroes of a seed together). `shipped`: careful 95.8 %,
+standing 81.6 %, first-card 82.2 %, clumsy 37.6 % (section 9.2's numbers, run again: the same).
+
+| Option | careful | standing | first-card | clumsy |
+|---|---|---|---|---|
+| `p2-c2` (C2) | **-7.97** (-8.95 to -7.03) | -0.97 (-2.30 to +0.35) | **-6.75** (-8.10 to -5.40) | +6.35 (+4.30 to +8.32) |
+| `p2-c1` (C1) | +2.33 (+1.70 to +2.98) | +9.45 (+8.35 to +10.60) | +7.85 (+6.78 to +8.93) | +18.05 (+16.30 to +19.75) |
+| `p2-c1c2` (C1 + C2) | -0.78 (**-1.55** to +0.00) | +6.85 (+5.62 to +8.07) | +3.33 (+2.17 to +4.45) | +15.03 (+13.28 to +16.73) |
+| `p3-saw8` (13.6, the Saw 8) | -0.15 (-0.90 to +0.60) | +7.67 (+6.47 to +8.90) | +2.95 (+1.73 to +4.17) | +14.12 (+12.15 to +16.05) |
+| `p3-saw10` (13.6, the Saw 10) | +0.72 (+0.03 to +1.45) | +9.30 (+8.10 to +10.53) | +5.15 (+3.92 to +6.38) | +19.45 (+17.35 to +21.50) |
+
+By hero, completion and change in points (shipped: the Vanguard 96.0 / 81.0 / 77.5 / 26.4 %, Ilya 95.7 / 82.2 / 86.8 /
+48.9 %):
+
+| Option | Vanguard careful | standing | first-card | clumsy | Ilya careful | standing | first-card | clumsy |
+|---|---|---|---|---|---|---|---|---|
+| `p2-c2` | 76.8 (-19.3) | 67.3 (-13.7) | 54.7 (-22.8) | 21.4 (-4.9) | 99.0 (+3.3) | 93.9 (+11.8) | 96.2 (+9.3) | 66.5 (+17.6) |
+| `p2-c1` | 97.9 (+1.9) | 91.3 (+10.3) | 87.6 (+10.1) | 55.7 (+29.4) | 98.5 (+2.8) | 90.7 (+8.5) | 92.5 (+5.6) | 55.6 (+6.8) |
+| `p2-c1c2` | 91.2 (-4.9) | 83.0 (+2.0) | 74.8 (-2.7) | 38.8 (+12.4) | 99.0 (+3.3) | 93.9 (+11.8) | 96.2 (+9.3) | 66.5 (+17.6) |
+| `p3-saw8` | 92.5 (-3.5) | 84.5 (+3.5) | 74.5 (-3.0) | 37.7 (+11.4) | 98.9 (+3.2) | 94.0 (+11.9) | 95.8 (+8.9) | 65.8 (+16.9) |
+| `p3-saw10` | 94.0 (-2.0) | 87.5 (+6.5) | 78.8 (+1.3) | 45.7 (+19.4) | 99.1 (+3.4) | 94.3 (+12.1) | 95.8 (+9.0) | 68.5 (+19.6) |
+
+Each weapon, the four cohorts pooled: held (runs that held it at any point) / its share of the weapons' damage in the runs
+that held it. Shipped for comparison: the Vanguard's Staff held 85 % / 64.8 %, Sword 29.8 %, Daggers 5.9 %; Ilya's Staff
+69.7 %, Sword 92 % / 25.0 %.
+
+| Option | Hero | Sword / Staff (own) | Daggers | Magma Mortar | Forge Bow | Cinder Saw |
+|---|---|---|---|---|---|---|
+| `p2-c2` | Vanguard | 100 / 25.2 | 45 / 9.8 | 43 / 63.7 | 45 / 26.5 | 45 / 35.6 |
+| `p2-c2` | Ilya | 100 / 46.5 | 49 / 5.4 | 48 / 53.0 | 48 / 26.1 | 49 / 22.9 |
+| `p2-c1` | Vanguard | 100 / 20.4 | 45 / 5.3 | 99 / 66.3 | 43 / 22.5 | - |
+| `p2-c1` | Ilya | 100 / 46.4 | 65 / 5.6 | 60 / 51.3 | 64 / 25.2 | - |
+| `p2-c1c2` | Vanguard | 100 / 23.2 | 29 / 7.2 | 63 / 63.9 | 28 / 25.0 | 65 / 31.6 |
+| `p2-c1c2` | Ilya | 100 / 46.5 | 49 / 5.4 | 48 / 53.0 | 48 / 26.1 | 49 / 22.9 |
+| `p3-saw8` | Vanguard | 100 / 26.1 | 29 / 8.0 | 64 / 50.9 | 28 / 25.6 | 64 / 43.1 |
+| `p3-saw8` | Ilya | 100 / 49.2 | 49 / 5.4 | 48 / 39.8 | 48 / 26.2 | 48 / 30.9 |
+| `p3-saw10` | Vanguard | 100 / 25.2 | 29 / 7.2 | 64 / 49.9 | 29 / 25.3 | 64 / 45.9 |
+| `p3-saw10` | Ilya | 100 / 47.5 | 49 / 5.3 | 48 / 39.6 | 48 / 26.1 | 48 / 34.4 |
+
+**Ilya's guard** (13.2): her Staff's share of all her weapon damage; in the runs that hold each shared weapon, the Staff's
+share against that weapon's; and the runs in which the Staff dealt the most (shipped 99.9 %).
+
+| Option | Staff overall | Staff / Mortar | Staff / Bow | Staff / Saw | Staff / Daggers | Staff led | Guard |
+|---|---|---|---|---|---|---|---|
+| `p2-c2` | 46.5 | **31.7 / 53.0** | 48.1 / 26.1 | 48.7 / 22.9 | 56.9 / 5.4 | 56.5 % | **fails** |
+| `p2-c1` | 46.4 | **34.6 / 51.3** | 48.7 / 25.2 | - | 54.4 / 5.6 | **46.1 %** | **fails** |
+| `p2-c1c2` | 46.5 | **31.7 / 53.0** | 48.1 / 26.1 | 48.7 / 22.9 | 56.9 / 5.4 | 56.5 % | **fails** |
+| `p3-saw8` | 49.2 | 41.1 / 39.8 | 49.4 / 26.2 | 46.2 / 30.9 | 59.3 / 5.4 | 69.4 % | holds |
+| `p3-saw10` | 47.5 | 40.1 / 39.6 | 48.3 / 26.1 | 42.9 / 34.4 | 58.1 / 5.3 | 62.5 % | holds, by half a point on the Mortar |
+
+The Vanguard's runs that held a crowd weapon (the Mortar or the Saw), by cohort, careful / standing / first-card /
+clumsy: `p2-c2` 83 / 83 / 75 / 55 % (the rest finish 14 / 4 / 0.4 / 0 %); `p2-c1`, `p2-c1c2` and both `p3` readings
+100 / 100 / 95 / 100 % (the first-card pilot's 5 % never took a new weapon at all). Shipped: the Staff in 100 / 100 /
+91 / 50 %.
+
+### 13.5 The verdict: no confirmation block spent
+
+| Candidate | docs/56's bar (seeds 1-2000) | Ilya's guard | To a fresh block? |
+|---|---|---|---|
+| C2 (`p2-c2`) | **fails**: careful -7.97, first-card -6.75 | fails (the Mortar 53 / 32) | no |
+| C1 (`p2-c1`) | passes, an easing in every cohort (careful +2.33, CI +1.70 to +2.98; clumsy +18.05) | **fails**: the Mortar out-deals her Staff 51 / 35 where it is held; the Staff leads 46 % of her runs | no |
+| C1 + C2 (`p2-c1c2`) | **fails, narrowly**: careful -0.78, its lower bound -1.55 under -1.5 (the Vanguard alone -4.9) | **fails**: the Mortar 53 / 32 | no |
+
+**No candidate of this round passes both**, so, as the round's instructions set, no confirmation block was read and
+docs/56 section 10's ledger is unchanged here. The skills re-read (docs/57) spent 11601-14800 (recorded on its branch);
+the next fresh block starts at **14801** - 3,200 seeds for this whole-Descent change, 14801-18000.
+
+What the round shows:
+
+- **C2 alone is not enough.** A second crowd weapon in the pool lifts the Vanguard's runs that hold one (phase 1: the
+  Mortar in 55 % of them) to 83 / 83 / 75 / 55 % by cohort, but at docs/40's numbers the Saw holds a crowd for the
+  Vanguard about half as well as the Staff did (36 % of its damage where held, the Staff's 65 %), and the runs that never
+  take a crowd weapon still almost never finish.
+- **C1 removes the failure outright** - the Vanguard's first new weapon always holds a crowd, and its completion goes
+  from 60 % (phase 1, careful) to 98 %, above today's - but it does so with c-mortar15's Mortar, which in Ilya's hands
+  out-deals her own Staff. It also eases the clumsy cohort by 18 points, the Vanguard's clumsy runs by 29.
+- **The guard and the Vanguard pull one Mortar two ways** (13.3), which is what 13.6's candidate answers with the Saw.
+
+### 13.6 The next candidate (its reason written after the probes, before its 1-2000 read)
+
+**C3 = C1 + C2 with the Mortar as built and a harder Saw** (`p3-saw8` / `p3-saw10` in `WeaponRosterResearch`): the
+guarantee; the Magma Mortar at its phase-1 numbers (34 every 1.8 s, blast 2.5 - the asset as it stands), which leaves
+Ilya's Staff first; and the Cinder Saw striking 8 (or 10) every 0.2 s within the same 2.0. The reason: one Mortar cannot
+serve both heroes (13.3), while an aura's circle round the hero is the melee hero's crowd weapon - the Vanguard stands in
+the crowd, Ilya fights from her Staff's reach and keeps it off - so the Vanguard's missing crowd damage goes into the Saw,
+harder rather than wider, since widening it to 2.5 brought it level with her Staff.
+
+On the exploration seeds (13.4) both readings pass docs/56's bar with room and keep Ilya's Staff first:
+
+| | careful | first-card | clumsy | Ilya: Staff / Mortar, Staff / Saw, led | The Vanguard alone: careful / first-card |
+|---|---|---|---|---|---|
+| `p3-saw8` | -0.15 (-0.90 to +0.60) | +2.95 (+1.73 to +4.17) | +14.12 (+12.15 to +16.05) | 41.1 / 39.8, 46.2 / 30.9, 69 % | -3.5 / -3.0 |
+| `p3-saw10` | +0.72 (+0.03 to +1.45) | +5.15 (+3.92 to +6.38) | +19.45 (+17.35 to +21.50) | 40.1 / 39.6, 42.9 / 34.4, 63 % | -2.0 / +1.3 |
+
+**Proposed for the next round's confirmation: `p3-saw8`** - the smaller easing and the wider margin under Ilya's Staff -
+with `p3-saw10` as the round's second candidate if the lead wants the Vanguard closer to today on its own (docs/56 rule 4
+allows two). Both were chosen on seeds 1-2000, which are spent; the confirmation reads 3,200 fresh seeds (14801-18000),
+`shipped`, the candidate and the A/A `aa-f1`, the four cohorts, both heroes, once:
+
+```text
+ROSTER_CONFIRM=14801-18000 FOUNDRY_FIRST_SEED=14801 FOUNDRY_SEEDS=3200 ROSTER_OPTIONS=shipped,aa-f1,p3-saw8 \
+  ROSTER_COHORTS=careful,standing,first-card,clumsy FOUNDRY_OUT=<folder>/confirm \
+  dotnet test Tools/CombatChecks -c Release -p:NuGetAudit=false --filter "FullyQualifiedName~WeaponRosterResearch"
+python Tools/BalanceRule/paired_bootstrap.py <folder> 14801 18000
+```
+
+The assets already carry `p3-saw8` behind the lever: the Saw strikes 8 (`Weapon_CinderSaw.asset`, the simulation's
+`CinderSaw()`), the Mortar is as built, and the scene's roster file turns the guarantee on - so
+`development/weapon-roster.txt` plays the proposed roster in the Editor. `p2-c2` and `p2-c1c2` keep the Saw they were read
+with (5), so their rows can be read again.
+
+### 13.7 Can the roster's lever go on for players?
+
+**Not yet.** What stands between it and players:
+
+1. **A candidate confirmed on a fresh block** (docs/56 rule 1): none of this round's passed both the bar and Ilya's
+   guard. The next round's candidate (13.6) reads `p3-saw8`, and at most `p3-saw10` beside it, once on 14801-18000.
+2. **Ilya's guard with a margin.** Under both `p3` readings the Mortar sits 0.5-1.3 points under her Staff in the runs
+   that hold it; a confirmation should read the guard beside the completion.
+3. **The Vanguard on its own.** docs/56 reads cohorts with both heroes together; under `p3-saw8` the Vanguard alone is
+   still 3.5 points under today for the careful cohort and 3.0 for first-card, paid for by Ilya's gains (+3.2, +8.9). The
+   owner should see that split (section 11, question 1).
+4. **The easing.** Every reading that passes eases the clumsy cohort by 14-19 points (the roster's shared weapons serve
+   Ilya better than the Sword and the Daggers did): reported to the lead, as docs/56 rule 3 asks.
+5. **What only Unity shows** (13.9): the Saw's blade and ring, its icon, the PlayMode roster tests.
+6. The owner's answers still open from section 11 (question 1, strict exclusivity) and docs/60's review of the working
+   names; the "Clear The Foundry" hint for Ilya's unlock (section 6).
+
+With the Saw in the pool the Daggers' transition (section 3.3) has its third shared weapon: when the Riftblade joins,
+the pool is the Mortar, the Bow and the Saw.
+
+### 13.8 The default batch, the lever off
+
+`FOUNDRY_SEEDS=200 FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_REALISM=typical FOUNDRY_FLOORS=2`, filter
+`FullyQualifiedName~FoundryBatchReport.TheFoundryFloorOverASeedBatch`, on the merged base (b007f489), on the C1 commit
+(0e081570, everything of the Saw and the guarantee in) and on the Saw at 8 (a5030d39), each from a clean output folder: foundry-batch.csv,
+foundry-batch-floor2.csv and foundry-cohorts-floor2.csv byte-identical; foundry-cohorts.md and foundry-gate.md
+byte-identical; foundry-batch.md identical but for the header's clock and the floor-time table's wall-clock seconds.
+
+### 13.9 Checks, and what Unity must run
+
+- `dotnet test Tools/CombatChecks -c Release -p:NuGetAudit=false`: Başarılı (1140), with the new WeaponRosterTests (the
+  Saw's aura through the hall engine, every other weapon acquiring at its Range, the Saw in the foundry simulation, the
+  guarantee on and off), EffectArtTests (the blade), GameFeelTests and LocalisationTableTests (the Saw's strings).
+- `dotnet build Tools/UnityCompileCheck/UnityCompileCheck.csproj -p:UnityLibrary=E:/MobileGame/Library`: 0 errors.
+- In Unity (not run here): EditMode `WeaponRosterTests`, `WeaponContentTests` (the Saw's asset against the simulation,
+  eighteen lines), `UpgradeIconSetTests` (46 offerable ids, the Saw's socket icon, the 1 MiB budget), `EffectArtTests`,
+  `GameFeelTests`, `FullSlotRuleTests`, `OfferCategoryTests`, `LocalisationTableTests`; PlayMode `WeaponRosterFlowTests`
+  (the catalogues with the Saw, the first offer's parity with the guarantee as the scene sets it, the Saw striking round
+  the hero with its blade circling, the guarantee showing the Vanguard only crowd weapons), and, for the effect slot the
+  blade adds, `EnemyFeelTests`, `HeroFeelTests`, `SlotCueTests`, `FoundryActorDepthTests`, `FoundryElevationTests`,
+  `DepthProofArrangementTests`, `FoundryRegionTests`. What to capture: the Saw circling the Vanguard in the foundry
+  (development/weapon-roster.txt and start-weapon.txt `weapon_cinder_saw`, or taken from an offer), the ember ring once a
+  second, and its icon on the card and in the loadout socket.

@@ -104,5 +104,20 @@ namespace Cryptforge.Progression
                 throw new InvalidOperationException($"Weapon {Id} made no runtime.");
             return runtime;
         }
+
+        // Whether the weapon holds a crowd (AttackPattern.HoldsACrowd: an Area or an Aura), read off a runtime it makes the
+        // first time it is asked and kept. Only docs/63's crowd-weapon guarantee asks (UpgradeService), so a run without it
+        // never makes the extra runtime.
+        public bool HoldsACrowd
+        {
+            get
+            {
+                if (_holdsACrowd == null)
+                    _holdsACrowd = CreateRuntime().Pattern.HoldsACrowd;
+                return _holdsACrowd.Value;
+            }
+        }
+
+        private bool? _holdsACrowd;
     }
 }

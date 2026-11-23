@@ -27,7 +27,7 @@ namespace Cryptforge.Tests
             Assert.That(WeaponRoster.Offers(Sword, Staff, Shipped), Is.False, "Ilya's Staff is never the Vanguard's.");
             Assert.That(WeaponRoster.Offers(Staff, Sword, Shipped), Is.False, "The Vanguard's Sword is never Ilya's.");
             Assert.That(WeaponRoster.Offers(Staff, Staff, Shipped), Is.True);
-            foreach (string shared in new[] { Daggers, WeaponRoster.MagmaMortarId, WeaponRoster.ForgeBowId })
+            foreach (string shared in new[] { Daggers, WeaponRoster.MagmaMortarId, WeaponRoster.ForgeBowId, WeaponRoster.CinderSawId })
             {
                 Assert.That(WeaponRoster.Offers(Sword, shared, Shipped), Is.True, shared);
                 Assert.That(WeaponRoster.Offers(Staff, shared, Shipped), Is.True, shared);
@@ -69,11 +69,13 @@ namespace Cryptforge.Tests
         {
             Assert.That(DescentSimulation.RosterSignatures, Is.EqualTo(new[] { Sword, Staff }));
             Assert.That(Ids(DescentSimulation.RosterCatalogue(Sword)),
-                Is.EqualTo(new[] { Sword, Daggers, WeaponRoster.MagmaMortarId, WeaponRoster.ForgeBowId }), "The Vanguard.");
+                Is.EqualTo(new[] { Sword, Daggers, WeaponRoster.MagmaMortarId, WeaponRoster.ForgeBowId, WeaponRoster.CinderSawId }),
+                "The Vanguard.");
             Assert.That(Ids(DescentSimulation.RosterCatalogue(Staff)),
-                Is.EqualTo(new[] { Staff, Daggers, WeaponRoster.MagmaMortarId, WeaponRoster.ForgeBowId }), "Ilya.");
+                Is.EqualTo(new[] { Staff, Daggers, WeaponRoster.MagmaMortarId, WeaponRoster.ForgeBowId, WeaponRoster.CinderSawId }),
+                "Ilya.");
             Assert.That(Ids(DescentSimulation.RosterCatalogue(Daggers)),
-                Is.EqualTo(new[] { Daggers, WeaponRoster.MagmaMortarId, WeaponRoster.ForgeBowId }),
+                Is.EqualTo(new[] { Daggers, WeaponRoster.MagmaMortarId, WeaponRoster.ForgeBowId, WeaponRoster.CinderSawId }),
                 "The simulated Riftblade: the Daggers its own, and no other hero's.");
             Assert.That(Ids(DescentSimulation.CatalogueFor(Sword, new DescentSimulation.FoundryLevers())),
                 Is.EqualTo(new[] { Sword, Staff, Daggers }), "Off, today's catalogue for every hero.");
@@ -181,6 +183,193 @@ namespace Cryptforge.Tests
             // Its reach line lengthens its reach, flat.
             bow.AddModifier(UpgradeStat.Range, DescentSimulation.ForgeBowLines()[2].ModifierFor(UpgradeRarity.Common));
             Assert.That(bow.Range, Is.EqualTo(5.5f).Within(1e-5f));
+        }
+
+        // ---- Phase 2 (docs/63 section 13): the Cinder Saw and the crowd-weapon guarantee ----
+
+        // The Saw is an aura: every enemy within its circle round the hero takes the full 8 once a strike, wherever it stands
+        // about the hero - beside or behind it as much as the nearest - and nothing outside the circle does. The circle is
+        // also its reach: with nothing inside it, it does not strike, whatever its Range; Area widens both together. The
+        // simulation's legacy strike (StrikeInSlotOrder) gathers the circle round the hero as AttackController does.
+        [Test]
+        public void TheCinderSawStrikesEveryEnemyRoundTheHeroAndNothingBeyondItsCircle()
+        {
+            WeaponRuntime saw = Runtime(DescentSimulation.CinderSaw());
+            Assert.That((saw.Damage, saw.Interval, saw.Range, saw.SplashRadius, saw.TargetReach), Is.EqualTo((8f, .2f, 2f, 2f, 2f)));
+            Assert.That((saw.Pattern.Behavior, saw.Pattern.SplashFraction), Is.EqualTo((WeaponBehavior.Aura, 1f)));
+            Assert.That(saw.Pattern.StrikesRoundWielder && saw.Pattern.HoldsACrowd, Is.True);
+            var loadout = new WeaponLoadout(0);
+            loadout.TryAdd(WeaponRoster.CinderSawId, saw);
+            // In front 1.5 out (the nearest: the strike's target), 1.9 to the left (2.42 from the target: beyond a 2-unit
+            // splash round it, inside the circle round the hero), 1.70 out on the right, and 2.3 out: outside the circle.
+            var front = new HealthState(8f);
+            var left = new HealthState(8f);
+            var right = new HealthState(8f);
+            var beyond = new HealthState(100f);
+            var enemies = new[] { front, left, right, beyond };
+            var motion = new PackMotion(DescentSimulation.BodySpacing, PackLayout.HalfWidth);
+            motion.Add(front, 0f, 1.5f, 0f, 1f);
+            motion.Add(left, -1.9f, 0f, 0f, 1f);
+            motion.Add(right, 1.2f, 1.2f, 0f, 1f);
+            motion.Add(beyond, 2.3f, 0f, 0f, 1f);
+            Assert.That(DescentSimulation.StrikeInSlotOrder(loadout, motion, enemies, 0f, 0f), Is.EqualTo(1));
+            Assert.That(enemies.Select(e => e.Current).ToArray(), Is.EqualTo(new[] { 0f, 0f, 0f, 100f }),
+                "The full 8 on each of the three inside the circle, once; nothing on the one outside.");
+            Assert.That(saw.IsReady, Is.False);
+            saw.Tick(.2f);
+            Assert.That(saw.IsReady, Is.True, "Its cadence: 0.2 s.");
+            Assert.That(DescentSimulation.StrikeInSlotOrder(loadout, motion, enemies, 0f, 0f), Is.Zero,
+                "Nothing inside the circle: no strike, though the one outside stands 2.3 away.");
+
+            // Its area line (+10 %) and the Reach tome (+8 %): 2 x 1.18 = 2.36 - the circle and its reach together.
+            saw.AddModifier(UpgradeStat.Area, DescentSimulation.CinderSawLines()[1].ModifierFor(UpgradeRarity.Common));
+            saw.AddModifier(UpgradeStat.Area, DescentSimulation.Reach().ModifierFor(UpgradeRarity.Common));
+            Assert.That(saw.TargetReach, Is.EqualTo(2f * 1.18f).Within(1e-5f));
+            Assert.That(saw.Range, Is.EqualTo(2f), "Its Range is not what it acquires within.");
+            Assert.That(DescentSimulation.StrikeInSlotOrder(loadout, motion, enemies, 0f, 0f), Is.EqualTo(1));
+            Assert.That(beyond.Current, Is.EqualTo(92f));
+            // Its damage line is Flat, before Force's percent (docs/42): (8 + 0.8) x 1.08.
+            saw.AddModifier(UpgradeStat.Damage, DescentSimulation.CinderSawLines()[0].ModifierFor(UpgradeRarity.Common));
+            saw.AddModifier(UpgradeStat.Damage, DescentSimulation.Force().ModifierFor(UpgradeRarity.Common));
+            Assert.That(saw.Damage, Is.EqualTo(8.8f * 1.08f).Within(1e-4f));
+        }
+
+        // Every other weapon acquires within its Range exactly, as before the aura existed: TargetReach is Range for them,
+        // and the Area that widens their circles never moves their reach.
+        [Test]
+        public void EveryWeaponButAnAuraAcquiresWithinItsRange()
+        {
+            foreach (DescentSimulation.HeroWeapon weapon in DescentSimulation.RosterWeapons())
+            {
+                WeaponRuntime runtime = Runtime(weapon);
+                runtime.AddModifier(UpgradeStat.Area, DescentSimulation.Reach().ModifierFor(UpgradeRarity.Common));
+                if (weapon.Id == WeaponRoster.CinderSawId)
+                    Assert.That(runtime.TargetReach, Is.EqualTo(runtime.SplashRadius), weapon.Id);
+                else
+                    Assert.That(runtime.TargetReach, Is.EqualTo(runtime.Range), weapon.Id);
+                Assert.That(runtime.Pattern.HoldsACrowd,
+                    Is.EqualTo(weapon.Id == Staff || weapon.Id == WeaponRoster.MagmaMortarId || weapon.Id == WeaponRoster.CinderSawId),
+                    $"{weapon.Id}: the Staff, the Mortar and the Saw hold a crowd; the Sword cleaves one neighbour");
+            }
+            Assert.Throws<ArgumentOutOfRangeException>(() => new AttackPattern(WeaponBehavior.Aura, 0f, 1f), "An aura needs its circle.");
+            Assert.Throws<ArgumentOutOfRangeException>(() => new AttackPattern(WeaponBehavior.Aura, 2f, 0f), "And a share in (0, 1].");
+        }
+
+        // The Saw in the foundry simulation's own strike (FoundryRun.HeroAttacks, AttackController's mirror): taken up from
+        // an offer under the roster, it deals damage and fells enemies over a floor. The guarantee hands it to the Vanguard
+        // first, the only crowd weapon its catalogue holds here.
+        [Test]
+        public void TheSawFightsInTheFoundrySimulation()
+        {
+            DescentSimulation.FoundryLevers levers = DescentSimulation.RosterLevers(new DescentSimulation.FoundryLevers());
+            levers.RosterPool = new[] { DescentSimulation.Sword(), DescentSimulation.Daggers(), DescentSimulation.ForgeBow(), DescentSimulation.CinderSaw() };
+            levers.CrowdWeaponGuarantee = true;
+            int fought = 0;
+            for (int seed = 1; seed <= 4; seed++)
+            {
+                DescentSimulation.FoundryResult run = DescentSimulation.RunFoundry(DescentSimulation.Vanguard(), seed, levers);
+                DescentSimulation.FoundryWeaponWork saw = run.WeaponWork.FirstOrDefault(w => w.Id == WeaponRoster.CinderSawId);
+                if (run.WeaponWork.Count < 2)
+                    continue;
+                Assert.That(run.WeaponWork[1].Id, Is.EqualTo(WeaponRoster.CinderSawId), $"seed {seed}: the first weapon taken");
+                Assert.That(saw.Dealt, Is.GreaterThan(0f), $"seed {seed}");
+                Assert.That(run.Kills.Count(k => k.By == WeaponRoster.CinderSawId), Is.GreaterThan(0), $"seed {seed}");
+                fought++;
+            }
+            Assert.That(fought, Is.GreaterThan(0), "The Saw was taken up and fought in at least one run.");
+        }
+
+        // docs/63 section 13's C1, UpgradeService's crowd-weapon guarantee: while the hero holds no crowd weapon (an Area or an
+        // Aura) and a slot is free, every new-weapon card it is shown is a crowd weapon; once it holds one, every weapon is
+        // offered again. Off, the offers are what they always were; a hero that starts with a crowd weapon (Ilya's Staff),
+        // and a catalogue with no crowd weapon to give, draw exactly what they draw with it off.
+        [Test]
+        public void TheGuaranteeShowsOnlyCrowdWeaponsUntilOneIsHeld()
+        {
+            WeaponCard[] cards = Cards(DescentSimulation.RosterCatalogue(Sword));
+            int narrowed = 0, openedAgain = 0, offOther = 0;
+            for (int seed = 0; seed < 30; seed++)
+            {
+                foreach (bool on in new[] { true, false })
+                {
+                    UpgradeService service = Guarded(seed, cards, on, out WeaponLoadout loadout, out RunState run);
+                    Assert.That(service.GuaranteesCrowdWeapon, Is.EqualTo(on));
+                    for (int round = 0; round < 40; round++)
+                    {
+                        run.GrantBonusUpgrade();
+                        while (service.CurrentOffer != null)
+                        {
+                            UpgradeOffer offer = service.CurrentOffer;
+                            bool crowdHeld = Enumerable.Range(0, loadout.Count).Any(i => loadout.At(i).Runtime.Pattern.HoldsACrowd);
+                            foreach (UpgradeOption card in offer.Choices.Where(c => c.Category == OfferCategory.NewWeapon))
+                            {
+                                bool crowd = card.Id == WeaponRoster.MagmaMortarId || card.Id == WeaponRoster.CinderSawId;
+                                if (on && !crowdHeld)
+                                {
+                                    Assert.That(crowd, Is.True, $"seed {seed}, offer {offer.Index}: {card.Id} before a crowd weapon is held");
+                                    narrowed++;
+                                }
+                                else if (on && !crowd)
+                                    openedAgain++;
+                                else if (!on && !crowdHeld && !crowd)
+                                    offOther++;
+                            }
+                            // The hero takes a new weapon when one is shown, else the first card.
+                            int slot = 0;
+                            for (int i = 0; i < offer.Choices.Count; i++)
+                                if (offer.Choices[i].Category == OfferCategory.NewWeapon)
+                                    slot = i;
+                            Assert.That(service.TrySelect(offer, slot), Is.True);
+                        }
+                    }
+                }
+            }
+            Assert.That(narrowed, Is.GreaterThan(0), "The guarantee was met.");
+            Assert.That(openedAgain, Is.GreaterThan(0), "With a crowd weapon held, the Daggers and the Bow came back.");
+            Assert.That(offOther, Is.GreaterThan(0), "Off, a hero with no crowd weapon is shown the others too.");
+        }
+
+        [Test]
+        public void TheGuaranteeChangesNothingForAHeroWithACrowdWeaponOrACatalogueWithoutOne()
+        {
+            WeaponCard[] ilyas = Cards(DescentSimulation.RosterCatalogue(Staff));
+            WeaponCard[] noCrowd = Cards(new[] { DescentSimulation.Sword(), DescentSimulation.Daggers(), DescentSimulation.ForgeBow() });
+            foreach (WeaponCard[] cards in new[] { ilyas, noCrowd })
+                for (int seed = 0; seed < 10; seed++)
+                {
+                    var shown = new List<string>[2];
+                    for (int pass = 0; pass < 2; pass++)
+                    {
+                        shown[pass] = new List<string>();
+                        UpgradeService service = Guarded(seed, cards, pass == 0, out WeaponLoadout _, out RunState run);
+                        for (int round = 0; round < 30; round++)
+                        {
+                            run.GrantBonusUpgrade();
+                            while (service.CurrentOffer != null)
+                            {
+                                UpgradeOffer offer = service.CurrentOffer;
+                                shown[pass].Add(string.Join(",", offer.Choices.Select(c => c.Id)));
+                                Assert.That(service.TrySelect(offer, offer.Choices.Count - 1), Is.True);
+                            }
+                        }
+                    }
+                    Assert.That(shown[0], Is.EqualTo(shown[1]), $"{cards[0].Id}, seed {seed}: the same offers, card for card");
+                }
+            Assert.Throws<ArgumentException>(() => new UpgradeService(new RunState(10, .5f, 2, 1), new WeaponRuntime(10f, 1f, 2f),
+                DescentSimulation.Pool(), 3, guaranteesCrowdWeapon: true), "A category-mode rule.");
+        }
+
+        private static WeaponCard[] Cards(DescentSimulation.HeroWeapon[] weapons) => weapons.Select(w => w.CreateCard()).ToArray();
+
+        // A category-mode service whose loadout starts with the catalogue's first weapon (the hero's own).
+        private static UpgradeService Guarded(int seed, WeaponCard[] cards, bool guarantee, out WeaponLoadout loadout, out RunState run)
+        {
+            run = new RunState(10, 0.5f, 2, seed);
+            loadout = new WeaponLoadout(seed);
+            WeaponRuntime primary = cards[0].CreateRuntime();
+            loadout.TryAdd(cards[0].Id, primary);
+            return new UpgradeService(run, primary, DescentSimulation.Pool(), 3,
+                new HeroStats(100f, 2.5f, HeroStamina.DefaultBar), false, loadout, cards, DescentSimulation.Tomes(), guarantee);
         }
     }
 }
