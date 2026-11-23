@@ -1321,3 +1321,11 @@ CombatChecks 838 green ("Başarılı"); the Unity compile check green.
   on the descent, so floor 3's first Wraiths are instantiated rather than reused. Frame time at the descent is unmeasured.
 - **Telemetry** reports `enemy_pollen_wraith` for floor 3's horde and halls (kills, the killer), where it reported
   `enemy_cinder_mite`; nothing in the tools keys on that id.
+
+## Rootmother Myrr designed (2026-11-23)
+
+Section 6's "later design of its own" is docs/64: Rootmother Myrr's lore, her fight (a root snare that creeps after the
+hero and plants it, her feet, grafted saplings that grow into Thornlings), her numbers, tells, art brief and risks; a
+simulation research lever (`FoundryLevers.GloamMyrr`, off by default) measured on the exploration seeds 1-2000 against
+the Forge Warden; a candidate and its confirmation read proposed for seeds 11601-12800; her art pass 1. The Warden stays
+at floor 3's gate until the lead decides on that read.

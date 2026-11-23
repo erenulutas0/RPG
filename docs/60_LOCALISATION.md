@@ -353,8 +353,9 @@ hero as "sen" (style rule 1):
 | `bark.glass_regent.death` | I kept the wrong one... | Yanlış olanı sakladım... | |
 
 **Fit.** The plate is at most 640 of the HUD's 1080 canvas units wide; a line sits at 34 and fits down to 24, on one line
-or two. The longest Turkish (the Warden's death line, 33 characters) should take one line at 34 (about 560 units by
-Arial's average width); the plate wraps it to two otherwise.
+or two. Every line takes one line at 34: measured in Arial italic (PIL, Windows' `ariali.ttf`), the longest Turkish (the
+Warden's death line) runs about 430 units and the longest English 494, inside the plate's 588 between its paddings;
+Myrr's longest (docs/64, "Something... is growing underneath.") 543.
 `BossBarkFlowTests.EveryLineFitsItsPlateInTurkish` lays every line in Turkish and checks it with `TurkishScreensTests`'
 fit check; the phone draws Roboto, so the S23 look is the owner's (section 8).
 
