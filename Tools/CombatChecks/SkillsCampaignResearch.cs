@@ -435,7 +435,15 @@ namespace Cryptforge.Tests
                 else if (index == 2)
                     boss3 = floor.WardenSeconds;
             }
+            // Kept as the CSV keeps them (hundredths), so a report written from the CSV (CAMPAIGN_RESUME) is this one.
+            boss1 = Hundredths(boss1);
+            boss2 = Hundredths(boss2);
+            boss3 = Hundredths(boss3);
+            seconds = Hundredths(seconds);
         }
+
+        private static float Hundredths(float value) =>
+            value < 0f ? -1f : float.Parse(value.ToString("0.00", CultureInfo.InvariantCulture), CultureInfo.InvariantCulture);
 
         // gear_economy.py's run_loot, the materials and boosters the Anvil reads (items, scrolls and runes are not modelled):
         // a floor cleared drops its two materials, each elite its one, the floor died on keeps half; the boosters' chances at
@@ -750,9 +758,20 @@ namespace Cryptforge.Tests
                 Line($"all, runs 1-{runs}", hero, three.Where(r => r.Hero == hero).ToArray());
             foreach ((int from, int to) in Bands(runs))
                 Line($"runs {from}-{to}", "both", three.Where(r => r.Run >= from && r.Run <= to).ToArray());
+            if (runs > 60)
+                Line($"runs 61-{runs}", "both", three.Where(r => r.Run > 60).ToArray());
+            if (runs > 60)
+                foreach (string hero in three.Select(r => r.Hero).Distinct())
+                    Line($"runs 61-{runs}", hero, three.Where(r => r.Run > 60 && r.Hero == hero).ToArray());
+            // By tier, each hero too: the heroes reach Tempered at different runs, so the pooled rows mix their shares.
             for (int tier = 0; tier < DifficultyTiers.Count; tier++)
+            {
                 Line($"on {DifficultyTiers.Name((DifficultyTier)tier)}", "both", three.Where(r => r.Tier == tier).ToArray());
-            md.AppendLine();
+                foreach (string hero in three.Select(r => r.Hero).Distinct())
+                    Line($"on {DifficultyTiers.Name((DifficultyTier)tier)}", hero, three.Where(r => r.Tier == tier && r.Hero == hero).ToArray());
+            }
+            md.AppendLine("The pooled rows weigh the heroes by the runs each played there: Ilya reaches Tempered sooner than the Vanguard, so a pooled " +
+                          "tier row leans on Ilya's rate where the hero rows do not.").AppendLine();
         }
 
         // The campaign run by run: completion, what the profile carries, its tier, gear and income.
