@@ -46,6 +46,10 @@ namespace Cryptforge.Tests
             // of RosterSignatures (none: every weapon for every hero). Null, the roster's own.
             public HeroWeapon[] RosterPool;
             public string[] RosterSignatureIds;
+            // docs/63 section 13's C1: UpgradeService's crowd-weapon guarantee - while the hero holds no crowd weapon (an
+            // Area or an Aura) and a slot is free, every new-weapon card is a crowd weapon while the catalogue holds one.
+            // Off by default; the scene turns it on with the roster's development file.
+            public bool CrowdWeaponGuarantee;
         }
 
         // The weapons a run's cards draw from: the roster's when the lever is on, the shipped catalogue otherwise.

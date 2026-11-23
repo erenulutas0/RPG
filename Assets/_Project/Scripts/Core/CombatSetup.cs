@@ -255,9 +255,12 @@ namespace Cryptforge.Core
                 for (int i = 0; i < tomes.Length; i++)
                     tomes[i] = _economy.TomeAt(i).CreateOption();
             }
+            // docs/63 section 13's crowd-weapon guarantee goes with the roster's development file: while the hero holds no
+            // crowd weapon and a slot is free, its new-weapon cards are crowd weapons (UpgradeService, the simulation's body).
             Upgrades = new UpgradeService(Run, Weapon, options,
                 categories ? _economy.CategoryChoiceCount : _economy.UpgradeChoiceCount, HeroStats,
-                movement != null ? movement.Stamina.Enabled : HeroStamina.CurrentRulesEnabled, loadout, weaponCards, tomes);
+                movement != null ? movement.Stamina.Enabled : HeroStamina.CurrentRulesEnabled, loadout, weaponCards, tomes,
+                categories && DevelopmentStart.WeaponRoster());
             // A weapon taken from an offer joins the hero's attack after the ones it already carries.
             Upgrades.WeaponAcquired += (card, runtime) =>
             {

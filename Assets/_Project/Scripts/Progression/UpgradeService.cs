@@ -71,6 +71,11 @@ namespace Cryptforge.Progression
         // opens no offer; a sitting offers every pending one in a row, and the hold resumes once they are answered.
         private bool _held;
         private bool _sitting;
+        // docs/63's crowd-weapon guarantee (phase 2's C1), off unless the run asks for it: while the hero holds no crowd
+        // weapon and a slot is free, every new-weapon card is a crowd weapon when the catalogue still has one to give.
+        // _crowdOnly is that condition, read once as each category offer is made.
+        private readonly bool _guaranteesCrowdWeapon;
+        private bool _crowdOnly;
 
         public UpgradeOffer CurrentOffer { get; private set; }
         // The offer the last accepted choice came from, for whoever reports the pick after CurrentOffer has moved on.
@@ -102,12 +107,18 @@ namespace Cryptforge.Progression
         // A loadout switches on category mode: weapon must then be its primary, weaponCards the weapons a run can pick
         // up or level (the one it started with included), and tomes the tomes it can hold. pool stays the authored
         // cards in their authored order; category mode offers only those that write to the hero (Eligible).
+        // guaranteesCrowdWeapon is docs/63's crowd-weapon guarantee (category mode only; GuaranteesCrowdWeapon), off as
+        // shipped: the scene turns it on with the weapon roster's development file, the simulation with its lever.
         public UpgradeService(RunState run, WeaponRuntime weapon, IReadOnlyList<UpgradeOption> pool, int choiceCount,
             HeroStats heroStats = null, bool movementEnergyEnabled = true, WeaponLoadout loadout = null,
-            IReadOnlyList<WeaponCard> weaponCards = null, IReadOnlyList<UpgradeOption> tomes = null)
+            IReadOnlyList<WeaponCard> weaponCards = null, IReadOnlyList<UpgradeOption> tomes = null,
+            bool guaranteesCrowdWeapon = false)
         {
             _run = run ?? throw new ArgumentNullException(nameof(run));
             _movementEnergyEnabled = movementEnergyEnabled;
+            if (guaranteesCrowdWeapon && loadout == null)
+                throw new ArgumentException("The crowd-weapon guarantee is a category-mode rule: it needs a loadout.", nameof(guaranteesCrowdWeapon));
+            _guaranteesCrowdWeapon = guaranteesCrowdWeapon;
             _weapon = weapon ?? throw new ArgumentNullException(nameof(weapon));
             _heroStats = heroStats ?? new HeroStats(100f, 2.5f, HeroStamina.DefaultBar);
             if (pool == null)
@@ -158,6 +169,11 @@ namespace Cryptforge.Progression
 
         // Whether offers are drawn by category, which is whether a loadout was handed in.
         public bool IsCategoryMode => _loadout != null;
+        // docs/63's crowd-weapon guarantee (phase 2's C1): while the hero holds no weapon that holds a crowd (an Area or an
+        // Aura, AttackPattern.HoldsACrowd) and a weapon slot is free, a new-weapon card is only ever a crowd weapon - while
+        // the catalogue still holds one the hero does not carry. The kinds of pick and their weights are untouched: the
+        // new-weapon kind is open exactly when it would be, and only which weapon its card shows narrows. Off as shipped.
+        public bool GuaranteesCrowdWeapon => _guaranteesCrowdWeapon;
         // The loadout category mode fills and levels; null in the legacy engine.
         public WeaponLoadout Loadout => _loadout;
         // The catalogue category mode draws from; null in the legacy engine.
@@ -503,6 +519,7 @@ namespace Cryptforge.Progression
         // share a word. Fewer cards than the choice count when fewer remain; no offer at all when none do.
         private UpgradeOffer CreateCategoryOffer()
         {
+            _crowdOnly = CrowdOnly();
             List<UpgradeOption> general = Eligible();
             var choices = new List<UpgradeOption>(_choiceCount);
             var open = new bool[OfferWeights.CategoryCount];
@@ -642,8 +659,24 @@ namespace Cryptforge.Progression
                     return false;
 
             if (category == OfferCategory.NewWeapon)
-                return !_loadout.Owns(card.Id) && !_loadout.IsFull;
+                return !_loadout.Owns(card.Id) && !_loadout.IsFull && (!_crowdOnly || card.HoldsACrowd);
             return LinesOpen(card) || EvolutionPending(card);
+        }
+
+        // docs/63's crowd-weapon guarantee in force for this offer (GuaranteesCrowdWeapon): asked for, a slot free, no
+        // weapon held that holds a crowd, and a crowd weapon in the catalogue the hero does not carry. Off, nothing is read,
+        // so a run without the guarantee draws exactly what it always drew.
+        private bool CrowdOnly()
+        {
+            if (!_guaranteesCrowdWeapon || _loadout.IsFull)
+                return false;
+            for (int i = 0; i < _loadout.Count; i++)
+                if (_loadout.At(i).Runtime.Pattern.HoldsACrowd)
+                    return false;
+            for (int i = 0; i < _weaponCards.Length; i++)
+                if (!_loadout.Owns(_weaponCards[i].Id) && _weaponCards[i].HoldsACrowd)
+                    return true;
+            return false;
         }
 
         // A new tome while fewer than MaxTomes are held; a held one's next level while it is below its last.

@@ -139,9 +139,10 @@ namespace Cryptforge.Tests
             var loadout = new WeaponLoadout(seed);
             loadout.TryAdd(sword.Id, primary);
             WeaponCard[] cards = DescentSimulation.RosterCatalogue(sword.Id).Select(w => w.CreateCard()).ToArray();
+            // The crowd-weapon guarantee as the scene's roster sets it (docs/63 section 13).
             var simulated = new UpgradeService(run, primary, DescentSimulation.Pool(), DescentSimulation.FoundryChoiceCount,
                 new HeroStats(100f, 2.5f, HeroStamina.DefaultBar), HeroStamina.CurrentRulesEnabled, loadout, cards,
-                DescentSimulation.Tomes());
+                DescentSimulation.Tomes(), _setup.Upgrades.GuaranteesCrowdWeapon);
             run.GrantBonusUpgrade();
             UpgradeOffer expected = simulated.CurrentOffer;
             Assert.That(scene.Choices.Select(c => c.Id).ToArray(), Is.EqualTo(expected.Choices.Select(c => c.Id).ToArray()));
@@ -314,6 +315,36 @@ namespace Cryptforge.Tests
             Assert.That(strikes, Is.GreaterThanOrEqualTo(10), "The Saw struck again and again.");
             Assert.That(circling, Is.GreaterThan(0), "Its blade circled the hero while it was held.");
             Assert.That(saw.AttacksMade, Is.GreaterThanOrEqualTo(10));
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // docs/63 section 13's C1 in the scene, behind the roster's file: while the Vanguard holds no crowd weapon, every
+        // new-weapon card it is shown is the Mortar or the Saw; Ilya, whose Staff holds a crowd, is shown every shared weapon.
+        [UnityTest, Timeout(120000)]
+        public IEnumerator TheRostersGuaranteeShowsTheVanguardOnlyCrowdWeaponsFirst()
+        {
+            yield return Load(true, seed: 7311);
+            _attack.enabled = false;
+            Object.FindFirstObjectByType<EncounterController>().enabled = false;
+            UpgradeService upgrades = _setup.Upgrades;
+            Assert.That(upgrades.GuaranteesCrowdWeapon, Is.True, "The roster's file turns the guarantee on.");
+            int shown = 0;
+            for (int i = 0; i < 40 && upgrades.Loadout.Count == 1; i++)
+            {
+                if (upgrades.CurrentOffer == null)
+                    _setup.Run.GrantBonusUpgrade();
+                UpgradeOffer offer = upgrades.CurrentOffer;
+                foreach (UpgradeOption card in offer.Choices)
+                    if (card.Category == OfferCategory.NewWeapon)
+                    {
+                        Assert.That(card.Id == WeaponRoster.MagmaMortarId || card.Id == WeaponRoster.CinderSawId, Is.True,
+                            $"offer {offer.Index}: {card.Id} before a crowd weapon is held");
+                        shown++;
+                    }
+                // Never a new weapon while another card is shown, so the guarantee stays in force (the loop ends if one is taken).
+                Answer(o => System.Math.Max(0, SlotOf(o, c => c.Category != OfferCategory.NewWeapon)));
+            }
+            Assert.That(shown, Is.GreaterThan(0), "New weapons were shown, each a crowd weapon.");
             LogAssert.NoUnexpectedReceived();
         }
 

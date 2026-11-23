@@ -254,5 +254,122 @@ namespace Cryptforge.Tests
             Assert.Throws<ArgumentOutOfRangeException>(() => new AttackPattern(WeaponBehavior.Aura, 0f, 1f), "An aura needs its circle.");
             Assert.Throws<ArgumentOutOfRangeException>(() => new AttackPattern(WeaponBehavior.Aura, 2f, 0f), "And a share in (0, 1].");
         }
+
+        // The Saw in the foundry simulation's own strike (FoundryRun.HeroAttacks, AttackController's mirror): taken up from
+        // an offer under the roster, it deals damage and fells enemies over a floor. The guarantee hands it to the Vanguard
+        // first, the only crowd weapon its catalogue holds here.
+        [Test]
+        public void TheSawFightsInTheFoundrySimulation()
+        {
+            DescentSimulation.FoundryLevers levers = DescentSimulation.RosterLevers(new DescentSimulation.FoundryLevers());
+            levers.RosterPool = new[] { DescentSimulation.Sword(), DescentSimulation.Daggers(), DescentSimulation.ForgeBow(), DescentSimulation.CinderSaw() };
+            levers.CrowdWeaponGuarantee = true;
+            int fought = 0;
+            for (int seed = 1; seed <= 4; seed++)
+            {
+                DescentSimulation.FoundryResult run = DescentSimulation.RunFoundry(DescentSimulation.Vanguard(), seed, levers);
+                DescentSimulation.FoundryWeaponWork saw = run.WeaponWork.FirstOrDefault(w => w.Id == WeaponRoster.CinderSawId);
+                if (run.WeaponWork.Count < 2)
+                    continue;
+                Assert.That(run.WeaponWork[1].Id, Is.EqualTo(WeaponRoster.CinderSawId), $"seed {seed}: the first weapon taken");
+                Assert.That(saw.Dealt, Is.GreaterThan(0f), $"seed {seed}");
+                Assert.That(run.Kills.Count(k => k.By == WeaponRoster.CinderSawId), Is.GreaterThan(0), $"seed {seed}");
+                fought++;
+            }
+            Assert.That(fought, Is.GreaterThan(0), "The Saw was taken up and fought in at least one run.");
+        }
+
+        // docs/63 section 13's C1, UpgradeService's crowd-weapon guarantee: while the hero holds no crowd weapon (an Area or an
+        // Aura) and a slot is free, every new-weapon card it is shown is a crowd weapon; once it holds one, every weapon is
+        // offered again. Off, the offers are what they always were; a hero that starts with a crowd weapon (Ilya's Staff),
+        // and a catalogue with no crowd weapon to give, draw exactly what they draw with it off.
+        [Test]
+        public void TheGuaranteeShowsOnlyCrowdWeaponsUntilOneIsHeld()
+        {
+            WeaponCard[] cards = Cards(DescentSimulation.RosterCatalogue(Sword));
+            int narrowed = 0, openedAgain = 0, offOther = 0;
+            for (int seed = 0; seed < 30; seed++)
+            {
+                foreach (bool on in new[] { true, false })
+                {
+                    UpgradeService service = Guarded(seed, cards, on, out WeaponLoadout loadout, out RunState run);
+                    Assert.That(service.GuaranteesCrowdWeapon, Is.EqualTo(on));
+                    for (int round = 0; round < 40; round++)
+                    {
+                        run.GrantBonusUpgrade();
+                        while (service.CurrentOffer != null)
+                        {
+                            UpgradeOffer offer = service.CurrentOffer;
+                            bool crowdHeld = Enumerable.Range(0, loadout.Count).Any(i => loadout.At(i).Runtime.Pattern.HoldsACrowd);
+                            foreach (UpgradeOption card in offer.Choices.Where(c => c.Category == OfferCategory.NewWeapon))
+                            {
+                                bool crowd = card.Id == WeaponRoster.MagmaMortarId || card.Id == WeaponRoster.CinderSawId;
+                                if (on && !crowdHeld)
+                                {
+                                    Assert.That(crowd, Is.True, $"seed {seed}, offer {offer.Index}: {card.Id} before a crowd weapon is held");
+                                    narrowed++;
+                                }
+                                else if (on && !crowd)
+                                    openedAgain++;
+                                else if (!on && !crowdHeld && !crowd)
+                                    offOther++;
+                            }
+                            // The hero takes a new weapon when one is shown, else the first card.
+                            int slot = 0;
+                            for (int i = 0; i < offer.Choices.Count; i++)
+                                if (offer.Choices[i].Category == OfferCategory.NewWeapon)
+                                    slot = i;
+                            Assert.That(service.TrySelect(offer, slot), Is.True);
+                        }
+                    }
+                }
+            }
+            Assert.That(narrowed, Is.GreaterThan(0), "The guarantee was met.");
+            Assert.That(openedAgain, Is.GreaterThan(0), "With a crowd weapon held, the Daggers and the Bow came back.");
+            Assert.That(offOther, Is.GreaterThan(0), "Off, a hero with no crowd weapon is shown the others too.");
+        }
+
+        [Test]
+        public void TheGuaranteeChangesNothingForAHeroWithACrowdWeaponOrACatalogueWithoutOne()
+        {
+            WeaponCard[] ilyas = Cards(DescentSimulation.RosterCatalogue(Staff));
+            WeaponCard[] noCrowd = Cards(new[] { DescentSimulation.Sword(), DescentSimulation.Daggers(), DescentSimulation.ForgeBow() });
+            foreach (WeaponCard[] cards in new[] { ilyas, noCrowd })
+                for (int seed = 0; seed < 10; seed++)
+                {
+                    var shown = new List<string>[2];
+                    for (int pass = 0; pass < 2; pass++)
+                    {
+                        shown[pass] = new List<string>();
+                        UpgradeService service = Guarded(seed, cards, pass == 0, out WeaponLoadout _, out RunState run);
+                        for (int round = 0; round < 30; round++)
+                        {
+                            run.GrantBonusUpgrade();
+                            while (service.CurrentOffer != null)
+                            {
+                                UpgradeOffer offer = service.CurrentOffer;
+                                shown[pass].Add(string.Join(",", offer.Choices.Select(c => c.Id)));
+                                Assert.That(service.TrySelect(offer, offer.Choices.Count - 1), Is.True);
+                            }
+                        }
+                    }
+                    Assert.That(shown[0], Is.EqualTo(shown[1]), $"{cards[0].Id}, seed {seed}: the same offers, card for card");
+                }
+            Assert.Throws<ArgumentException>(() => new UpgradeService(new RunState(10, .5f, 2, 1), new WeaponRuntime(10f, 1f, 2f),
+                DescentSimulation.Pool(), 3, guaranteesCrowdWeapon: true), "A category-mode rule.");
+        }
+
+        private static WeaponCard[] Cards(DescentSimulation.HeroWeapon[] weapons) => weapons.Select(w => w.CreateCard()).ToArray();
+
+        // A category-mode service whose loadout starts with the catalogue's first weapon (the hero's own).
+        private static UpgradeService Guarded(int seed, WeaponCard[] cards, bool guarantee, out WeaponLoadout loadout, out RunState run)
+        {
+            run = new RunState(10, 0.5f, 2, seed);
+            loadout = new WeaponLoadout(seed);
+            WeaponRuntime primary = cards[0].CreateRuntime();
+            loadout.TryAdd(cards[0].Id, primary);
+            return new UpgradeService(run, primary, DescentSimulation.Pool(), 3,
+                new HeroStats(100f, 2.5f, HeroStamina.DefaultBar), false, loadout, cards, DescentSimulation.Tomes(), guarantee);
+        }
     }
 }

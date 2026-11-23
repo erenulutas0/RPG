@@ -1510,8 +1510,9 @@ namespace Cryptforge.Tests
                 var cards = new WeaponCard[catalogue.Length];
                 for (int i = 0; i < cards.Length; i++)
                     cards[i] = FoundrySword(catalogue[i], levers).CreateCard();
+                // docs/63's crowd-weapon guarantee (FoundryLevers.CrowdWeaponGuarantee, off by default), the scene's same body.
                 _upgrades = new UpgradeService(_run, weapon, Pool(), FoundryChoiceCount, _heroStats, _stamina.Enabled,
-                    _loadout, cards, Tomes());
+                    _loadout, cards, Tomes(), levers.CrowdWeaponGuarantee);
                 _upgrades.OfferChanged += OnOfferChanged;
                 _forge = new ForgeService(_run, _heroHealth);
                 _choices = new RunChoices(_upgrades, _forge);
