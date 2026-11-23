@@ -101,9 +101,29 @@ namespace Cryptforge.UI
             UILineInfo last = lines[lines.Count - 1];
             float half = (lines[0].topY - (last.topY - last.height)) / _title.pixelsPerUnit * .5f;
             float centre = rect.center.y;
+            float wordsTop = centre + half, wordsFoot = centre - half;
+            // A glyph may reach past its line's box - the cedilla of "seç" hangs 2.7 units under the last line at a 1760
+            // safe height - so the drawn glyphs' own edges count too (empty quads, spaces and the end, ignored).
+            IList<UIVertex> verts = _titleLines.verts;
+            for (int i = 0; i + 3 < verts.Count; i += 4)
+            {
+                float minX = float.MaxValue, maxX = float.MinValue, minY = float.MaxValue, maxY = float.MinValue;
+                for (int v = i; v < i + 4; v++)
+                {
+                    Vector3 p = verts[v].position;
+                    minX = Mathf.Min(minX, p.x);
+                    maxX = Mathf.Max(maxX, p.x);
+                    minY = Mathf.Min(minY, p.y);
+                    maxY = Mathf.Max(maxY, p.y);
+                }
+                if (maxX - minX < .01f || maxY - minY < .01f)
+                    continue;
+                wordsFoot = Mathf.Min(wordsFoot, minY / _title.pixelsPerUnit);
+                wordsTop = Mathf.Max(wordsTop, maxY / _title.pixelsPerUnit);
+            }
             float under = _art.TitleRuleHeight + (_art.TitleCrest != null ? NativeSize(_art.TitleCrest).y * .5f : 0f);
-            float top = Mathf.Max(rect.yMax + margin.w, centre + half + TitleLinesPad);
-            float foot = Mathf.Min(rect.yMin - margin.y, centre - half - under);
+            float top = Mathf.Max(rect.yMax + margin.w, wordsTop + TitleLinesPad);
+            float foot = Mathf.Min(rect.yMin - margin.y, wordsFoot - under);
             _titlePlate.offsetMax = new Vector2(_titlePlate.offsetMax.x, label.offsetMax.y + top - rect.yMax);
             _titlePlate.offsetMin = new Vector2(_titlePlate.offsetMin.x, label.offsetMin.y + foot - rect.yMin);
             return lines.Count;
