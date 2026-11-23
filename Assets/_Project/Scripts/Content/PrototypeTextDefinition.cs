@@ -100,12 +100,12 @@ namespace Cryptforge.Content
         [SerializeField] private string _resultRelicFormat;
         [SerializeField] private string _forgeHintReadyFormat;
         [SerializeField] private string _forgeHintNextFormat;
-        [SerializeField] private string _forgeHintCompleteFormat;
         [SerializeField] private string _forgeHintRelicsCompleteFormat = "Forge gold {0}: every relic is forged";
         [SerializeField] private string _forgeButtonLabel;
         [SerializeField] private string _forgeTitle;
         [SerializeField] private string _forgeStatusFormat;
         [SerializeField] private string _forgeWeaponsHeader;
+        [SerializeField] private string _forgeOwnWeaponLabel = "Signature weapon";
         [SerializeField] private string _forgeRelicsHeader;
         [SerializeField] private string _unlockForgeFormat;
         [SerializeField] private string _unlockNeedGoldFormat;
@@ -182,22 +182,21 @@ namespace Cryptforge.Content
         public string RelicTriggeredFormat => Loc.Text("prototype.relic_triggered_format", _relicTriggeredFormat);
         // {0} relic name, {1} times it triggered; listed first in the result build.
         public string ResultRelicFormat => Loc.Text("prototype.result_relic_format", _resultRelicFormat);
-        // {0} profile gold, {1} affordable relic or weapon name.
+        // {0} profile gold, {1} affordable relic name.
         public string ForgeHintReadyFormat => Loc.Text("prototype.forge_hint_ready_format", _forgeHintReadyFormat);
-        // {0} profile gold, {1} cheapest unowned relic or weapon name, {2} its price.
+        // {0} profile gold, {1} cheapest unowned relic name, {2} its price.
         public string ForgeHintNextFormat => Loc.Text("prototype.forge_hint_next_format", _forgeHintNextFormat);
-        // {0} profile gold.
-        public string ForgeHintCompleteFormat => Loc.Text("prototype.forge_hint_complete_format", _forgeHintCompleteFormat);
-        // In its place when the next run's hero carries its own weapon only (Ilya): its rack has nothing to forge while
-        // the Vanguard's may, so only the relics are said to be complete. {0} profile gold.
+        // Every relic forged: the forge sells nothing else since its weapon rack went (docs/63). {0} profile gold.
         public string ForgeHintRelicsCompleteFormat => Loc.Text("prototype.forge_hint_relics_complete_format", _forgeHintRelicsCompleteFormat);
         public string ForgeButtonLabel => Loc.Text("prototype.forge_button_label", _forgeButtonLabel);
         public string ForgeTitle => Loc.Text("prototype.forge_title", _forgeTitle);
         // {0} profile gold, {1} deepest floor cleared.
         public string ForgeStatusFormat => Loc.Text("prototype.forge_status_format", _forgeStatusFormat);
+        // The header over the next run's hero's own weapon (docs/63), and the state line of its card.
         public string ForgeWeaponsHeader => Loc.Text("prototype.forge_weapons_header", _forgeWeaponsHeader);
+        public string ForgeOwnWeaponLabel => Loc.Text("prototype.forge_own_weapon_label", _forgeOwnWeaponLabel);
         public string ForgeRelicsHeader => Loc.Text("prototype.forge_relics_header", _forgeRelicsHeader);
-        // Card states shared by relics and weapons. {0} price.
+        // A relic card's states. {0} price.
         public string UnlockForgeFormat => Loc.Text("prototype.unlock_forge_format", _unlockForgeFormat);
         // {0} price, {1} gold still needed.
         public string UnlockNeedGoldFormat => Loc.Text("prototype.unlock_need_gold_format", _unlockNeedGoldFormat);

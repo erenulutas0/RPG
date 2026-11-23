@@ -17,7 +17,6 @@ MonoBehaviour:
   _role: Holds the front line. Forge Burst blasts every foe close by.
   _maximumHealth: 100
   _startingWeapon: {fileID: 11400000, guid: 10000000000000000000000000000001, type: 2}
-  _startsWithItsOwnWeaponOnly: 1
   _ability: {fileID: 11400000, guid: 10000000000000000000000000000020, type: 2}
   _secondAbility: {fileID: 11400000, guid: 6ecb07b753de48ab958fad471938cbfd, type: 2}
   _thirdAbility: {fileID: 11400000, guid: 48d995461566443e9e4c3b58fcf737f1, type: 2}

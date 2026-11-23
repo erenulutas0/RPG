@@ -120,17 +120,15 @@ namespace Cryptforge.Tests
         }
 
         // The owner, 2026-11-22: the Vanguard always starts with its sword and buckler, as Ilya with its Staff, whatever
-        // weapon an older profile holds equipped; the forge's rack offers it the Sword alone.
+        // weapon an older profile holds equipped; since 2026-11-23 the forge has no weapon rack at all (docs/63).
         [UnityTest]
         public IEnumerator TheVanguardStartsWithItsSwordWhateverTheProfileEquips()
         {
             yield return Load(null, new PlayerProfile(0, null, null, 0, new[] { "weapon_daggers" }, "weapon_daggers"));
             Assert.That(_setup.Hero.Id, Is.EqualTo(HeroLookView.VanguardId));
-            Assert.That(_setup.Hero.StartsWithItsOwnWeaponOnly, Is.True);
+            Assert.That(_setup.Hero.StartingWeapon.Id, Is.EqualTo("weapon_sword"));
             Assert.That(_setup.HeroWeapon.Id, Is.EqualTo("weapon_sword"));
-            Assert.That(_setup.Weapons.OnlyStartingWeapon, Is.True);
-            Assert.That(_setup.Weapons.Equipped.Id, Is.EqualTo("weapon_sword"));
-            Assert.That(_setup.Weapons.NextUnlock, Is.Null, "Nothing on its rack to forge toward.");
+            Assert.That(_setup.NextWeapon.Id, Is.EqualTo("weapon_sword"), "The next run's too.");
             Assert.That(TestProfile.ReadSaved().EquippedWeaponId, Is.EqualTo("weapon_daggers"), "The saved choice is left as it was.");
             Assert.That(_drawn, Is.Not.Null);
             LogAssert.NoUnexpectedReceived();

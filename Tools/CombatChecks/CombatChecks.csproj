@@ -156,6 +156,7 @@
     <Compile Include="../../Assets/_Project/Tests/Support/DescentSimulation.HeroSkills.cs" />
     <!-- docs/62's P0a in the foundry simulation (2026-11-22): the Outworks phase before floor 1's halls, FoundryLevers.Outworks, off by default. -->
     <Compile Include="../../Assets/_Project/Tests/Support/DescentSimulation.Outworks.cs" />
+    <Compile Include="../../Assets/_Project/Tests/Support/DescentSimulation.WeaponRoster.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryHordeTuning.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryBatch.cs" />
     <Compile Include="../../Assets/_Project/Tests/Support/FoundryBatch.FloorTwo.cs" />
@@ -244,6 +245,7 @@
     <!-- docs/57 phase 2 (2026-11-18): the skills in the Descent with every playing cohort, against the shipped kit, on demand;
          its CSV is what Tools/BalanceRule/paired_bootstrap.py reads for docs/56's rule. -->
     <Compile Include="HeroSkillsDescentResearch.cs" />
+    <Compile Include="WeaponRosterResearch.cs" />
     <!-- docs/62's P0a measured (2026-11-22): the Outworks phase against the shipped climb, exploration seeds only. -->
     <Compile Include="OutworksResearch.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/PackTests.cs" />
@@ -261,6 +263,8 @@
     <Compile Include="../../Assets/_Project/Tests/EditMode/RunRandomTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/OfferEngineTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/OfferCategoryTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/FullSlotRuleTests.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/WeaponRosterTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/WeaponEvolutionTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/KillBurstTests.cs" />
     <Compile Include="../../Assets/_Project/Tests/EditMode/CategoryBookTests.cs" />

@@ -14,9 +14,10 @@ namespace Cryptforge.UI
     // offsets relative to the scene's own rects, so they follow the safe area as those rects do.
     //   - The Relic Forge: its surface; a nameplate behind its title; a rule under each section's header; each card's frame
     //     in the state RelicForgeView shows it in (CardShown) and its state strip; a well behind each relic's picture, the
-    //     two dimmed together while the relic is out of reach; a seal on a rule in each place of the weapon rack a hero
-    //     leaves empty (Ilya carries its Staff alone); the start button; and the hero chooser - its plate, a niche round
-    //     its portrait and a pip a hero along its foot, the chosen one lit.
+    //     two dimmed together while the relic is out of reach; the start button; and the hero chooser - its plate, a niche
+    //     round its portrait and a pip a hero along its foot, the chosen one lit. (The weapon rack's empty places, a seal
+    //     on a rule where a hero left a place empty, went with the rack: the forge shows the hero's own weapon alone,
+    //     docs/63.)
     //   - The run result: the ledger's surface; the title's plate and crest, gilded and alight for a victory or an
     //     extraction, cracked and gone cold for a defeat; the divider as a rule; its two buttons.
     //   - The pause: a plate behind its title and hint; its resume button.
@@ -53,12 +54,11 @@ namespace Cryptforge.UI
         [SerializeField] private Text _pauseHint;
         [SerializeField] private Button _resumeButton;
         private Image[] _wells = Array.Empty<Image>();
-        private GameObject[] _emptyPlaces = Array.Empty<GameObject>();
         private readonly List<Image> _headerRules = new List<Image>();
         private readonly List<Image> _pips = new List<Image>();
         private HeroDefinition _pipHero;
         private bool _chooserChecked;
-        private bool _rackChanged;
+        private bool _forgeChanged;
         private bool _subscribed;
 
         public bool UsesPaintedArt { get; private set; }
@@ -74,9 +74,6 @@ namespace Cryptforge.UI
         public Image TitleCrest { get; private set; }
         public Image DividerRule { get; private set; }
         public Image PausePlate { get; private set; }
-
-        // The painted mark in the weapon rack's place slot, shown while that place's card is hidden.
-        public GameObject EmptyPlace(int slot) => slot >= 0 && slot < _emptyPlaces.Length ? _emptyPlaces[slot] : null;
 
         private void Start()
         {
@@ -106,8 +103,8 @@ namespace Cryptforge.UI
                 LateTick();
         }
 
-        // After every Start, so the forge's hero chooser exists; and after the forge has refreshed, so the rack's empty
-        // places and the pips show what the forge now does.
+        // After every Start, so the forge's hero chooser exists; and after the forge has refreshed, so the pips show what
+        // the forge now does.
         private void LateTick()
         {
             if (!_chooserChecked)
@@ -115,15 +112,9 @@ namespace Cryptforge.UI
                 _chooserChecked = true;
                 PaintChooser();
             }
-            if (!_rackChanged)
+            if (!_forgeChanged)
                 return;
-            _rackChanged = false;
-            for (int i = 0; i < _emptyPlaces.Length; i++)
-            {
-                bool empty = _weaponCards[i] != null && !_weaponCards[i].gameObject.activeSelf;
-                if (_emptyPlaces[i] != null && _emptyPlaces[i].activeSelf != empty)
-                    _emptyPlaces[i].SetActive(empty);
-            }
+            _forgeChanged = false;
             ShowPips();
         }
 
@@ -150,16 +141,9 @@ namespace Cryptforge.UI
                 }
             }
             if (_weaponCards != null)
-            {
-                _emptyPlaces = new GameObject[_weaponCards.Length];
-                for (int i = 0; i < _weaponCards.Length; i++)
-                {
-                    if (_weaponCards[i] == null)
-                        continue;
-                    PaintCard(_weaponCards[i]);
-                    _emptyPlaces[i] = MakeEmptyPlace((RectTransform)_weaponCards[i].transform, i);
-                }
-            }
+                foreach (Button card in _weaponCards)
+                    if (card != null)
+                        PaintCard(card);
             if (_relicCards != null)
                 foreach (Button card in _relicCards)
                     if (card != null)
@@ -191,25 +175,6 @@ namespace Cryptforge.UI
                 }
             }
             PaintButton(_startButton, _art.Primary, _art.PrimaryPressed, _art.PrimaryDisabled);
-        }
-
-        // The weapon rack's place slot, painted for when its card is hidden: a seal on a rule across its middle.
-        private GameObject MakeEmptyPlace(RectTransform card, int slot)
-        {
-            var place = new GameObject($"Painted Empty Place {slot + 1}", typeof(RectTransform));
-            place.layer = card.gameObject.layer;
-            var rect = (RectTransform)place.transform;
-            rect.SetParent(card.parent, false);
-            rect.SetSiblingIndex(card.GetSiblingIndex());
-            Around(rect, card, Vector4.zero);
-            float share = _art.EmptySlotRuleShare, height = _art.Rule.rect.height;
-            Image rule = Child("Painted Rule", rect, _art.Rule, Image.Type.Sliced);
-            Stretch(rule.rectTransform, new Vector2(.5f - share / 2f, .5f), new Vector2(.5f + share / 2f, .5f),
-                new Vector2(0f, -height / 2f), new Vector2(0f, height / 2f));
-            Image seal = Child("Painted Seal", rect, _art.Seal, Image.Type.Simple);
-            Centred(seal.rectTransform, _art.Seal.rect.size);
-            place.SetActive(!card.gameObject.activeSelf);
-            return place;
         }
 
         private void PaintChooser()
@@ -334,7 +299,7 @@ namespace Cryptforge.UI
                 _wells[slot].color = tint;
                 _relicPictures[slot].color = tint;
             }
-            _rackChanged = true;
+            _forgeChanged = true;
         }
 
         private void PaintCard(Button card)

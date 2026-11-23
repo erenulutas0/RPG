@@ -60,16 +60,16 @@ namespace Cryptforge.Tests
             Assert.That(CardText(1, "Name Label"), Is.EqualTo("Counterweight"));
             Assert.That(CardText(0, "State Label"), Is.EqualTo("80 gold: need 80 more"));
             Assert.That(Card(0).interactable, Is.False, "An unaffordable relic reads as locked.");
-            Assert.That(Label("Weapons Header"), Is.EqualTo("Weapons: carry one"));
+            Assert.That(Label("Weapons Header"), Is.EqualTo("Weapon: the hero's own"));
             Assert.That(Label("Relics Header"), Is.EqualTo("Relics: equip one"));
             Assert.That(WeaponCardText(0, "Name Label"), Is.EqualTo("Sword"));
-            Assert.That(WeaponCardText(0, "State Label"), Is.EqualTo("Equipped"), "The starting weapon never needs forging.");
-            // The Vanguard is bound to its Sword as Ilya to its Staff (the owner, 2026-11-22): nothing else on its rack.
-            Assert.That(WeaponCard(1).gameObject.activeSelf, Is.False, "No Staff for sale.");
-            Assert.That(WeaponCard(2).gameObject.activeSelf, Is.False, "No Daggers for sale.");
+            Assert.That(WeaponCardText(0, "State Label"), Is.EqualTo("Signature weapon"), "The hero's own weapon, never sold.");
+            // The forge's weapon rack is gone (docs/63, 2026-11-23): every hero starts with its own weapon, so the forge
+            // shows that one card and sells no weapon.
+            Assert.That(NoMoreWeaponCards(), Is.True, "No Staff or Daggers for sale.");
 
             Tap(Card(0));
-            Tap(WeaponCard(1));
+            Tap(WeaponCard(0));
             Assert.That(_setup.Profile.OwnedRelicIds, Is.Empty);
             Assert.That(_setup.Profile.OwnedWeaponIds, Is.Empty);
             // The run's end writes the profile once (docs/58 3.1: the result on disk before any video), even with nothing
@@ -156,17 +156,16 @@ namespace Cryptforge.Tests
             Assert.That(_setup.Run.HasEnded, Is.False);
         }
 
-        // Ilya carries its own Staff and no other weapon (docs/45), so once every relic is forged its rack holds
-        // nothing to forge: the hint says every relic is forged. Since 2026-11-22 the Vanguard is bound to its Sword the
-        // same way, so its rack shows the Sword alone, equipped.
+        // Ilya carries its own Staff (docs/45) and the Vanguard its Sword (since 2026-11-22), and the forge sells no weapon
+        // (docs/63): once every relic is forged the hint says so, and the forge shows the next hero's own weapon alone.
         [UnityTest]
-        public IEnumerator IlyasResultSaysEveryRelicIsForgedAndTheVanguardsRackHoldsItsSwordAlone()
+        public IEnumerator IlyasResultSaysEveryRelicIsForgedAndTheForgeShowsTheVanguardsSwordAlone()
         {
             const string arcanist = "hero_cinder_arcanist";
             yield return LoadGameplay(new PlayerProfile(500, new[] { "relic_second_wind", "relic_counterweight" },
                 null, 0, null, null, new[] { arcanist }, arcanist));
             Assert.That(_setup.Hero.Id, Is.EqualTo(arcanist));
-            Assert.That(_setup.Weapons.NextUnlock, Is.Null, "The Staff alone on its rack, always its own.");
+            Assert.That(_setup.NextWeapon.Id, Is.EqualTo("weapon_staff"), "Its own Staff.");
             _hero.ApplyDamage(new DamageContext(1000f));
             yield return null;
             Assert.That(Label("Forge Hint Label"), Is.EqualTo("Forge gold 500: every relic is forged"));
@@ -176,12 +175,11 @@ namespace Cryptforge.Tests
             Assert.That(_forge.IsOpen, Is.True);
             _forge.HeroChoice.Cycle();
             Assert.That(_setup.Profile.SelectedHeroId, Is.Null, "The Vanguard for the next run.");
-            Assert.That(_setup.Weapons.NextUnlock, Is.Null, "The Vanguard's Sword alone, always its own.");
+            Assert.That(_setup.NextWeapon.Id, Is.EqualTo("weapon_sword"), "The Vanguard's Sword, always its own.");
             Assert.That(WeaponCard(0).gameObject.activeSelf, Is.True);
             Assert.That(WeaponCardText(0, "Name Label"), Is.EqualTo("Sword"));
-            Assert.That(WeaponCardText(0, "State Label"), Is.EqualTo("Equipped"));
-            Assert.That(WeaponCard(1).gameObject.activeSelf, Is.False, "The Staff is not the Vanguard's to forge.");
-            Assert.That(WeaponCard(2).gameObject.activeSelf, Is.False);
+            Assert.That(WeaponCardText(0, "State Label"), Is.EqualTo("Signature weapon"));
+            Assert.That(NoMoreWeaponCards(), Is.True, "The Staff is not the Vanguard's, and nothing is for sale.");
             LogAssert.NoUnexpectedReceived();
         }
 
@@ -231,10 +229,10 @@ namespace Cryptforge.Tests
         }
 
         // Before 2026-11-22 the Vanguard's rack sold the Staff and the Daggers and the next run carried what it forged.
-        // The Vanguard is bound to its Sword since (the owner): its rack shows the Sword alone, a tap on a hidden card forges
-        // nothing, and the next run carries the Sword.
+        // The Vanguard is bound to its Sword since (the owner), and the rack is gone since 2026-11-23 (docs/63): the forge
+        // shows the Sword, read only, a tap on it changes nothing, and the next run carries the Sword.
         [UnityTest]
-        public IEnumerator TheVanguardsRackOffersItsSwordAloneAndTheNextRunCarriesIt()
+        public IEnumerator TheForgeShowsTheVanguardsSwordSellsNoWeaponAndTheNextRunCarriesIt()
         {
             // Decimals follow the current culture, as on the device.
             yield return LoadGameplay(new PlayerProfile(150, null, null, 1));
@@ -246,11 +244,10 @@ namespace Cryptforge.Tests
             yield return new WaitForSecondsRealtime(0.4f);
 
             Assert.That(WeaponCardText(0, "Description Label"), Is.EqualTo("10 damage every 0.8s. Cleaves a second enemy for 60%"));
-            Assert.That(WeaponCardText(0, "State Label"), Is.EqualTo("Equipped"));
-            Assert.That(WeaponCard(1).gameObject.activeSelf, Is.False);
-            Assert.That(WeaponCard(2).gameObject.activeSelf, Is.False);
-            Tap(WeaponCard(1));
-            Tap(WeaponCard(1));
+            Assert.That(WeaponCardText(0, "State Label"), Is.EqualTo("Signature weapon"));
+            Assert.That(NoMoreWeaponCards(), Is.True);
+            Tap(WeaponCard(0));
+            Tap(WeaponCard(0));
             Assert.That(_setup.Profile.Gold, Is.EqualTo(150), "Nothing forged.");
             Assert.That(_setup.Profile.OwnedWeaponIds, Is.Empty);
             Assert.That(_setup.Profile.EquippedWeaponId, Is.Null);
@@ -396,7 +393,9 @@ namespace Cryptforge.Tests
                 }
 
                 spans.Sort((a, b) => a.Bottom.CompareTo(b.Bottom));
-                Assert.That(spans.Count, Is.EqualTo(10));
+                // The title, the status, the weapon's header and its one card (the rack's other two places went with it,
+                // docs/63), the relics' header and two cards, and the start button.
+                Assert.That(spans.Count, Is.EqualTo(8));
                 Assert.That(chooser, Is.Not.Null, "Two heroes: the start row carries the hero chooser.");
                 var start = safeArea.Find("Start Run Button").GetComponent<RectTransform>();
                 var chooserCorners = new Vector3[4];
@@ -507,6 +506,11 @@ namespace Cryptforge.Tests
 
         private Button WeaponCard(int index) =>
             _forge.transform.Find($"Forge Panel/Safe Area/Weapon Card {index + 1}").GetComponent<Button>();
+
+        // The rack's other places are gone from the scene with it (docs/63): one weapon card, the hero's own.
+        private bool NoMoreWeaponCards() =>
+            _forge.transform.Find("Forge Panel/Safe Area/Weapon Card 2") == null &&
+            _forge.transform.Find("Forge Panel/Safe Area/Weapon Card 3") == null;
 
         private string WeaponCardText(int index, string label) => WeaponCard(index).transform.Find(label).GetComponent<Text>().text;
 

@@ -52,11 +52,10 @@ MonoBehaviour:
   _resultRelicFormat: '{0} ({1}x)'
   _forgeHintReadyFormat: 'Forge gold {0}: {1} is ready to forge'
   _forgeHintNextFormat: 'Forge gold {0}: {1} costs {2}'
-  _forgeHintCompleteFormat: 'Forge gold {0}: everything is forged'
   _forgeButtonLabel: Relic Forge
   _forgeTitle: Relic Forge
   _forgeStatusFormat: 'Gold {0}  |  Highest floor cleared: {1}'
-  _forgeWeaponsHeader: 'Weapons: carry one'
+  _forgeWeaponsHeader: 'Weapon: the hero''s own'
   _forgeRelicsHeader: 'Relics: equip one'
   _unlockForgeFormat: Forge for {0} gold
   _unlockNeedGoldFormat: '{0} gold: need {1} more'

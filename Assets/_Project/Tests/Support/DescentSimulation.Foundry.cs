@@ -1505,7 +1505,8 @@ namespace Cryptforge.Tests
                 weapon.Seed = seed;
                 _loadout = new WeaponLoadout(seed);
                 _loadout.TryAdd(first.Id, weapon);
-                HeroWeapon[] catalogue = WeaponCatalogue();
+                // The shipped catalogue, or docs/63's roster (FoundryLevers.WeaponRoster, off by default).
+                HeroWeapon[] catalogue = CatalogueFor(first.Id, levers);
                 var cards = new WeaponCard[catalogue.Length];
                 for (int i = 0; i < cards.Length; i++)
                     cards[i] = FoundrySword(catalogue[i], levers).CreateCard();

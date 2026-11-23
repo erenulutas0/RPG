@@ -1004,29 +1004,24 @@ namespace Cryptforge.Tests
 
             RelicOption secondWind = scene.Relics.Relics[0];
             RelicOption counterweight = scene.Relics.Relics[1];
-            WeaponOption sword = scene.Weapons.Weapons[0];
-            WeaponOption axe = scene.Weapons.Weapons[1];
             Assert.That(scene.Relics.TrySelect(counterweight), Is.False, "Unaffordable.");
             Assert.That(scene.Relics.TrySelect(secondWind), Is.True);
             Assert.That(scene.Relics.TrySelect(secondWind), Is.False, "Already equipped.");
-            Assert.That(scene.Weapons.TrySelect(axe), Is.True);
-            Assert.That(scene.Weapons.TrySelect(sword), Is.True, "Back to the starting weapon, which costs nothing.");
-            Assert.That(scene.Weapons.TrySelect(axe), Is.True, "Equipping an owned weapon spends nothing.");
+            Assert.That(scene.Relics.TrySelect(counterweight), Is.False, "Still unaffordable: 60 of 120 left.");
 
             List<Line> lines = telemetry.Lines();
             AssertLogShape(lines);
+            // The forge sells relics alone since its weapon rack went (docs/63): no "weapon" spend is ever logged.
             List<Line> spent = All(lines, "currency_spent");
-            Assert.That(spent.Count, Is.EqualTo(2));
+            Assert.That(spent.Count, Is.EqualTo(1));
             Assert.That(spent[0].Keys, Is.EqualTo(new[]
             {
                 "v", "seq", "t", "st", "session", "event", "currency", "sink", "item_id", "amount"
             }), "A purchase after the run carries no run id.");
-            Assert.That((spent[0].Text("currency"), spent[0].Text("sink"), spent[0].Text("item_id"), spent[0].Integer("amount")),
-                Is.EqualTo(("forge_gold", "relic", "relic_second_wind", 60L)));
-            Assert.That((spent[1].Has("run"), spent[1].Text("sink"), spent[1].Text("item_id"), spent[1].Integer("amount")),
-                Is.EqualTo((false, "weapon", "weapon_axe", 40L)));
+            Assert.That((spent[0].Has("run"), spent[0].Text("currency"), spent[0].Text("sink"), spent[0].Text("item_id"),
+                    spent[0].Integer("amount")), Is.EqualTo((false, "forge_gold", "relic", "relic_second_wind", 60L)));
             Assert.That(lines.IndexOf(spent[0]), Is.GreaterThan(lines.IndexOf(Single(lines, "run_end"))));
-            Assert.That(scene.Profile.Gold, Is.EqualTo(20));
+            Assert.That(scene.Profile.Gold, Is.EqualTo(60));
         }
 
         // docs/54 section 12: each drop as loot_dropped; the materials the run banked as currency_earned lines just before
@@ -1326,7 +1321,6 @@ namespace Cryptforge.Tests
             var recorder = new RunTelemetry(Mutated(scene, telemetry, c =>
             {
                 c.Relics = null;
-                c.Weapons = null;
                 c.RelicId = "relic_second_wind";
             }));
             scene.Kill("enemy_grunt", 10, 3);
@@ -1628,7 +1622,6 @@ namespace Cryptforge.Tests
             public readonly FakeHero Hero = new FakeHero(100f);
             public readonly PlayerProfile Profile = new PlayerProfile(100, null, null, 0);
             public readonly RelicShop Relics;
-            public readonly WeaponShop Weapons;
             public readonly RewardService Rewards;
             public readonly RunBank Bank;
             // docs/54: the run's loot (no items in this scene) and the Anvil, wired as CombatSetup wires them.
@@ -1655,8 +1648,6 @@ namespace Cryptforge.Tests
                     new RelicOption("relic_second_wind", "Second Wind", "{0:0}% below {1:0}%", RelicEffect.SecondWind, 0.3f, 0.25f, 60),
                     new RelicOption("relic_counterweight", "Counterweight", "{0:0}%", RelicEffect.CounterStrike, 0.5f, 0f, 500)
                 });
-                var sword = new WeaponOption("weapon_sword", "Sword", string.Empty, 0);
-                Weapons = new WeaponShop(Profile, new[] { sword, new WeaponOption("weapon_axe", "Axe", string.Empty, 40) }, sword);
                 Rewards = new RewardService(Run);
                 Loot = new RunLoot(Run, new ItemTemplate[0], false);
                 Bank = new RunBank(Run, Profile, Loot);
@@ -1698,11 +1689,10 @@ namespace Cryptforge.Tests
                     Forge = Forge,
                     Checkpoint = Checkpoint,
                     Relics = Relics,
-                    Weapons = Weapons,
                     Loot = Loot,
                     Anvil = Anvil,
                     HeroId = "hero_vanguard",
-                    WeaponId = Weapons.Equipped.Id,
+                    WeaponId = "weapon_sword",
                     RelicId = Relics.Equipped?.Id,
                     AbilityId = "ability_forge_burst",
                     ForgeGold = Profile.Gold,

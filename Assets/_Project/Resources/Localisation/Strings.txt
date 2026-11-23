@@ -69,14 +69,14 @@ prototype.restart_label	Try again	Tekrar dene	Result button.
 prototype.relic_format	Relic: {0}	Kalıntı: {0}	HUD relic badge.
 prototype.relic_triggered_format	Relic: {0} ({1}x)	Kalıntı: {0} ({1}x)	{1} times it triggered.
 prototype.result_relic_format	{0} ({1}x)	{0} ({1}x)	Result build line.
-prototype.forge_hint_ready_format	Forge gold {0}: {1} is ready to forge	Ocak altını {0}: {1} dövülmeye hazır	Result. {0} profile gold, {1} relic or weapon.
+prototype.forge_hint_ready_format	Forge gold {0}: {1} is ready to forge	Ocak altını {0}: {1} dövülmeye hazır	Result. {0} profile gold, {1} relic.
 prototype.forge_hint_next_format	Forge gold {0}: {1} costs {2}	Ocak altını {0}: {1} için {2} gerekli	{1} cheapest unowned item, {2} its price.
-prototype.forge_hint_complete_format	Forge gold {0}: everything is forged	Ocak altını {0}: her şey dövüldü	Result.
-prototype.forge_hint_relics_complete_format	Forge gold {0}: every relic is forged	Ocak altını {0}: tüm kalıntılar dövüldü	Result.
+prototype.forge_hint_relics_complete_format	Forge gold {0}: every relic is forged	Ocak altını {0}: tüm kalıntılar dövüldü	Result: the forge sells relics alone (docs/63).
 prototype.forge_button_label	Relic Forge	Kalıntı Ocağı	Result button opening the forge.
 prototype.forge_title	Relic Forge	Kalıntı Ocağı	Forge nameplate, 600 px.
 prototype.forge_status_format	Gold {0}  |  Highest floor cleared: {1}	Altın {0}  |  En yüksek temizlenen kat: {1}	Forge. {0} gold, {1} highest floor cleared.
-prototype.forge_weapons_header	Weapons: carry one	Silahlar: birini taşı	Forge header.
+prototype.forge_weapons_header	Weapon: the hero's own	Silah: kahramanın kendi silahı	Forge header over the next hero's own weapon (docs/63).
+prototype.forge_own_weapon_label	Signature weapon	İmza silahı	Forge: the state line of the hero's own weapon card, read only (docs/63).
 prototype.forge_relics_header	Relics: equip one	Kalıntılar: birini kuşan	Forge header.
 prototype.unlock_forge_format	Forge for {0} gold	{0} altına döv	Forge card state. {0} price.
 prototype.unlock_need_gold_format	{0} gold: need {1} more	{0} altın: {1} daha gerekli	{0} price, {1} gold still needed.
@@ -291,6 +291,22 @@ line_daggers_crit.name	Daggers	Hançerler	Weapon line card.
 line_daggers_crit.description	+{0:0.#%} crit chance	+{0:%0.#} kritik şansı	"%0.#" puts the sign first: +%2,5.
 line_daggers_damage.name	Daggers	Hançerler	Weapon line card.
 line_daggers_damage.description	+{0:0.##} damage	+{0:0.##} hasar	
+weapon_magma_mortar.name	Magma Mortar	Magma Havanı	Shared weapon behind the weapon roster's lever (docs/63); badge "Mag". The owner may prefer another name.
+weapon_magma_mortar.description	{0:0} damage every {1:0.0#}s from afar. Its blast hits every enemy near the target for {2:0}%	Her {1:0.0#} sn'de uzaktan {0:0} hasar. Patlaması hedefin yakınındaki her düşmana %{2:0} vurur	{2} blast percent (100).
+weapon_forge_bow.name	Forge Bow	Ocak Yayı	Shared weapon behind the weapon roster's lever (docs/63); badge "For".
+weapon_forge_bow.description	{0:0} damage every {1:0.0#}s at the longest reach. Crits for {3:0}% once every {4} shots	Her {1:0.0#} sn'de en uzak menzilden {0:0} hasar. Her {4} atışta bir %{3:0} kritik	{3} crit percent, {4} shots.
+line_magma_mortar_area.name	Magma Mortar	Magma Havanı	Weapon line card.
+line_magma_mortar_area.description	+{0:0.#}% area	+%{0:0.#} alan	
+line_magma_mortar_attack_speed.name	Magma Mortar	Magma Havanı	Weapon line card.
+line_magma_mortar_attack_speed.description	+{0:0.#}% attack speed	+%{0:0.#} saldırı hızı	
+line_magma_mortar_damage.name	Magma Mortar	Magma Havanı	Weapon line card.
+line_magma_mortar_damage.description	+{0:0.##} damage	+{0:0.##} hasar	
+line_forge_bow_crit.name	Forge Bow	Ocak Yayı	Weapon line card.
+line_forge_bow_crit.description	+{0:0.#%} crit chance	+{0:%0.#} kritik şansı	"%0.#" puts the sign first: +%7.
+line_forge_bow_damage.name	Forge Bow	Ocak Yayı	Weapon line card.
+line_forge_bow_damage.description	+{0:0.##} damage	+{0:0.##} hasar	
+line_forge_bow_range.name	Forge Bow	Ocak Yayı	Weapon line card.
+line_forge_bow_range.description	+{0:0.0#} reach	+{0:0.0#} menzil	
 
 # ---- Level-up cards, evolutions and tomes
 upgrade_armor.name	Iron Skin	Demir Deri	Card.

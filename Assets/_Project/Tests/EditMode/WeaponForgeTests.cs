@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Cryptforge.Core;
 using Cryptforge.Progression;
 using Cryptforge.Save;
@@ -7,166 +6,59 @@ using NUnit.Framework;
 
 namespace Cryptforge.Tests
 {
+    // The Relic Forge's weapon rack is gone (docs/63, 2026-11-23): every hero starts with its own weapon - Ilya its Staff
+    // since 2026-10-29, the Vanguard its Sword since 2026-11-22 - so the rack had nothing left to sell. What it recorded
+    // stays in the profile and its save, read by no run; and the hero it unlocked stays reachable.
     public sealed class WeaponForgeTests
     {
-        // Mirror the forge prices in Data/Weapons/Weapon_Sword.asset, Weapon_Staff.asset and Weapon_Daggers.asset.
-        internal static WeaponOption Sword() => new WeaponOption("weapon_sword", "Sword", "", 0);
-        internal static WeaponOption Staff() => new WeaponOption("weapon_staff", "Staff", "", 120);
-        internal static WeaponOption Daggers() => new WeaponOption("weapon_daggers", "Daggers", "", 180);
-
         [Test]
-        public void ProfileForgesAndEquipsWeaponsWithoutTouchingRelics()
+        public void TheForgeSellsNoWeapon()
         {
-            var profile = new PlayerProfile(200, new[] { "relic_second_wind" }, "relic_second_wind", 1);
-            int changes = 0;
-            profile.Changed += () => changes++;
+            Assert.That(typeof(UpgradeService).Assembly.GetType("Cryptforge.Progression.WeaponShop"), Is.Null,
+                "No weapon rack: the forge's shop is the relics' alone.");
+            foreach (string name in new[] { "TryForgeWeapon", "EquipWeapon", "UnequipWeapon" })
+                Assert.That(typeof(PlayerProfile).GetMethod(name), Is.Null, name + ": nothing buys or equips a weapon now.");
 
-            Assert.That(profile.TryForgeWeapon("weapon_daggers", 250), Is.False);
-            Assert.That(profile.TryForgeWeapon("weapon_staff", 120), Is.True);
-            Assert.That(profile.TryForgeWeapon("weapon_staff", 120), Is.False, "A weapon is forged once.");
-            Assert.That(profile.Gold, Is.EqualTo(80));
-            Assert.That(profile.OwnedWeaponIds, Is.EqualTo(new[] { "weapon_staff" }));
-            Assert.That(profile.EquippedWeaponId, Is.EqualTo("weapon_staff"), "Forging equips the new weapon.");
-            Assert.That(profile.EquippedRelicId, Is.EqualTo("relic_second_wind"), "Weapons and relics are separate slots.");
-            Assert.That(profile.OwnsWeapon("relic_second_wind"), Is.False);
-
-            Assert.That(profile.EquipWeapon("weapon_daggers"), Is.False, "Only owned weapons can be equipped.");
-            Assert.That(profile.UnequipWeapon(), Is.True);
+            var profile = new PlayerProfile(500, null, null, 1);
+            Assert.That(profile.TryForgeRelic("relic_second_wind", 80), Is.True, "The relics are still forged.");
+            Assert.That(profile.OwnedWeaponIds, Is.Empty);
             Assert.That(profile.EquippedWeaponId, Is.Null);
-            Assert.That(profile.UnequipWeapon(), Is.False);
-            Assert.That(profile.EquipWeapon("weapon_staff"), Is.True);
-            Assert.That(profile.EquipWeapon("weapon_staff"), Is.False);
-            Assert.That(changes, Is.EqualTo(3), "One change per forge, unequip and equip, so each is saved once.");
-            Assert.Throws<ArgumentException>(() => profile.TryForgeWeapon("", 10));
-            Assert.Throws<ArgumentOutOfRangeException>(() => profile.TryForgeWeapon("weapon_x", -1));
+        }
 
+        // The rack's record is restored as it always was (duplicates dropped, an unowned weapon unequipped) and never lost:
+        // the save keeps the ids and the version (no migration needed, docs/63 section 5).
+        [Test]
+        public void ARestoredProfileKeepsWhatTheRetiredRackRecorded()
+        {
             var restored = new PlayerProfile(0, null, null, 0, new[] { "weapon_staff", "weapon_staff", null }, "weapon_daggers");
             Assert.That(restored.OwnedWeaponIds, Is.EqualTo(new[] { "weapon_staff" }));
             Assert.That(restored.EquippedWeaponId, Is.Null, "An unowned weapon cannot stay equipped.");
+
+            var kept = new PlayerProfile(0, null, null, 0, new[] { "weapon_daggers" }, "weapon_daggers");
+            Assert.That(kept.OwnsWeapon("weapon_daggers"), Is.True);
+            Assert.That(kept.EquippedWeaponId, Is.EqualTo("weapon_daggers"), "Kept, though no run reads it.");
+            Assert.That(kept.OwnsWeapon("relic_second_wind"), Is.False);
         }
 
         [Test]
-        public void ShopKeepsTheStartingWeaponOwnedAndForgesTheRest()
+        public void AWeaponsTextAndIdAreStillChecked()
         {
-            var profile = new PlayerProfile(150, null, null, 0);
-            WeaponOption sword = Sword();
-            WeaponOption staff = Staff();
-            WeaponOption daggers = Daggers();
-            var shop = new WeaponShop(profile, new[] { sword, staff, daggers }, sword);
-
-            Assert.That(shop.Equipped, Is.SameAs(sword));
-            Assert.That(shop.StatusOf(sword), Is.EqualTo(UnlockStatus.Equipped));
-            Assert.That(shop.StatusOf(staff), Is.EqualTo(UnlockStatus.Affordable));
-            Assert.That(shop.StatusOf(daggers), Is.EqualTo(UnlockStatus.TooExpensive));
-            Assert.That(shop.GoldNeededFor(daggers), Is.EqualTo(30));
-            Assert.That(shop.NextUnlock, Is.SameAs(staff), "The starting weapon is never an unlock.");
-            Assert.That(shop.TrySelect(sword), Is.False, "Tapping the carried weapon changes nothing.");
-            Assert.That(shop.TrySelect(daggers), Is.False);
-
-            Assert.That(shop.TrySelect(staff), Is.True);
-            Assert.That(profile.Gold, Is.EqualTo(30));
-            Assert.That(shop.Equipped, Is.SameAs(staff));
-            Assert.That(shop.StatusOf(sword), Is.EqualTo(UnlockStatus.Owned));
-            Assert.That(shop.GoldNeededFor(sword), Is.Zero);
-            Assert.That(shop.NextUnlock, Is.SameAs(daggers));
-
-            Assert.That(shop.TrySelect(sword), Is.True);
-            Assert.That(profile.EquippedWeaponId, Is.Null, "Returning to the starting weapon stores no id.");
-            Assert.That(profile.OwnedWeaponIds, Is.EqualTo(new[] { "weapon_staff" }));
-            Assert.That(shop.TrySelect(staff), Is.True, "An owned weapon is equipped again for free.");
-            Assert.That(profile.Gold, Is.EqualTo(30));
-
-            profile.Deposit(150);
-            Assert.That(shop.TrySelect(daggers), Is.True);
-            Assert.That(profile.Gold, Is.Zero);
-            Assert.That(shop.NextUnlock, Is.Null);
-        }
-
-        // Ilya starts with its own Staff and no other weapon the forge sells (the owner, 2026-10-29): the rack offers that
-        // one alone and carries it whatever the profile equips, and the profile's choice is the Vanguard's again after.
-        [Test]
-        public void AHeroThatStartsWithItsOwnWeaponOnlyIsOfferedItAlone()
-        {
-            var profile = new PlayerProfile(500, null, null, 0, new[] { "weapon_daggers" }, "weapon_daggers");
-            WeaponOption sword = Sword();
-            WeaponOption staff = Staff();
-            WeaponOption daggers = Daggers();
-            var shop = new WeaponShop(profile, new[] { sword, staff, daggers }, staff, true);
-
-            Assert.That(shop.OnlyStartingWeapon, Is.True);
-            Assert.That(shop.Equipped, Is.SameAs(staff), "Its own weapon, whatever the profile equips.");
-            Assert.That(shop.IsOffered(staff), Is.True);
-            Assert.That(shop.IsOffered(sword), Is.False, "Not another hero's weapon, free or not.");
-            Assert.That(shop.IsOffered(daggers), Is.False);
-            Assert.That(shop.NextUnlock, Is.Null, "Nothing to forge toward.");
-            Assert.That(shop.TrySelect(sword), Is.False);
-            Assert.That(shop.TrySelect(daggers), Is.False);
-            Assert.That(profile.Gold, Is.EqualTo(500), "Nothing is bought.");
-            Assert.That(profile.EquippedWeaponId, Is.EqualTo("weapon_daggers"), "The other heroes' choice stands.");
-
-            Assert.That(shop.SetStartingWeapon(sword), Is.True, "The Vanguard is chosen again.");
-            Assert.That(shop.OnlyStartingWeapon, Is.False);
-            Assert.That(shop.Equipped, Is.SameAs(daggers), "And carries the profile's weapon again.");
-            Assert.That(shop.IsOffered(staff) && shop.IsOffered(sword) && shop.IsOffered(daggers), Is.True);
-            Assert.That(shop.SetStartingWeapon(staff, true), Is.True);
-            Assert.That(shop.SetStartingWeapon(staff, true), Is.False, "Nothing changed.");
-            Assert.That(shop.Equipped, Is.SameAs(staff));
-        }
-
-        [Test]
-        public void ShopReportsForgedOnlyForPurchasesTheProfileAccepted()
-        {
-            var profile = new PlayerProfile(150, null, null, 0);
-            WeaponOption sword = Sword();
-            WeaponOption staff = Staff();
-            WeaponOption daggers = Daggers();
-            var shop = new WeaponShop(profile, new[] { sword, staff, daggers }, sword);
-            var forged = new List<WeaponOption>();
-            var goldSeenByForged = new List<int>();
-            bool ownedAndEquippedWhenForged = true;
-            shop.Forged += weapon =>
-            {
-                forged.Add(weapon);
-                goldSeenByForged.Add(profile.Gold);
-                ownedAndEquippedWhenForged &= profile.OwnsWeapon(weapon.Id) && profile.EquippedWeaponId == weapon.Id;
-            };
-
-            Assert.That(shop.TrySelect(sword), Is.False, "Tapping the carried starting weapon is not a purchase.");
-            Assert.That(shop.TrySelect(daggers), Is.False, "An unaffordable weapon is not a purchase.");
-            Assert.That(forged, Is.Empty);
-
-            Assert.That(shop.TrySelect(staff), Is.True);
-            Assert.That(forged, Is.EqualTo(new[] { staff }));
-            Assert.That(goldSeenByForged, Is.EqualTo(new[] { 30 }), "Forged follows the accepted spend.");
-
-            Assert.That(shop.TrySelect(sword), Is.True, "Returning to the starting weapon is not a purchase.");
-            Assert.That(shop.TrySelect(staff), Is.True, "Equipping an owned weapon is not a purchase.");
-            Assert.That(shop.TrySelect(staff), Is.False);
-            Assert.That(forged, Has.Count.EqualTo(1));
-
-            profile.Deposit(150);
-            Assert.That(shop.TrySelect(daggers), Is.True);
-            Assert.That(shop.TrySelect(daggers), Is.False);
-
-            Assert.That(forged, Is.EqualTo(new[] { staff, daggers }));
-            Assert.That(goldSeenByForged, Is.EqualTo(new[] { 30, 0 }));
-            Assert.That(ownedAndEquippedWhenForged, Is.True);
-        }
-
-        [Test]
-        public void ShopRejectsBadCatalogsAndIgnoresUnknownSavedWeapons()
-        {
-            WeaponOption sword = Sword();
-            Assert.Throws<ArgumentException>(() => new WeaponShop(new PlayerProfile(), new[] { sword, Sword() }, sword));
-            Assert.Throws<ArgumentException>(() => new WeaponShop(new PlayerProfile(), new[] { sword, null }, sword));
-            Assert.Throws<ArgumentException>(() => new WeaponShop(new PlayerProfile(), new[] { sword }, Staff()), "The starting weapon must be listed.");
+            // WeaponOption stays: a weapon's card text is its forge description (WeaponDefinition.CreateForgeOption).
             Assert.Throws<ArgumentException>(() => new WeaponOption("", "", "", 0));
             Assert.Throws<ArgumentOutOfRangeException>(() => new WeaponOption("weapon_x", "", "", -1));
+            Assert.That(new WeaponOption("weapon_sword", "Sword", "10 damage", 0).Description, Is.EqualTo("10 damage"));
+        }
 
-            var saved = new PlayerProfile(0, null, null, 0, new[] { "weapon_removed" }, "weapon_removed");
-            var shop = new WeaponShop(saved, new[] { sword, Staff() }, sword);
-            Assert.That(shop.Equipped, Is.SameAs(sword), "A saved weapon this build no longer sells falls back to the starting weapon.");
-            Assert.Throws<ArgumentException>(() => shop.StatusOf(Staff()), "Only the shop's own instances are accepted.");
+        // Ilya's unlock, "Clear The Foundry with the Staff" (docs/45): the Staff carried through it - with today's catalogue
+        // the Vanguard can take it as a card - or, where the run's cards could never hand it over (the weapon roster keeps a
+        // hero's own weapon to that hero, docs/63 section 6), the clear alone.
+        [Test]
+        public void TheArcanistUnlocksWithTheStaffOrWhereNoCardCouldHandItOver()
+        {
+            Assert.That(HeroUnlock.UnlocksOnFoundryClear(true, true), Is.True, "The Staff carried, from the start or a card.");
+            Assert.That(HeroUnlock.UnlocksOnFoundryClear(false, true), Is.False, "The Staff could have come and did not.");
+            Assert.That(HeroUnlock.UnlocksOnFoundryClear(false, false), Is.True, "Under the roster no card hands it over.");
+            Assert.That(HeroUnlock.UnlocksOnFoundryClear(true, false), Is.True);
         }
 
         [Test]
@@ -185,7 +77,7 @@ namespace Cryptforge.Tests
             ProfileSaveData upgraded = ProfileMigration.Upgrade(versionOne);
 
             Assert.That(ProfileSaveData.CurrentVersion, Is.EqualTo(6),
-                "Version 6 added the heroes' forged skills (docs/57 phase 4) on top of version 5's difficulty tiers, version 4's gear, version 3's heroes and version 2's weapons.");
+                "Version 6 added the heroes' forged skills (docs/57 phase 4) on top of version 5's difficulty tiers, version 4's gear, version 3's heroes and version 2's weapons; the rack's going needed none (docs/63).");
             Assert.That(upgraded.heroSkills, Is.Empty, "Nothing is forged before version 6.");
             Assert.That(upgraded.saveVersion, Is.EqualTo(ProfileSaveData.CurrentVersion));
             Assert.That(upgraded.ownedWeaponIds, Is.Empty);

@@ -21,10 +21,10 @@ namespace Cryptforge.Content
         // What the hero does, in one line, on the map choice's hero card (MapChoiceView): "Every hit burns...".
         [SerializeField] private string _role;
         [SerializeField, Min(1f)] private float _maximumHealth;
+        // The hero's own weapon (docs/63, its signature weapon): every run starts with it - Ilya's crucible Staff since
+        // 2026-10-29, the Vanguard's Sword since 2026-11-22, and the forge sells no other since 2026-11-23. In the run it may
+        // still take any weapon a card offers; under the weapon roster another hero's own weapon is never one of them.
         [SerializeField] private WeaponDefinition _startingWeapon;
-        // The hero starts every run with its own weapon and no other the forge sells (Ilya and its crucible Staff, the
-        // owner 2026-10-29); in the run it may still take any weapon a card offers.
-        [SerializeField] private bool _startsWithItsOwnWeaponOnly;
         // The active ability the hero fires by touch.
         [SerializeField] private AbilityDefinition _ability;
         // docs/57's skills 2 and 3 (the owner's answers 2026-11-18): the Vanguard's Iron Resolve and Shield Rush, Ilya's
@@ -54,7 +54,6 @@ namespace Cryptforge.Content
         public string Role => _role ?? string.Empty;
         public float MaximumHealth => _maximumHealth;
         public WeaponDefinition StartingWeapon => _startingWeapon;
-        public bool StartsWithItsOwnWeaponOnly => _startsWithItsOwnWeaponOnly;
         public AbilityDefinition Ability => _ability;
         // The hero's skill in slot 1 (Ability), 2 or 3; null for an empty slot or any other number.
         public AbilityDefinition SkillAt(int slot) =>

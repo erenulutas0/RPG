@@ -12,6 +12,9 @@ namespace Cryptforge.Tests
     public sealed class WeaponContentTests
     {
         private static readonly string[] HeroWeapons = { "Sword", "Staff", "Daggers" };
+        // docs/63's shared weapons, behind the weapon roster's lever: lines and bases, no evolution yet.
+        private static readonly string[] RosterWeapons = { "MagmaMortar", "ForgeBow" };
+        private static readonly string[] AllHeroWeapons = { "Sword", "Staff", "Daggers", "MagmaMortar", "ForgeBow" };
         private static readonly string[] TomeAssets = { "Tome_Force", "Tome_Tempo", "Tome_Reach", "Tome_Precision", "Tome_Vitality" };
 
         private static WeaponDefinition Weapon(string name)
@@ -25,6 +28,8 @@ namespace Cryptforge.Tests
         {
             "Sword" => DescentSimulation.Sword(),
             "Staff" => DescentSimulation.Staff(),
+            "MagmaMortar" => DescentSimulation.MagmaMortar(),
+            "ForgeBow" => DescentSimulation.ForgeBow(),
             _ => DescentSimulation.Daggers()
         };
 
@@ -47,7 +52,7 @@ namespace Cryptforge.Tests
         [Test]
         public void TheSimulationsWeaponLinesAreTheAssets()
         {
-            foreach (string name in HeroWeapons)
+            foreach (string name in AllHeroWeapons)
             {
                 WeaponCard asset = Weapon(name).CreateCard();
                 WeaponCard simulated = Simulated(name).CreateCard();
@@ -64,7 +69,7 @@ namespace Cryptforge.Tests
         [Test]
         public void TheSimulationsCategoryBasesAreTheAssets()
         {
-            foreach (string name in HeroWeapons)
+            foreach (string name in AllHeroWeapons)
             {
                 Assert.That(Simulated(name).CreateCategoryRuntime().Damage, Is.EqualTo(Weapon(name).CategoryDamage), name);
                 Assert.That(Simulated(name).CreateCategoryRuntime().Interval, Is.EqualTo(Weapon(name).CategoryInterval), name);
@@ -80,7 +85,7 @@ namespace Cryptforge.Tests
         public void TheWardensWeaponIsTheSwordAsset()
         {
             Assert.That(Weapon("Sword").Id, Is.EqualTo(Cryptforge.Combat.WardenRule.SwordId));
-            foreach (string name in HeroWeapons)
+            foreach (string name in AllHeroWeapons)
                 Assert.That(Cryptforge.Combat.WardenRule.GateBossShareOf(Weapon(name).Id),
                     Is.EqualTo(name == "Sword" ? Cryptforge.Combat.WardenRule.SwordShare : 1f), name);
         }
@@ -92,7 +97,7 @@ namespace Cryptforge.Tests
         public void TheElitesWeaponIsTheDaggersAsset()
         {
             Assert.That(Weapon("Daggers").Id, Is.EqualTo(Cryptforge.Combat.EliteRule.DaggersId));
-            foreach (string name in HeroWeapons)
+            foreach (string name in AllHeroWeapons)
             {
                 Assert.That(Cryptforge.Combat.EliteRule.EliteShareOf(Weapon(name).Id),
                     Is.EqualTo(name == "Daggers" ? Cryptforge.Combat.EliteRule.DaggersShare : 1f), name);
@@ -213,7 +218,37 @@ namespace Cryptforge.Tests
                     lines++;
                 }
             }
-            Assert.That(lines, Is.EqualTo(9), "Three lines on each of the Sword, the Staff and the Daggers.");
+            Assert.That(lines, Is.EqualTo(15),
+                "Three lines on each of the Sword, the Staff, the Daggers, the Magma Mortar and the Forge Bow.");
+        }
+
+        // docs/63's two shared weapons as the simulation plays them (DescentSimulation.MagmaMortar, ForgeBow): the same
+        // attack, reach and cadence, one base for the legacy engine and the category mode (they have no legacy role), no
+        // evolution yet, and the ids WeaponRoster names. The roster's weapon list in the scene is CombatSetup's
+        // _rosterWeapons (FoundrySimulationSceneValueTests).
+        [Test]
+        public void TheRostersSharedWeaponsAreTheSimulations()
+        {
+            foreach (string name in RosterWeapons)
+            {
+                WeaponDefinition asset = Weapon(name);
+                DescentSimulation.HeroWeapon simulated = Simulated(name);
+                Assert.That(asset.Id, Is.EqualTo(simulated.Id), name);
+                Assert.That((asset.Damage, asset.Interval, asset.Range), Is.EqualTo((simulated.Damage, simulated.Interval, simulated.Range)), name);
+                Assert.That((asset.CategoryDamage, asset.CategoryInterval), Is.EqualTo((asset.Damage, asset.Interval)),
+                    $"{name}: one base, the legacy engine's and the category mode's");
+                Cryptforge.Combat.AttackPattern pattern = asset.CreateRuntime().Pattern;
+                Assert.That(pattern.Behavior, Is.EqualTo(simulated.Pattern.Behavior), name);
+                Assert.That(pattern.SplashRadius, Is.EqualTo(simulated.Pattern.SplashRadius), name);
+                Assert.That(pattern.SplashFraction, Is.EqualTo(simulated.Pattern.SplashFraction), name);
+                Assert.That(pattern.CritEvery, Is.EqualTo(simulated.Pattern.CritEvery), name);
+                Assert.That(pattern.CritMultiplier, Is.EqualTo(simulated.Pattern.CritMultiplier), name);
+                Assert.That(asset.Evolution, Is.Null, $"{name}: no evolution yet (docs/63 section 3.2's hook)");
+                Assert.That(asset.EvolvesWithTome, Is.Null, name);
+                Assert.That(asset.ForgePrice, Is.Zero, $"{name}: the forge sells no weapon");
+            }
+            Assert.That(Weapon("MagmaMortar").Id, Is.EqualTo(WeaponRoster.MagmaMortarId));
+            Assert.That(Weapon("ForgeBow").Id, Is.EqualTo(WeaponRoster.ForgeBowId));
         }
     }
 }

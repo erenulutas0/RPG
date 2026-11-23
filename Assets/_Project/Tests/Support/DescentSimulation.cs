@@ -271,6 +271,17 @@ namespace Cryptforge.Tests
         public static HeroWeapon Daggers() =>
             new HeroWeapon { Id = "weapon_daggers", DisplayName = "Daggers", Lines = DaggersLines(), Evolution = DaggersEvolution(), EvolvesWithTome = "tome_precision", Damage = 6f, Interval = 0.5f, CategoryDamage = 7f, CategoryInterval = 0.3f, Range = 1.8f, Pattern = new AttackPattern(WeaponBehavior.DirectHit, 0f, 0f, 3, 2f) };
 
+        // Weapon_MagmaMortar.asset (docs/63 section 7, the weapon roster's lever): 34 damage every 1.8 s lobbed from 4 units
+        // away, and the full blast to every enemy within 2.5 units of the target. One base for the legacy engine and the
+        // category mode alike, and no evolution yet.
+        public static HeroWeapon MagmaMortar() =>
+            new HeroWeapon { Id = WeaponRoster.MagmaMortarId, DisplayName = "Magma Mortar", Lines = MagmaMortarLines(), Damage = 34f, Interval = 1.8f, Range = 4f, Pattern = new AttackPattern(WeaponBehavior.Area, 2.5f, 1f) };
+
+        // Weapon_ForgeBow.asset (docs/63 section 7): 25 damage every 1.2 s at 5 units, the longest reach a hero has; every
+        // fourth shot crits for double damage, and Precision's or its own crit line's chance rolls on the others.
+        public static HeroWeapon ForgeBow() =>
+            new HeroWeapon { Id = WeaponRoster.ForgeBowId, DisplayName = "Forge Bow", Lines = ForgeBowLines(), Damage = 25f, Interval = 1.2f, Range = 5f, Pattern = new AttackPattern(WeaponBehavior.DirectHit, 0f, 0f, 4, 2f) };
+
         public static readonly Floor EmberHalls = new Floor
         {
             Rooms = new[]
@@ -543,6 +554,22 @@ namespace Cryptforge.Tests
             Line("line_daggers_damage", "Daggers", "+{0:0.##} damage", UpgradeStat.Damage, ModifierOperation.Flat, 1f, 1.25f, 1.5f, 2f),
             Line("line_daggers_crit", "Daggers", "+{0:0.#%} crit chance", UpgradeStat.CritChance, ModifierOperation.Flat, 0.05f, 0.0625f, 0.075f, 0.1f),
             Line("line_daggers_attack_speed", "Daggers", "+{0:0.#}% attack speed", UpgradeStat.AttackSpeed, ModifierOperation.Percent, 0.08f, 0.1f, 0.12f, 0.16f)
+        };
+
+        // docs/63 section 7.2: the Magma Mortar's +6 damage (docs/40 section 5.2's common), +15 % area (its blast radius) and
+        // +8 % attack speed; the Forge Bow's +4.5 damage, +7 pp crit and +0.5 reach.
+        public static UpgradeOption[] MagmaMortarLines() => new[]
+        {
+            Line("line_magma_mortar_damage", "Magma Mortar", "+{0:0.##} damage", UpgradeStat.Damage, ModifierOperation.Flat, 6f, 7.5f, 9f, 12f),
+            Line("line_magma_mortar_area", "Magma Mortar", "+{0:0.#}% area", UpgradeStat.Area, ModifierOperation.Percent, 0.15f, 0.1875f, 0.225f, 0.3f),
+            Line("line_magma_mortar_attack_speed", "Magma Mortar", "+{0:0.#}% attack speed", UpgradeStat.AttackSpeed, ModifierOperation.Percent, 0.08f, 0.1f, 0.12f, 0.16f)
+        };
+
+        public static UpgradeOption[] ForgeBowLines() => new[]
+        {
+            Line("line_forge_bow_damage", "Forge Bow", "+{0:0.##} damage", UpgradeStat.Damage, ModifierOperation.Flat, 4.5f, 5.625f, 6.75f, 9f),
+            Line("line_forge_bow_crit", "Forge Bow", "+{0:0.#%} crit chance", UpgradeStat.CritChance, ModifierOperation.Flat, 0.07f, 0.0875f, 0.105f, 0.14f),
+            Line("line_forge_bow_range", "Forge Bow", "+{0:0.0#} reach", UpgradeStat.Range, ModifierOperation.Flat, 0.5f, 0.625f, 0.75f, 1f)
         };
 
         // Data/Upgrades/Evolutions (docs/42, PR 5): what a weapon becomes at level 5 with its tome at level 2, each an

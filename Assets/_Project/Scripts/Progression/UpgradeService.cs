@@ -631,7 +631,10 @@ namespace Cryptforge.Progression
 
         // A new weapon while a slot is free and the hero does not carry it; a carried one's upgrade while it is below
         // its last level and has lines to draw, or while its evolution waits. Either way at most one card per weapon in an
-        // offer.
+        // offer. The first half is the full-slot rule (docs/40 section 5.1; docs/63 section 4, FullSlotRuleTests): with three
+        // weapons held the new-weapon kind closes, OfferWeights hands its share to the other kinds, and only the three held
+        // appear as weapon cards - for every level-up and every bonus offer (an altar's, an anvil's, the forge's), since all
+        // of them are this offer. A chest's book never hands a weapon at all (TryGrantCategoryBook).
         private bool WeaponOpen(OfferCategory category, WeaponCard card, List<UpgradeOption> choices)
         {
             for (int i = 0; i < choices.Count; i++)

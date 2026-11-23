@@ -83,7 +83,7 @@ namespace Cryptforge.Tests
             Assert.That(_setup.Hero.Subtitle, Is.EqualTo("Ilya Kest"));
             Assert.That(_hero.Maximum, Is.EqualTo(90f), "The glass cannon.");
             Assert.That(_setup.Ability.Kind, Is.EqualTo(AbilityKind.Vent), "Crucible Vent on the one button.");
-            Assert.That(_setup.Weapons.Equipped.Id, Is.EqualTo("weapon_staff"), "The Staff is the Arcanist's own.");
+            Assert.That(_setup.HeroWeapon.Id, Is.EqualTo("weapon_staff"), "The Staff is the Arcanist's own.");
             Assert.That(GameObject.Find("Hero Label").GetComponent<Text>().text, Does.Contain("Cinder Arcanist"));
             Assert.That(AbilityIcon(), Does.Contain("CrucibleVent"), "The ability button wears the crucible.");
             LogAssert.NoUnexpectedReceived();
@@ -206,19 +206,24 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
+        // The forge has no weapon rack since 2026-11-23 (docs/63): its weapons' place shows the chosen hero's own weapon,
+        // read only, and follows the chooser.
         [UnityTest]
-        public IEnumerator TheForgeRackFollowsTheChosenHerosStartingWeapon()
+        public IEnumerator TheForgesOwnWeaponCardFollowsTheChosenHero()
         {
             yield return Load(false);
             var forge = Object.FindFirstObjectByType<RelicForgeView>();
             forge.Open();
             yield return null;
-            Assert.That(_setup.Weapons.StartingWeapon.Id, Is.EqualTo("weapon_sword"));
+            Assert.That(_setup.NextWeapon.Id, Is.EqualTo("weapon_sword"));
+            Assert.That(ShownWeaponCards(forge), Is.EqualTo(new[] { "Sword" }));
             forge.HeroChoice.Cycle();
-            Assert.That(_setup.Weapons.StartingWeapon.Id, Is.EqualTo("weapon_staff"), "The Arcanist's Staff is free.");
-            Assert.That(_setup.Weapons.Equipped.Id, Is.EqualTo("weapon_staff"), "And carried, with nothing else equipped.");
+            Assert.That(_setup.NextWeapon.Id, Is.EqualTo("weapon_staff"), "The Arcanist's Staff, its own.");
+            Assert.That(ShownWeaponCards(forge), Is.EqualTo(new[] { "Staff" }));
+            Assert.That(WeaponCardState(forge), Is.EqualTo("Signature weapon"), "Shown, never sold.");
             forge.HeroChoice.Cycle();
-            Assert.That(_setup.Weapons.StartingWeapon.Id, Is.EqualTo("weapon_sword"), "Back with the Vanguard.");
+            Assert.That(_setup.NextWeapon.Id, Is.EqualTo("weapon_sword"), "Back with the Vanguard.");
+            Assert.That(ShownWeaponCards(forge), Is.EqualTo(new[] { "Sword" }));
             LogAssert.NoUnexpectedReceived();
         }
 
@@ -241,15 +246,13 @@ namespace Cryptforge.Tests
             Assert.That(forge.HeroChoice.ShownPortrait, Is.Not.Null.And.Not.SameAs(vanguard), "Ilya stands in its own art.");
             Assert.That(forge.HeroChoice.ShownPortrait.texture.name, Does.StartWith("CHR_CinderArcanist"));
             Assert.That(TestProfile.ReadSaved().SelectedHeroId, Is.EqualTo(ArcanistId), "And saves it.");
-            // Ilya starts with its own Staff and no other (the owner, 2026-10-29): the rack shows that card alone.
-            Assert.That(_setup.Weapons.OnlyStartingWeapon, Is.True);
-            Assert.That(_setup.Weapons.Equipped.Id, Is.EqualTo("weapon_staff"));
-            Assert.That(ShownWeaponCards(forge), Is.EqualTo(new[] { "Staff" }), "Not the Vanguard's Sword for 0 gold.");
+            // Ilya starts with its own Staff (the owner, 2026-10-29): the forge shows that weapon, never sold.
+            Assert.That(_setup.NextWeapon.Id, Is.EqualTo("weapon_staff"));
+            Assert.That(ShownWeaponCards(forge), Is.EqualTo(new[] { "Staff" }), "Not the Vanguard's Sword.");
             forge.HeroChoice.Cycle();
             Assert.That(_setup.Profile.SelectedHeroId, Is.Null, "Back to the default, stored as no choice.");
-            // The Vanguard is bound to its Sword as Ilya to its Staff (the owner, 2026-11-22): its own card alone too.
-            Assert.That(_setup.Weapons.OnlyStartingWeapon, Is.True);
-            Assert.That(_setup.Weapons.Equipped.Id, Is.EqualTo("weapon_sword"));
+            // The Vanguard is bound to its Sword as Ilya to its Staff (the owner, 2026-11-22).
+            Assert.That(_setup.NextWeapon.Id, Is.EqualTo("weapon_sword"));
             Assert.That(ShownWeaponCards(forge), Is.EqualTo(new[] { "Sword" }), "The Vanguard's own Sword alone.");
             LogAssert.NoUnexpectedReceived();
         }
@@ -266,6 +269,10 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
+        private static string WeaponCardState(RelicForgeView forge) =>
+            forge.transform.Find("Forge Panel/Safe Area/Weapon Card 1/State Label").GetComponent<UnityEngine.UI.Text>().text;
+
+        // The forge's weapon cards shown: one place since the rack went (docs/63), so cards 2 and 3 are gone from the scene.
         private static string[] ShownWeaponCards(RelicForgeView forge)
         {
             var names = new System.Collections.Generic.List<string>();

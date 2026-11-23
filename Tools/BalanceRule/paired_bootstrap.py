@@ -1,8 +1,9 @@
 """The balance rule's read (docs/56): a paired, seed-level bootstrap of four-floor completion changes.
 
 usage: python Tools/BalanceRule/paired_bootstrap.py <folder> [first-seed last-seed]
-<folder> holds GloamEnemiesResearch, HeroSkillsDescentResearch or DifficultyTiersResearch outputs (gloam-enemies.csv,
-hero-skills-rule.csv for docs/57's skills, difficulty-tiers.csv), one run each in a subfolder (FOUNDRY_OUT=<folder>/<name>),
+<folder> holds GloamEnemiesResearch, HeroSkillsDescentResearch, DifficultyTiersResearch or WeaponRosterResearch outputs
+(gloam-enemies.csv, hero-skills-rule.csv for docs/57's skills, difficulty-tiers.csv, weapon-roster.csv for docs/63's weapon
+roster), one run each in a subfolder (FOUNDRY_OUT=<folder>/<name>),
 every one with `shipped` or paired against a `shipped` run of the same seeds elsewhere in <folder>. Typical hands only. A
 difficulty tier (docs/54 section 21) is its matched geared cohort on the tier against the same cohort ungeared on Forged;
 every tier option found (a candidate "tempered@1.10/1.08" included) gets its row. For each
@@ -24,7 +25,7 @@ from collections import defaultdict
 root = sys.argv[1] if len(sys.argv) > 1 else os.path.dirname(os.path.abspath(__file__))
 runs = {}
 tier_options = set()
-for name in ('gloam-enemies.csv', 'hero-skills-rule.csv', 'difficulty-tiers.csv'):
+for name in ('gloam-enemies.csv', 'hero-skills-rule.csv', 'difficulty-tiers.csv', 'weapon-roster.csv'):
     for path in glob.glob(os.path.join(root, '*', name)):
         with open(path, newline='') as f:
             for r in csv.DictReader(f):
@@ -64,6 +65,18 @@ COMPARISONS = [
     ('Tempered with the +5 set vs Forged ungeared', 'tempered', False),
     ('Inferno with the +9 set vs Forged ungeared', 'inferno', False),
     ('Abyssal with the +9 set and good efsun vs Forged ungeared', 'abyssal', False),
+    # docs/63's weapon roster (WeaponRosterResearch, exploration seeds 1-2000): the roster as built, its decomposition and
+    # the area candidates. The A/A from floor 1 is docs/57's `aa-f1` row above, read from weapon-roster.csv's own runs.
+    ('docs/63: the weapon roster as built (roster)', 'roster', False),
+    ('docs/63: each hero its own weapon, no new weapon (exclusive)', 'exclusive', False),
+    ('docs/63: the two new weapons for both, no exclusivity (open)', 'open', False),
+    ('docs/63: the roster without the Forge Bow (roster-no-bow)', 'roster-no-bow', False),
+    ('docs/63: the roster without the Magma Mortar (roster-no-mortar)', 'roster-no-mortar', False),
+    ('docs/63: candidate, the Mortar\'s blast at 3.0 (c-blast3)', 'c-blast3', False),
+    ('docs/63: candidate, the Mortar at 3.0 every 1.5 s (c-mortar15)', 'c-mortar15', False),
+    ('docs/63: the roster, the pilot taking the area weapon first (pref-area)', 'pref-area', False),
+    ('docs/63: candidate, the Vanguard Sword sweeping (c-sweep)', 'c-sweep', False),
+    ('docs/63: candidate, the sweep and the Mortar at 3.0 every 1.5 s (c-sweep-m15)', 'c-sweep-m15', False),
 ]
 COMPARISONS += [(f'Tier candidate `{o}` vs Forged ungeared', o, False)
                 for o in sorted(tier_options) if o not in {c[1] for c in COMPARISONS}]

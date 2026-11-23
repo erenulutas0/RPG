@@ -8,9 +8,14 @@ using UnityEngine.UI;
 
 namespace Cryptforge.UI
 {
-    // The Relic Forge panel opened from the result screen: a card per weapon and per relic, forge or equip on tap, then
-    // start a run. The shops decide what a tap does; this view only shows the state and briefly ignores taps after each
-    // change.
+    // The Relic Forge panel opened from the result screen: the next run's hero's own weapon, shown and never sold; a card
+    // per relic, forge or equip on tap; then start a run. The relic shop decides what a tap does; this view only shows the
+    // state and briefly ignores taps after each change.
+    //
+    // The weapon rack that sold the Staff and the Daggers is gone (docs/63, 2026-11-23): every hero starts with its own
+    // weapon (Ilya its Staff since 2026-10-29, the Vanguard its Sword since 2026-11-22), so the weapons' place shows that
+    // weapon alone - its name, what it does and "Signature weapon" - following the hero chooser, and a tap on it does
+    // nothing.
     public sealed class RelicForgeView : MonoBehaviour
     {
         [Serializable]
@@ -33,6 +38,7 @@ namespace Cryptforge.UI
         [SerializeField] private Text _statusLabel;
         [SerializeField] private Text _weaponsHeaderLabel;
         [SerializeField] private Text _relicsHeaderLabel;
+        // The hero's own weapon's card, the first; any others are left hidden (the scene holds one since the rack went).
         [SerializeField] private ForgeCard[] _weaponCards;
         [SerializeField] private ForgeCard[] _relicCards;
         [SerializeField] private Button _startButton;
@@ -56,9 +62,9 @@ namespace Cryptforge.UI
 
         private void Start()
         {
-            if (_setup == null || _setup.Relics == null || _setup.Weapons == null || _text == null || _panel == null ||
+            if (_setup == null || _setup.Relics == null || _text == null || _panel == null ||
                 _titleLabel == null || _statusLabel == null || _weaponsHeaderLabel == null || _relicsHeaderLabel == null ||
-                _startButton == null || _startLabel == null || !CardsAreValid(_weaponCards, _setup.Weapons.Weapons.Count) ||
+                _startButton == null || _startLabel == null || !CardsAreValid(_weaponCards, 1) ||
                 !CardsAreValid(_relicCards, _setup.Relics.Relics.Count))
             {
                 Debug.LogError("RelicForgeView is missing a scene or content reference, or has fewer cards than items.", this);
@@ -72,11 +78,6 @@ namespace Cryptforge.UI
             LocalisedLabel.Bind(_weaponsHeaderLabel, () => _text.ForgeWeaponsHeader);
             LocalisedLabel.Bind(_relicsHeaderLabel, () => _text.ForgeRelicsHeader);
             LocalisedLabel.Bind(_startLabel, () => _text.StartRunLabel);
-            for (int i = 0; i < _weaponCards.Length; i++)
-            {
-                int slot = i;
-                _weaponCards[i].Button.onClick.AddListener(() => OnWeaponCard(slot));
-            }
             for (int i = 0; i < _relicCards.Length; i++)
             {
                 int slot = i;
@@ -137,18 +138,15 @@ namespace Cryptforge.UI
         {
             _statusLabel.text = string.Format(Loc.Numbers, _text.ForgeStatusFormat, _setup.Profile.Gold, _setup.Profile.DeepestFloorCleared);
 
-            WeaponShop weapons = _setup.Weapons;
+            // The next run's hero's own weapon, as the hero chooser leaves it (CombatSetup.NextWeapon): carried, never sold.
+            WeaponDefinition own = _setup.NextWeapon;
             for (int i = 0; i < _weaponCards.Length; i++)
             {
-                // A hero that starts with its own weapon only (Ilya) is shown that one card.
-                bool used = i < weapons.Weapons.Count && weapons.IsOffered(weapons.Weapons[i]);
+                bool used = i == 0 && own != null;
                 _weaponCards[i].Button.gameObject.SetActive(used);
-                if (!used)
-                    continue;
-
-                WeaponOption weapon = weapons.Weapons[i];
-                Show(_weaponCards[i], weapon.DisplayName, weapon.Description, weapons.StatusOf(weapon), weapon.Price,
-                    weapons.GoldNeededFor(weapon));
+                if (used)
+                    Show(_weaponCards[i], own.DisplayName, own.CreateForgeOption().Description, UnlockStatus.Equipped, 0, 0,
+                        _text.ForgeOwnWeaponLabel);
             }
 
             RelicShop relics = _setup.Relics;
@@ -180,7 +178,9 @@ namespace Cryptforge.UI
             _awaitingInputDelay = true;
         }
 
-        private void Show(ForgeCard card, string displayName, string description, UnlockStatus status, int price, int goldNeeded)
+        // stateText, when given, is the state line in place of the status's own words (the hero's own weapon's).
+        private void Show(ForgeCard card, string displayName, string description, UnlockStatus status, int price, int goldNeeded,
+            string stateText = null)
         {
             card.Name.text = displayName;
             card.Description.text = description;
@@ -210,6 +210,8 @@ namespace Cryptforge.UI
                     card.State.text = _text.UnlockEquippedLabel;
                     break;
             }
+            if (stateText != null)
+                card.State.text = stateText;
             CardShown?.Invoke(card.Button, status);
         }
 
@@ -222,12 +224,12 @@ namespace Cryptforge.UI
             SetInteractable(true);
         }
 
-        // Cards the player cannot afford are disabled so they read as locked; equipped cards stay lit and do nothing.
+        // Cards the player cannot afford are disabled so they read as locked; equipped cards stay lit and do nothing, as the
+        // hero's own weapon's card always does (it has no listener).
         private void SetInteractable(bool interactable)
         {
-            WeaponShop weapons = _setup.Weapons;
-            for (int i = 0; i < _weaponCards.Length && i < weapons.Weapons.Count; i++)
-                _weaponCards[i].Button.interactable = interactable && weapons.StatusOf(weapons.Weapons[i]) != UnlockStatus.TooExpensive;
+            for (int i = 0; i < _weaponCards.Length; i++)
+                _weaponCards[i].Button.interactable = interactable;
 
             RelicShop relics = _setup.Relics;
             for (int i = 0; i < _relicCards.Length && i < relics.Relics.Count; i++)
@@ -238,13 +240,6 @@ namespace Cryptforge.UI
         }
 
         // A successful forge or equip changes the profile, which refreshes the cards and restarts the input delay.
-        private void OnWeaponCard(int slot)
-        {
-            WeaponShop weapons = _setup.Weapons;
-            if (IsOpen && !_awaitingInputDelay && slot < weapons.Weapons.Count)
-                weapons.TrySelect(weapons.Weapons[slot]);
-        }
-
         private void OnRelicCard(int slot)
         {
             RelicShop relics = _setup.Relics;

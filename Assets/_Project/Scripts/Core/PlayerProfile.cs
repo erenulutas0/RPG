@@ -9,10 +9,18 @@ namespace Cryptforge.Core
     {
         public static bool IsPlayable(bool openFromStart, bool unlockedByPlay, bool developmentBuild) =>
             openFromStart || unlockedByPlay || developmentBuild;
+
+        // Whether clearing The Foundry unlocks a hero whose unlock names a weapon carried through it (Ilya: "Clear The
+        // Foundry with the Staff", docs/45): the run carried that weapon - or the run's cards could never have handed it
+        // over, and then the clear alone unlocks (docs/63 section 6). Under the weapon roster a hero's own weapon is never
+        // offered to another hero, so the Vanguard can never carry Ilya's Staff; the closest fair rule is the clear itself.
+        // With today's catalogue the Staff is a card the Vanguard can take, and the rule is the one it always was.
+        public static bool UnlocksOnFoundryClear(bool carriedTheWeapon, bool cardsCouldOfferIt) =>
+            carriedTheWeapon || !cardsCouldOfferIt;
     }
 
-    // Permanent progress between runs: banked gold, forged relics and weapons, what is equipped, the heroes unlocked and
-    // chosen, the depth record, the gear (docs/54: items, basma, efsun, floor materials and boosters), the difficulty
+    // Permanent progress between runs: banked gold, forged relics, what is equipped, the heroes unlocked and chosen, the
+    // weapons the retired forge rack sold (kept, never read for a run: docs/63), the depth record, the gear (docs/54: items, basma, efsun, floor materials and boosters), the difficulty
     // tiers' records with the tier chosen for the next run (docs/54 section 21) and each hero's forged skills (docs/57).
     // Every successful change raises Changed exactly once, which is the save trigger.
     public sealed class PlayerProfile
@@ -23,7 +31,10 @@ namespace Cryptforge.Core
 
         public int Gold { get; private set; }
         public string EquippedRelicId { get; private set; }
-        // Null while the hero carries the starting weapon, which is never stored as owned.
+        // The weapon the retired forge rack last equipped, null for the starting weapon (which was never stored as owned).
+        // Every hero carries its own weapon since 2026-11-22 and the rack is gone since 2026-11-23 (docs/63): no run reads
+        // this or OwnedWeaponIds, and nothing changes them any more; they are kept so no save loses what it recorded (and
+        // the arena's build still reads them, ArenaProfileBuild).
         public string EquippedWeaponId { get; private set; }
         // The deepest floor any run has cleared, on any tier (the map choice's Forged record reads it through Tiers).
         public int DeepestFloorCleared { get; private set; }
@@ -246,37 +257,6 @@ namespace Cryptforge.Core
                 return false;
 
             EquippedRelicId = relicId;
-            Changed?.Invoke();
-            return true;
-        }
-
-        public bool TryForgeWeapon(string weaponId, int price)
-        {
-            if (!TrySpendOn(_ownedWeaponIds, weaponId, price))
-                return false;
-
-            EquippedWeaponId = weaponId;
-            Changed?.Invoke();
-            return true;
-        }
-
-        public bool EquipWeapon(string weaponId)
-        {
-            if (!OwnsWeapon(weaponId) || EquippedWeaponId == weaponId)
-                return false;
-
-            EquippedWeaponId = weaponId;
-            Changed?.Invoke();
-            return true;
-        }
-
-        // Returns the hero to the starting weapon.
-        public bool UnequipWeapon()
-        {
-            if (EquippedWeaponId == null)
-                return false;
-
-            EquippedWeaponId = null;
             Changed?.Invoke();
             return true;
         }

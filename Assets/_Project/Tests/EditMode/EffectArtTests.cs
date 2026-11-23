@@ -86,6 +86,42 @@ namespace Cryptforge.Tests
             Assert.That(EffectArt.StrikeFor(WeaponBehavior.DirectHit), Is.EqualTo(StrikeEffect.DaggerSlash));
         }
 
+        // docs/63's two shared weapons strike by their ids - the Mortar's shell and ember ring, the Bow's tracer - and every
+        // other weapon, an unknown id and none (an enemy's, a legacy run's) by its behaviour as before.
+        [Test]
+        public void TheRostersWeaponsStrikeByTheirIdsAndEveryOtherByItsBehaviour()
+        {
+            Assert.That(EffectArt.StrikeFor(Cryptforge.Progression.WeaponRoster.MagmaMortarId, WeaponBehavior.Area),
+                Is.EqualTo(StrikeEffect.MortarBlast));
+            Assert.That(EffectArt.StrikeFor(Cryptforge.Progression.WeaponRoster.ForgeBowId, WeaponBehavior.DirectHit),
+                Is.EqualTo(StrikeEffect.BowShot));
+            Assert.That(EffectArt.StrikeFor("weapon_staff", WeaponBehavior.Area), Is.EqualTo(StrikeEffect.StaffBlast));
+            Assert.That(EffectArt.StrikeFor("weapon_daggers", WeaponBehavior.DirectHit), Is.EqualTo(StrikeEffect.DaggerSlash));
+            Assert.That(EffectArt.StrikeFor(null, WeaponBehavior.Cleave), Is.EqualTo(StrikeEffect.SwordSlash));
+            Assert.That(EffectArt.StrikeFor("weapon_unknown", WeaponBehavior.Area), Is.EqualTo(StrikeEffect.StaffBlast));
+        }
+
+        // The tracer: a streak facing +x, white at its head (the right edge), ember down its tail, dark-ember outlined, its
+        // corners clear; fading, its back half breaks up and its head stays.
+        [Test]
+        public void TheTracerIsHotAtItsHeadAndBreaksUpBehindAsItFades()
+        {
+            PixelCanvas[] frames = EffectArt.TracerFrames();
+            Assert.That(frames.Length, Is.EqualTo(2));
+            foreach (PixelCanvas frame in frames)
+            {
+                Assert.That((frame.Width, frame.Height), Is.EqualTo((EffectArt.TracerLength, EffectArt.TracerHeight)));
+                Assert.That(frame.Get(0, 0), Is.EqualTo(Rgba.Transparent));
+                Assert.That(frame.Get(EffectArt.TracerLength - 1, EffectArt.TracerHeight - 1), Is.EqualTo(Rgba.Transparent));
+                Assert.That(frame.Get(EffectArt.TracerLength - 2, EffectArt.TracerHeight / 2), Is.EqualTo(Rgba.White), "A white head.");
+                Assert.That(Has(frame, PixelPalette.Ember), Is.True, "An ember tail.");
+                Assert.That(Has(frame, PixelPalette.EmberDark), Is.True, "Outlined dark ember.");
+            }
+            Assert.That(frames[1].CountVisible(), Is.LessThan(frames[0].CountVisible()), "The fading streak thins out.");
+            Assert.That(frames[1].Get(EffectArt.TracerLength - 2, EffectArt.TracerHeight / 2), Is.EqualTo(Rgba.White),
+                "Its head stays as its tail breaks up.");
+        }
+
         [Test]
         public void TheBlastRingExpandsAndKeepsItsCentreTransparent()
         {
