@@ -22,8 +22,9 @@ namespace Cryptforge.Tests
         public const string ScriptsPath = "Assets/_Project/Scripts";
         public const string DataPath = "Assets/_Project/Data";
 
-        // The fields a content asset's keys are made of (ContentText): "<id>.name", "<id>.description", the hero's own.
-        public static readonly string[] ContentFields = { "name", "description", "subtitle", "role", "unlock_hint" };
+        // The fields a content asset's keys are made of (ContentText): "<id>.name", "<id>.description", the hero's own, and a
+        // hero skill's tap hint (docs/57 5.2's toast).
+        public static readonly string[] ContentFields = { "name", "description", "subtitle", "role", "unlock_hint", "tap_hint" };
 
         private static readonly Regex CodeUse = new Regex(
             @"(?:\bLoc\.(?:Text|Format)|\bnew\s+LocText)\(\s*""(?<key>[a-z0-9_]+(?:\.[a-z0-9_]+)+)""(?:\s*,\s*(?<english>""(?:[^""\\\r\n]|\\.)*""))?",

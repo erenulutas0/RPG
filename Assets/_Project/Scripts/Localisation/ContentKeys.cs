@@ -10,6 +10,8 @@ namespace Cryptforge.Localisation
     {
         public const string Name = "name";
         public const string Description = "description";
+        // A hero skill's moment to press it, on the toast of the first run that carries it (docs/57 5.2).
+        public const string TapHint = "tap_hint";
 
         public static string Key(string id, string field) => string.IsNullOrEmpty(id) ? null : id + "." + field;
 

@@ -490,6 +490,51 @@ namespace Cryptforge.Tests
             Assert.That(early.Skills.HeroCount, Is.Zero);
         }
 
+        // docs/57 5.2's toast flags ride in the heroSkills records within version 6 (no bump: an absent flag reads false, which
+        // is right for every file the previous build wrote - no toast existed to show - and that build still reads these
+        // files, where a version 7 would be a newer build's file it never reads and a new profile in its place).
+        [Test]
+        public void TheSkillToastsRoundTripWithinVersionSix()
+        {
+            var store = new ProfileStore(_directory);
+            PlayerProfile profile = store.Load();
+            profile.RecordFloorCleared(3);
+            profile.Deposit(900);
+            Assert.That(profile.TryForgeSkill("hero_vanguard", 2), Is.True);
+            Assert.That(profile.TryForgeSkill("hero_vanguard", 3), Is.True);
+            Assert.That(profile.MarkSkillToastShown("hero_vanguard", 2), Is.True);
+            store.Save(profile);
+
+            string json = File.ReadAllText(Path.Combine(_directory, ProfileStore.FileName));
+            Assert.That(json, Does.Contain("\"saveVersion\": 6").And.Contain("\"skillTwoToastShown\": true")
+                .And.Contain("\"skillThreeToastShown\": false"));
+            PlayerProfile loaded = new ProfileStore(_directory).Load();
+            Assert.That(loaded.HasShownSkillToast("hero_vanguard", 2), Is.True, "shown once, never again");
+            Assert.That(loaded.HasShownSkillToast("hero_vanguard", 3), Is.False, "Shield Rush's still to come");
+            Assert.That(loaded.HasForgedSkill("hero_vanguard", 3), Is.True);
+        }
+
+        // A version 6 file the previous build wrote (no toast flags): its forged skills stand and each one's toast is still
+        // to show; written back as version 6 with the flags.
+        [Test]
+        public void APreviousVersionSixFileShowsItsForgedSkillsToastsOnce()
+        {
+            string path = Path.Combine(_directory, ProfileStore.FileName);
+            File.WriteAllText(path,
+                "{\"saveVersion\":6,\"revision\":4,\"gold\":40,\"deepestFloorCleared\":3,\"heroSkills\":[" +
+                "{\"hero\":\"hero_cinder_arcanist\",\"skillTwo\":true,\"skillThree\":true}]}");
+            var store = new ProfileStore(_directory);
+            PlayerProfile profile = store.Load();
+            Assert.That(store.LastLoadStatus, Is.EqualTo(ProfileLoadStatus.Loaded));
+            Assert.That(profile.HasForgedSkill("hero_cinder_arcanist", 3), Is.True);
+            Assert.That(profile.HasShownSkillToast("hero_cinder_arcanist", 2), Is.False);
+            Assert.That(profile.HasShownSkillToast("hero_cinder_arcanist", 3), Is.False);
+            Assert.That(profile.MarkSkillToastShown("hero_cinder_arcanist", 3), Is.True);
+            store.Save(profile);
+            Assert.That(File.ReadAllText(path), Does.Contain("\"saveVersion\": 6").And.Contain("\"skillThreeToastShown\": true"));
+            Assert.That(new ProfileStore(_directory).Load().HasShownSkillToast("hero_cinder_arcanist", 3), Is.True);
+        }
+
         // Damaged gear in a readable version 4 save is repaired, never rejected (ProfileGear.Restore).
         [Test]
         public void DamagedGearInAReadableSaveIsRepaired()

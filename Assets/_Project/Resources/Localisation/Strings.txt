@@ -401,6 +401,11 @@ ability_flame_sigil.name	Flame Sigil	Alev Mührü	The Arcanist's skill 2 (docs/5
 ability_flame_sigil.description	A glyph of {1:0.#} units for {3:0}s: enemies inside walk {4:0%} slower and burn double, ready every {2:0}s	{3:0} sn boyunca {1:0.#} birimlik bir mühür: içindeki düşmanlar {4:%0} daha yavaş yürür ve iki kat yanar, her {2:0} sn'de hazır	{1} radius, {3} seconds, {4} slow, {2} cooldown. The Forge's Skills tab.
 ability_cinder_ward.name	Cinder Ward	Kül Siperi	The Arcanist's skill 3 (docs/57); the Forge's Skills tab.
 ability_cinder_ward.description	A ward of {4:0%} of your health for {3:0}s; whoever strikes it catches fire, ready every {2:0}s	{3:0} sn boyunca canının {4:%0} kadar bir siper; ona vuran alev alır, her {2:0} sn'de hazır	{4} of the hero's health, {3} seconds, {2} cooldown. The Forge's Skills tab.
+skills.toast	{0}: {1}	{0}: {1}	docs/57 5.2's one-line toast on the first run that carries a newly forged skill, once per skill. {0} the skill's name (in gold), {1} when to tap it (<id>.tap_hint, lower case: it follows the name).
+ability_iron_resolve.tap_hint	tap when the blows come	darbeler gelince dokun	The toast on the first run with Iron Resolve, after "Demir İrade: " (docs/57 5.2). Lower case: it follows the name.
+ability_shield_rush.tap_hint	tap when surrounded: charge along the stick	kuşatılınca dokun: kolun yönüne hücum et	The toast on the first run with Shield Rush, after its name. The stick is the movement joystick (kol, as its description says).
+ability_flame_sigil.tap_hint	tap with a crowd close, then lead it through the fire	kalabalık yakınken dokun, sonra onu ateşten geçir	The toast on the first run with Flame Sigil, after its name: draw the glyph, then kite the crowd through it.
+ability_cinder_ward.tap_hint	tap just before the boss's blow lands	bossun darbesi inmeden hemen önce dokun	The toast on the first run with Cinder Ward, after its name: the 2 s ward is timed to the boss's telegraph. "boss" the game word (glossary).
 
 # ---- The arena (docs/55 section 11): ArenaText, the arena screen's words
 arena.title	Arena	Arena	The arena screen's title; also the map choice's entry button.

@@ -287,6 +287,9 @@ namespace Cryptforge.Core
             GearStats.Apply(Gear, HeroStats, loadout, Weapon, _hero.State, Ability, Drops);
             _burnFactor = GearStats.BurnFactor(Gear);
             StartSkills(movement);
+            // docs/57 5.2: the first run that carries a newly forged skill names it and says when to tap it, once per skill
+            // and profile. Presentation only; nothing at all for a run with no such skill.
+            gameObject.AddComponent<SkillToastView>().Initialize(this, _ability);
             // The map this run starts on (MapChoiceView): the one chosen before this load, if any - the scene reloads to
             // start deeper - or, with none chosen, the choice itself, which holds the first wave and the run's telemetry
             // until the player taps a map.

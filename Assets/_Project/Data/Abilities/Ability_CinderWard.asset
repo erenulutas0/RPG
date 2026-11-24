@@ -22,3 +22,4 @@ MonoBehaviour:
   _duration: 2
   _amount: 0.2
   _icon: {fileID: 21300000, guid: 207e5208e9d042d787f1fadd89370a3e, type: 3}
+  _tapHint: 'tap just before the boss''s blow lands'

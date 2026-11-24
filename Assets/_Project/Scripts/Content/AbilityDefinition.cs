@@ -5,8 +5,8 @@ using UnityEngine;
 namespace Cryptforge.Content
 {
     // A hero's active ability: a burst around the hero on a cooldown, or one of docs/57's skills 2 and 3 (AbilityKind).
-    // Localization keys: <id>.name and <id>.description; the description format receives the damage, the radius, the
-    // cooldown, the duration and the amount.
+    // Localization keys: <id>.name, <id>.description and, for skills 2 and 3, <id>.tap_hint; the description format
+    // receives the damage, the radius, the cooldown, the duration and the amount.
     [CreateAssetMenu(menuName = "Cryptforge/Ability Definition")]
     public sealed class AbilityDefinition : ScriptableObject
     {
@@ -30,6 +30,9 @@ namespace Cryptforge.Content
         [SerializeField, Min(0f)] private float _amount;
         // The ability button's art: the Forge Burst anvil, the Crucible Vent crucible. Empty keeps the scene's icon.
         [SerializeField] private Sprite _icon;
+        // docs/57 5.2: the moment to press a forged skill, after its name on the one-line toast of the first run that
+        // carries it ("tap when the blows come"). Empty for skill 1, which no toast introduces.
+        [SerializeField] private string _tapHint;
 
         public string Id => _id;
         public string DisplayName => _displayName;
@@ -40,6 +43,7 @@ namespace Cryptforge.Content
         public float Duration => _duration;
         public float Amount => _amount;
         public Sprite Icon => _icon;
+        public string TapHint => _tapHint ?? string.Empty;
         // The description's English with its placeholders, for AbilityText to write in the language the game speaks.
         public string DescriptionFormat => _descriptionFormat ?? string.Empty;
         public string Description => string.Format(CultureInfo.InvariantCulture, _descriptionFormat ?? string.Empty, _damage, _radius,

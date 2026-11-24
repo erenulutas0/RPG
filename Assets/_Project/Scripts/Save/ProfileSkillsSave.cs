@@ -2,9 +2,9 @@ using Cryptforge.Core;
 
 namespace Cryptforge.Save
 {
-    // The forged hero skills between their JSON field (ProfileSaveData version 6: heroSkills) and the plain SkillSnapshot
-    // ProfileSkills restores from and writes to. Copies values only; ProfileSkills.Restore does the repairing, so a damaged
-    // field here is never fatal.
+    // The forged hero skills between their JSON field (ProfileSaveData version 6: heroSkills, with the toasts' flags) and
+    // the plain SkillSnapshot ProfileSkills restores from and writes to. Copies values only; ProfileSkills.Restore does the
+    // repairing, so a damaged field here is never fatal.
     public static class ProfileSkillsSave
     {
         public static SkillSnapshot ToSnapshot(ProfileSaveData data)
@@ -18,7 +18,8 @@ namespace Cryptforge.Save
                 HeroSkillsSaveData record = data.heroSkills[i];
                 snapshot.Records[i] = record == null ? null : new HeroSkillRecord
                 {
-                    Hero = record.hero, SkillTwo = record.skillTwo, SkillThree = record.skillThree
+                    Hero = record.hero, SkillTwo = record.skillTwo, SkillThree = record.skillThree,
+                    SkillTwoToastShown = record.skillTwoToastShown, SkillThreeToastShown = record.skillThreeToastShown
                 };
             }
             return snapshot;
@@ -32,7 +33,8 @@ namespace Cryptforge.Save
                 HeroSkillRecord record = snapshot.Records[i];
                 data.heroSkills[i] = new HeroSkillsSaveData
                 {
-                    hero = record.Hero, skillTwo = record.SkillTwo, skillThree = record.SkillThree
+                    hero = record.Hero, skillTwo = record.SkillTwo, skillThree = record.SkillThree,
+                    skillTwoToastShown = record.SkillTwoToastShown, skillThreeToastShown = record.SkillThreeToastShown
                 };
             }
         }

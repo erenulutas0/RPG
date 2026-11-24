@@ -321,6 +321,20 @@ namespace Cryptforge.Core
             return true;
         }
 
+        // Whether docs/57 5.2's one-line toast has introduced the hero's forged skill 2 or 3: once per skill and profile, on
+        // the first run that carries it (SkillToastView).
+        public bool HasShownSkillToast(string heroId, int slot) => Skills.ToastShown(heroId, slot);
+
+        // Records the toast shown, as one change (the save's trigger); false, and nothing changed, for a skill not forged
+        // or a toast already shown.
+        public bool MarkSkillToastShown(string heroId, int slot)
+        {
+            if (!Skills.MarkToastShown(heroId, slot))
+                return false;
+            Changed?.Invoke();
+            return true;
+        }
+
         // Chooses the tier for the next run; only an open tier, and false when nothing changed.
         public bool SelectTier(DifficultyTier tier)
         {
