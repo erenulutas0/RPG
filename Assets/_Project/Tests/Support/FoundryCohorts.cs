@@ -169,14 +169,15 @@ namespace Cryptforge.Tests
         private static bool BothFloors(DescentSimulation.FoundryResult run) => run.Cleared && run.NextFloor != null && run.NextFloor.Cleared;
 
         // Floor 3 (Gloam Gardens, docs/48) after each cohort's floor-2 clears, as FloorTwo reads floor 2: who went down and
-        // with what health, who cleared it and all three floors, where and by what blow the rest fell, floor 3's Warden (its
-        // fight against docs/40 section 9.6's 45-65 s), and the floor-3 clears' length and level at the gate.
+        // with what health, who cleared it and all three floors, where and by what blow the rest fell, floor 3's gate boss
+        // (Rootmother Myrr since 2026-11-25; its fight against docs/40 section 9.6's 45-65 s, in the Warden's columns), and
+        // the floor-3 clears' length and level at the gate.
         private static void FloorThree(StringBuilder md, IReadOnlyList<(AutopilotCohort Cohort, FoundryBatch.Batch[] Batches)> cohorts,
             FoundryBatch.Batch[] careful)
         {
             md.AppendLine("### Floor 3 (Gloam Gardens) after a floor-2 clear").AppendLine();
             md.AppendLine("Every run that cleared floor 2 answers its checkpoint with Descend and plays floor 3 in the same hands - floor 2's six rooms under the garden's names, climb-scaled at floor 3 " +
-                          $"(x1.96 health, x1.8032 damage, the Warden's Grove x1.15 more), no modifier, its gate held for the floor's clock to read {DescentSimulation.FloorThreeGateSeconds:0} s, its Warden at its own share (DescentSimulation.FloorThreeGateShare). " +
+                          $"(x1.96 health, x1.8032 damage, the Warden's Grove x1.15 more), no modifier, its gate held for the floor's clock to read {DescentSimulation.FloorThreeGateSeconds:0} s, its gate boss - Rootmother Myrr since 2026-11-25 (docs/64) - at its own share (DescentSimulation.FloorThreeGateShare). " +
                           "Went down: floor 2's clears. Health going down: what floor 2 left the hero, as a share of its maximum (P50). Cleared floor 3: of those who went down; all three: of all the seeds. " +
                           "Deaths: floor 3's room (1-3 its halls, 4 the Grafting Forge, 5 Thorn Post, the boss the Warden's Grove) and the blow. Warden: floor 3's Warden's own fight, from walking out of the gate to its fall, " +
                           "over the fights in which it fell (docs/40 section 9.6: P50 45-65 s). Floor 3: active seconds from the checkpoint, its clears. " +

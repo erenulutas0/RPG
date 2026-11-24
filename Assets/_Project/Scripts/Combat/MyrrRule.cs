@@ -20,10 +20,12 @@ namespace Cryptforge.Combat
     //   that stands SaplingGrow seconds grows into a Thornling (the Runner's body, docs/52 section 4, without its dive) that
     //   joins her fight; at most ThornlingsMost stand. When she falls, her garden withers.
     //
-    // Simulation research only today (docs/64 stage 3, FoundryLevers.GloamMyrr, off by default): the foundry simulation
-    // (DescentSimulation.Myrr.cs) steps a RootSnare where a later scene's WardenSlamService would. Pure, and every product a
-    // later scene and the simulation share is one body that is never inlined, the squares cast to float (the stamina
-    // divergence's lesson, docs/21; PollenRule.Near's cast).
+    // Floor 3's gate boss since 2026-11-25 (docs/64 section 15, the confirmation read of `mr:share=4.7:sap=0`; section 16,
+    // the scene build): Floor_GloamGardens' gate at share 4.7, without her saplings (ShippedSaplings; the lead's answer 2),
+    // the creeping snare, the 1.0 s plant with her hook free through it and the 1.2 s telegraph. The scene's
+    // WardenSlamService steps a RootSnare and the foundry simulation (DescentSimulation.Myrr.cs) steps the same one at the
+    // same point of its frame. Pure, and every product the scene and the simulation share is one body that is never
+    // inlined, the squares cast to float (the stamina divergence's lesson, docs/21; PollenRule.Near's cast).
     public static class MyrrRule
     {
         public const float Every = WardenRule.SlamEvery;
@@ -43,6 +45,25 @@ namespace Cryptforge.Combat
         public const float SaplingDistance = 3f;
         public const int ThornlingsMost = 3;
         public const int SaplingsMost = 4;
+        // The saplings she plants at phase two as she ships: none (the lead's answer 2, docs/64 section 13; the confirmation
+        // read `mr:share=4.7:sap=0`, section 15). Saplings stays docs/64 section 3's design, read by the research only.
+        public const int ShippedSaplings = 0;
+        // How far past her snare's edge the pilots read it as theirs to leave (the Warden's circle's margin, its 0.6): the
+        // simulation's and DevelopmentAutopilot's escape from a snare of radius.
+        public const float EscapeMargin = .6f;
+
+        // When a hero the roots caught at now walks again: seconds later. One body for the scene's WardenSlamService (on
+        // scaled time) and the simulation (on its run's seconds).
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static float PlantedUntil(float now, float seconds) => now + seconds;
+
+        // Whether a hero planted until until stands planted at now: no walk.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static bool IsPlanted(float now, float until) => now < until;
+
+        // How far from a snare of radius's centre the pilots step out of it: the radius and EscapeMargin.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static float EscapeReach(float radius) => radius + EscapeMargin;
 
         // The ring's centre moved toward the hero at (heroX, heroY) by at most speed x deltaTime: (x, y) in, the new centre
         // out. It stops on the hero, never past.
@@ -118,7 +139,7 @@ namespace Cryptforge.Combat
     }
 
     // One beat's root snare: down at the hero's spot as the mark goes down, creeping after the hero through the telegraph,
-    // judged as the roots erupt. A later scene's WardenSlamService and the simulation step the same one.
+    // judged as the roots erupt. The scene's WardenSlamService and the simulation step the same one.
     public sealed class RootSnare
     {
         public RootSnare() : this(MyrrRule.SnareRadius, MyrrRule.CreepSpeed)

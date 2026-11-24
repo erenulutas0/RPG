@@ -413,7 +413,10 @@ namespace Cryptforge.Core
             if (_cohort.EscapesMarks && !lanes && warden != null && warden.IsFighting && warden.Clock.IsMarked)
             {
                 float mx = x - warden.MarkX, my = y - warden.MarkY;
-                float reach = WardenRule.SlamRadius + .6f;
+                // docs/64's Rootmother Myrr: her snare is a ring of its own radius, its centre creeping after the hero (the
+                // service's mark, read each frame), left by the same margin as the Warden's circle (MyrrRule.EscapeReach,
+                // as the simulation's pilot leaves it).
+                float reach = warden.MarksSnare ? MyrrRule.EscapeReach(MyrrRule.SnareRadius) : WardenRule.SlamRadius + .6f;
                 if (!encounter.TryFloorPositionOf(warden.Boss, out float bossX, out float bossY))
                 {
                     bossX = warden.MarkX; bossY = warden.MarkY;

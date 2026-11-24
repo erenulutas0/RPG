@@ -47,9 +47,14 @@ namespace Cryptforge.Tests
                     Speed = levers.BloomSpeed, Reach = levers.BloomMaulReach
                 };
 
+        // Whether the levers leave the shipped Rootmother Myrr as she is: her hook, her walk and the floor's share.
+        private static bool ShippedMyrr(FoundryLevers levers) =>
+            levers.MyrrHealthShare == 0f && levers.MyrrHookDamage == RootmotherMyrr.Damage && levers.MyrrSpeed == RootmotherMyrr.Speed;
+
         // Floors 1 and 2 as VaultsChain makes them (the shipped Mirror Sentry on floor 2, or the levers' floor 2) above floor
-        // 3 with the levers' Thorn Post: the Grunt Captain back (GloamCaptain), or the Bloom tuned otherwise. Its Grunt and two
-        // Cinder Mites, the halls and the Warden's Grove stay. With the levers at the shipped Bloom it is VaultsChain's.
+        // 3 with the levers' Thorn Post - the Grunt Captain back (GloamCaptain), or the Bloom tuned otherwise - and the levers'
+        // gate: Rootmother Myrr at another share, hook or walk, or the Forge Warden back (GloamWarden). Its Grunt and two
+        // Cinder Mites, the halls and the Grove's two Mites stay. With the levers at the shipped floor 3 it is VaultsChain's.
         public static FoundryFloor GloamChain(FoundryLevers levers)
         {
             FoundryFloor one = VaultsChain(levers);
@@ -68,9 +73,10 @@ namespace Cryptforge.Tests
                     Enemy[] wave = (Enemy[])three.Rooms[r][w].Clone();
                     if (three.Kinds[r] == RoomKind.Elite && wave.Length > 0 && wave[0] == CinderBloom)
                         wave[0] = levers.GloamCaptain ? Captain : Bloom(levers);
-                    // docs/64's Rootmother Myrr in the Forge Warden's place at the Warden's Grove, its two Mites kept.
-                    if (levers.GloamMyrr && three.Kinds[r] == RoomKind.Boss && wave.Length > 0 && wave[0] == Warden)
-                        wave[0] = Myrr(levers);
+                    // docs/64's Rootmother Myrr at the Warden's Grove at the levers' hook and walk, or the Forge Warden back
+                    // in her place (GloamWarden), its two Mites kept.
+                    if (three.Kinds[r] == RoomKind.Boss && wave.Length > 0 && wave[0] == RootmotherMyrr)
+                        wave[0] = levers.GloamWarden ? Warden : Myrr(levers);
                     // The Wraiths and the Thornling in the halls only (the lead's decision 4): Thorn Post's and the Grove's
                     // Cinder Mites stay.
                     if (three.Kinds[r] == RoomKind.Combat)
@@ -86,7 +92,9 @@ namespace Cryptforge.Tests
             }
             // Floor 2 is VaultsChain's own copy (Reshaped), so its next floor can be set without touching another chain.
             FoundryFloor shaped = three.Reshaped(rooms, three.Kinds);
-            if (levers.GloamMyrr && levers.MyrrHealthShare > 0f)
+            if (levers.GloamWarden)
+                shaped.GateHealthShare = FloorThreeWardenShare;
+            else if (levers.MyrrHealthShare > 0f)
                 shaped.GateHealthShare = levers.MyrrHealthShare;
             if (levers.GloamWraiths || levers.GloamThornlings)
             {
@@ -173,7 +181,8 @@ namespace Cryptforge.Tests
             public int NudgeDraws = 1;
 
             // Whether GloamChain reshapes floor 3.
-            public bool Gloam => GloamCaptain || !ShippedBloom(this) || GloamWraiths || GloamThornlings || GloamMyrr;
+            public bool Gloam => GloamCaptain || !ShippedBloom(this) || GloamWraiths || GloamThornlings || GloamWarden ||
+                                 !ShippedMyrr(this);
         }
 
         // One elite room's leader felled: its kind, from walking in to falling, the seconds it stood within reach of the

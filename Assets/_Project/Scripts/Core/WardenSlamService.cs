@@ -21,6 +21,16 @@ namespace Cryptforge.Core
     // the same RegentLanes, and holds the rod by the same RegentRule.HoldsRod, at the same point of its frame
     // (DescentSimulation.Vaults.cs).
     //
+    // A gate boss that carries a RootmotherMyrr - floor 3's since 2026-11-25 (docs/64 sections 15-16) - keeps her own beat
+    // (MyrrRule: the Warden's clock, a 1.2 s telegraph) and lays a root snare (Snare, MyrrRule.SnareRadius) at the hero's
+    // spot as the mark goes down. Every running frame, before the clock steps, the snare creeps after the hero at
+    // MyrrRule.CreepSpeed and the mark is its centre (MarkX, MarkY); as the roots erupt they catch a hero still inside it for
+    // MyrrRule.SnareShare of its maximum and plant it for MyrrRule.PlantSeconds of scaled time (IsHeroPlanted:
+    // HeroMovementInput holds its walk; its weapons and its ability still strike). Her hook is held as the Warden's hammer -
+    // except through a beat whose snare went down with the hero at her feet (MyrrRule.FeetReach, HookAtHerFeet), and
+    // through the recovery after the roots caught the hero (HookFree; MyrrRule.HoldsHook). The foundry simulation steps the
+    // same RootSnare through the same MyrrRule bodies at the same point of its frame (DescentSimulation.Myrr.cs).
+    //
     // It runs after EncounterController (-50), which brings the gate boss out, and before every script of the default
     // order, every AttackController among them: the Warden's weapon is held from the very frame its mark goes down, not
     // one frame later as Unity happens to order the two, and the foundry simulation steps the clock at the same point of
@@ -36,6 +46,10 @@ namespace Cryptforge.Core
         private readonly WardenSlamClock _clock = new WardenSlamClock();
         private readonly RegentLanes _lanes = new RegentLanes();
         private GlassRegent _regent;
+        private readonly RootSnare _snare = new RootSnare();
+        private RootmotherMyrr _myrr;
+        // When the hero her roots caught walks again, on scaled time (MyrrRule.PlantedUntil).
+        private float _plantedUntil = float.NegativeInfinity;
 
         public WardenSlamClock Clock => _clock;
         // The Glass Regent's lanes of the beat that is down (none between beats, or for the Warden).
@@ -43,13 +57,29 @@ namespace Cryptforge.Core
         // The gate boss's GlassRegent while a Regent is fought: its marks are lanes. Null for the Warden.
         public GlassRegent Regent => Boss != null ? _regent : null;
         public bool MarksLanes => Regent != null;
+        // The gate boss's RootmotherMyrr while she is fought: her marks are root snares. Null for the Warden and the Regent.
+        public RootmotherMyrr Myrr => Boss != null ? _myrr : null;
+        public bool MarksSnare => Myrr != null;
+        // Her snare of the beat that is down (IsDown false between beats, or for any other gate boss).
+        public RootSnare Snare => _snare;
         public Health Boss => _boss != null && _boss.IsAlive ? _boss : null;
         public bool IsFighting => Boss != null;
         public bool IsEnraged { get; private set; }
         // Whether the Regent's beat down went down with the hero at its feet (RegentRule.FeetReach): it holds no rod through
         // this beat's cast and shards' run (RegentRule.HoldsRod). Read again as each mark goes down; false for the Warden.
         public bool RodAtItsFeet { get; private set; }
-        // Where the mark is down, on the floor.
+        // Whether Myrr's snare of this beat went down with the hero at her feet (MyrrRule.FeetReach): no hook held through the
+        // beat. Read again as each snare goes down; false for the other gate bosses.
+        public bool HookAtHerFeet { get; private set; }
+        // Whether her hook is free through this beat: at her feet as the snare went down, or the roots caught the hero (free
+        // through the recovery too). MyrrRule.HoldsHook's hookFree.
+        public bool HookFree { get; private set; }
+        // The hero her roots caught, planted: no walk until PlantedUntil (scaled time, Time.time).
+        public bool IsHeroPlanted => MyrrRule.IsPlanted(Time.time, _plantedUntil);
+        public float PlantedUntil => _plantedUntil;
+        // How many times her roots have caught the hero in this scene.
+        public int Plantings { get; private set; }
+        // Where the mark is down, on the floor: the Warden's circle's centre, the Regent's mark, Myrr's snare's centre now.
         public float MarkX { get; private set; }
         public float MarkY { get; private set; }
         public event Action Marked;
@@ -66,6 +96,9 @@ namespace Cryptforge.Core
             _heroAttack = heroAttack;
         }
 
+        // The hero the gate boss fights (the planted roots are drawn round its feet).
+        public Health Hero => _hero;
+
         private void Update()
         {
             EncounterController encounter = _setup.Encounters;
@@ -78,15 +111,21 @@ namespace Cryptforge.Core
                 _boss = gate;
                 _bossAttack = gate != null ? gate.GetComponent<AttackController>() : null;
                 _regent = gate != null ? gate.GetComponent<GlassRegent>() : null;
+                _myrr = gate != null ? gate.GetComponent<RootmotherMyrr>() : null;
                 if (_heroAttack != null)
                     _heroAttack.GateBoss = gate;
                 IsEnraged = false;
                 RodAtItsFeet = false;
+                HookAtHerFeet = false;
+                HookFree = false;
                 encounter.SetBossEnraged(false);
                 _clock.Reset();
                 _lanes.Clear();
+                _snare.Clear();
                 if (_regent != null)
                     _clock.Tune(RegentRule.Every, RegentRule.EveryPhaseTwo, RegentRule.Telegraph);
+                else if (_myrr != null)
+                    _clock.Tune(MyrrRule.Every, MyrrRule.EveryPhaseTwo, MyrrRule.Telegraph);
                 else
                     _clock.Tune(WardenRule.SlamEvery, WardenRule.SlamEveryEnraged, WardenRule.Telegraph);
             }
@@ -102,6 +141,7 @@ namespace Cryptforge.Core
                 {
                     _clock.Reset();
                     _lanes.Clear();
+                    _snare.Clear();
                     Hold(false);
                 }
                 return;
@@ -114,6 +154,13 @@ namespace Cryptforge.Core
                 IsEnraged = true;
                 encounter.SetBossEnraged(true);
             }
+            // Myrr's snare creeps after the hero before the clock steps, as the simulation's MyrrCreep: the mark is its centre.
+            if (_myrr != null && _snare.IsDown)
+            {
+                _snare.Creep(_hero.transform.position.x, ArenaFloor.FloorY(_hero.transform.position.y), Time.deltaTime);
+                MarkX = _snare.X;
+                MarkY = _snare.Y;
+            }
             switch (_clock.Advance(Time.deltaTime, IsEnraged))
             {
                 case WardenSlamClock.Step.Marked:
@@ -123,14 +170,18 @@ namespace Cryptforge.Core
                     if (_regent != null)
                     {
                         _lanes.Mark(MarkX, MarkY);
-                        if (!encounter.TryFloorPositionOf(boss, out float regentX, out float regentY))
-                        {
-                            regentX = boss.transform.position.x;
-                            regentY = ArenaFloor.FloorY(boss.transform.position.y);
-                        }
+                        BossFloor(encounter, boss, out float regentX, out float regentY);
                         _lanes.Add(regentX, regentY);
                         // At its feet as the lane goes down: no rod held through this beat.
                         RodAtItsFeet = _lanes.AtItsFeet(RegentRule.FeetReach);
+                    }
+                    // Myrr's snare: down at the hero's spot; her hook free through this beat for a hero at her feet.
+                    else if (_myrr != null)
+                    {
+                        _snare.Down(MarkX, MarkY);
+                        BossFloor(encounter, boss, out float myrrX, out float myrrY);
+                        HookAtHerFeet = MyrrRule.AtHerFeet(MarkX, MarkY, myrrX, myrrY, MyrrRule.FeetReach);
+                        HookFree = HookAtHerFeet;
                     }
                     Marked?.Invoke();
                     break;
@@ -146,6 +197,20 @@ namespace Cryptforge.Core
                             _hero.ApplyDamage(new DamageContext(_hero.Maximum * RegentRule.LaneShare, boss));
                         _lanes.Clear();
                     }
+                    else if (_myrr != null)
+                    {
+                        // The roots erupt: a hero still inside the snare is caught, planted, and her hook free through the
+                        // recovery; she is the source, so the result screen names her if the roots are the last.
+                        LastSlamHit = _hero.IsAlive && _snare.Erupt(heroX, heroY);
+                        _snare.Clear();
+                        if (LastSlamHit)
+                        {
+                            _plantedUntil = MyrrRule.PlantedUntil(Time.time, MyrrRule.PlantSeconds);
+                            Plantings++;
+                            HookFree = true;
+                            _hero.ApplyDamage(new DamageContext(MyrrRule.SnareDamage(_hero.Maximum, MyrrRule.SnareShare), boss));
+                        }
+                    }
                     else
                     {
                         LastSlamHit = _hero.IsAlive && distanceSquared <= WardenRule.SlamRadius * WardenRule.SlamRadius;
@@ -156,8 +221,22 @@ namespace Cryptforge.Core
                     Slammed?.Invoke(LastSlamHit);
                     break;
             }
-            // The Regent holds its rod as the Warden its hammer, but never for a hero at its feet.
-            Hold(_regent != null ? RegentRule.HoldsRod(_clock.HoldsWeapon, RodAtItsFeet) : _clock.HoldsWeapon);
+            // The Regent holds its rod as the Warden its hammer, but never for a hero at its feet; Myrr her hook, but never
+            // while it is free.
+            Hold(_regent != null ? RegentRule.HoldsRod(_clock.HoldsWeapon, RodAtItsFeet)
+                : _myrr != null ? MyrrRule.HoldsHook(_clock.HoldsWeapon, HookFree)
+                : _clock.HoldsWeapon);
+        }
+
+        // Where the gate boss stands on its pack's floor (the simulation's boss.X, Y), or under its body if the pack has
+        // lost it.
+        private static void BossFloor(EncounterController encounter, Health boss, out float x, out float y)
+        {
+            if (!encounter.TryFloorPositionOf(boss, out x, out y))
+            {
+                x = boss.transform.position.x;
+                y = ArenaFloor.FloorY(boss.transform.position.y);
+            }
         }
 
         // The Warden's weapon waits while its hammer is going up or is in the floor.

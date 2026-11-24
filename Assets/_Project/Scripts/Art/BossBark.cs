@@ -30,6 +30,7 @@ namespace Cryptforge.Art
         // The gate bosses that speak, by their EnemyDefinition id.
         public const string WardenId = "enemy_forge_warden";
         public const string RegentId = "enemy_glass_regent";
+        public const string MyrrId = "enemy_rootmother_myrr";
 
         // docs/44 section 1.8's lines in English, and their keys: bark.<boss>.<moment>.
         private static readonly LocText WardenSpawn = new LocText("bark.forge_warden.spawn", "Shift's not over.");
@@ -38,6 +39,10 @@ namespace Cryptforge.Art
         private static readonly LocText RegentSpawn = new LocText("bark.glass_regent.spawn", "Which one of you is original?");
         private static readonly LocText RegentTelegraph = new LocText("bark.glass_regent.telegraph", "Hold still. I need your face.");
         private static readonly LocText RegentDeath = new LocText("bark.glass_regent.death", "I kept the wrong one...");
+        // Rootmother Myrr's (docs/64 section 1; her scene build, 2026-11-25).
+        private static readonly LocText MyrrSpawn = new LocText("bark.rootmother_myrr.spawn", "Your tomorrow can still take root.");
+        private static readonly LocText MyrrTelegraph = new LocText("bark.rootmother_myrr.telegraph", "Be still. Be planted.");
+        private static readonly LocText MyrrDeath = new LocText("bark.rootmother_myrr.death", "Something... is growing underneath.");
 
         // The line a boss says at a moment; false for a boss with no lines (an enemy that is no gate boss, or one whose lines
         // are not written yet).
@@ -51,6 +56,9 @@ namespace Cryptforge.Art
                 case RegentId:
                     line = moment == BarkMoment.Spawn ? RegentSpawn : moment == BarkMoment.Telegraph ? RegentTelegraph : RegentDeath;
                     return true;
+                case MyrrId:
+                    line = moment == BarkMoment.Spawn ? MyrrSpawn : moment == BarkMoment.Telegraph ? MyrrTelegraph : MyrrDeath;
+                    return true;
                 default:
                     line = default;
                     return false;
@@ -60,7 +68,8 @@ namespace Cryptforge.Art
         // Every line written, for the checks (the table, the Turkish fit).
         public static readonly LocText[] Lines =
         {
-            WardenSpawn, WardenTelegraph, WardenDeath, RegentSpawn, RegentTelegraph, RegentDeath
+            WardenSpawn, WardenTelegraph, WardenDeath, RegentSpawn, RegentTelegraph, RegentDeath, MyrrSpawn, MyrrTelegraph,
+            MyrrDeath
         };
 
         // Whether a bark elapsed seconds old still shows.
@@ -80,7 +89,8 @@ namespace Cryptforge.Art
         // Whether a plate standing over [left, right] x [bottom, top] in world units, lifted by lift (the foundry's surface
         // under the mark: WardenSlamView draws the mark at its floor spot raised so), keeps clear of a circle mark of radius
         // on the floor at (markX, markY) by MarkMargin. The floor is seen at ArenaFloor.DepthScale, so the plate is read on
-        // the floor's own scale.
+        // the floor's own scale. The Warden's circle (WardenRule.SlamRadius) and Myrr's snare (MyrrRule.SnareRadius, its
+        // centre read each frame as it creeps) alike.
         public static bool ClearOfCircle(float left, float right, float bottom, float top, float lift, float markX,
             float markY, float radius)
         {
