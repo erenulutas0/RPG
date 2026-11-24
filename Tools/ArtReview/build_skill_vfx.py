@@ -1078,6 +1078,34 @@ def write(path, text):
         f.write(text)
 
 
+def write_fields(path, fields, after):
+    """Writes serialised fields into an asset that other scripts also write, keeping every other line as it is. fields:
+    (name, block) pairs, each block the field's own line and its body without a closing newline. A field the asset
+    already holds is replaced where it stands; a new one goes after the field named after (then after the one written
+    before it), so the asset keeps its class's declaration order and no script drops another's fields."""
+    text = open(path, encoding="utf-8", newline="").read()
+    lines = text[:-1].split("\n") if text.endswith("\n") else text.split("\n")
+    head, blocks = [], []
+    for line in lines:
+        match = re.match(r"  (_\w+):", line)
+        if match:
+            blocks.append([match.group(1), [line]])
+        elif blocks:
+            blocks[-1][1].append(line)
+        else:
+            head.append(line)
+    for name, block in fields:
+        lines = block.split("\n")
+        names = [b[0] for b in blocks]
+        if name in names:
+            blocks[names.index(name)][1] = lines
+        else:
+            at = names.index(after) + 1 if after in names else len(blocks)
+            blocks.insert(at, [name, lines])
+        after = name
+    write(path, "\n".join(head + [line for _, body in blocks for line in body]) + "\n")
+
+
 def number(value):
     text = f"{value:.7f}".rstrip("0").rstrip(".")
     return "0" if text in ("", "-0") else text

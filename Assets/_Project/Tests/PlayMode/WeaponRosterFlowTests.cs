@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using Cryptforge.Art;
 using Cryptforge.Combat;
 using Cryptforge.Core;
 using Cryptforge.Progression;
@@ -253,7 +255,8 @@ namespace Cryptforge.Tests
         // docs/63 section 13's Cinder Saw in the scene: taken from an offer, it joins the hero's attack as an aura - every
         // strike's target within its circle round the hero (TargetReach, not the Range a target-centred weapon reaches with),
         // every enemy standing inside that circle at the strike taking the full blow, none outside it - and its blade circles
-        // the hero (CombatEffectsView) just inside the circle while it is held.
+        // the hero (CombatEffectsView) just inside the circle while it is held: the strike set's painted blade, turning,
+        // and once a second the painted ring at the circle's edge (SplashRadius, not the Staff's shown half of it).
         [UnityTest, Timeout(180000)]
         public IEnumerator ThePickedUpSawStrikesRoundTheHeroAndItsBladeCircles()
         {
@@ -263,6 +266,11 @@ namespace Cryptforge.Tests
             UpgradeService upgrades = _setup.Upgrades;
             var effects = Object.FindFirstObjectByType<CombatEffectsView>();
             Assert.That(effects.SawCircling, Is.False, "No blade before the Saw is held.");
+            Assert.That(effects.UsesPaintedSaw, Is.True, "The scene's strike set carries the painted blade and ring.");
+            Transform pool = effects.transform.Find("Combat Effects");
+            var turned = new HashSet<Sprite>();
+            bool ringed = false;
+            float ringReach = 0f;
             for (int i = 0; i < 120 && !upgrades.Loadout.Owns(WeaponRoster.CinderSawId); i++)
             {
                 if (upgrades.CurrentOffer == null)
@@ -304,7 +312,16 @@ namespace Cryptforge.Tests
                         // The blade stands SawLift above the floor point it circles through.
                         float outward = FloorDistance(effects.SawPosition - Vector3.up * .18f);
                         Assert.That(outward, Is.InRange(saw.SplashRadius * .8f, saw.SplashRadius * .9f), "The blade just inside the circle.");
+                        Assert.That(effects.SawSprite.name, Does.StartWith("VFX Saw Blade "), "The painted blade.");
+                        turned.Add(effects.SawSprite);
                         circling++;
+                    }
+                    foreach (SpriteRenderer renderer in pool.GetComponentsInChildren<SpriteRenderer>())
+                    {
+                        if (!renderer.enabled || renderer.sprite == null || !renderer.sprite.name.StartsWith("VFX Saw Ring "))
+                            continue;
+                        ringed = true;
+                        ringReach = Mathf.Max(ringReach, renderer.transform.localScale.x);
                     }
                 }
             }
@@ -314,7 +331,69 @@ namespace Cryptforge.Tests
             }
             Assert.That(strikes, Is.GreaterThanOrEqualTo(10), "The Saw struck again and again.");
             Assert.That(circling, Is.GreaterThan(0), "Its blade circled the hero while it was held.");
+            Assert.That(turned.Count, Is.GreaterThan(1), "Its frames turned as it circled.");
+            Assert.That(ringed, Is.True, "Its painted ring marked the circle's edge.");
+            Assert.That(ringReach, Is.InRange(saw.SplashRadius * 24f / 38f - 1e-3f, saw.SplashRadius + 1e-3f),
+                "The ring grows toward the circle that strikes, never past it.");
             Assert.That(saw.AttacksMade, Is.GreaterThanOrEqualTo(10));
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // The painted Saw's fallback, as the Staff's (PaintedStaffBlastTests): a strike set without the Saw's strips, or with
+        // a broken one, gives a view EffectArt's pixel blade and the procedural ring; the scene's set, the painted ones.
+        [UnityTest, Timeout(90000)]
+        public IEnumerator AStrikeSetWithoutTheSawsStripsDrawsThePixelBladeAndTheProceduralRing()
+        {
+            const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
+            yield return Load(true);
+            var effects = Object.FindFirstObjectByType<CombatEffectsView>();
+            FieldInfo blade = typeof(CombatEffectsView).GetField("_saw", Private);
+            FieldInfo ring = typeof(CombatEffectsView).GetField("_sawRing", Private);
+            var scene = (StrikeArtSet)typeof(CombatEffectsView).GetField("_paintedArt", Private).GetValue(effects);
+            Assert.That(effects.UsesPaintedSaw, Is.True);
+            var painted = (Sprite[])blade.GetValue(effects);
+            Assert.That(painted.Length, Is.EqualTo(scene.SawBlade.Length));
+            Assert.That(painted.All(s => s.name.StartsWith("VFX Saw Blade ")), Is.True, "The scene's blade is painted.");
+            Assert.That(((Sprite[])ring.GetValue(effects)).All(s => s.name.StartsWith("VFX Saw Ring ")), Is.True);
+
+            // The scene's set but for the Saw's strips, and the scene's set with its ring's sheet gone, as a missing texture
+            // would leave it.
+            var bare = ScriptableObject.CreateInstance<StrikeArtSet>();
+            foreach (string field in new[] { "_slash", "_spark", "_staffRing", "_staffBurst" })
+            {
+                FieldInfo info = typeof(StrikeArtSet).GetField(field, Private);
+                info.SetValue(bare, info.GetValue(scene));
+            }
+            StrikeArtSet broken = Object.Instantiate(scene);
+            broken.SawRing.Sheet = null;
+            foreach (StrikeArtSet set in new[] { bare, broken })
+            {
+                string at = set == bare ? "Without the Saw's strips" : "With a broken ring";
+                Assert.That(set.HasCinderSaw, Is.False, at);
+                var holder = new GameObject("Pixel Saw");
+                holder.SetActive(false);
+                var view = holder.AddComponent<CombatEffectsView>();
+                foreach (string field in new[] { "_encounter", "_hero", "_heroAttack", "_heroAbility", "_chests", "_camera", "_material",
+                             "_skillArt", "_feedbackArt", "_ringSplashFraction" })
+                {
+                    FieldInfo info = typeof(CombatEffectsView).GetField(field, Private);
+                    Assert.That(info, Is.Not.Null, field);
+                    info.SetValue(view, info.GetValue(effects));
+                }
+                typeof(CombatEffectsView).GetField("_paintedArt", Private).SetValue(view, set);
+                holder.SetActive(true);
+                Assert.That(view.UsesPaintedSaw, Is.False, at);
+                Assert.That(view.UsesPaintedStaffBlast, Is.True, $"{at}: the Staff's painted hit is untouched.");
+                var pixel = (Sprite[])blade.GetValue(view);
+                Assert.That(pixel.Length, Is.EqualTo(EffectArt.SawFrameCount), $"{at}: the pixel blade.");
+                Assert.That(pixel.All(s => s.name.StartsWith("VFX Cinder Saw ")), Is.True, at);
+                var procedural = (Sprite[])ring.GetValue(view);
+                Assert.That(procedural.Length == 1 && procedural[0] == StaffSplashArt.Get(), Is.True, $"{at}: the procedural ring.");
+                Object.Destroy(holder);
+                yield return null;
+            }
+            Object.Destroy(bare);
+            Object.Destroy(broken);
             LogAssert.NoUnexpectedReceived();
         }
 
