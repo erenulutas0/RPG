@@ -22,7 +22,7 @@ namespace Cryptforge.Tests
     // imported texture is compressed and unreadable): clear at their edges and the painted icons' navy laid over it,
     // their glyphs filling the square, and each evolution throwing more light than what it evolves from. The weapon
     // roster's shared weapons (docs/63: the Magma Mortar and the Forge Bow, CombatSetup._rosterWeapons) are offers too
-    // behind its lever, so they have theirs.
+    // behind its lever, so they have theirs; the Cinder Saw's are its painted blade's iron and straw heat (docs/63 13.10).
     public sealed class UpgradeIconSetTests
     {
         private const string SetPath = "Assets/_Project/Art/UI/UpgradeIcons/UpgradeIconSet.asset";
@@ -315,6 +315,94 @@ namespace Cryptforge.Tests
             Assert.That(pairs, Is.EqualTo(6),
                 "The three weapons' evolutions, Ironblood over Vital Surge, Ruinous Edge over Tempered Edge and Blurred Grip over Quickened Grip.");
         }
+
+        // docs/63 section 13.10: the Cinder Saw's blade in the arena is painted forged iron with teeth hot from straw to
+        // white, out of the red-orange docs/52 section 2.1 rule 3 keeps for what hurts on a timer (PaintedCinderSawTests),
+        // and its icons match it since 2026-11-25: read as that test reads the blade (a texel over 32 alpha, vivid at .35
+        // saturation and value), none of its four cards nor its socket has a red-orange texel; every bright coloured texel
+        // of the weapon's own icons is the teeth's straw; and the weapon card's plate is dark grey iron, no longer blue. The
+        // damage line's mark is the ember burst every damage line carries, so that card is read outside the mark's reach
+        // (where build_upgrade_icons.py paints it: MARK, 18.5 cells, the glyph centred), and the mark is still there.
+        [Test]
+        public void TheCinderSawsIconsAreItsBladesIronAndStrawHeatNeverTheTelegraphsRedOrange()
+        {
+            Sprite weapon = _set.CardIconFor("weapon_cinder_saw");
+            Sprite damage = _set.CardIconFor("line_cinder_saw_damage");
+            var icons = new (Sprite sprite, bool blade)[]
+            {
+                (weapon, true), (_set.SlotIconFor("weapon_cinder_saw"), true), (damage, false),
+                (_set.CardIconFor("line_cinder_saw_area"), false), (_set.CardIconFor("line_cinder_saw_attack_speed"), false)
+            };
+            int inMark = 0;
+            foreach ((Sprite sprite, bool blade) in icons)
+            {
+                Assert.That(sprite, Is.Not.Null, "The Saw has its icons.");
+                RectInt r = Texels(sprite);
+                int vivid = 0, redOrange = 0, bright = 0, notStraw = 0, plate = 0, plateVivid = 0;
+                float plateValue = 0f;
+                string first = null;
+                for (int y = r.y; y < r.yMax; y++)
+                    for (int x = r.x; x < r.xMax; x++)
+                    {
+                        Color32 c = _painted.GetPixel(x, y);
+                        if (c.a <= 32)
+                            continue;
+                        Color.RGBToHSV(c, out float h, out float s, out float v);
+                        float hue = h * 360f;
+                        bool isVivid = s >= .35f && v >= .35f;
+                        bool isRedOrange = isVivid && (hue < 30f || hue >= 345f);
+                        var at = new Vector2(x - r.x + .5f, y - r.y + .5f);
+                        if (sprite == damage && Vector2.Distance(at, DamageMarkCentre) < DamageMarkReach)
+                        {
+                            if (isRedOrange)
+                                inMark++;
+                            continue;
+                        }
+                        if (isVivid)
+                            vivid++;
+                        if (isRedOrange)
+                        {
+                            redOrange++;
+                            first ??= $"{c} at ({at.x - .5f}, {at.y - .5f})";
+                        }
+                        if (blade && c.a > 230 && v > .7f && s >= .2f)
+                        {
+                            bright++;
+                            if (hue < 38f || hue > 62f)
+                                notStraw++;
+                        }
+                        if (sprite == weapon && c.a > 230 && Vector2.Distance(at, SawPlateCentre) < SawPlateReach)
+                        {
+                            plate++;
+                            plateValue += v;
+                            if (isVivid)
+                                plateVivid++;
+                        }
+                    }
+                Assert.That(vivid, Is.GreaterThan(0), $"{sprite.name}: something on it glows.");
+                Assert.That(redOrange, Is.Zero,
+                    $"{sprite.name}: {redOrange} of its {vivid} vivid texels are red-orange (docs/52 section 2.1 rule 3), the first {first}.");
+                if (blade)
+                {
+                    Assert.That(bright, Is.GreaterThan(sprite == weapon ? 600 : 100), $"{sprite.name}: its teeth glow.");
+                    Assert.That(notStraw, Is.Zero, $"{sprite.name}: {notStraw} of its {bright} bright coloured texels are not the teeth's straw heat.");
+                }
+                if (sprite == weapon)
+                {
+                    Assert.That(plate, Is.GreaterThan(2000), "The weapon card's plate is where it is painted.");
+                    Assert.That(plateVivid, Is.Zero, "The plate is grey iron, not the old blue.");
+                    Assert.That(plateValue / plate, Is.LessThan(.4f), "Dark forged iron, as the blade is.");
+                }
+            }
+            Assert.That(inMark, Is.GreaterThan(500), "The damage line keeps the damage mark's ember burst, as every damage line does.");
+        }
+
+        // Where build_upgrade_icons.py paints them on the Saw's 144-texel cards, in texels from the card's bottom left: the
+        // damage line's mark (its 31-texel burst and the ember glow round it) and the weapon card's plate (35 texels).
+        private static readonly Vector2 DamageMarkCentre = new Vector2(105.5f, 38.5f);
+        private const float DamageMarkReach = 36f;
+        private static readonly Vector2 SawPlateCentre = new Vector2(73.6f, 70.3f);
+        private const float SawPlateReach = 30f;
 
         // The light a card icon throws on the navy round its glyph: the mean, over its square, of how far its brightest
         // channel rises above the navy wherever the glyph is not.

@@ -45,7 +45,8 @@ clear texels apart, the socket icons in the last row's free cells (or, once thos
 the grid); Multiple sprites, bilinear, no mipmaps, ASTC 4x4 on
 Android, as the painted HUD's sheet. And Cryptforge.Art.UpgradeIconSet, UpgradeIconSet.asset, with each id's card icon
 and socket icon. Deterministic: the same script paints the same files byte for byte, and existing GUIDs and sprite ids
-are kept, so a repaint never breaks a reference.
+are kept, so a repaint never breaks a reference; an icon whose painting is unchanged keeps its texels exactly as the
+sheet on disk has them (keep_unchanged), so repainting one never touches the others.
 
 The gear's items (2026-11-17), in the same family and at the card icons' size: an icon for each armour, amulet and ring
 the Descent drops (ITEMS), so the Anvil's bag shows the item and not an upgrade card's shield, gauntlet or crit sword. A
@@ -1177,11 +1178,21 @@ def forge_bow(g, t=T(), limb=WOOD, metal=GOLD, string=PALE, shaft=WOOD, head=EMB
     return dict(tip=t.p(*tip), nock=t.p(*nock), d=d, t=t)
 
 
-def cinder_saw(g, t=T(), disc=IRON, teeth=EMBER, hub=GOLD, groove=None, teeth_count=10):
-    """docs/63 phase 2's Cinder Saw (2026-11-23): a round saw blade of dark iron, its hooked teeth glowing ember from the
-    forge, three curved molten vents through its plate, a gold hub with a dark eye, and ember sparks flung off its rim as
-    it spins - counter-clockwise, as the game's blade circles the hero."""
-    groove = MOLTEN if groove is None else groove
+# The Cinder Saw's palette since its painted blade (docs/63 13.10, 2026-11-25), so its card shows the blade the arena
+# does: the blade's dark forged iron (#121419, #262A33, #3B404C, #7E879A) round a polished steel boss, and its teeth hot
+# from straw to white (#FFD95A to #FFFBEC, hue 46-48) - out of the red-orange docs/52 section 2.1 rule 3 keeps for what
+# hurts on a timer, as the blade itself is.
+SAW_IRON = Ramp("#0C0D11", "#121419", "#262A33", "#3B404C", "#545B6B", "#7E879A", "#A9B1C2")
+SAW_STEEL = Ramp("#262A33", "#3B404C", "#5C6475", "#7E879A", "#A9B1C2", "#D2D8E4", "#F4F6FA")
+SAW_HEAT = Ramp("#2A1C06", "#5A3E0C", "#8C6414", "#CFA02A", "#FFE27A", "#FFF2B8", "#FFFBEC")
+SAW_HALO = hexc("#FFD24A")
+
+
+def cinder_saw(g, t=T(), disc=SAW_IRON, teeth=SAW_HEAT, hub=SAW_STEEL, groove=None, teeth_count=10):
+    """docs/63 phase 2's Cinder Saw (2026-11-23): a round saw blade of dark forged iron, its hooked teeth hot straw to
+    white, three curved slots cut through its plate, a polished steel hub with a dark eye, and hot sparks flung off its
+    rim as it spins - counter-clockwise, as the game's blade circles the hero. Until the painted blade (2026-11-25) it was
+    blue iron with ember teeth, molten vents and a gold hub; a `groove` ramp still makes the slots glowing vents."""
     c = (47.0, 49.0)
     r_tip, r_root, r_plate = 32.0, 22.5, 20.5
 
@@ -1202,7 +1213,11 @@ def cinder_saw(g, t=T(), disc=IRON, teeth=EMBER, hub=GOLD, groove=None, teeth_co
     for k in range(3):
         a0 = -70.0 + 120.0 * k
         vent = ring(*at(0.0, 0.0), t.w(r_plate * 0.50), t.w(r_plate * 0.72), a0=a0, a1=a0 + 62.0)
-        part(g, vent, colours(groove, 5), groove, inline=3, separate=False, emit=1.0)
+        if groove is None:
+            # Cut through the plate, as the painted blade's lightening holes are: its own darkest iron, unlit.
+            part(g, vent, colours(disc, 0), disc, inline=1, separate=False)
+        else:
+            part(g, vent, colours(groove, 5), groove, inline=3, separate=False, emit=1.0)
     hb = ellipse(*at(0.0, 0.0), t.w(7.0))
     part(g, hb, skin_dome(hb, hub, 3, 2.4), hub)
     eye = mask_of(ellipse(*at(0.0, 0.0), t.w(2.3)))
@@ -1447,11 +1462,13 @@ ICONS = [
     ("line_forge_bow_damage", bow_line(burst), EMBER_HALO, False),
     ("line_forge_bow_crit", bow_line(crit_star), EMBER_HALO, False),
     ("line_forge_bow_range", bow_line(range_arrow), EMBER_HALO, False),
-    # docs/63 phase 2's Cinder Saw (2026-11-23) and its lines; appended likewise.
-    ("weapon_cinder_saw", lambda g: cinder_saw(g, T(k=1.02)), EMBER_HALO, False),
-    ("line_cinder_saw_damage", saw_line(burst), EMBER_HALO, False),
-    ("line_cinder_saw_area", saw_line(rings), EMBER_HALO, False),
-    ("line_cinder_saw_attack_speed", saw_line(bolts), EMBER_HALO, False),
+    # docs/63 phase 2's Cinder Saw (2026-11-23) and its lines; appended likewise. In the painted blade's iron and straw
+    # heat since 2026-11-25 (docs/63 13.10), its halo straw; the damage line's mark is still the damage mark, the ember
+    # burst every damage line carries.
+    ("weapon_cinder_saw", lambda g: cinder_saw(g, T(k=1.02)), SAW_HALO, False),
+    ("line_cinder_saw_damage", saw_line(burst), SAW_HALO, False),
+    ("line_cinder_saw_area", saw_line(rings), SAW_HALO, False),
+    ("line_cinder_saw_attack_speed", saw_line(bolts), SAW_HALO, False),
 ]
 
 
@@ -2034,6 +2051,26 @@ def bleed(sheet):
     return sheet
 
 
+def keep_unchanged(png, painted, bled, rects):
+    """The sheet to write: `bled`, but with every sprite whose painting is unchanged exactly as the sheet on disk holds
+    it, the colour bled into its clear texels included. That colour comes from the nearest painted texel, which may be a
+    neighbour's across the gutter, so repainting one icon (the Cinder Saw's, 2026-11-25) would otherwise move it in the
+    icons beside it; this way a repaint leaves every other icon's texels as they were, and a run with nothing repainted
+    writes the sheet back byte for byte."""
+    if not os.path.exists(png):
+        return bled
+    old = np.asarray(Image.open(png).convert("RGBA"))
+    if old.shape != bled.shape:
+        return bled
+    out = bled.copy()
+    for x, y, w, h in rects.values():
+        was, now = old[y:y + h, x:x + w], painted[y:y + h, x:x + w]
+        shown = now[..., 3] > 0
+        if np.array_equal(was[..., 3], now[..., 3]) and np.array_equal(was[shown], now[shown]):
+            out[y:y + h, x:x + w] = was
+    return out
+
+
 def existing_guid(path):
     if os.path.exists(path):
         m = re.search(r"^guid: ([0-9a-f]{32})", open(path, encoding="utf-8").read(), re.M)
@@ -2298,7 +2335,7 @@ def build(frames=None):
     for name in slot_ids:
         x, y, w, h = rects[name + "_slot"]
         sheet[y:y + h, x:x + w] = to_bytes(built[name]["slot"])
-    sheet = bleed(sheet)
+    sheet = keep_unchanged(os.path.join(OUT_DIR, SHEET + ".png"), sheet, bleed(sheet), rects)
 
     os.makedirs(OUT_DIR, exist_ok=True)
     folder_meta = OUT_DIR + ".meta"
@@ -2376,7 +2413,7 @@ def build_items(frames=None):
     for k in keys:
         x, y, w, h = rects[k]
         sheet[y:y + h, x:x + w] = to_bytes(built[k]["card"])
-    sheet = bleed(sheet)
+    sheet = keep_unchanged(os.path.join(ITEM_DIR, ITEM_SHEET + ".png"), sheet, bleed(sheet), rects)
 
     os.makedirs(ITEM_DIR, exist_ok=True)
     folder_meta = ITEM_DIR + ".meta"
