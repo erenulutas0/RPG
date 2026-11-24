@@ -72,3 +72,61 @@ MonoBehaviour:
       Y: 2
       Width: 83
       Height: 80
+  _sawBlade:
+    Sheet: {fileID: 2800000, guid: e79ea940ed5242d3b51b827ddae4ead4, type: 3}
+    SheetWidth: 824
+    SheetHeight: 220
+    TexelsPerUnit: 128
+    Pivot: {x: 0.5, y: 0.5}
+    Frames:
+    - X: 0
+      Y: 2
+      Width: 80
+      Height: 78
+    - X: 82
+      Y: 2
+      Width: 80
+      Height: 78
+    - X: 164
+      Y: 2
+      Width: 80
+      Height: 78
+    - X: 246
+      Y: 2
+      Width: 80
+      Height: 78
+    - X: 328
+      Y: 2
+      Width: 80
+      Height: 78
+    - X: 410
+      Y: 2
+      Width: 80
+      Height: 78
+    - X: 492
+      Y: 2
+      Width: 80
+      Height: 78
+    - X: 574
+      Y: 2
+      Width: 80
+      Height: 78
+  _sawRing:
+    Sheet: {fileID: 2800000, guid: e79ea940ed5242d3b51b827ddae4ead4, type: 3}
+    SheetWidth: 824
+    SheetHeight: 220
+    TexelsPerUnit: 128
+    Pivot: {x: 0.4990476, y: 0.4982609}
+    Frames:
+    - X: 0
+      Y: 82
+      Width: 273
+      Height: 138
+    - X: 275
+      Y: 82
+      Width: 273
+      Height: 138
+    - X: 550
+      Y: 82
+      Width: 273
+      Height: 138

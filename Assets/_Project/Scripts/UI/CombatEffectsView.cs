@@ -21,7 +21,9 @@ namespace Cryptforge.UI
     // slash, the crit star, the smoke, the coins and the numbers are painted too when a CombatFeedbackArtSet is given (one
     // sheet for them all, cut here likewise), and otherwise EffectArt's pixel art. The Staff's hit is painted when the
     // strike set carries its ring and burst (cut here likewise), and otherwise the procedural ring StaffSplashArt draws,
-    // which the Vent's eruptions fall back to, tinted ember, when the skill set carries no painted eruption ring.
+    // which the Vent's eruptions fall back to, tinted ember, when the skill set carries no painted eruption ring. The
+    // Cinder Saw's blade and edge ring are painted the same way when the strike set carries them, and otherwise
+    // EffectArt's pixel blade and the procedural ring, tinted.
     public sealed class CombatEffectsView : MonoBehaviour
     {
         private sealed class Effect
@@ -261,6 +263,8 @@ namespace Cryptforge.UI
         public bool UsesPaintedStrikes => _paintedArt != null && _paintedArt.IsValid;
         // The Staff's painted ring and burst ride the strike set too, but neither needs nor is needed by its slash and spark.
         public bool UsesPaintedStaffBlast => _paintedArt != null && _paintedArt.HasStaffBlast;
+        // The Cinder Saw's painted blade and ring ride the strike set as well, needing nothing else of it.
+        public bool UsesPaintedSaw => _paintedArt != null && _paintedArt.HasCinderSaw;
         // Optional: the skills' painted effects; without them the skills draw the pixel art.
         [SerializeField] private SkillEffectArtSet _skillArt;
         public bool UsesPaintedSkills => _skillArt != null && _skillArt.IsValid;
@@ -298,8 +302,14 @@ namespace Cryptforge.UI
         // docs/63's shared weapons: the Forge Bow's tracer and the Magma Mortar's falling shell (EffectArt.TracerFrames),
         // pinned at their heads and stretched along the shot.
         private Sprite[] _tracer;
-        // docs/63 phase 2's Cinder Saw: its spinning blade (EffectArt.SawFrames), circling the hero in its own slot.
+        // docs/63 phase 2's Cinder Saw: its spinning blade, circling the hero in its own slot, and the ring its aura's edge
+        // shows - the strike set's painted blade and ring, or EffectArt.SawFrames and the procedural _ring - with the frame
+        // times and the ring's tint of the art in use.
         private Sprite[] _saw;
+        private Sprite[] _sawRing;
+        private float _sawFrameDuration;
+        private float _sawRingFrameDuration;
+        private Color _sawRingTint;
         // The scene's setup, for the id of the weapon behind a strike (WeaponIdOf); null in a scene without one.
         private CombatSetup _setup;
         private Sprite[] _smoke;
@@ -424,18 +434,27 @@ namespace Cryptforge.UI
         private const int SawSlots = 1;
         private int SawSlot => AshStart + AshSlots;
         // The saw's blade over the floor, its turn round the hero (a full circle every SawOrbitSeconds) and how far out it
-        // circles as a share of the aura's radius, so it runs just inside the circle that strikes.
+        // circles as a share of the aura's radius, so it runs just inside the circle that strikes: the painted blade is half
+        // a unit across, so its teeth reach 0.85 x 2.0 + 0.25 = 1.95 of the base circle's 2.0. Its frames' time, pixel
+        // and painted (eight frames over a fifth of a turn: a turn every 1.4 s on top of the orbit).
         private const float SawOrbitSeconds = .7f;
         private const float SawOrbitShare = .85f;
         private const float SawLift = .18f;
         private const float SawFrameDuration = .04f;
-        // A faint ember ring at the aura's edge round the hero, once every this many of its strikes (once a second at its
-        // base 0.2 s): the circle shown without a ring on every strike.
+        private const float PaintedSawFrameDuration = .035f;
+        // A faint ring at the aura's edge round the hero, once every this many of its strikes (once a second at its base
+        // 0.2 s): the circle shown without a ring on every strike. Painted, its own three frames in the blade's yellow-white
+        // over the procedural ring's 0.21 s; otherwise the procedural ring tinted out of the red-orange docs/52 section 2.1
+        // rule 3 keeps for telegraphs - its violet multiplied toward a pale straw at the core (the multiply cannot make
+        // violet yellow-white; the painted ring is the look).
         private const int SawRingEvery = 5;
-        private static readonly Color SawRingTint = new Color(1f, .52f, .18f, .55f);
-        // Whether the saw is circling, and where in its turn it is (radians).
+        private const float PaintedSawRingFrameDuration = .07f;
+        private static readonly Color PaintedSawRingTint = new Color(1f, 1f, 1f, .6f);
+        private static readonly Color SawRingTint = new Color(1f, 1f, .55f, .5f);
+        // Whether the saw is circling, where it is, the frame it shows, and where in its turn it is (radians).
         internal bool SawCircling => _effects != null && _effects[SawSlot].Active;
         internal Vector3 SawPosition => _effects != null ? _effects[SawSlot].Transform.position : Vector3.zero;
+        internal Sprite SawSprite => _effects != null ? _effects[SawSlot].Renderer.sprite : null;
         private float _sawTurn;
 
         // Pool slots, and the effect on show above the floor in one with the world height of the floor it stands on, for
@@ -603,7 +622,23 @@ namespace Cryptforge.UI
             _spark = UsesPaintedStrikes ? _paintedArt.Spark : Build(EffectArt.SparkFrames(), "VFX Spark", PixelSpriteFactory.Centre);
             _tracer = Build(EffectArt.TracerFrames(), "VFX Tracer",
                 new Vector2((EffectArt.TracerLength - 1.5f) / EffectArt.TracerLength, .5f));
-            _saw = Build(EffectArt.SawFrames(), "VFX Cinder Saw", PixelSpriteFactory.Centre);
+            if (UsesPaintedSaw)
+            {
+                // The blade pins at its axle, the ring at its centre on the hero's feet.
+                _saw = Cut(_paintedArt.SawBlade, "VFX Saw Blade ");
+                _sawRing = Cut(_paintedArt.SawRing, "VFX Saw Ring ");
+                _sawFrameDuration = PaintedSawFrameDuration;
+                _sawRingFrameDuration = PaintedSawRingFrameDuration;
+                _sawRingTint = PaintedSawRingTint;
+            }
+            else
+            {
+                _saw = Build(EffectArt.SawFrames(), "VFX Cinder Saw", PixelSpriteFactory.Centre);
+                _sawRing = _ring;
+                _sawFrameDuration = SawFrameDuration;
+                _sawRingFrameDuration = StaffPulseDuration;
+                _sawRingTint = SawRingTint;
+            }
             // Imported references are borrowed; only generated sprites enter the destruction list.
             BuildFeedbackSprites();
 
@@ -1079,17 +1114,18 @@ namespace Cryptforge.UI
                 case StrikeEffect.SawBite:
                 {
                     // docs/63 phase 2's Cinder Saw: its blade circles the hero (TickSaw) and every struck enemy sparks as any
-                    // hit does, so a strike draws nothing at its target; once every SawRingEvery strikes a faint ember ring
-                    // marks the aura's edge round the hero, at the radius it strikes (RingScale, the Area it carries).
+                    // hit does, so a strike draws nothing at its target; once every SawRingEvery strikes a faint ring marks
+                    // the aura's edge round the hero, at the radius it strikes (SplashRadius, the Area it carries: the circle
+                    // the blade runs just inside). Not RingScale: that is the Staff's shown half of its splash.
                     if (weapon.AttacksMade % SawRingEvery != 0)
                         break;
-                    float sawRadius = RingScale(weapon) * EffectArt.RingFullRadius / PixelSpriteFactory.PixelsPerUnit;
-                    Effect edge = ShowMoving(_ring, StaffPulseDuration, StaffPulseDuration, _hero.transform.position, _groundOrder,
-                        Vector3.zero, 0, false, sawRadius * (24f / 38));
+                    float sawRadius = weapon.SplashRadius;
+                    Effect edge = ShowMoving(_sawRing, _sawRingFrameDuration, StaffPulseDuration, _hero.transform.position,
+                        _groundOrder, Vector3.zero, 0, false, sawRadius * (24f / 38));
                     edge.StaffPulse = true;
                     edge.PulseRadius = sawRadius;
-                    edge.Tint = SawRingTint;
-                    edge.Renderer.color = SawRingTint;
+                    edge.Tint = _sawRingTint;
+                    edge.Renderer.color = _sawRingTint;
                     break;
                 }
                 default:
@@ -1447,7 +1483,7 @@ namespace Cryptforge.UI
             }
             if (!saw.Active)
             {
-                Arm(saw, _saw, SawFrameDuration, float.MaxValue, _hero.transform.position, _sortingOrder + StrikeOrder,
+                Arm(saw, _saw, _sawFrameDuration, float.MaxValue, _hero.transform.position, _sortingOrder + StrikeOrder,
                     Vector3.zero, 0f, true, 1f);
                 saw.AboveFloor = true;
             }

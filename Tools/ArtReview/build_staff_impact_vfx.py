@@ -33,7 +33,6 @@ Usage:
 import argparse
 import math
 import os
-import re
 
 import numpy as np
 from PIL import Image
@@ -233,17 +232,12 @@ def burst_frame(index):
 
 
 def write_asset(strips, guid, sheet):
-    text = open(ASSET_PATH, encoding="utf-8", newline="").read()
-    # Drop any staff strips an earlier run wrote: they are the last fields of the set.
-    kept = re.split(r"(?m)^  _staffRing:\n", text)[0]
-    if not kept.endswith("\n"):
-        kept += "\n"
+    # The staff strips follow the spark, replaced where an earlier run wrote them; the Cinder Saw's strips after them
+    # (build_cinder_saw_vfx.py) are kept.
     named = {s.name: s for s in strips}
-    lines = []
-    for field, name in (("_staffRing", "staffRing"), ("_staffBurst", "staffBurst")):
-        lines.append(f"  {field}:")
-        lines.append(skill.strip_yaml(named[name], guid, sheet, 4))
-    skill.write(ASSET_PATH, kept + "\n".join(lines) + "\n")
+    skill.write_fields(ASSET_PATH, [(field, f"  {field}:\n" + skill.strip_yaml(named[name], guid, sheet, 4))
+                                    for field, name in (("_staffRing", "staffRing"), ("_staffBurst", "staffBurst"))],
+                       after="_spark")
 
 
 def build_strips():

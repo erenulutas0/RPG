@@ -416,7 +416,7 @@ and the Bow in `CombatSetup._rosterWeapons` and the simulation's `RosterWeapons(
 | Lines (`Data/Upgrades/WeaponLines`) | `line_cinder_saw_damage` +0.8 flat (docs/40's common); `line_cinder_saw_area` +10 % (its circle: docs/40's "+10 % duration" has no stat here, and an aura's size is its circle); `line_cinder_saw_attack_speed` +8 %. Rare, epic, gold x1.25 / x1.5 / x2 |
 | Shares | 1 on the gate boss and the elites |
 | Evolution | none yet |
-| Look (`CombatEffectsView`) | one blade (`EffectArt.SawFrames`: a 15-texel toothed ember disc, three frames a third of a tooth apart, played in a loop) circles the hero at 0.85 of the circle's radius once every 0.7 s while the loadout holds the Saw, in a slot of its own after the motes' (`SawSlots`, so the foundry's depth test sees it); every fifth strike (once a second) a faint ember ring at the circle's edge round the hero (the Staff's ring sprite, `StrikeEffect.SawBite`). No effect at a target per strike: the hits spark and number as every hit does. No cue on the hero per strike (`GameFeel.CuesEachStrike`); the Staff's glow when it is picked up |
+| Look (`CombatEffectsView`) | one blade (`EffectArt.SawFrames`: a 15-texel toothed ember disc, three frames a third of a tooth apart, played in a loop) circles the hero at 0.85 of the circle's radius once every 0.7 s while the loadout holds the Saw, in a slot of its own after the motes' (`SawSlots`, so the foundry's depth test sees it); every fifth strike (once a second) a faint ember ring at the circle's edge round the hero (the Staff's ring sprite, `StrikeEffect.SawBite`). No effect at a target per strike: the hits spark and number as every hit does. No cue on the hero per strike (`GameFeel.CuesEachStrike`); the Staff's glow when it is picked up. The blade and ring painted since 13.10, these kept as the fallback |
 | Icon (`build_upgrade_icons.py`) | a round iron blade with ten hooked ember teeth, three molten vents, a gold hub; its lines the blade small with the stat's mark; a socket icon. Appended: the 42 existing sprites keep their ids and pixels (checked against the committed sheet), the socket strip moves into the last row's free cells, the sheet stays 1020x1020 (ASTC 0.99 MiB) |
 | Strings (docs/60) | "Cinder Saw" / "Kor Testeresi" (working name); "{0:0} damage every {1:0.0#}s to every enemy close around the hero" / "Her {1:0.0#} sn'de kahramanın yakın çevresindeki her düşmana {0:0} hasar"; the lines as the Mortar's |
 
@@ -662,3 +662,40 @@ byte-identical; foundry-batch.md identical but for the header's clock and the fl
   `DepthProofArrangementTests`, `FoundryRegionTests`. What to capture: the Saw circling the Vanguard in the foundry
   (development/weapon-roster.txt and start-weapon.txt `weapon_cinder_saw`, or taken from an offer), the ember ring once a
   second, and its icon on the card and in the loadout socket.
+
+### 13.10 The Saw's painted blade (2026-11-25)
+
+The lead's capture (`ArtDirection/2026-11-25/saw-runtime-01`) showed the pixel blade as a small crisp orange disc among
+the rendered actors, in the magma enemies' ember and the telegraphs' red-orange (its `Ember` is #E55640, hue 8; docs/52
+section 2.1 rule 3 keeps #FF5A3C, hue 9, for what hurts on a timer). The blade and its ring are now painted, with the
+pixel blade and the procedural ring kept as the fallback exactly as the Staff's hit is (`StrikeArtSet.HasCinderSaw`,
+`CombatEffectsView.UsesPaintedSaw`). Presentation only: the fight reads nothing from either.
+
+- **Blade** - rendered in the toon pipeline (`Tools/ArtReview/BuildBlenderCinderSaw.py`, Cycles, four threads, about 30 s):
+  a dark forged-iron disc (#3B404C local, cool), ten hooked teeth leaning the way it turns, five lightening holes, a
+  polished steel boss with a dark socket; the teeth hot in an emission pass that `build_cinder_saw_vfx.py` colours from
+  straw #FFD95A to white #FFFBEC (hue 46-48) and blooms, with a faint motion smear (five renders of the 20 degrees just
+  behind each frame, under it at 32 %, their hot points trailing into short arcs). 0.5 world units tooth to tooth (the
+  pixel blade 0.47 with its outline), 128 texels a unit; 8 frames 80x78, a fifth of a turn over the loop (a quarter of a
+  tooth a frame), 0.035 s a frame.
+- **Ring** - painted (`build_cinder_saw_vfx.py`): a unit floor ellipse, a thin yellow-white serrated line over a straw
+  glow and a faint dark rim, 3 frames 273x138 over the procedural ring's 0.21 s, drawn at 60 %. It is now drawn at the
+  aura's edge (`SplashRadius`, 2.0 at base): it was drawn through `RingScale`, the Staff's shown half of its splash, so
+  it sat at 1.0 inside the blade's 1.7 orbit, against 13.1's "at the circle's edge". The fallback tint is (1, 1, 0.55,
+  0.5): a multiply cannot make the Staff ring's violet yellow-white, so the fallback core is a pale straw (hue 40).
+- **Sheet** - `Art/Effects/FoundryStrikes/VFX_CinderSaw.png`, 824x220, imported as `VFX_StaffBlast.png` (bilinear, no
+  mipmaps, not readable, ASTC 4x4 on Android): 177 KiB on the phone. Its strips ride `FoundryStrikeArtSet.asset` after
+  the staff strips; `build_skill_vfx.write_fields` now replaces each script's own fields, so a rebuild of the Staff's
+  sheet keeps the Saw's (re-run here: the Staff's files came back byte for byte).
+- **Orbit** - unchanged (0.85 of the circle, lift 0.18): the half-unit blade's teeth reach 1.95 of the base circle's 2.0.
+- **Not changed** - the upgrade icon (`build_upgrade_icons.py`): its teeth use the icon set's EMBER ramp (about 44 % of
+  its vivid texels on the card are under hue 30, the deepest #D43E18 at hue 10), so it no longer matches the blade; it
+  reads clearly on the card and is not redone here (the 42 other icons keep their ids and pixels).
+- **Review** - `ArtDirection/2026-11-25/saw-art-01/` (untracked, `Tools/ArtReview/review_cinder_saw.py`): each of the
+  lead's frames beside the same frame with the painted blade where the pixel one stood, at the capture's scale
+  (`beside-*.png`, `review-sheet.png`), the ring at the aura's edge (`ring-*.png`), the frames at 4x and at the phone's
+  120 pixels a unit on the stone and the lava (`frames.png`), and the orbit at the view's timing (`orbit.gif`).
+- **Checks** - EditMode `PaintedCinderSawTests` (the set and the scene, the import against the Staff's sheet, the budget,
+  the blade's size, hub, holes, plate and teeth, every texel out of red-orange and orchid, the ring's unit ellipse);
+  PlayMode `WeaponRosterFlowTests` (the painted blade turning as it circles, the ring at the circle's edge, and the
+  fallback for a strike set without the Saw's strips or with a broken one). Not run here (no Unity in a worktree).
