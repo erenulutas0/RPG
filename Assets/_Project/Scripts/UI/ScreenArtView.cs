@@ -14,7 +14,8 @@ namespace Cryptforge.UI
     // offsets relative to the scene's own rects, so they follow the safe area as those rects do.
     //   - The Relic Forge: its surface; a nameplate behind its title; a rule under each section's header; each card's frame
     //     in the state RelicForgeView shows it in (CardShown) and its state strip; a well behind each relic's picture, the
-    //     two dimmed together while the relic is out of reach; the start button; and the hero chooser - its plate, a niche
+    //     two dimmed together while the relic is out of reach; the skills' header and card in the band above the start
+    //     button, as the relics' are (docs/63 section 12 answer 7); the start button; and the hero chooser - its plate, a niche
     //     round its portrait and a pip a hero along its foot, the chosen one lit. (The weapon rack's empty places, a seal
     //     on a rule where a hero left a place empty, went with the rack: the forge shows the hero's own weapon alone,
     //     docs/63.)
@@ -67,6 +68,8 @@ namespace Cryptforge.UI
         public IReadOnlyList<Image> HeaderRules => _headerRules;
         // In the relic cards' order.
         public IReadOnlyList<Image> IconWells => _wells;
+        // The well behind the forge's skills card's picture (RelicForgeView.SkillsPicture); null without the card.
+        public Image SkillsWell { get; private set; }
         public Image PortraitFrame { get; private set; }
         // One a hero of the roster, in its order.
         public IReadOnlyList<Image> HeroPips => _pips;
@@ -128,18 +131,8 @@ namespace Cryptforge.UI
                 CentreOn(HeaderPlate.rectTransform, title, new Vector2(_art.HeaderPlateWidth, _art.HeaderPlate.rect.height));
             }
             if (_forgeHeaders != null)
-            {
-                float height = _art.Rule.rect.height, lift = _art.HeaderRuleLift;
                 foreach (Text header in _forgeHeaders)
-                {
-                    if (header == null)
-                        continue;
-                    Image rule = Child("Painted Header Rule", header.rectTransform, _art.Rule, Image.Type.Sliced);
-                    Stretch(rule.rectTransform, Vector2.zero, Vector2.right, new Vector2(0f, lift - height / 2f),
-                        new Vector2(0f, lift + height / 2f));
-                    _headerRules.Add(rule);
-                }
-            }
+                    RuleUnder(header);
             if (_weaponCards != null)
                 foreach (Button card in _weaponCards)
                     if (card != null)
@@ -161,20 +154,57 @@ namespace Cryptforge.UI
             if (_relicPictures != null)
             {
                 _wells = new Image[_relicPictures.Length];
-                float margin = _art.IconWellMargin;
                 for (int i = 0; i < _relicPictures.Length; i++)
-                {
-                    if (_relicPictures[i] == null)
-                        continue;
-                    RectTransform picture = _relicPictures[i].rectTransform;
-                    // Fitted, keeping its aspect, to the picture's rect grown by the margin: it rings the square the
-                    // picture draws (which keeps its own aspect) at any card height.
-                    _wells[i] = Behind("Painted Icon Well", picture, _art.IconWell, Image.Type.Simple);
-                    _wells[i].preserveAspect = true;
-                    Around(_wells[i].rectTransform, picture, new Vector4(margin, margin, margin, margin));
-                }
+                    _wells[i] = WellBehind(_relicPictures[i]);
             }
+            PaintSkills();
             PaintButton(_startButton, _art.Primary, _art.PrimaryPressed, _art.PrimaryDisabled);
+        }
+
+        // The forge's skills header and card in the band above the start button (docs/63 section 12 answer 7): copies of the
+        // relics' header and last card RelicForgeView made in its Awake, before this Start, so they are as plain as the
+        // scene's were - painted here as those are: a rule under the header, the card's frame and strip, a well behind its
+        // picture.
+        private void PaintSkills()
+        {
+            if (_forge == null)
+                return;
+            RuleUnder(_forge.SkillsHeader);
+            if (_forge.SkillsCard != null)
+                PaintCard(_forge.SkillsCard);
+            Image accent = _forge.SkillsStateAccent;
+            if (accent != null)
+            {
+                accent.sprite = _art.StateAccent;
+                accent.type = Image.Type.Sliced;
+                accent.pixelsPerUnitMultiplier = 1f;
+            }
+            SkillsWell = WellBehind(_forge.SkillsPicture);
+        }
+
+        // A rule under a section's header, lifted as the set says.
+        private void RuleUnder(Text header)
+        {
+            if (header == null)
+                return;
+            float height = _art.Rule.rect.height, lift = _art.HeaderRuleLift;
+            Image rule = Child("Painted Header Rule", header.rectTransform, _art.Rule, Image.Type.Sliced);
+            Stretch(rule.rectTransform, Vector2.zero, Vector2.right, new Vector2(0f, lift - height / 2f),
+                new Vector2(0f, lift + height / 2f));
+            _headerRules.Add(rule);
+        }
+
+        // Fitted, keeping its aspect, to the picture's rect grown by the margin: it rings the square the picture draws
+        // (which keeps its own aspect) at any card height. Null for no picture.
+        private Image WellBehind(Image picture)
+        {
+            if (picture == null)
+                return null;
+            float margin = _art.IconWellMargin;
+            Image well = Behind("Painted Icon Well", picture.rectTransform, _art.IconWell, Image.Type.Simple);
+            well.preserveAspect = true;
+            Around(well.rectTransform, picture.rectTransform, new Vector4(margin, margin, margin, margin));
+            return well;
         }
 
         private void PaintChooser()
@@ -292,12 +322,18 @@ namespace Cryptforge.UI
                 return;
             if (card.image != null)
                 card.image.sprite = _art.CardFor(status);
+            Color tint = status == UnlockStatus.TooExpensive ? LockedPicture : Color.white;
             int slot = _relicCards != null ? Array.IndexOf(_relicCards, card) : -1;
             if (slot >= 0 && slot < _wells.Length && _wells[slot] != null)
             {
-                Color tint = status == UnlockStatus.TooExpensive ? LockedPicture : Color.white;
                 _wells[slot].color = tint;
                 _relicPictures[slot].color = tint;
+            }
+            // The skills' card likewise: its skill out of reach (locked, or short of gold) dims its picture with its well.
+            if (_forge != null && card == _forge.SkillsCard && SkillsWell != null && _forge.SkillsPicture != null)
+            {
+                SkillsWell.color = tint;
+                _forge.SkillsPicture.color = tint;
             }
             _forgeChanged = true;
         }

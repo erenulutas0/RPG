@@ -130,8 +130,9 @@ namespace Cryptforge.Tests
             Assert.That(plateMax.x - plateMin.x, Is.EqualTo(_art.HeaderPlateWidth * Scale(plate)).Within(.5f));
             Assert.That(title.text, Is.EqualTo("Relic Forge"), "Its words as they were.");
 
-            // A rule under each section's header.
-            Assert.That(_view.HeaderRules.Count, Is.EqualTo(2));
+            // A rule under each section's header: the weapon's, the relics' and the skills' (docs/63 section 12 answer 7).
+            Assert.That(_view.HeaderRules.Count, Is.EqualTo(3));
+            Assert.That(_view.HeaderRules[2].transform.parent, Is.SameAs(_forge.SkillsHeader.transform));
             foreach (Image rule in _view.HeaderRules)
             {
                 Assert.That(rule.sprite, Is.SameAs(_art.Rule));
@@ -183,6 +184,22 @@ namespace Cryptforge.Tests
                 Assert.That((wellMin.y + wellMax.y) / 2f, Is.EqualTo((picMin.y + picMax.y) / 2f).Within(.5f));
                 Assert.That(picture.rectTransform.anchorMin, Is.EqualTo(new Vector2(0f, .22f)), "The picture where it was.");
             }
+
+            // The skills' card in the band above the start button, painted as a relic card is: Iron Resolve, opened by floor 2
+            // and short of gold, in the out-of-reach frame, its picture dimmed with its well, its strip painted - and still a
+            // tap's, the Skills tab's entry.
+            Button skills = _forge.SkillsCard;
+            AssertPainted(skills.image, _art.CardFor(UnlockStatus.TooExpensive), "The skills' card");
+            Assert.That(skills.transition, Is.EqualTo(Selectable.Transition.ColorTint));
+            Assert.That(skills.interactable, Is.True, "An entry, whatever its skill's state.");
+            Assert.That(skills.transform.Find("State Label").GetComponent<Text>().text, Is.EqualTo("300 gold: need 140 more"));
+            Assert.That(skills.transform.Find("State Accent").GetComponent<Image>().sprite, Is.SameAs(_art.StateAccent));
+            Image skillPicture = _forge.SkillsPicture;
+            Assert.That(skillPicture.sprite.name, Is.EqualTo("UI_Icon_IronResolve_v1"));
+            Assert.That(_view.SkillsWell.sprite, Is.SameAs(_art.IconWell));
+            Assert.That(_view.SkillsWell.transform.GetSiblingIndex(), Is.EqualTo(skillPicture.transform.GetSiblingIndex() - 1), "Under the picture.");
+            Assert.That(_view.SkillsWell.color, Is.EqualTo(skillPicture.color), "The well and the picture dimmed alike.");
+            Assert.That(skillPicture.color.r, Is.LessThan(.7f), "Dimmed, out of reach.");
 
             AssertPlates(area.Find("Start Run Button").GetComponent<Button>(), _art.Primary, _art.PrimaryPressed, _art.PrimaryDisabled,
                 "Start run");

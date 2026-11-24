@@ -15,10 +15,11 @@ using UnityEngine.UI;
 
 namespace Cryptforge.Tests
 {
-    // docs/57 phase 4, the Forge's Skills tab in the scene (section 14): its entry beside the weapons' header, on the
-    // primary plate while a skill is affordable; the hero's three cards (skill 1 its own, skill 2 forged for 300 once floor
-    // 2 is cleared, skill 3 for 500 after floor 3 and skill 2); a tap forges, the profile saves it, and the next run's HUD
-    // shows the skill live.
+    // docs/57 phase 4, the Forge's Skills tab in the scene (section 14): its entry, the Relic Forge's Skills card in the band
+    // above the start button (docs/63 section 12 answer 7) - the hero's next skill and its state, the header counting the
+    // skills it carries, the card in the call's gold frame while a skill is affordable; the hero's three cards (skill 1 its
+    // own, skill 2 forged for 300 once floor 2 is cleared, skill 3 for 500 after floor 3 and skill 2); a tap forges, the
+    // profile saves it, and the next run's HUD shows the skill live.
     public sealed class SkillForgeFlowTests
     {
         private const string ScenePath = "Assets/_Project/Scenes/Gameplay/Gameplay.unity";
@@ -64,9 +65,13 @@ namespace Cryptforge.Tests
             Tap(_anvil.SkillCardButton(2));
             Assert.That(_setup.Profile.Gold, Is.EqualTo(150), "never forged twice");
 
-            // Back to the Relic Forge and into the next run: the HUD carries Iron Resolve live.
+            // Back to the Relic Forge: its card moved on to Shield Rush, locked; then into the next run, whose HUD carries Iron
+            // Resolve live.
             Tap(_anvil.TabButton(AnvilView.Tab.Forge));
             Assert.That(_anvil.IsOpen, Is.False);
+            Assert.That(_forge.SkillsHeader.text, Is.EqualTo("Skills: 2 of 3 ready"));
+            Assert.That(_forge.SkillsCardSlot, Is.EqualTo(3));
+            Assert.That(_forge.SkillsCardText, Does.StartWith("Shield Rush | ").And.EndWith(" | Locked: clear floor 3"));
             yield return new WaitForSecondsRealtime(.4f);
             int loads = 0;
             UnityAction<Scene, LoadSceneMode> countLoad = (scene, mode) => loads++;
@@ -127,6 +132,41 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
+        // The band's card (docs/63 section 12 answer 7) is the next run's hero's next skill in its state, the header the
+        // skills it carries: a new player's Iron Resolve locked; the card follows the hero chooser; every skill forged shows
+        // the last one forged, and a tap on the card still opens the tab.
+        [UnityTest]
+        public IEnumerator TheForgesCardShowsTheHerosNextSkill()
+        {
+            yield return OpenForge(new PlayerProfile(1000, null, null, 1));
+            Assert.That(_forge.SkillsHeader.text, Is.EqualTo("Skills: 1 of 3 ready"));
+            Assert.That(_forge.SkillsCardSlot, Is.EqualTo(2));
+            Assert.That(_forge.SkillsCardText, Does.StartWith("Iron Resolve | +100 armour for 4s").And.EndWith(" | Locked: clear floor 2"));
+            Assert.That(_forge.SkillsPicture.sprite.name, Is.EqualTo("UI_Icon_IronResolve_v1"));
+            Assert.That(_forge.SkillsCard.interactable, Is.True, "an entry: a tap's whatever its skill's state");
+            Assert.That(_anvil.SkillsEntryCalls, Is.False);
+
+            // Ilya chosen: her next skill, the card and the header following the chooser.
+            _forge.HeroChoice.Cycle();
+            yield return null;
+            Assert.That(_forge.SkillsCardText, Does.StartWith("Flame Sigil | ").And.EndWith(" | Locked: clear floor 2"));
+            Assert.That(_forge.SkillsHeader.text, Is.EqualTo("Skills: 1 of 3 ready"));
+            _forge.HeroChoice.Cycle();
+            yield return null;
+
+            // Every skill forged: the header full, the card the last one forged; a tap opens the tab.
+            _setup.Profile.RecordFloorCleared(3);
+            Assert.That(_setup.Profile.TryForgeSkill("hero_vanguard", 2) && _setup.Profile.TryForgeSkill("hero_vanguard", 3), Is.True);
+            yield return new WaitForSecondsRealtime(.4f);
+            Assert.That(_forge.SkillsHeader.text, Is.EqualTo("Skills: 3 of 3 ready"));
+            Assert.That(_forge.SkillsCardText, Does.StartWith("Shield Rush | ").And.EndWith(" | Forged: yours in every run"));
+            Tap(_forge.SkillsCard);
+            yield return Settle();
+            Assert.That(_anvil.IsOpen, Is.True);
+            Assert.That(_anvil.Current, Is.EqualTo(AnvilView.Tab.Skills));
+            LogAssert.NoUnexpectedReceived();
+        }
+
         // The tab follows the forge's hero: Ilya's three, and in Turkish (docs/60) the table's words.
         [UnityTest]
         public IEnumerator IlyasSkillsInTurkish()
@@ -151,8 +191,8 @@ namespace Cryptforge.Tests
             }
         }
 
-        // Ends the run, opens the result's Forge, checks the skills' entry and opens the Skills tab from it.
-        private IEnumerator OpenSkills(PlayerProfile seed, string heroId = null, bool callsFirst = true)
+        // Ends the run and opens the result's Forge, past its input delay.
+        private IEnumerator OpenForge(PlayerProfile seed, string heroId = null)
         {
             TestProfile.Begin(seed);
             if (heroId != null)
@@ -169,9 +209,19 @@ namespace Cryptforge.Tests
             Assert.That(_forge.IsOpen, Is.True);
             yield return new WaitForSecondsRealtime(.4f);
             _anvil = _forge.Anvil;
-            Assert.That(_anvil.SkillsEntry, Is.Not.Null, "the skills' entry beside the weapons' header");
+        }
+
+        // Opens the Forge, checks the skills' entry - the band's card, in the call's gold frame while a skill is affordable -
+        // and opens the Skills tab from it.
+        private IEnumerator OpenSkills(PlayerProfile seed, string heroId = null, bool callsFirst = true)
+        {
+            yield return OpenForge(seed, heroId);
+            Assert.That(_anvil.SkillsEntry, Is.Not.Null, "the skills' entry, the band's card");
+            Assert.That(_anvil.SkillsEntry, Is.SameAs(_forge.SkillsCard));
             Assert.That(_anvil.SkillsEntry.name, Is.EqualTo(AnvilView.SkillsEntryName));
             Assert.That(_anvil.SkillsEntryCalls, Is.EqualTo(callsFirst), "the entry calls while a skill is affordable");
+            Assert.That(_forge.SkillsCardText.EndsWith(" | " + string.Format(_setup.Text.UnlockForgeFormat, 300)), Is.EqualTo(callsFirst),
+                "the card shows the affordable skill's call");
             Tap(_anvil.SkillsEntry);
             yield return Settle();
             Assert.That(_anvil.IsOpen, Is.True);

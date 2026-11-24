@@ -167,6 +167,7 @@ skills.forged	Forged: yours in every run	Dövüldü: her seferde seninle	A forge
 skills.needs_earlier	Forge {0} first	Önce {0} dövülmeli	Skill 3's state before skill 2 is forged. {0} skill 2's name; passive in Turkish, so no suffix rides on the name.
 skills.locked	Locked: clear floor {0}	Kilitli: {0}. katı temizle	A skill not yet opened. {0} the floor (2 or 3); "2." is the Turkish ordinal.
 skills.note	A floor cleared with any hero, on any difficulty, opens its skill for every hero.	Herhangi bir kahramanla, herhangi bir zorlukta temizlenen kat, yeteneğini her kahraman için açar.	Under the three cards: the unlock rule.
+skills.forge_header	Skills: {0} of {1} ready	Yetenekler: {0}/{1} hazır	The Relic Forge's header over its Skills card, in the band above the start button (docs/63 section 12 answer 7). {0} the skills the next run's hero carries (skill 1 and the forged ones), {1} its skills (3).
 
 # ---- Gear words (GearText)
 gear.stat.damage	Damage	Hasar	Stat.
