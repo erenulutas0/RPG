@@ -2,13 +2,14 @@
 # Isolated, graphics-enabled capture of the game-feel pass of 2026-11-22 (docs/43 section 1, GameFeelCapture.cs): the
 # slot cues (a Sword's flourish, a Staff's pulse, the Daggers' flick, alone and among real strikes), the hero's recoil,
 # level pop, picked weapon and death into ash, an enemy's flinch from either side, its dissolve and a crowd's, a horde
-# newcomer rising out of embers, the Forge Warden's tell, phase two and fall, and the Glass Regent's feet ring, cast and
-# shatter - each framed on its subject at 540x540. No authored import, scene save, APK or device operation. Frames land
+# newcomer rising out of embers, the Forge Warden's tell, phase two and fall, the Glass Regent's feet ring, cast and
+# shatter, and Rootmother Myrr's feet ring, creeping snare, planted roots, tell, bloom and withering fall (docs/64 section
+# 16) - each framed on its subject at 540x540. No authored import, scene save, APK or device operation. Frames land
 # in ArtDirection/2026-11-22/game-feel-01 as PNG named by section and frame (slot-flourish-003.png), with frames.txt
 # beside them (untracked).
 #   pwsh -File Tools/ArtReview/Run-GameFeelProof.ps1
-# -Only captures some parts: hero, enemy, horde, warden, regent (comma separated).
-#   pwsh -File Tools/ArtReview/Run-GameFeelProof.ps1 -Only warden,regent
+# -Only captures some parts: hero, enemy, horde, warden, regent, myrr (comma separated).
+#   pwsh -File Tools/ArtReview/Run-GameFeelProof.ps1 -Only warden,regent,myrr
 param([string]$Only = '', [string]$UnityEditor = 'E:/Unity/Editors/6000.0.65f1/Editor/Unity.exe')
 $ErrorActionPreference = 'Stop'
 $proofRoot = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path

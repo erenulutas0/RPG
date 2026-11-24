@@ -2,8 +2,10 @@
 // the game-feel pass of 2026-11-22 (docs/43 section 1) in the foundry as numbered frames for review - the slot cues of
 // a Sword, Staff and Daggers held beside the first weapon, the hero's recoil, level pop, picked weapon and death into
 // ash, an enemy's flinch, dissolve and a horde newcomer rising out of embers, the Forge Warden's tell through a
-// telegraph, its phase two and its fall, and the Glass Regent's cast, feet ring and shatter. Every frame is framed on
-// its subject at a fixed size so motion reads against the floor. Nothing here ships; nothing is saved to the project.
+// telegraph, its phase two and its fall, the Glass Regent's cast, feet ring and shatter, and Rootmother Myrr's (docs/64
+// section 16): her feet ring, her snare creeping after a hero that stepped out and stopped, its roots erupting and the
+// planted roots round the hero's feet, her tell, her bloom and her withering fall. Every frame is framed on its subject at
+// a fixed size so motion reads against the floor. Nothing here ships; nothing is saved to the project.
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -41,6 +43,7 @@ namespace Cryptforge.Tests
             if (Wanted(only, "horde")) yield return Horde();
             if (Wanted(only, "warden")) yield return Warden();
             if (Wanted(only, "regent")) yield return Regent();
+            if (Wanted(only, "myrr")) yield return Myrr();
             File.WriteAllLines(Output + "frames.txt", _frames);
         }
 
@@ -263,6 +266,40 @@ namespace Cryptforge.Tests
             boss.ApplyDamage(new DamageContext(boss.Maximum * 10f));
             yield return Frames("regent-shatter", 150, () => fell + Vector3.up * .9f, 2.6f, 2, setup);
             yield return Close("regent");
+        }
+
+        private IEnumerator Myrr()
+        {
+            yield return Open("floor_myrr_proof");
+            StopAttacks();
+            var setup = Object.FindFirstObjectByType<CombatSetup>();
+            WardenSlamService service = setup.Warden;
+            yield return Until(setup, () => service.IsFighting && !setup.Encounters.IsRevealHeld, 30f);
+            Health boss = service.Boss;
+            Assert.That(boss, Is.Not.Null, "Myrr is fought.");
+            Assert.That(service.MarksSnare, Is.True, "Her marks are root snares.");
+            Transform hero = Object.FindFirstObjectByType<HeroMovementInput>().transform;
+            System.Func<Vector3> on = () => boss.transform.position + Vector3.up * 1.1f;
+            yield return Frames("myrr-feet-ring", 6, on, 2.8f, 2, setup);
+            yield return Until(setup, () => service.Clock.IsMarked, MyrrRule.Every + 5f);
+            // The hero steps out of the snare at its walk and stops (its input is off: moved a step a frame); the snare
+            // creeps after it, the roots erupt on it and plant it. Framed between the two.
+            for (int i = 0; i < 136; i++)
+            {
+                if (i < 46) hero.position += new Vector3(.06f, 0f, 0f);
+                yield return null;
+                ResolveChoices(setup);
+                var snare = new Vector3(service.MarkX, ArenaFloor.WorldY(service.MarkY), 0f);
+                if (i % 2 == 0) Shot("myrr-snare", Vector3.Lerp(hero.position, snare, .5f) + Vector3.up * .3f, 2.6f);
+            }
+            yield return Until(setup, () => service.Clock.IsMarked, MyrrRule.Every + 5f);
+            yield return Frames("myrr-tell", 90, on, 2.8f, 2, setup);
+            boss.ApplyDamage(new DamageContext(boss.Maximum * .55f));
+            yield return Frames("myrr-phase-two", 50, on, 2.8f, 2, setup);
+            Vector3 fell = boss.transform.position;
+            boss.ApplyDamage(new DamageContext(boss.Maximum * 10f));
+            yield return Frames("myrr-death", 160, () => fell + Vector3.up * .9f, 2.8f, 2, setup);
+            yield return Close("myrr");
         }
 
         // One frame of a section, framed on focus at a fixed orthographic size, square.

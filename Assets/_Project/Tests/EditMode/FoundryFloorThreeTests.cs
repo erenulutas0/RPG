@@ -24,8 +24,8 @@ namespace Cryptforge.Tests
         }
 
         // The chain: floor 1, floor 2, floor 3, the finale - floor 3 floor 2's six rooms under its own names, at floor 3's
-        // tier, with no modifier, the plain horde, no surges or extra elite, its gate held for 3:00 and its Warden's own
-        // share; the finale the climb's fourth floor.
+        // tier, with no modifier, the plain horde, no surges or extra elite, its gate held for 3:00 and its gate boss's own
+        // share (Rootmother Myrr's 4.7 since 2026-11-25, docs/64); the finale the climb's fourth floor.
         [Test]
         public void FloorThreeStandsBetweenFloorTwoAndTheFinale()
         {
@@ -53,9 +53,9 @@ namespace Cryptforge.Tests
 
             // Floor 2's rooms wave for wave: the same parts, the garden's names (the asset holds them), the halls' Mites the
             // Pollen Wraiths the simulation plays as Mites - but its elite room, Thorn Post, is led by the Cinder Bloom where
-            // floor 2's Sentry Hall has the Mirror Sentry (docs/52, 2026-11-15), and its gate, the Warden's Grove, keeps the
-            // Forge Warden where floor 2's has the Glass Regent, since 2026-11-12 (docs/50, the lead's decisions); the escorts
-            // are the same, Cinder Mites both.
+            // floor 2's Sentry Hall has the Mirror Sentry (docs/52, 2026-11-15), and its gate, the Warden's Grove, holds
+            // Rootmother Myrr since 2026-11-25 (docs/64; the Forge Warden before) where floor 2's has the Glass Regent; the
+            // escorts are the same, Cinder Mites both.
             Assert.That(three.Rooms.Length, Is.EqualTo(DescentSimulation.QuicksilverVaults.Rooms.Length));
             int elite = System.Array.IndexOf(three.Kinds, RoomKind.Elite);
             int gate = System.Array.IndexOf(three.Kinds, RoomKind.Boss);
@@ -68,7 +68,7 @@ namespace Cryptforge.Tests
             Assert.That(three.Rooms[elite][0][0], Is.SameAs(DescentSimulation.CinderBloom), "Thorn Post's Cinder Bloom since 2026-11-15");
             Assert.That(DescentSimulation.QuicksilverVaults.Rooms[elite][0][0], Is.SameAs(DescentSimulation.MirrorSentry));
             Assert.That(three.Rooms[elite][0].Skip(1), Is.EqualTo(DescentSimulation.QuicksilverVaults.Rooms[elite][0].Skip(1)));
-            Assert.That(three.Rooms[gate][0][0], Is.SameAs(DescentSimulation.Warden));
+            Assert.That(three.Rooms[gate][0][0], Is.SameAs(DescentSimulation.RootmotherMyrr));
             Assert.That(DescentSimulation.QuicksilverVaults.Rooms[gate][0][0], Is.SameAs(DescentSimulation.GlassRegent));
             Assert.That(three.Rooms[gate][0].Skip(1), Is.EqualTo(DescentSimulation.QuicksilverVaults.Rooms[gate][0].Skip(1)));
 
@@ -91,22 +91,25 @@ namespace Cryptforge.Tests
             }
         }
 
-        // Floor 3's Warden is the first the climb's boss growth reaches (ClimbScaling.Boss(3), x1.15): its authored 300
+        // Floor 3's gate boss is the first the climb's boss growth reaches (ClimbScaling.Boss(3), x1.15): her authored 300
         // times x1.96, x1.15, the floor's own share and the run's difficulty, through the scene's WardenRule.GateHealthShareOn.
+        // Rootmother Myrr since 2026-11-25 (docs/64) at 4.7; the Forge Warden's 5.102041 before (FloorThreeWardenShare).
         [Test]
-        public void FloorThreesWardenTakesTheBossGrowthAndItsOwnShare()
+        public void FloorThreesGateBossTakesTheBossGrowthAndItsOwnShare()
         {
             DescentSimulation.FoundryFloor three = DescentSimulation.FoundryFloorOne().Next.Next;
             float share = DescentSimulation.LaterFloorLevers(FoundryBatch.Shipped(), three).WardenHealthShare;
             Assert.That(share, Is.EqualTo(WardenRule.GateHealthShareOn(three.GateHealthShare)));
             Assert.That(share, Is.EqualTo(DescentSimulation.FloorThreeGateShare));
+            Assert.That(share, Is.EqualTo(4.7f), "docs/64 section 15's confirmed share");
+            Assert.That(share, Is.LessThan(DescentSimulation.FloorThreeWardenShare), "her fight's seconds taken back (docs/64 section 10)");
             Assert.That(ClimbScaling.Boss(3), Is.EqualTo(ClimbScaling.BossGrowth));
             Assert.That(ClimbScaling.Boss(2), Is.EqualTo(1f), "floor 2's gate boss has none");
         }
 
         // A floor-2 clear goes down to floor 3 and plays its rooms in order at their districts; floor 3's gate holds for its
-        // clock's 3:00; its Warden walks out at its share; with three floors asked for nothing follows it, with four a
-        // floor-3 clear goes down into the finale; and floors 1 and 2 are the same runs either way.
+        // clock's 3:00; its gate boss, Rootmother Myrr, walks out at its share; with three floors asked for nothing follows
+        // it, with four a floor-3 clear goes down into the finale; and floors 1 and 2 are the same runs either way.
         [Test]
         public void AFloorTwoClearGoesDownToFloorThreeAndAFloorThreeClearToTheFinale()
         {
@@ -161,7 +164,7 @@ namespace Cryptforge.Tests
                     gated++;
                     Assert.That(run.ClockAtGate, Is.GreaterThanOrEqualTo(180f), where + ": floor 3's gate holds for its clock's 3:00");
                     Assert.That(run.LevelAtGate, Is.GreaterThanOrEqualTo(two.Level), where);
-                    Assert.That(run.WardenHealth, Is.EqualTo(DescentSimulation.Warden.Health * DescentSimulation.FloorThreeGateShare *
+                    Assert.That(run.WardenHealth, Is.EqualTo(DescentSimulation.RootmotherMyrr.Health * DescentSimulation.FloorThreeGateShare *
                                                              ClimbScaling.Health(3) * ClimbScaling.Boss(3) * run.DifficultyAtGate).Within(.05f), where);
                 }
 
@@ -182,7 +185,7 @@ namespace Cryptforge.Tests
                     Is.EqualTo(first.FloorSeconds + two.FloorSeconds + run.FloorSeconds + finale.FloorSeconds).Within(1e-3f), where);
             }
             Assert.That(wentDown, Is.GreaterThan(0), "a run went down to floor 3");
-            Assert.That(gated, Is.GreaterThan(0), "a run met floor 3's Warden");
+            Assert.That(gated, Is.GreaterThan(0), "a run met floor 3's gate boss");
             Assert.That(finales, Is.GreaterThan(0), "a run went on into the finale");
         }
 

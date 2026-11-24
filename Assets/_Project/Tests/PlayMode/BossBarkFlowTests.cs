@@ -18,8 +18,9 @@ namespace Cryptforge.Tests
     // The gate bosses' barks (docs/44 section 1.8; docs/64 stage 1, 2026-11-23; BossBarkView): the Forge Warden and the Glass
     // Regent each say their spawn line as they walk out of the gate, their telegraph line with the first mark of phase one
     // and again with the first of phase two - never more - and their death line as they fall; a bark shows for 1.5-2 s; its
-    // plate never stands over the mark that is down (the Warden's circle, the Regent's lanes); and every line fits its plate
-    // in Turkish. Visual only: the mark, the hold and the blow are the slam service's.
+    // plate never stands over the mark that is down (the Warden's circle, the Regent's lanes, Rootmother Myrr's snare where
+    // it has crept); and every line fits its plate in Turkish, Myrr's three since her scene build (docs/64 section 16).
+    // Visual only: the mark, the hold and the blow are the slam service's.
     public sealed class BossBarkFlowTests
     {
         private const string ScenePath = "Assets/_Project/Scenes/Gameplay/Gameplay.unity";
@@ -129,7 +130,7 @@ namespace Cryptforge.Tests
             }
             else
                 clear = BossBark.ClearOfCircle(left, right, bottom, top, lift, _service.MarkX, _service.MarkY,
-                    WardenRule.SlamRadius - .01f);
+                    (_service.MarksSnare ? MyrrRule.SnareRadius : WardenRule.SlamRadius) - .01f);
             if (!clear)
                 _overMark.Add($"[{left:0.00}, {right:0.00}] x [{bottom:0.00}, {top:0.00}] over the mark at ({_service.MarkX:0.00}, {_service.MarkY:0.00})");
         }
@@ -226,6 +227,46 @@ namespace Cryptforge.Tests
             boss.ApplyDamage(new DamageContext(boss.Maximum * 10f));
             yield return null;
             Assert.That(_bark.LastLine, Is.EqualTo("I kept the wrong one..."));
+            Assert.That(_overMark, Is.Empty, string.Join("\n", _overMark));
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // Rootmother Myrr says her own three lines (docs/64 section 1), and her plate keeps off her snare as it creeps after
+        // the hero: beat after beat the hero walks a step a frame through the telegraph, so the ring moves under the plate.
+        [UnityTest, Timeout(180000)]
+        public IEnumerator MyrrSaysHerOwnLinesAndHerPlateKeepsOffHerCreepingSnare()
+        {
+            yield return Load("floor_myrr_proof");
+            Transform hero = Object.FindFirstObjectByType<HeroMovementInput>().transform;
+            yield return Until(() => _bark.SpawnsSaid > 0, 30f);
+            Assert.That(_bark.LastLine, Is.EqualTo("Your tomorrow can still take root."));
+            yield return Until(() => _service.IsFighting && _service.Clock.IsMarked, MyrrRule.Every + 10f);
+            Assert.That(_service.MarksSnare, Is.True, "Her snare is down.");
+            Assert.That(_bark.LastLine, Is.EqualTo("Be still. Be planted."));
+            float side = 1f;
+            for (int beat = 0; beat < 3; beat++)
+            {
+                yield return Until(() => !_service.Clock.IsMarked, 5f);
+                Heal();
+                yield return Until(() => _service.Clock.IsMarked, MyrrRule.Every + 5f);
+                Assert.That(_service.Clock.IsMarked, Is.True, "Beat " + beat);
+                _bark.SayForCheck(BarkMoment.Telegraph);
+                // A step a frame across the floor, at the hero's walk: the snare creeps after it.
+                while (_service.Clock.IsMarked)
+                {
+                    hero.position += new Vector3(side * .05f, 0f, 0f);
+                    yield return null;
+                    CheckPlate();
+                }
+                Assert.That(_service.Snare.Crept, Is.GreaterThan(1f), "Beat " + beat + ": the snare crept under the plate's places");
+                side = -side;
+            }
+            Assert.That(_bark.TelegraphBarks, Is.EqualTo(1), "Her own telegraph bark once in phase one.");
+            Health boss = _service.Boss;
+            boss.ApplyDamage(new DamageContext(boss.Maximum * 10f));
+            yield return null;
+            Assert.That(_bark.DeathsSaid, Is.EqualTo(1));
+            Assert.That(_bark.LastLine, Is.EqualTo("Something... is growing underneath."));
             Assert.That(_overMark, Is.Empty, string.Join("\n", _overMark));
             LogAssert.NoUnexpectedReceived();
         }

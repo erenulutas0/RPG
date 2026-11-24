@@ -269,7 +269,8 @@ namespace Cryptforge.Tests
                     return "run feedback";
                 if (name == "Ground Reward")
                     return "ground drop";
-                if (name == "Warden Mark")
+                // The gate boss's marks: the Warden's ring, and Rootmother Myrr's snare and the roots she plants (docs/64).
+                if (name == "Warden Mark" || name == "Myrr Snare" || name == "Myrr Planted Roots")
                     return "warden mark";
                 if (part.TryGetComponent(out EnemyLookView _))
                     return own == "Flash" ? "hit flash" : "enemy body";

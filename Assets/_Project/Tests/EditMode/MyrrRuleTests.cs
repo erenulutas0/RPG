@@ -67,6 +67,24 @@ namespace Cryptforge.Tests
             Assert.That(MyrrRule.SnareDamage(200f, .1f), Is.EqualTo(20f).Within(Tolerance));
         }
 
+        // As she ships (docs/64 sections 13 and 15): no saplings; the plant and the pilots' escape are one body each for the
+        // scene and the simulation.
+        [Test]
+        public void SheShipsWithoutSaplingsAndHerPlantEndsOnTime()
+        {
+            Assert.That(MyrrRule.ShippedSaplings, Is.Zero, "the lead's answer 2");
+            Assert.That(MyrrRule.Saplings, Is.EqualTo(2), "docs/64 section 3's design, for the research");
+            float until = MyrrRule.PlantedUntil(10f, MyrrRule.PlantSeconds);
+            Assert.That(until, Is.EqualTo(11f).Within(Tolerance));
+            Assert.That(MyrrRule.IsPlanted(10f, until), Is.True, "planted as the roots erupt");
+            Assert.That(MyrrRule.IsPlanted(10.99f, until), Is.True);
+            Assert.That(MyrrRule.IsPlanted(11f, until), Is.False, "walking again a plant's seconds later");
+            Assert.That(MyrrRule.IsPlanted(0f, float.NegativeInfinity), Is.False, "never caught, never planted");
+            Assert.That(MyrrRule.EscapeReach(MyrrRule.SnareRadius), Is.EqualTo(2.1f).Within(Tolerance));
+            Assert.That(MyrrRule.EscapeReach(MyrrRule.SnareRadius), Is.LessThan(WardenRule.SlamRadius + MyrrRule.EscapeMargin),
+                "a smaller ring to leave than the Warden's");
+        }
+
         [Test]
         public void SaplingsRootSquareToHerLineAndGrow()
         {

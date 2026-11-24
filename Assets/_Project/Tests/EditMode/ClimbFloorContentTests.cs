@@ -144,9 +144,10 @@ namespace Cryptforge.Tests
         }
 
         // The climb's floor 3 (docs/48, Gloam Gardens) is the first floor whose gate boss ClimbScaling.Boss hardens (x1.15 at
-        // floor 3, on top of the climb's x1.96): its Warden walks out with its authored 300 times both, the run's difficulty
-        // and the floor's own share (WardenRule.GateHealthShareOn), measured for docs/40 section 9.6's 45-65 s fight. The
-        // chain is floor 1, floor 2, floor 3, the finale.
+        // floor 3, on top of the climb's x1.96): its gate boss - Rootmother Myrr since 2026-11-25 (docs/64), the Forge Warden
+        // before - walks out with her authored 300 times both, the run's difficulty and the floor's own share
+        // (WardenRule.GateHealthShareOn), 4.7, confirmed for docs/40 section 9.6's 45-65 s fight. The chain is floor 1,
+        // floor 2, floor 3, the finale.
         [Test]
         public void FloorThreesGateBossTakesTheBossGrowthAndItsOwnShare()
         {
@@ -165,8 +166,9 @@ namespace Cryptforge.Tests
             RoomDefinition gate = rooms[rooms.Length - 1];
             Assert.That(gate.Kind, Is.EqualTo(RoomKind.Boss));
             EnemyDefinition boss = gate.WaveAt(0).EnemyAt(0);
-            Assert.That(boss.MaximumHealth, Is.EqualTo(300f), "the Forge Warden");
-            Assert.That(boss.Id, Is.EqualTo("enemy_forge_warden"), "floor 3 keeps the Forge Warden where floor 2 has the Glass Regent");
+            Assert.That(boss.MaximumHealth, Is.EqualTo(300f), "Rootmother Myrr, the Forge Warden's authored 300");
+            Assert.That(boss.Id, Is.EqualTo("enemy_rootmother_myrr"), "floor 3's own gate boss, where floor 2 has the Glass Regent and floor 1 the Forge Warden");
+            Assert.That(third.FoundryGateHealthShare, Is.EqualTo(4.7f), "docs/64 section 15's confirmed share");
             Assert.That(third.Modifier, Is.Null);
             float warden = FloorScaling.Health(boss.MaximumHealth,
                 ClimbScaling.Health(3) * ClimbScaling.Boss(3) * difficulty * WardenRule.GateHealthShareOn(third.FoundryGateHealthShare), 0f);
