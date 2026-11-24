@@ -130,8 +130,8 @@ to English.
 as a proper name in pass 1** for symmetry with Vanguard; if the owner prefers it translated, "Kül Büyücüsü" goes in its
 `tr` cell.
 
-**Descriptive names are translated:** enemies and bosses (Forge Warden → Ocak Bekçisi, Glass Regent → Cam Naibi, Mirror
-Sentry → Ayna Nöbetçisi, Pollen Wraith → Polen Hortlağı, Grunt → Piyade, Grunt Captain → Piyade Kaptanı, Runner →
+**Descriptive names are translated:** enemies and bosses (Forge Warden → Ocak Bekçisi, Glass Regent → Cam Naibi,
+Rootmother Myrr → Kök Ana Myrr - her name Myrr kept, as a proper name - Mirror Sentry → Ayna Nöbetçisi, Pollen Wraith → Polen Hortlağı, Grunt → Piyade, Grunt Captain → Piyade Kaptanı, Runner →
 Koşucu, Cinder Mite → Kül Akarı, Cinder Bloom → Kül Çiçeği; Tank stays Tank, a game word), floors (The Foundry →
 Dökümhane, Quicksilver Vaults → Cıva Mahzenleri, Gloam Gardens → Loş Bahçeler, The Final Swarm → Son Sürü), rooms,
 items, weapons (Sword → Kılıç, Staff → Asa, Daggers → Hançerler), cards, tomes, relics and the abilities (Forge Burst →
@@ -367,4 +367,17 @@ Myrr's longest (docs/64, "Something... is growing underneath.") 543.
 `BossBarkFlowTests.EveryLineFitsItsPlateInTurkish` lays every line in Turkish and checks it with `TurkishScreensTests`'
 fit check; the phone draws Roboto, so the S23 look is the owner's (section 8).
 
-Rootmother Myrr's three lines (docs/64) get their rows when her scene build comes; the drafts are in docs/64 section 1.
+Rootmother Myrr's three lines got their rows with her scene build (2026-11-25, docs/64 section 16), the Turkish docs/64
+section 1's drafts as the lead answered them (section 13, answer 7), with her name's row:
+
+| Key | English | Turkish | Why |
+|---|---|---|---|
+| `enemy_rootmother_myrr.name` | Rootmother Myrr | Kök Ana Myrr | "Kök Ana", the root mother; Myrr is her name and stays (for the owner's review) |
+| `bark.rootmother_myrr.spawn` | Your tomorrow can still take root. | Yarının hâlâ kök salabilir. | She would keep the hero's future as she kept the others: by planting it |
+| `bark.rootmother_myrr.telegraph` | Be still. Be planted. | Kımıldama. Kök sal. | "Kımıldama", not the Regent's "Kıpırdama": the two telegraphs open with different words |
+| `bark.rootmother_myrr.death` | Something... is growing underneath. | Altta... bir şey büyüyor. | The pause kept; the floor's open question |
+
+Her death line is the longest English of the nine, still one line inside the plate's 588 between its paddings (about 543
+in Arial italic, above); `BossBarkFlowTests.EveryLineFitsItsPlateInTurkish` reads every line of
+`BossBark.Lines`, hers among them. The room's row, `room.wardens_grove.name` ("Warden's Grove" / "Bekçinin Korusu"),
+stays as it is until the owner's review of this table: the lead's answer 6 renames it then (docs/64 section 16).
