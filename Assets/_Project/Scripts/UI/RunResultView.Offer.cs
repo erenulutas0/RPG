@@ -167,7 +167,7 @@ namespace Cryptforge.UI
             if (open)
             {
                 DrawGold();
-                _forgeHintLabel.text = DescribeForge();
+                DrawForgeHint();
             }
         }
 

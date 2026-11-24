@@ -105,6 +105,9 @@ namespace Cryptforge.Core
         public RunChoices Choices { get; private set; }
         public RunPause Pause { get; private set; }
         public PlayerProfile Profile { get; private set; }
+        // The profile's depth record as this run began (PlayerProfile.DeepestFloorCleared at the load): the result screen
+        // reads which of the hero skills this run's clears opened (HeroSkillUnlock.OpensBetween, docs/57 section 14).
+        public int DeepestFloorClearedAtStart { get; private set; }
         public RelicShop Relics { get; private set; }
         // The weapon the hero carries this run: its own starting weapon (docs/63: every hero is bound to its own since
         // 2026-11-22, and the forge's weapon rack is gone since 2026-11-23), or development/start-weapon.txt's.
@@ -174,6 +177,7 @@ namespace Cryptforge.Core
             // The profile is read from disk on every scene load, so a restart needs no persistent service object.
             _profileStore = new ProfileStore(ProfileLocation.Resolve());
             Profile = _profileStore.Load();
+            DeepestFloorClearedAtStart = Profile.DeepestFloorCleared;
             ReportLoadProblems();
             Relics = new RelicShop(Profile, relics);
             // The map, hero and tier chosen before this load (MapChoiceView), if any: taken here, before the hero is chosen.

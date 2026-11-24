@@ -521,6 +521,8 @@ map.start_catch_up	Floor {0}. Start at level {1}: choose {1} level-ups first.	Ka
 map.start_fresh	Floor {0}. A fresh hero, the whole Ascent ahead.	Kat {0}. Taze bir kahraman, önünde koca bir Tırmanış.	Map card, floor 1. {0} floor.
 result.loot_nothing	nothing	hiçbir şey	Result loot line: what was banked when the run banked nothing but lost loot ("Ganimet: hiçbir şey  |  kayıp: ...").
 result.loot_pieces	{0} pieces (see the Bag)	{0} eşya (Çanta'ya bak)	Result loot line when the full line would not fit. {0} the count of items and materials; no plural after a number.
+result.skill_opened	New skill opened: {0}. Forge it at the Relic Forge	Yeni yetenek açıldı: {0}. Kalıntı Ocağı'nda döv	Result, the forge hint's first line, in gold, when this run's floor clear opened skill 2 or 3 for the profile (docs/57 section 14). {0} the run's hero's skill. The Relic Forge is the button under it; no suffix on the placeholder.
+result.skills_opened	New skills opened: {0} and {1}. Forge them at the Relic Forge	Yeni yetenekler açıldı: {0} ve {1}. Kalıntı Ocağı'nda döv	The same when one run opened both (its first clears of floors 2 and 3). {0} skill 2, {1} skill 3.
 
 # ---- docs/58 7.4, the result screen's rewarded offer (RewardOfferText) and the one product the store sells, "Skip reward videos" (a link under the offer, an entry on the pause overlay). Plain words, never a nag. rewarded video = ödüllü video, bonus = bonus (the Turkish game word)
 result.offer_video	Watch a video: +{bonus} gold	Video izle: +{bonus} altın	Result screen, the offer's button with a video ready, 760 px wide. {bonus} the gold a watched video adds (the run's gold x1.5, rounded up).

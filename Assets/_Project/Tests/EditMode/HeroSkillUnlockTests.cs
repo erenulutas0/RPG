@@ -142,6 +142,22 @@ namespace Cryptforge.Tests
             Assert.That(ProfileSkillsSave.ToSnapshot(new ProfileSaveData()).Records, Is.Empty, "no field, no record");
         }
 
+        // The result screen's line (docs/57 section 14): a run opens a skill when its clears carry the depth record across the
+        // skill's floor - skill 2 at floor 2, skill 3 at floor 3, both in one run that clears both for the first time - and
+        // never skill 1, never a skill already open, never a run that cleared nothing new.
+        [Test]
+        public void ARunOpensASkillWhenItsClearsCrossTheSkillsFloor()
+        {
+            Assert.That(HeroSkillUnlock.OpensBetween(2, 1, 2), Is.True);
+            Assert.That(HeroSkillUnlock.OpensBetween(3, 1, 2), Is.False);
+            Assert.That(HeroSkillUnlock.OpensBetween(2, 0, 3) && HeroSkillUnlock.OpensBetween(3, 0, 3), Is.True, "both in one run");
+            Assert.That(HeroSkillUnlock.OpensBetween(3, 2, 4), Is.True, "the finale's record carries floor 3");
+            Assert.That(HeroSkillUnlock.OpensBetween(2, 2, 3), Is.False, "skill 2 was open before the run");
+            Assert.That(HeroSkillUnlock.OpensBetween(2, 2, 2) || HeroSkillUnlock.OpensBetween(3, 3, 3), Is.False);
+            Assert.That(HeroSkillUnlock.OpensBetween(1, 0, 4), Is.False, "skill 1 is the hero's own from the start");
+            Assert.That(HeroSkillUnlock.OpensBetween(4, 0, 9), Is.False);
+        }
+
         [Test]
         public void VersionFiveMigratesWithNothingForged()
         {

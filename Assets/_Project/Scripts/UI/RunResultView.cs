@@ -117,7 +117,8 @@ namespace Cryptforge.UI
             // Bag tab names each item. Never past the label's foot: a line that would overflow gives way to the bare count,
             // and that to nothing.
             AppendLoot();
-            _forgeHintLabel.text = DescribeForge();
+            SkillLine = DescribeOpenedSkills();
+            DrawForgeHint();
             // After the labels: the offer may make room for itself under the gold and write the gold again once credited.
             OpenOffer();
 
@@ -203,6 +204,46 @@ namespace Cryptforge.UI
             }
 
             return entries.Count > 0 ? string.Join(", ", entries) : _text.ResultNoUpgrades;
+        }
+
+        // The line saying this run's floor clear opened a hero skill for the profile, as shown; empty when it opened none.
+        public string SkillLine { get; private set; } = string.Empty;
+
+        // The forge's hint, under the skill line when the run opened a skill: the skill is the nearest thing the Forge now
+        // sells, so it comes first, in the call's gold.
+        private void DrawForgeHint()
+        {
+            string hint = DescribeForge();
+            _forgeHintLabel.text = SkillLine.Length > 0
+                ? "<color=#" + ColorUtility.ToHtmlStringRGB(_victoryColor) + ">" + SkillLine + "</color>\n" + hint
+                : hint;
+        }
+
+        // docs/57 section 14: a floor's first clear opens skill 2 (floor 2) or skill 3 (floor 3) for the profile, whichever
+        // hero cleared it; the result says so in one line, naming the run's hero's skills, and where they are forged (the
+        // Relic Forge, the button under it). Both at once when one run cleared floors 2 and 3 for the first time.
+        private string DescribeOpenedSkills()
+        {
+            HeroDefinition hero = _setup.Hero != null ? _setup.Hero : _heroDefinition;
+            int before = _setup.DeepestFloorClearedAtStart;
+            int after = _setup.Profile.DeepestFloorCleared;
+            AbilityDefinition first = null, second = null;
+            for (int slot = HeroSkillUnlock.FirstSlot + 1; slot <= HeroSkillUnlock.LastSlot; slot++)
+            {
+                AbilityDefinition skill = hero.SkillAt(slot);
+                if (skill == null || !HeroSkillUnlock.OpensBetween(slot, before, after))
+                    continue;
+                if (first == null)
+                    first = skill;
+                else
+                    second = skill;
+            }
+            if (first == null)
+                return string.Empty;
+            return second == null
+                ? Loc.Format("result.skill_opened", "New skill opened: {0}. Forge it at the Relic Forge", AbilityText.Name(first))
+                : Loc.Format("result.skills_opened", "New skills opened: {0} and {1}. Forge them at the Relic Forge",
+                    AbilityText.Name(first), AbilityText.Name(second));
         }
 
         // The "one more run" hook from 04_CORE_LOOP_RETENTION: always name the nearest unlock the forge sells. That is a
