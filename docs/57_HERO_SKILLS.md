@@ -901,7 +901,8 @@ are read against.
 The owner's answers (section 12) as built: the six skills as designed, three buttons for two-handed play with no
 automatic skills, ranks later, and the unlock below. Nothing of the simulation moves: `FoundryLevers.Skills` stays 1, and
 the default batch is byte-identical (14.6). What is not built: section 5.3's telemetry events, the four effect strips and
-the Rush's puppet clip (phase 3's art), the result screen's unlock line and 5.2's one-line toast (14.7).
+the Rush's puppet clip (phase 3's art). The result screen's unlock line and 5.2's one-line toast (14.7), and the Skills
+entry's move into the forge's empty band (docs/63 section 12, answer 7), were built on 2026-11-25 (14.9).
 
 ### 14.1 The unlock rule as built
 
@@ -964,8 +965,9 @@ forges each for 300 and 500 gold.** Precisely (`Progression/HeroSkillUnlock.cs`)
   lifts). One finger reads as before. **Shield Rush** fires along the stick's steer at the tap (`TryUse(slot, heading)`);
   with no finger down, toward the nearest enemy (`AbilityController.Rush`, as phase 1 built it).
 - **The boss's reveal** greys all three, and a tap on any shown button skips it (`BossRevealView.HeldButtons`).
-- Not built: 5.2's one-line toast on the first run with a new button, and section 5.3's events (`ability_used`'s slot,
-  `ability_refused`, `stick_on_button`, `ability_wasted`); phase 5's device session needs them to count mis-taps.
+- Not built: section 5.3's events (`ability_used`'s slot, `ability_refused`, `stick_on_button`, `ability_wasted`); phase
+  5's device session needs them to count mis-taps. 5.2's one-line toast on the first run with a new button was built on
+  2026-11-25 (14.9).
 
 ### 14.4 Save version 6
 
@@ -974,7 +976,8 @@ forges each for 300 and 500 gold.** Precisely (`Progression/HeroSkillUnlock.cs`)
 (`ProfileSkills.Restore`, never throws): a missing record or an empty hero id dropped; a repeated hero's later records
 dropped (the first wins); a skill whose floor the profile has not cleared, or skill 3 without skill 2, not kept, so a
 damaged save never hands a hero what it did not earn; a hero left with nothing not written; a hero id the roster no
-longer knows kept, as the unlocked heroes are.
+longer knows kept, as the unlocked heroes are. Since 2026-11-25 each record also carries 5.2's toast flags
+(`skillTwoToastShown`, `skillThreeToastShown`) within version 6, with no bump (14.9).
 
 ### 14.5 The Forge's Skills tab
 
@@ -986,6 +989,10 @@ shows the hero the forge's chooser has chosen, its three skills on cards in the 
 table), the wallet above them and the rule under them ("A floor cleared with any hero, on any difficulty, opens its skill
 for every hero."); the boosters and the equipped row give the page their room. A tap on an affordable card forges, as a
 tap forges a relic; the input delay after each change is the Anvil's.
+
+**Since 2026-11-25 the entry is no longer on the header's row:** the weapon rack's removal (docs/63 section 5) left a band
+over the start button, and the entry moved into it as a header and a card in the relics' look - the hero's next skill and
+its state - with the header's row keeping its words alone (14.9).
 
 ### 14.6 The default batch
 
@@ -1049,6 +1056,111 @@ cohort's pooled completion with all three skills at a ceiling of **60 %**. What 
 5. **The easing re-read** at the 60 % pooled-clumsy ceiling (13.8) waits for a per-pilot campaign model, in which the
    skills join after the clear and the gold, not from the first frame. It is the lead's next balance task, on the next
    fresh block from seed 11601.
+
+### 14.9 The follow-ups, built (2026-11-25)
+
+Three small UI items the sections above left open: the Skills entry in the forge's empty band (docs/63 section 12, answer
+7), the result screen's unlock line (14.7) and 5.2's one-line toast. UI only: no file the simulation compiles changed
+behaviour (`HeroSkillUnlock.OpensBetween` and the profile's toast flags are new and read by no run), `FoundryLevers` are as
+they were, and the default batch is untouched. CombatChecks green (1,155, `Başarılı`; two of them new), the Unity compile
+check 0 errors; Unity itself is the lead's (the filters below).
+
+**The forge's band holds the hero's skills.** The rack's removal left 27 % of the safe height empty between the last relic
+card and the start row. It now holds a section in the relics' own grammar (`RelicForgeView.BuildSkillsRow`): a header and
+one card, copies of the relics' header and last card made in the view's `Awake` - before `ScreenArtView` dresses the
+scene's, which then paints the copies as it paints those (the rule under the header, the card's frame and state strip,
+the well behind its picture) - laid under the last relic card in the relics' rhythm, read off their own rects (in today's
+scene the header at 0.328-0.372 of the safe height, the card at 0.199-0.314; the start row ends at 0.111).
+- **The header** counts the skills the next run's hero carries: "Skills: 1 of 3 ready" / "Yetenekler: 1/3 hazır".
+- **The card** is the hero's next skill - the first of skills 2 and 3 not yet forged, or skill 3 once both are: its
+  picture, name and description, and its state in the Skills tab's own words (14.1's table, one body:
+  `AnvilView.SkillStateText`). Its frame is a relic's for the same state: forged the worn frame, affordable the call's
+  (gold), short of gold or locked the grey one with its picture dimmed in its well. A new player reads "Iron Resolve ...
+  Locked: clear floor 2" - the goal - and after floor 2's clear "Forge for 300 gold". It follows the hero chooser.
+- **A tap opens the Skills tab**, where a tap forges. The card is always a tap's once the forge's input delay is over,
+  whatever its skill's state (it is an entry, not a purchase).
+- **The choice: moved, not both.** The header row's "Skills" button is gone and the card is the one way in. Two entries to
+  one tab are clutter on a panel 14.5 already called full, and both would light at once when a skill is affordable - two
+  calls for one thing. On the header's row the button made the weapon's header read as if the skills were the weapon's,
+  and the Turkish header ("Silah: kahramanın kendi silahı") needs the row's width. The card says more than a 186-unit
+  button could - which skill is next and what stands between the player and it - where the eye goes after the relics,
+  just over the start button. 14.8's answer 3 ("the Skills tab beside the weapons header stays for now") is superseded by
+  docs/63's answer 7.
+- `AnvilView.SkillsEntry` is now the card (`SkillsEntryName` "Skills Card"), `SkillsEntryCalls` as before (a skill of the
+  next run's hero affordable, which the card then shows in the call's frame).
+
+**The result screen's line.** `CombatSetup.DeepestFloorClearedAtStart` keeps the profile's depth record as the run began;
+at the result `HeroSkillUnlock.OpensBetween(slot, before, after)` says which of skills 2 and 3 the run's clears opened.
+The forge hint (the "one more run" hook that names the nearest thing the Forge sells - now the skill) shows the line
+first, in the victory's gold, over the relic hint:
+
+| | English | Turkish |
+|---|---|---|
+| One skill | New skill opened: Iron Resolve. Forge it at the Relic Forge | Yeni yetenek açıldı: Demir İrade. Kalıntı Ocağı'nda döv |
+| Both (one run's first clears of floors 2 and 3, the careful player's first Ascent, 4.1) | New skills opened: Iron Resolve and Shield Rush. Forge them at the Relic Forge | Yeni yetenekler açıldı: Demir İrade ve Kalkan Hücumu. Kalıntı Ocağı'nda döv |
+
+It names the run's hero's skills (the clear opens them for every hero, 14.1; the forge's card then shows the chosen
+hero's), and "the Relic Forge" is the button right under it. docs/60's rules: the imperative ("döv"), no suffix on a
+placeholder, the suffix on the fixed name with its apostrophe ("Kalıntı Ocağı'nda"), two keys for one and two (rule 5).
+It fits the hint label (844 x 116, 30 points best-fit to 22) at 1760 and 2232 in both languages.
+
+**5.2's toast.** `SkillToastView` (on Combat Setup, made once the run's skills are wired): the first run that carries a
+skill the Forge has forged for its hero shows one line, the skill's name in gold and when to tap it:
+
+| Skill | English | Turkish |
+|---|---|---|
+| Iron Resolve | tap when the blows come | darbeler gelince dokun |
+| Shield Rush | tap when surrounded: charge along the stick | kuşatılınca dokun: kolun yönüne hücum et |
+| Flame Sigil | tap with a crowd close, then lead it through the fire | kalabalık yakınken dokun, sonra onu ateşten geçir |
+| Cinder Ward | tap just before the boss's blow lands | bossun darbesi inmeden hemen önce dokun |
+
+- The hint is the ability asset's own field (`AbilityDefinition._tapHint`, key `<id>.tap_hint`, `AbilityText.TapHint`), as
+  its name and description are; the line is `skills.toast` ("{0}: {1}"). 5.2's "4 s of iron" is left out: the number
+  would need `Loc.Numbers` and would go stale with a retune, and the line is about the moment, not the size.
+- **When:** once the run is live (the map chosen, no level-up or pause open, the fight not held by a boss's reveal) and
+  1.5 s into it; for 5 s of the run's scaled time (a pause or a panel holds it, so it is read whole), faded in and out;
+  skill 2's first and skill 3's 0.6 s after it when one run brings both; the run's end takes it away.
+- **Where:** a smoked plate (the boss barks' painted band, flat smoke without the painted HUD) bottom-centred in the HUD's
+  safe area at 560 units, over skill 2's button (its top at 341 + 176 = 517), as wide as the line up to 960, 84 tall, the
+  line at 36 points best-fit to 24. Nothing of it catches a tap: the stick and the buttons under it answer as ever.
+- **Once per skill and profile:** as it shows, `PlayerProfile.MarkSkillToastShown` records it and the profile saves at once.
+  Only a forged skill is introduced, so development/skills.txt's forced skills (the Editor's measurements) never are. A
+  run with nothing to introduce makes nothing (the view disables itself).
+- **The save: no version bump.** The flags ride in version 6's heroSkills records (`skillTwoToastShown`,
+  `skillThreeToastShown`). JsonUtility leaves a missing field at false, which is the right value for every file written
+  before the toast existed (nothing had been shown), so there is nothing to migrate. A version 7 would be a newer build's
+  file, which every build before this one refuses to read (`ProfileMigration`,
+  `ProfileStoreTests.SaveFromANewerBuildIsNotReadAndIsKept`): an older APK put on the S23 would start a new profile.
+  Kept at 6, an older build reads the file and ignores the flags (if it then writes, the toast shows once more - harmless).
+  `ProfileSkills.Restore` keeps a flag only for a skill it keeps forged; `ProfileSaveData`'s comment names the exception.
+
+**Also built (docs/63 section 6):** under the weapon roster's lever Ilya's locked hint reads "Clear The Foundry" ("Dökümhane
+katını temizle"), the clear alone being what unlocks her there; without the lever it is exactly "Clear The Foundry with
+the Staff" as before (`CombatSetup.UnlockHint`, `HeroText.UnlockHint(hero, roster)`: a hero unlocked by its own starting
+weapon; the forge's chooser, the map choice and the arena read it).
+
+**For the lead: the Unity filters.**
+
+    pwsh -File Tools/Run-UnityTests.ps1 -Platform EditMode -SkipApk -Filter "Cryptforge.Tests.HeroSkillUnlockTests;Cryptforge.Tests.ProfileStoreTests;Cryptforge.Tests.LocalisationAssetTests;Cryptforge.Tests.LocalisationTableTests"
+    pwsh -File Tools/Run-UnityTests.ps1 -Platform PlayMode -SkipApk -Filter "Cryptforge.Tests.SkillNoticeFlowTests;Cryptforge.Tests.SkillForgeFlowTests;Cryptforge.Tests.RelicForgeFlowTests;Cryptforge.Tests.TurkishScreensTests;Cryptforge.Tests.PaintedScreensFlowTests;Cryptforge.Tests.WeaponRosterFlowTests;Cryptforge.Tests.SkillButtonsFlowTests;Cryptforge.Tests.AnvilFlowTests;Cryptforge.Tests.ArtHudFlowTests;Cryptforge.Tests.RunResultTests;Cryptforge.Tests.RewardOfferFlowTests;Cryptforge.Tests.CinderArcanistTests;Cryptforge.Tests.MapChoiceFlowTests;Cryptforge.Tests.ArenaScreenTests"
+
+New: `SkillNoticeFlowTests` (the result's line for one skill, both, none, and in Turkish for both heroes; the toast once
+the run is live, over the arc, catching no tap, saved, never again; two skills one after the other; held by a level-up;
+never for forced skills; Ilya's two in Turkish), `TurkishScreensTests.TheForgesSkillsCardFitsInTurkish`,
+`SkillForgeFlowTests.TheForgesCardShowsTheHerosNextSkill`, `WeaponRosterFlowTests.UnderTheRosterIlyasHintIsTheClearAlone`
+and `WithTodaysCatalogueIlyasHintIsUnchanged`, `HeroSkillUnlockTests.ARunOpensASkillWhenItsClearsCrossTheSkillsFloor` and
+`TheToastIsRecordedOncePerForgedSkill`, `ProfileStoreTests.TheSkillToastsRoundTripWithinVersionSix` and
+`APreviousVersionSixFileShowsItsForgedSkillsToastsOnce`. Changed: `RelicForgeFlowTests.ForgePanelIsOpaqueAndFitsTheShortestPortraitScreenWithoutOverlaps`
+(ten rows, the skills' header and card in the band, clear of the start row and its chooser, the card the Skills tab's
+entry), `TurkishScreensTests.TheLevelUpPauseResultAndForgeFitInTurkish` (the band in Turkish),
+`PaintedScreensFlowTests.TheForgeWearsItsFramesAndEachCardTheFrameOfItsState` (three header rules; the skills card's frame,
+strip and dimmed well), `LocalisationAssetTests` (the tap hints' rows against the assets).
+
+**Captures:** `Tools/ArtReview/Run-AnvilUiProof.ps1` (and `-Language tr`): its frame `02-forge-entry` now shows the band's
+card (the fixture's profile: Iron Resolve, forge for 300 gold), and a second pass (`frames-skills.txt`) takes
+`20-result-skills-opened` (the result's line for both skills), `21-forge-skills-card`, `22-skills-tab`,
+`23-skills-tab-forged`, `24-forge-skills-card-next` (Shield Rush, short of gold) and `25-run-skill-toast` (the next run's
+toast over the arc), in `ArtDirection/2026-11-17/anvil-ui-01` and `anvil-ui-01-tr`.
 
 ## 15. The live re-read (2026-11-23)
 

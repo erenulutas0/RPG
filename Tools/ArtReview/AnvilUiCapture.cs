@@ -5,7 +5,9 @@
 // on a Turkish culture so any number written in the phone's culture would show. The result screen with its loot line,
 // the forge with its two new buttons, each tab, a strike mid-hold, a held strike and a missed one, a reroll shown beside
 // the old lines, the bag with a pick, a melt asking and an inheritance chosen. frames.txt lists each frame and what it
-// shows. No scene or asset is saved; nothing here ships.
+// shows. A second pass, on a profile that has cleared floor 1 alone, follows a hero skill's way (frames 20-25,
+// frames-skills.txt): the result's line when a run opens skills 2 and 3, the forge's skills card, the Skills tab, a skill
+// forged, the card moved on, and the next run's toast. No scene or asset is saved; nothing here ships.
 using System.Collections;
 using System.Globalization;
 using System.IO;
@@ -152,6 +154,90 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
+        // The way to a hero skill (docs/57 sections 5.2 and 14, docs/63 section 12 answer 7): a run whose clears open skills
+        // 2 and 3 and its result's line; the Relic Forge's skills card in the band over its start button; the Skills tab it
+        // opens; skill 2 forged there and the card moved on to skill 3; the next run's HUD with its toast. frames-skills.txt
+        // lists them.
+        [UnityTest, Timeout(600000)]
+        public IEnumerator CaptureTheSkillsWay()
+        {
+            _culture = Thread.CurrentThread.CurrentCulture;
+            Thread.CurrentThread.CurrentCulture = new CultureInfo("tr-TR");
+            TestProfile.Begin(new PlayerProfile(700, null, null, 1));
+            Directory.CreateDirectory(Path.GetDirectoryName(DevelopmentStart.RegionPreviewPath));
+            File.WriteAllText(DevelopmentStart.RegionPreviewPath, "foundry");
+            Time.timeScale = 1;
+            yield return LoadForCapture();
+            Directory.CreateDirectory(Output);
+            _frames.Clear().Append("Each frame, at 1080x2340 on a tr-TR culture, the game in ")
+                .Append(LanguageCodes.Code(CaptureLanguage)).Append(".\n");
+
+            // The run's clears of floors 2 and 3, the profile's first: its result names both skills over the forge's hint.
+            _setup.Profile.RecordFloorCleared(2);
+            _setup.Profile.RecordFloorCleared(3);
+            GameObject.Find("Vanguard").GetComponent<Health>().ApplyDamage(new DamageContext(100000f));
+            yield return null;
+            yield return new WaitForSecondsRealtime(.7f);
+            Shoot("20-result-skills-opened", "The result's skill line: " + Object.FindFirstObjectByType<RunResultView>().SkillLine);
+
+            Tap(GameObject.Find("Forge Button").GetComponent<Button>());
+            yield return new WaitForSecondsRealtime(.5f);
+            _anvil = _forge.Anvil;
+            Shoot("21-forge-skills-card", "The Relic Forge's skills card in the band over its start button: " +
+                _forge.SkillsHeader.text + " / " + _forge.SkillsCardText);
+
+            Tap(_forge.SkillsCard);
+            yield return Settle();
+            Shoot("22-skills-tab", "The Skills tab the card opens: " + _anvil.SkillsHeroText);
+            Tap(_anvil.SkillCardButton(2));
+            yield return Settle();
+            Shoot("23-skills-tab-forged", "Skill 2 forged: " + _anvil.SkillCardText(2));
+            Tap(_anvil.TabButton(AnvilView.Tab.Forge));
+            yield return new WaitForSecondsRealtime(.5f);
+            Shoot("24-forge-skills-card-next", "Back on the forge, the card moved on: " + _forge.SkillsHeader.text + " / " +
+                _forge.SkillsCardText);
+
+            // The next run carries it: once live, the toast names it and when to tap it, over the buttons' arc.
+            Tap(GameObject.Find("Start Run Button").GetComponent<Button>());
+            yield return new WaitForSecondsRealtime(.3f);
+            yield return LoadedAgain();
+            _setup.HeroStats.AddModifier(UpgradeStat.MaxHealth, new StatModifier(ModifierOperation.Flat, 1000000f));
+            GameObject.Find("Vanguard").GetComponent<Health>().Heal(1000000f);
+            var toast = Object.FindFirstObjectByType<SkillToastView>();
+            float deadline = Time.realtimeSinceStartup + 6f;
+            while (!toast.IsShowing && Time.realtimeSinceStartup < deadline)
+                yield return null;
+            Assert.That(toast.IsShowing, Is.True, "The toast showed.");
+            yield return new WaitForSecondsRealtime(.6f);
+            Shoot("25-run-skill-toast", "The first run with Iron Resolve: " + toast.ShownLine);
+
+            File.WriteAllText(Output + "frames-skills.txt", _frames.ToString());
+        }
+
+        private IEnumerator LoadForCapture()
+        {
+            yield return SceneManager.LoadSceneAsync(ScenePath);
+            yield return null;
+            FindForCapture();
+        }
+
+        // After the start button's reload: the new scene's objects, two frames on so every view has started.
+        private IEnumerator LoadedAgain()
+        {
+            yield return null;
+            yield return null;
+            FindForCapture();
+        }
+
+        private void FindForCapture()
+        {
+            _scene = SceneManager.GetActiveScene();
+            _setup = Object.FindFirstObjectByType<CombatSetup>();
+            _forge = Object.FindFirstObjectByType<RelicForgeView>();
+            Object.FindFirstObjectByType<HeroMovementInput>().enabled = false;
+            _camera = Camera.main;
+        }
+
         private static IEnumerator Settle()
         {
             yield return new WaitForSecondsRealtime(AnvilView.InputDelay + .1f);
@@ -292,7 +378,7 @@ namespace Cryptforge.Tests
             Time.timeScale = 1;
             if (_scene.IsValid() && _scene.isLoaded)
             {
-                SceneManager.SetActiveScene(SceneManager.CreateScene("Anvil capture cleanup"));
+                SceneManager.SetActiveScene(SceneManager.CreateScene("Anvil capture cleanup " + System.Guid.NewGuid().ToString("N")));
                 yield return SceneManager.UnloadSceneAsync(_scene);
             }
             TestProfile.End();

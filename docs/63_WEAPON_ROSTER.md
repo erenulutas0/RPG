@@ -154,7 +154,8 @@ places. Removed on 2026-11-23:
   "Signature weapon" (TR "İmza silahı"), under the header "Weapon: the hero's own" (TR "Silah: kahramanın kendi
   silahı"), following the hero chooser (`CombatSetup.NextWeapon`). Gameplay.unity lost Weapon Cards 2 and 3 (42 objects,
   no reference left) and the relics' header and cards moved up two card places; the band they leave above the start
-  button is empty. The Anvil's weapon slot reads the same next weapon.
+  button was empty, and since 2026-11-25 holds the hero's skills (section 12, answer 7). The Anvil's weapon slot reads the
+  same next weapon.
 - **Save.** `PlayerProfile.OwnedWeaponIds` and `EquippedWeaponId` stay in the profile and the save, unchanged and read by
   no run (the arena's build still reads them, `ArenaProfileBuild`). No migration, no version bump
   (`ProfileStoreTests.TheRetiredRacksWeaponsSurviveALoadAndASave`). A player who bought the Staff or the Daggers keeps the
@@ -172,7 +173,11 @@ The closest fair rule keeps everything but the impossible part: **the clear alon
 never have handed the weapon over (`HeroUnlock.UnlocksOnFoundryClear(carried, cardsCouldOfferIt)`; `CombatSetup` asks
 whether this run's catalogue holds it). With today's catalogue the rule is the one it always was; in the hall arena (the
 legacy engine, no catalogue) the weapon must still be carried. When the roster ships, the hint becomes "Clear The
-Foundry" (TR "Dökümhane katını temizle") and `_unlockWeapon` can go.
+Foundry" (TR "Dökümhane katını temizle") and `_unlockWeapon` can go. **Built 2026-11-25:** with the roster's lever on
+(`development/weapon-roster.txt`) the hint already reads "Clear The Foundry" wherever it shows - the forge's hero chooser,
+the map choice, the arena (`CombatSetup.UnlockHint`, `HeroText.UnlockHint(hero, roster)`: a hero unlocked by carrying its
+own starting weapon, which the roster never hands another hero); without the lever it is exactly "Clear The Foundry with
+the Staff" as before (`WeaponRosterFlowTests.UnderTheRosterIlyasHintIsTheClearAlone`, `WithTodaysCatalogueIlyasHintIsUnchanged`).
 
 ## 7. The two shared weapons built
 
@@ -395,7 +400,12 @@ four cohorts, paired against `shipped` on the same code.
 4. **Ilya unlocks on any clear of The Foundry under the roster.** The hint text follows when the roster goes live.
 5. **The Cinder Saw is the next shared weapon** (C2).
 6. **Evolutions** for the new weapons come after the roster's balance is settled.
-7. **The forge's empty band** will show the hero's skills entry (docs/57 section 14). A small follow-up.
+7. **The forge's empty band** will show the hero's skills entry (docs/57 section 14). A small follow-up. **Built
+   2026-11-25** (docs/57 14.9): the band over the start button holds a section in the relics' look - a header counting
+   the skills the next run's hero carries ("Skills: 1 of 3 ready" / "Yetenekler: 1/3 hazır") and one card, the hero's next
+   skill with its picture, what it does and its state (locked, to forge, short of gold, forged) in the relics' frames - and
+   a tap on the card opens the Forge's Skills tab. The entry moved: the weapons header's row lost its "Skills" button and
+   keeps its words alone, so the panel has one way in, not two lit at once.
 
 ## 13. Phase 2 (2026-11-23)
 

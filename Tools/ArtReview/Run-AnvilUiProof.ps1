@@ -2,9 +2,11 @@
 # Isolated, graphics-enabled capture of the Forge's Anvil, Efsun and Bag tabs (docs/54 phase 4, AnvilUiCapture.cs): a
 # seeded profile with gear (every rarity, +0 to +9, the Sword at +7, materials and boosters) on a tr-TR culture, drawn at
 # 1080x2340: the result's loot line, the forge with its Bag and Anvil buttons, each tab, a strike mid-hold, a held strike
-# and a missed one, a reroll beside the old lines, the bag with a pick, a melt asking and an inheritance chosen. No
-# authored import, scene save, APK or device operation. Frames land in ArtDirection/2026-11-17/anvil-ui-01 as PNG, with
-# frames.txt beside them (untracked).
+# and a missed one, a reroll beside the old lines, the bag with a pick, a melt asking and an inheritance chosen; then a
+# hero skill's way (docs/57 14.9, frames 20-25 in frames-skills.txt): the result's line when a run opens skills 2 and 3,
+# the forge's skills card in the band over its start button, the Skills tab, a skill forged, the card moved on, and the
+# next run's first-run toast. No authored import, scene save, APK or device operation. Frames land in
+# ArtDirection/2026-11-17/anvil-ui-01 as PNG, with frames.txt beside them (untracked).
 #   pwsh -File Tools/ArtReview/Run-AnvilUiProof.ps1
 # -Language tr draws the game in Turkish (docs/60) into anvil-ui-01-tr beside the English frames:
 #   pwsh -File Tools/ArtReview/Run-AnvilUiProof.ps1 -Language tr
