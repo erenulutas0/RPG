@@ -566,3 +566,32 @@ lead wants her nearer, is half-resolution flashes (about 3.9 MiB). It is not tak
 - **For the owner's look.** `skirt()`'s "flare" turns the root panels in, not out, despite its docstring. The approved
   telegraph, phase change and strike show this as a darker, narrower skirt. It is kept as approved, and the walking
   telegraph keeps it too.
+
+## 15. The confirmation read (2026-11-25): pass
+
+The one candidate of section 13's answer 2, `mr:share=4.7:sap=0` (share 4.7, no saplings, the creeping snare, the 1.0 s
+plant, the 1.2 s telegraph), read once on the fresh block **18001-19200** (docs/56 section 10) against `shipped` - the
+Forge Warden at floor 3's gate - with the A/A `aa-f3` beside it: four cohorts, both heroes, typical hands, the code of
+main 8921a7b1 (a frozen build). 28,800 four-floor runs in 88 minutes beside the roster's read.
+
+| Cohort | Myrr vs the Warden (points, 90 % CI) | The A/A `aa-f3` | docs/56's bar |
+|---|---|---|---|
+| clumsy | **+0.62** (+0.33 to +0.96) | -0.25 (-0.75 to +0.25) | passes: an easing wholly above 0, reported |
+| careful | +0.17 (-0.08 to +0.42) | -0.12 | passes |
+| first-card | +0.38 (-0.17 to +0.92) | -0.38 | passes |
+| standing | -0.29 (-0.71 to +0.12) | +0.54 | passes: no better than the Warden (her feet) |
+
+The exploration read (section 9) predicted +0.75 / +0.20 / +0.62 / -0.35 with the saplings; without them and on fresh
+seeds the read lands within a quarter point of each. **Myrr ships as floor 3's gate boss at share 4.7 without saplings**;
+the scene wiring (section 14's list, section 10's build) is next.
+
+Reported beside it (`myrr-round.md`, the careful pilot unless named):
+- **The gate fight**, P10 / P50 / P90: the Vanguard 50.7 / 61.9 / 76.3 s (the Warden 49.3 / 60.1 / 73.9), Ilya 47.8 /
+  59.2 / 71.6 s (45.8 / 56.4 / 69.8); in the 45-65 s band at P50 for both; 58 % / 70 % of fights inside the band (the
+  Warden's 64 % / 72 %). About 2 s longer at the median, as section 10's share was set to hold.
+- **Her beats** a fight 11.3 (the Warden's 10.9); **snares that caught** 0.98 a fight, **planted** 0.98 s a fight; her
+  **feet** struck 0.13 times a fight for the careful pilot and **1.83** for the standing one (the design target: the
+  standing hero pays at her roots).
+- **Deaths at her gate:** careful 27 (the Warden 31), standing 95 (88), first-card 93 (102), clumsy 48 (63) of 2,400 runs.
+- The data: `E:/confirm-li17/myrr` (the CSV and `myrr-round.md`), the bootstrap in
+  `E:/confirm-li17/rule-myrr/paired-bootstrap.txt` (outside the repository).
