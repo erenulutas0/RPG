@@ -87,8 +87,13 @@ namespace Cryptforge.Tests
             yield return null;
 
             _setup.Run.End(RunOutcome.Defeat);
-            Object.FindFirstObjectByType<RelicForgeView>().Open();
+            var forge = Object.FindFirstObjectByType<RelicForgeView>();
+            forge.Open();
             yield return null;
+            // The skills' band over the start button (docs/63 section 12 answer 7) speaks Turkish too: on the fixture's profile
+            // (floor 3 cleared, gold to spare) the Vanguard's Iron Resolve waits to be forged.
+            Assert.That(forge.SkillsHeader.text, Is.EqualTo("Yetenekler: 1/3 hazır"));
+            Assert.That(forge.SkillsCardText, Does.StartWith("Demir İrade | ").And.EndWith(" | 300 altına döv"));
             foreach (string panelName in new[] { "Result Panel", "Forge Panel" })
             {
                 var safe = GameObject.Find(panelName).transform.Find("Safe Area").GetComponent<RectTransform>();
@@ -101,6 +106,48 @@ namespace Cryptforge.Tests
                     Check(safe, panelName + " at " + height, problems);
                 }
             }
+            Assert.That(problems, Is.Empty, string.Join("\n", problems));
+            AssertNoKeyShows();
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // The forge's skills card in Turkish for both heroes' skills 2 and 3 - waiting to be forged, then forged - with its
+        // header, on the shortest and the tallest safe areas: every description and state fits at its smallest size.
+        [UnityTest]
+        public IEnumerator TheForgesSkillsCardFitsInTurkish()
+        {
+            _setup.Run.End(RunOutcome.Defeat);
+            var forge = Object.FindFirstObjectByType<RelicForgeView>();
+            forge.Open();
+            yield return null;
+            var safe = GameObject.Find("Forge Panel").transform.Find("Safe Area").GetComponent<RectTransform>();
+            safe.GetComponent<SafeAreaFitter>().enabled = false;
+            safe.anchorMin = safe.anchorMax = new Vector2(.5f, .5f);
+            var problems = new List<string>();
+            var shown = new List<string>();
+            for (int hero = 0; hero < 2; hero++)
+            {
+                string heroId = forge.HeroChoice.Current.Id;
+                for (int step = 0; step < 3; step++)
+                {
+                    foreach (float height in new[] { 1760f, 2232f })
+                    {
+                        safe.sizeDelta = new Vector2(1080f, height);
+                        Canvas.ForceUpdateCanvases();
+                        Check(safe, $"Forge, {heroId}, skill {forge.SkillsCardSlot}, at {height}", problems);
+                    }
+                    shown.Add(forge.SkillsHeader.text + " / " + forge.SkillsCardText);
+                    if (step < 2)
+                        Assert.That(_setup.Profile.TryForgeSkill(heroId, step + 2), Is.True);
+                    yield return null;
+                }
+                forge.HeroChoice.Cycle();
+                yield return null;
+            }
+            string all = string.Join("\n", shown);
+            foreach (string name in new[] { "Demir İrade | ", "Kalkan Hücumu | ", "Alev Mührü | ", "Kül Siperi | " })
+                Assert.That(all, Does.Contain(name), "Each skill shown on the card.");
+            Assert.That(all, Does.Contain("Yetenekler: 3/3 hazır / Kül Siperi | ").And.Contain(" | Dövüldü: her seferde seninle"));
             Assert.That(problems, Is.Empty, string.Join("\n", problems));
             AssertNoKeyShows();
             LogAssert.NoUnexpectedReceived();

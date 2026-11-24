@@ -167,6 +167,7 @@ skills.forged	Forged: yours in every run	Dövüldü: her seferde seninle	A forge
 skills.needs_earlier	Forge {0} first	Önce {0} dövülmeli	Skill 3's state before skill 2 is forged. {0} skill 2's name; passive in Turkish, so no suffix rides on the name.
 skills.locked	Locked: clear floor {0}	Kilitli: {0}. katı temizle	A skill not yet opened. {0} the floor (2 or 3); "2." is the Turkish ordinal.
 skills.note	A floor cleared with any hero, on any difficulty, opens its skill for every hero.	Herhangi bir kahramanla, herhangi bir zorlukta temizlenen kat, yeteneğini her kahraman için açar.	Under the three cards: the unlock rule.
+skills.forge_header	Skills: {0} of {1} ready	Yetenekler: {0}/{1} hazır	The Relic Forge's header over its Skills card, in the band above the start button (docs/63 section 12 answer 7). {0} the skills the next run's hero carries (skill 1 and the forged ones), {1} its skills (3).
 
 # ---- Gear words (GearText)
 gear.stat.damage	Damage	Hasar	Stat.
@@ -226,6 +227,7 @@ hero_cinder_arcanist.name	Cinder Arcanist	Cinder Arcanist	Proper name like Vangu
 hero_cinder_arcanist.subtitle	Ilya Kest	Ilya Kest	Proper name.
 hero_cinder_arcanist.role	Every hit sets a foe alight. Crucible Vent erupts the burning.	Her vuruş bir düşmanı tutuşturur. Pota Ağzı yananları patlatır.	Map choice hero card.
 hero_cinder_arcanist.unlock_hint	Clear The Foundry with the Staff	Dökümhane katını Asa ile temizle	Locked hero.
+hero.unlock_foundry_clear	Clear The Foundry	Dökümhane katını temizle	Ilya's locked hint under the weapon roster's lever (docs/63 section 6: the clear alone unlocks her there); without the lever her own hint above. "Dökümhane katını": the suffix on the fixed word "kat", as "{1} katını temizledi".
 
 # ---- Floors, rooms (room.<english slug>.name) and floor rules
 floor_ember_halls.name	The Foundry	Dökümhane	Floor 1.
@@ -400,6 +402,11 @@ ability_flame_sigil.name	Flame Sigil	Alev Mührü	The Arcanist's skill 2 (docs/5
 ability_flame_sigil.description	A glyph of {1:0.#} units for {3:0}s: enemies inside walk {4:0%} slower and burn double, ready every {2:0}s	{3:0} sn boyunca {1:0.#} birimlik bir mühür: içindeki düşmanlar {4:%0} daha yavaş yürür ve iki kat yanar, her {2:0} sn'de hazır	{1} radius, {3} seconds, {4} slow, {2} cooldown. The Forge's Skills tab.
 ability_cinder_ward.name	Cinder Ward	Kül Siperi	The Arcanist's skill 3 (docs/57); the Forge's Skills tab.
 ability_cinder_ward.description	A ward of {4:0%} of your health for {3:0}s; whoever strikes it catches fire, ready every {2:0}s	{3:0} sn boyunca canının {4:%0} kadar bir siper; ona vuran alev alır, her {2:0} sn'de hazır	{4} of the hero's health, {3} seconds, {2} cooldown. The Forge's Skills tab.
+skills.toast	{0}: {1}	{0}: {1}	docs/57 5.2's one-line toast on the first run that carries a newly forged skill, once per skill. {0} the skill's name (in gold), {1} when to tap it (<id>.tap_hint, lower case: it follows the name).
+ability_iron_resolve.tap_hint	tap when the blows come	darbeler gelince dokun	The toast on the first run with Iron Resolve, after "Demir İrade: " (docs/57 5.2). Lower case: it follows the name.
+ability_shield_rush.tap_hint	tap when surrounded: charge along the stick	kuşatılınca dokun: kolun yönüne hücum et	The toast on the first run with Shield Rush, after its name. The stick is the movement joystick (kol, as its description says).
+ability_flame_sigil.tap_hint	tap with a crowd close, then lead it through the fire	kalabalık yakınken dokun, sonra onu ateşten geçir	The toast on the first run with Flame Sigil, after its name: draw the glyph, then kite the crowd through it.
+ability_cinder_ward.tap_hint	tap just before the boss's blow lands	bossun darbesi inmeden hemen önce dokun	The toast on the first run with Cinder Ward, after its name: the 2 s ward is timed to the boss's telegraph. "boss" the game word (glossary).
 
 # ---- The arena (docs/55 section 11): ArenaText, the arena screen's words
 arena.title	Arena	Arena	The arena screen's title; also the map choice's entry button.
@@ -520,6 +527,8 @@ map.start_catch_up	Floor {0}. Start at level {1}: choose {1} level-ups first.	Ka
 map.start_fresh	Floor {0}. A fresh hero, the whole Ascent ahead.	Kat {0}. Taze bir kahraman, önünde koca bir Tırmanış.	Map card, floor 1. {0} floor.
 result.loot_nothing	nothing	hiçbir şey	Result loot line: what was banked when the run banked nothing but lost loot ("Ganimet: hiçbir şey  |  kayıp: ...").
 result.loot_pieces	{0} pieces (see the Bag)	{0} eşya (Çanta'ya bak)	Result loot line when the full line would not fit. {0} the count of items and materials; no plural after a number.
+result.skill_opened	New skill opened: {0}. Forge it at the Relic Forge	Yeni yetenek açıldı: {0}. Kalıntı Ocağı'nda döv	Result, the forge hint's first line, in gold, when this run's floor clear opened skill 2 or 3 for the profile (docs/57 section 14). {0} the run's hero's skill. The Relic Forge is the button under it; no suffix on the placeholder.
+result.skills_opened	New skills opened: {0} and {1}. Forge them at the Relic Forge	Yeni yetenekler açıldı: {0} ve {1}. Kalıntı Ocağı'nda döv	The same when one run opened both (its first clears of floors 2 and 3). {0} skill 2, {1} skill 3.
 
 # ---- docs/58 7.4, the result screen's rewarded offer (RewardOfferText) and the one product the store sells, "Skip reward videos" (a link under the offer, an entry on the pause overlay). Plain words, never a nag. rewarded video = ödüllü video, bonus = bonus (the Turkish game word)
 result.offer_video	Watch a video: +{bonus} gold	Video izle: +{bonus} altın	Result screen, the offer's button with a video ready, 760 px wide. {bonus} the gold a watched video adds (the run's gold x1.5, rounded up).

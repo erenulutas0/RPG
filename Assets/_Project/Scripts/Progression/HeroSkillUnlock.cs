@@ -30,6 +30,11 @@ namespace Cryptforge.Progression
         public static bool IsOpen(int slot, int deepestFloorCleared) =>
             slot == FirstSlot || (IsForgeable(slot) && deepestFloorCleared >= OpeningFloor(slot));
 
+        // Whether a run that took the profile's depth record from deepestBefore to deepestAfter opened the slot - the
+        // result screen's line (docs/57 section 14): skills 2 and 3 alone, at their floor's first clear.
+        public static bool OpensBetween(int slot, int deepestBefore, int deepestAfter) =>
+            IsForgeable(slot) && !IsOpen(slot, deepestBefore) && IsOpen(slot, deepestAfter);
+
         // What the Forge shows for a hero's slot: forged (skill 1 always), locked until its floor is cleared, waiting on
         // the skill it requires, then affordable or not with the profile's gold.
         public static SkillForgeStatus StatusOf(int slot, int deepestFloorCleared, bool forged, bool requiredForged, int gold)

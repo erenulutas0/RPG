@@ -105,6 +105,9 @@ namespace Cryptforge.Core
         public RunChoices Choices { get; private set; }
         public RunPause Pause { get; private set; }
         public PlayerProfile Profile { get; private set; }
+        // The profile's depth record as this run began (PlayerProfile.DeepestFloorCleared at the load): the result screen
+        // reads which of the hero skills this run's clears opened (HeroSkillUnlock.OpensBetween, docs/57 section 14).
+        public int DeepestFloorClearedAtStart { get; private set; }
         public RelicShop Relics { get; private set; }
         // The weapon the hero carries this run: its own starting weapon (docs/63: every hero is bound to its own since
         // 2026-11-22, and the forge's weapon rack is gone since 2026-11-23), or development/start-weapon.txt's.
@@ -174,6 +177,7 @@ namespace Cryptforge.Core
             // The profile is read from disk on every scene load, so a restart needs no persistent service object.
             _profileStore = new ProfileStore(ProfileLocation.Resolve());
             Profile = _profileStore.Load();
+            DeepestFloorClearedAtStart = Profile.DeepestFloorCleared;
             ReportLoadProblems();
             Relics = new RelicShop(Profile, relics);
             // The map, hero and tier chosen before this load (MapChoiceView), if any: taken here, before the hero is chosen.
@@ -283,6 +287,9 @@ namespace Cryptforge.Core
             GearStats.Apply(Gear, HeroStats, loadout, Weapon, _hero.State, Ability, Drops);
             _burnFactor = GearStats.BurnFactor(Gear);
             StartSkills(movement);
+            // docs/57 5.2: the first run that carries a newly forged skill names it and says when to tap it, once per skill
+            // and profile. Presentation only; nothing at all for a run with no such skill.
+            gameObject.AddComponent<SkillToastView>().Initialize(this, _ability);
             // The map this run starts on (MapChoiceView): the one chosen before this load, if any - the scene reloads to
             // start deeper - or, with none chosen, the choice itself, which holds the first wave and the run's telemetry
             // until the player taps a map.
@@ -521,6 +528,11 @@ namespace Cryptforge.Core
 
         // The hero the next run plays, as the forge's hero chooser has chosen it (the Forge's skills tab shows its skills).
         public HeroDefinition NextRunHero => ChooseHero();
+
+        // A locked hero's unlock hint as the forge's chooser, the map choice and the arena show it: "Clear The Foundry" for
+        // Ilya under the weapon roster's lever (docs/63 section 6: the clear alone unlocks her there, UnlockHeroesForTheFoundry),
+        // the hero's own hint without it.
+        public string UnlockHint(HeroDefinition hero) => HeroText.UnlockHint(hero, DevelopmentStart.WeaponRoster());
 
         // A failed write keeps the in-memory profile; the next change tries again.
         // docs/57's skills 2 and 3, where the run carries them (CarriesSkill: forged at the Forge, or a development file).

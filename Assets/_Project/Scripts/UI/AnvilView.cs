@@ -258,9 +258,10 @@ namespace Cryptforge.UI
         public Button UpgradeButton => _upgrade;
         public ItemInstance BagPick => _bagPick;
 
-        // RelicForgeView, as the forge starts: the two entry buttons beside the forge's nameplate, and the skills' at the end
-        // of skillsRow (the weapons' header). The panel is built the first time one opens it.
-        internal void Initialize(CombatSetup setup, Text forgeTitle, Text forgeLabelSource, Text skillsRow = null)
+        // RelicForgeView, as the forge starts: the two entry buttons beside the forge's nameplate, and skillsEntry (the
+        // forge's Skills card in the band above its start button) opening the Skills tab. The panel is built the first time
+        // one opens it.
+        internal void Initialize(CombatSetup setup, Text forgeTitle, Text forgeLabelSource, Button skillsEntry = null)
         {
             _setup = setup;
             var choices = FindFirstObjectByType<RunChoiceView>(FindObjectsInactive.Include);
@@ -282,8 +283,11 @@ namespace Cryptforge.UI
                 BagEntry = Entry(forgeTitle, BagEntryName, TabWords[(int)Tab.Bag], true, () => Open(Tab.Bag));
                 AnvilEntry = Entry(forgeTitle, AnvilEntryName, TabWords[(int)Tab.Anvil], false, () => Open(Tab.Anvil));
             }
-            if (skillsRow != null)
-                SkillsEntry = RowEntry(skillsRow, SkillsEntryName, TabWords[(int)Tab.Skills], () => Open(Tab.Skills));
+            if (skillsEntry != null)
+            {
+                SkillsEntry = skillsEntry;
+                skillsEntry.onClick.AddListener(() => Open(Tab.Skills));
+            }
             Loc.Changed += OnLanguageChanged;
         }
 

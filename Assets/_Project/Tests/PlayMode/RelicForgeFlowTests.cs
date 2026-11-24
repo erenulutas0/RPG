@@ -359,7 +359,6 @@ namespace Cryptforge.Tests
                 Canvas.ForceUpdateCanvases();
                 var spans = new List<(string Name, float Bottom, float Top)>();
                 RectTransform chooser = null;
-                RectTransform skills = null;
                 var entries = new List<RectTransform>();
                 foreach (RectTransform child in safeArea)
                 {
@@ -378,12 +377,8 @@ namespace Cryptforge.Tests
                         entries.Add(child);
                         continue;
                     }
-                    // The Skills tab's entry (docs/57 phase 4) shares the weapons' header row at its right end: below.
-                    if (child.name == AnvilView.SkillsEntryName)
-                    {
-                        skills = child;
-                        continue;
-                    }
+                    // The skills' header and card (docs/63 section 12 answer 7) are rows of their own in the band the rack
+                    // left: counted, and checked for overlaps, with the rest.
                     child.GetWorldCorners(corners);
                     Vector3 bottom = safeArea.InverseTransformPoint(corners[0]);
                     Vector3 top = safeArea.InverseTransformPoint(corners[2]);
@@ -394,8 +389,12 @@ namespace Cryptforge.Tests
 
                 spans.Sort((a, b) => a.Bottom.CompareTo(b.Bottom));
                 // The title, the status, the weapon's header and its one card (the rack's other two places went with it,
-                // docs/63), the relics' header and two cards, and the start button.
-                Assert.That(spans.Count, Is.EqualTo(8));
+                // docs/63), the relics' header and two cards, the skills' header and card in the band the rack left, and the
+                // start button.
+                Assert.That(spans.Count, Is.EqualTo(10), string.Join(", ", spans.ConvertAll(s => s.Name)));
+                Assert.That(spans[1].Name, Is.EqualTo(AnvilView.SkillsEntryName), "The skills' card stands right over the start row.");
+                Assert.That(spans[2].Name, Is.EqualTo(RelicForgeView.SkillsHeaderName), "Its header right over it.");
+                Assert.That(spans[3].Name, Is.EqualTo("Relic Card 2"), "Under the relics, in the band the rack left.");
                 Assert.That(chooser, Is.Not.Null, "Two heroes: the start row carries the hero chooser.");
                 var start = safeArea.Find("Start Run Button").GetComponent<RectTransform>();
                 var chooserCorners = new Vector3[4];
@@ -431,20 +430,21 @@ namespace Cryptforge.Tests
                     Assert.That(clear, Is.True, entry.name + " overlaps the title.");
                     Assert.That(entryMax.y - entryMin.y, Is.GreaterThanOrEqualTo(44f), entry.name + " is a thumb's target.");
                 }
-                // The skills' entry: inside the safe area, on the weapons' header row, clear of its words, a thumb's target.
-                Assert.That(skills, Is.Not.Null, "The Skills tab's entry beside the weapons' header.");
-                var header = safeArea.Find("Weapons Header").GetComponent<Text>();
-                var headerCorners = new Vector3[4];
-                header.rectTransform.GetWorldCorners(headerCorners);
-                Vector3 headerMin = safeArea.InverseTransformPoint(headerCorners[0]);
-                Vector3 headerMax = safeArea.InverseTransformPoint(headerCorners[2]);
+                // The skills' entry is the band's card (moved off the weapons' header row, which keeps its words alone): the
+                // Anvil's way into its Skills tab, as wide and as tall as a relic card, clear above the chooser's row too.
+                var skills = (RectTransform)_forge.SkillsCard.transform;
+                Assert.That(_forge.Anvil.SkillsEntry, Is.SameAs(_forge.SkillsCard), "The band's card opens the Skills tab.");
+                Assert.That(safeArea.Find("Weapons Header/" + AnvilView.SkillsEntryName), Is.Null);
                 skills.GetWorldCorners(corners);
                 Vector3 skillsMin = safeArea.InverseTransformPoint(corners[0]);
                 Vector3 skillsMax = safeArea.InverseTransformPoint(corners[2]);
-                Assert.That(skillsMax.x, Is.LessThanOrEqualTo(safeArea.rect.xMax + .5f));
-                Assert.That(skillsMin.y, Is.GreaterThanOrEqualTo(headerMin.y - .5f), "On the weapons' header row.");
-                Assert.That(skillsMax.y, Is.LessThanOrEqualTo(headerMax.y + .5f), "On the weapons' header row.");
-                Assert.That(skillsMin.x, Is.GreaterThanOrEqualTo(headerMin.x + header.preferredWidth - .5f), "Clear of the header's words.");
+                var relic = (RectTransform)safeArea.Find("Relic Card 2");
+                var relicCorners = new Vector3[4];
+                relic.GetWorldCorners(relicCorners);
+                float relicWidth = safeArea.InverseTransformPoint(relicCorners[2]).x - safeArea.InverseTransformPoint(relicCorners[0]).x;
+                Assert.That(skillsMax.x - skillsMin.x, Is.EqualTo(relicWidth).Within(.5f), "A relic card's width.");
+                Assert.That(skillsMax.y - skillsMin.y, Is.EqualTo(relic.rect.height).Within(.5f), "A relic card's height.");
+                Assert.That(skillsMin.y, Is.GreaterThanOrEqualTo(chooserMax.y - .5f), "Clear above the start row and its chooser.");
                 Assert.That(skillsMax.y - skillsMin.y, Is.GreaterThanOrEqualTo(44f), "A thumb's target.");
                 Assert.That(spans[0].Bottom, Is.GreaterThanOrEqualTo(-.5f));
                 Assert.That(spans[spans.Count - 1].Top, Is.LessThanOrEqualTo(height + .5f), spans[spans.Count - 1].Name);

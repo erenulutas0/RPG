@@ -8,8 +8,9 @@ namespace Cryptforge.Tests
 {
     // docs/57 phase 4, the unlock as built (section 14): floor 2's first clear opens skill 2 and floor 3's opens skill 3, for
     // the profile on any tier and with either hero; the Forge then forges each per hero for 300 and 500 gold, skill 3 after
-    // skill 2; the profile's record of what was forged, its save (version 6) and the repair of a damaged one.
-    // ProfileStoreTests reads the same through JSON. Also in Tools/CombatChecks.
+    // skill 2; the profile's record of what was forged, its save (version 6) and the repair of a damaged one; which skills a
+    // run's clears opened (the result screen's line) and the toasts shown (docs/57 5.2). ProfileStoreTests reads the same
+    // through JSON. Also in Tools/CombatChecks.
     public sealed class HeroSkillUnlockTests
     {
         private const string Vanguard = "hero_vanguard";
@@ -142,6 +143,22 @@ namespace Cryptforge.Tests
             Assert.That(ProfileSkillsSave.ToSnapshot(new ProfileSaveData()).Records, Is.Empty, "no field, no record");
         }
 
+        // The result screen's line (docs/57 section 14): a run opens a skill when its clears carry the depth record across the
+        // skill's floor - skill 2 at floor 2, skill 3 at floor 3, both in one run that clears both for the first time - and
+        // never skill 1, never a skill already open, never a run that cleared nothing new.
+        [Test]
+        public void ARunOpensASkillWhenItsClearsCrossTheSkillsFloor()
+        {
+            Assert.That(HeroSkillUnlock.OpensBetween(2, 1, 2), Is.True);
+            Assert.That(HeroSkillUnlock.OpensBetween(3, 1, 2), Is.False);
+            Assert.That(HeroSkillUnlock.OpensBetween(2, 0, 3) && HeroSkillUnlock.OpensBetween(3, 0, 3), Is.True, "both in one run");
+            Assert.That(HeroSkillUnlock.OpensBetween(3, 2, 4), Is.True, "the finale's record carries floor 3");
+            Assert.That(HeroSkillUnlock.OpensBetween(2, 2, 3), Is.False, "skill 2 was open before the run");
+            Assert.That(HeroSkillUnlock.OpensBetween(2, 2, 2) || HeroSkillUnlock.OpensBetween(3, 3, 3), Is.False);
+            Assert.That(HeroSkillUnlock.OpensBetween(1, 0, 4), Is.False, "skill 1 is the hero's own from the start");
+            Assert.That(HeroSkillUnlock.OpensBetween(4, 0, 9), Is.False);
+        }
+
         [Test]
         public void VersionFiveMigratesWithNothingForged()
         {
@@ -156,6 +173,44 @@ namespace Cryptforge.Tests
             };
             Assert.That(ProfileMigration.Upgrade(six).heroSkills.Length, Is.EqualTo(1), "version 6 passes through");
             Assert.That(ProfileMigration.Upgrade(new ProfileSaveData { saveVersion = 7 }), Is.Null);
+        }
+
+        // docs/57 5.2's toast: recorded once per hero and skill, only for a forged one, one change each (the save's trigger),
+        // through the save's fields and back; a damaged record keeps a toast only for a skill it keeps forged.
+        [Test]
+        public void TheToastIsRecordedOncePerForgedSkill()
+        {
+            var profile = new PlayerProfile(800, null, null, 3);
+            int changes = 0;
+            profile.Changed += () => changes++;
+            Assert.That(profile.MarkSkillToastShown(Vanguard, 2), Is.False, "not forged: nothing to introduce");
+            Assert.That(profile.TryForgeSkill(Vanguard, 2), Is.True);
+            changes = 0;
+            Assert.That(profile.HasShownSkillToast(Vanguard, 2), Is.False);
+            Assert.That(profile.MarkSkillToastShown(Vanguard, 2), Is.True);
+            Assert.That((profile.HasShownSkillToast(Vanguard, 2), changes), Is.EqualTo((true, 1)));
+            Assert.That(profile.MarkSkillToastShown(Vanguard, 2), Is.False, "once");
+            Assert.That(changes, Is.EqualTo(1));
+            Assert.That(profile.HasShownSkillToast(Vanguard, 3) || profile.HasShownSkillToast(Ilya, 2), Is.False, "per hero and skill");
+            Assert.That(profile.MarkSkillToastShown(Vanguard, 1), Is.False, "skill 1 has no toast");
+            Assert.That(profile.TryForgeSkill(Vanguard, 3), Is.True);
+            Assert.That(profile.HasShownSkillToast(Vanguard, 3), Is.False, "a new skill, a new toast");
+
+            var data = new ProfileSaveData();
+            ProfileSkillsSave.Write(profile.Skills.Snapshot(), data);
+            Assert.That((data.heroSkills[0].skillTwoToastShown, data.heroSkills[0].skillThreeToastShown), Is.EqualTo((true, false)));
+            ProfileSkills restored = ProfileSkills.Restore(ProfileSkillsSave.ToSnapshot(data), 3);
+            Assert.That((restored.ToastShown(Vanguard, 2), restored.ToastShown(Vanguard, 3)), Is.EqualTo((true, false)));
+
+            data.heroSkills = new[]
+            {
+                new HeroSkillsSaveData { hero = Vanguard, skillTwo = true, skillThree = false, skillThreeToastShown = true },
+                new HeroSkillsSaveData { hero = Ilya, skillTwo = false, skillTwoToastShown = true }
+            };
+            ProfileSkills repaired = ProfileSkills.Restore(ProfileSkillsSave.ToSnapshot(data), 3);
+            Assert.That(repaired.ToastShown(Vanguard, 3), Is.False, "no toast kept for a skill not forged");
+            Assert.That(repaired.ToastShown(Ilya, 2), Is.False);
+            Assert.That(repaired.HeroCount, Is.EqualTo(1));
         }
     }
 }

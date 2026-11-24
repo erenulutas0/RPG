@@ -125,6 +125,10 @@ to English.
 | pieces (the result's bare loot count) | eşya ("12 eşya (Çanta'ya bak)") | Pass 2 |
 | rewarded video / bonus (the result screen's offer) | ödüllü video / bonus ("Video izle: +60 altın", "Video oynatılamadı: bonus yok") | 2026-11-23, docs/58 7.8. "Bonus" is the Turkish game word |
 | Skip reward videos (the store's one product) | Ödüllü videoları atla; owned: "Ödüllü videolar atlanıyor"; the owner's button "Videosuz al: +60 altın" (take it without a video) | 2026-11-23, docs/58 7.8 |
+| skill (a hero's skills 1-3, docs/57) | yetenek ("Kahraman Yetenekleri", "Yetenekler: 2/3 hazır") | The Skills tab's word since docs/57 phase 4; since 2026-11-25 also the forge's skills header, the result's line and the first-run toast (docs/57 14.9). "{0}/{1}" in Turkish where English says "{0} of {1}": no suffix rides on a number |
+| a skill opens (its floor's first clear) | yetenek açılır ("Yeni yetenek açıldı: Demir İrade. Kalıntı Ocağı'nda döv") | 2026-11-25, the result screen's line. The suffix goes on the fixed name with its apostrophe ("Kalıntı Ocağı'nda"), never on the skill's placeholder |
+| the stick (the movement joystick) | kol ("kolun yönünde", "kolun yönüne hücum et") | Shield Rush's description and its toast |
+| tap when ... (a skill's moment, the first-run toast) | ... dokun ("darbeler gelince dokun", "bossun darbesi inmeden hemen önce dokun") | 2026-11-25, docs/57 5.2. Lower case: the hint follows the skill's name ("Demir İrade: darbeler gelince dokun") |
 
 **Proper names stay as they are:** Cryptforge, Ilya Kest, Vanguard (the lead, 2026-11-18). **Cinder Arcanist is kept
 as a proper name in pass 1** for symmetry with Vanguard; if the owner prefers it translated, "Kül Büyücüsü" goes in its

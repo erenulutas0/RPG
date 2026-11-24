@@ -1,5 +1,5 @@
-using System;
 using Cryptforge.Content;
+using Cryptforge.Core;
 using Cryptforge.Localisation;
 using Cryptforge.Progression;
 using UnityEngine;
@@ -12,11 +12,13 @@ namespace Cryptforge.UI
     // the card's colour by state (gold forged, blue affordable, grey short of gold or waiting on skill 2, the plain card
     // locked). Skill 1 is the hero's own; skill 2 opens at floor 2's first clear and skill 3 at floor 3's (any tier, any
     // hero), then a tap forges it for 300 or 500 gold for this hero (PlayerProfile.TryForgeSkill), as a tap forges a relic
-    // on the Relic Forge. The tab's entry stands at the right end of the Relic Forge's weapons header, on the forge's
-    // primary plate while a skill waits affordable. Gold is earned in play: nothing here is sold for money.
+    // on the Relic Forge. The tab's entry is the Relic Forge's Skills card, in the band above its start button
+    // (RelicForgeView, docs/63 section 12 answer 7: it left the weapons header's row on 2026-11-25), in the gold frame of
+    // the call while a skill waits affordable. Gold is earned in play: nothing here is sold for money.
     public sealed partial class AnvilView
     {
-        public const string SkillsEntryName = "Forge Skills Button";
+        // The Relic Forge's Skills card, the tab's entry (RelicForgeView makes it).
+        public const string SkillsEntryName = "Skills Card";
         // The page under the wallet: the hero's line, the three cards and the note.
         private const float SkillsTop = 338f;
         private const float SkillCardTop = 84f;
@@ -34,9 +36,9 @@ namespace Cryptforge.UI
         private readonly PieceCard[] _skillCards = new PieceCard[HeroSkillUnlock.LastSlot];
         private readonly SkillForgeStatus[] _skillStates = new SkillForgeStatus[HeroSkillUnlock.LastSlot];
 
-        // The skills' entry beside the weapons' header on the Relic Forge; null without the row.
+        // The skills' entry: the Relic Forge's Skills card in the band above its start button; null without it.
         public Button SkillsEntry { get; private set; }
-        // Whether the entry stands on the primary plate: a skill of the next run's hero waits affordable.
+        // Whether the entry calls (the card in the gold frame): a skill of the next run's hero waits affordable.
         public bool SkillsEntryCalls { get; private set; }
         // For tests: each slot's card (1-3), its words and state as shown, its icon.
         public Button SkillCardButton(int slot) => _skillCards[slot - 1]?.Button;
@@ -46,34 +48,8 @@ namespace Cryptforge.UI
         public Sprite SkillCardIcon(int slot) => _skillCards[slot - 1]?.Icon.sprite;
         public string SkillsHeroText => _skillsHero != null ? _skillsHero.text : string.Empty;
 
-        // A button at the right end of a row of the forge (the weapons' header, whose words stand at its left), at the row's
-        // own inset from the edge, as wide as the nameplate's entries.
-        private Button RowEntry(Text row, string name, LocText text, Action open)
-        {
-            RectTransform rowRect = row.rectTransform;
-            var entry = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button));
-            entry.layer = row.gameObject.layer;
-            var rect = (RectTransform)entry.transform;
-            rect.SetParent(rowRect.parent, false);
-            rect.SetSiblingIndex(rowRect.GetSiblingIndex() + 1);
-            rect.anchorMin = new Vector2(1f, rowRect.anchorMin.y);
-            rect.anchorMax = new Vector2(1f, rowRect.anchorMax.y);
-            rect.pivot = new Vector2(1f, .5f);
-            float right = Mathf.Max(0f, -rowRect.offsetMax.x);
-            rect.offsetMin = new Vector2(-(right + EntryWidth), 2f);
-            rect.offsetMax = new Vector2(-right, -2f);
-            var button = entry.GetComponent<Button>();
-            button.targetGraphic = entry.GetComponent<Image>();
-            Paint(button, false);
-            Text label = Label(rect, name + " Label", _nameSource, 34, TextAnchor.MiddleCenter);
-            Stretch(label.rectTransform, new Vector2(10f, 6f), new Vector2(-10f, -6f));
-            LocalisedLabel.Bind(label, text.Get);
-            button.onClick.AddListener(() => open());
-            return button;
-        }
-
-        // RelicForgeView, as it refreshes: the entry on the primary plate while a skill of the next run's hero is
-        // affordable, so the forge calls the player to it.
+        // RelicForgeView, as it refreshes: whether the entry calls - a skill of the next run's hero is affordable, and the
+        // card shows it in the gold frame (the card shows the first skill not yet forged, which is that one).
         internal void RefreshSkillsEntry()
         {
             if (SkillsEntry == null || _setup == null)
@@ -84,7 +60,28 @@ namespace Cryptforge.UI
                 calls |= hero.SkillAt(slot) != null &&
                          _setup.Profile.SkillStatusOf(hero.Id, slot) == SkillForgeStatus.Affordable;
             SkillsEntryCalls = calls;
-            Paint(SkillsEntry, calls);
+        }
+
+        // A skill's state in words, as its card on this tab and the Relic Forge's Skills card write it (docs/57 14.1's table).
+        internal static string SkillStateText(CombatSetup setup, HeroDefinition hero, int slot, SkillForgeStatus status)
+        {
+            switch (status)
+            {
+                case SkillForgeStatus.Forged:
+                    return slot == HeroSkillUnlock.FirstSlot
+                        ? Loc.Text("skills.own", "Ready from the first run")
+                        : Loc.Text("skills.forged", "Forged: yours in every run");
+                case SkillForgeStatus.Affordable:
+                    return string.Format(Loc.Numbers, setup.Text.UnlockForgeFormat, HeroSkillUnlock.Price(slot));
+                case SkillForgeStatus.TooExpensive:
+                    return string.Format(Loc.Numbers, setup.Text.UnlockNeedGoldFormat, HeroSkillUnlock.Price(slot),
+                        setup.Profile.GoldNeededForSkill(hero.Id, slot));
+                case SkillForgeStatus.NeedsEarlierSkill:
+                    return Loc.Format("skills.needs_earlier", "Forge {0} first",
+                        AbilityText.Name(hero.SkillAt(HeroSkillUnlock.Requires(slot))));
+                default:
+                    return Loc.Format("skills.locked", "Locked: clear floor {0}", HeroSkillUnlock.OpeningFloor(slot));
+            }
         }
 
         private void BuildSkillsPage(Transform surface)
@@ -165,33 +162,14 @@ namespace Cryptforge.UI
             card.Icon.sprite = skill.Icon;
             card.Icon.enabled = skill.Icon != null;
             card.Icon.color = status == SkillForgeStatus.Locked ? LockedIcon : Color.white;
-            switch (status)
+            card.Level.text = SkillStateText(_setup, hero, slot, status);
+            card.Level.color = status switch
             {
-                case SkillForgeStatus.Forged:
-                    card.Level.text = slot == HeroSkillUnlock.FirstSlot
-                        ? Loc.Text("skills.own", "Ready from the first run")
-                        : Loc.Text("skills.forged", "Forged: yours in every run");
-                    card.Level.color = StateForged;
-                    break;
-                case SkillForgeStatus.Affordable:
-                    card.Level.text = string.Format(Loc.Numbers, _setup.Text.UnlockForgeFormat, HeroSkillUnlock.Price(slot));
-                    card.Level.color = Gold;
-                    break;
-                case SkillForgeStatus.TooExpensive:
-                    card.Level.text = string.Format(Loc.Numbers, _setup.Text.UnlockNeedGoldFormat, HeroSkillUnlock.Price(slot),
-                        _setup.Profile.GoldNeededForSkill(hero.Id, slot));
-                    card.Level.color = Muted;
-                    break;
-                case SkillForgeStatus.NeedsEarlierSkill:
-                    AbilityDefinition earlier = hero.SkillAt(HeroSkillUnlock.Requires(slot));
-                    card.Level.text = Loc.Format("skills.needs_earlier", "Forge {0} first", AbilityText.Name(earlier));
-                    card.Level.color = StateWaiting;
-                    break;
-                default:
-                    card.Level.text = Loc.Format("skills.locked", "Locked: clear floor {0}", HeroSkillUnlock.OpeningFloor(slot));
-                    card.Level.color = Muted;
-                    break;
-            }
+                SkillForgeStatus.Forged => StateForged,
+                SkillForgeStatus.Affordable => Gold,
+                SkillForgeStatus.NeedsEarlierSkill => StateWaiting,
+                _ => Muted
+            };
             card.Name.color = status == SkillForgeStatus.Locked ? Muted : Bright;
             // The cards no tap changes read as out of reach; a forged one stays lit and does nothing.
             card.Button.interactable = status == SkillForgeStatus.Affordable || status == SkillForgeStatus.Forged;

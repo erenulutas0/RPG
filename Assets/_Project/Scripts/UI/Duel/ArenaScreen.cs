@@ -540,7 +540,7 @@ namespace Cryptforge.UI
                 bool playable = Playable(id);
                 string name = ArenaText.HeroName(id, hero != null ? hero.DisplayName : null);
                 string second = playable ? (hero != null ? HeroText.Subtitle(hero) : string.Empty)
-                    : ArenaText.Locked + (hero != null && hero.UnlockHint.Length > 0 ? ": " + HeroText.UnlockHint(hero) : string.Empty);
+                    : ArenaText.Locked + (hero != null && hero.UnlockHint.Length > 0 ? ": " + _setup.UnlockHint(hero) : string.Empty);
                 card.Label.text = name + (second.Length > 0 ? "\n<size=26>" + second + "</size>" : string.Empty);
                 card.Picture.sprite = hero != null ? hero.Portrait : null;
                 card.Picture.enabled = card.Picture.sprite != null;

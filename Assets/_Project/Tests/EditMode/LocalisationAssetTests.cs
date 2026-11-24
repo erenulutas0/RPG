@@ -122,6 +122,8 @@ namespace Cryptforge.Tests
                 Field(table, serialized, id, "_description", ContentKeys.Description, problems);
                 Field(table, serialized, id, "_descriptionFormat", ContentKeys.Description, problems);
                 Field(table, serialized, id, "_forgeDescriptionFormat", ContentKeys.Description, problems);
+                if (asset is AbilityDefinition)
+                    Field(table, serialized, id, "_tapHint", ContentKeys.TapHint, problems);
                 if (asset is HeroDefinition)
                 {
                     Field(table, serialized, id, "_subtitle", "subtitle", problems);
@@ -153,6 +155,7 @@ namespace Cryptforge.Tests
             var upgrade = Load<UpgradeDefinition>("Upgrades/Upgrade_Range.asset");
             var weapon = Load<WeaponDefinition>("Weapons/Weapon_Daggers.asset");
             var hero = Load<HeroDefinition>("Heroes/Hero_CinderArcanist.asset");
+            var skill = Load<AbilityDefinition>("Abilities/Ability_IronResolve.asset");
             Loc.Override = Language.English;
             string room = floor.RoomAt(0).DisplayName;
             var keys = new List<string>
@@ -160,7 +163,8 @@ namespace Cryptforge.Tests
                 enemy.Id + ".name", floor.Id + ".name", ContentKeys.Room(room), modifier.Id + ".name", modifier.Id + ".description",
                 forge.Id + ".name", forge.Id + ".description", item.Id + ".name", relic.Id + ".name", relic.Id + ".description",
                 upgrade.Id + ".name", upgrade.Id + ".description", weapon.Id + ".name", weapon.Id + ".description",
-                hero.Id + ".name", hero.Id + ".subtitle", hero.Id + ".role", hero.Id + ".unlock_hint"
+                hero.Id + ".name", hero.Id + ".subtitle", hero.Id + ".role", hero.Id + ".unlock_hint",
+                skill.Id + ".name", skill.Id + ".description", skill.Id + ".tap_hint"
             };
             Loc.UseTable(MarkerTable(keys));
             Loc.Override = Language.Turkish;
@@ -182,6 +186,9 @@ namespace Cryptforge.Tests
             Assert.That(weapon.CreateForgeOption().Description, Is.EqualTo(M(weapon.Id + ".description")));
             Assert.That((HeroText.Name(hero), HeroText.Subtitle(hero), HeroText.Role(hero), HeroText.UnlockHint(hero)),
                 Is.EqualTo((M(hero.Id + ".name"), M(hero.Id + ".subtitle"), M(hero.Id + ".role"), M(hero.Id + ".unlock_hint"))));
+            // A hero skill's three, the toast's tap hint among them (docs/57 5.2).
+            Assert.That((AbilityText.Name(skill), AbilityText.Description(skill), AbilityText.TapHint(skill)),
+                Is.EqualTo((M(skill.Id + ".name"), M(skill.Id + ".description"), M(skill.Id + ".tap_hint"))));
         }
 
         // In English nothing changes: the getters give the assets' own words, as before the table existed.

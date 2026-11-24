@@ -561,7 +561,7 @@ namespace Cryptforge.UI
                 card.Weapon.text = weapon != null ? Loc.Format("map.hero_weapon", "Weapon: {0}", weapon.DisplayName) : string.Empty;
                 if (!playable)
                 {
-                    string hint = HeroText.UnlockHint(card.Hero);
+                    string hint = _setup.UnlockHint(card.Hero);
                     card.State.text = hint.Length > 0 && text != null
                         ? string.Format(Loc.Numbers, text.HeroLockedFormat, LockedWord, hint) : LockedWord;
                     card.State.color = LockedColour;

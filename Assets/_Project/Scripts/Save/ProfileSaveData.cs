@@ -3,7 +3,11 @@ using System;
 namespace Cryptforge.Save
 {
     // The on-disk profile schema. Field names are the JSON keys (06_TECH_ARCHITECTURE_UNITY), so they stay camelCase
-    // and stable; any schema change bumps CurrentVersion and adds a step to ProfileMigration.
+    // and stable; any schema change bumps CurrentVersion and adds a step to ProfileMigration - except a field added
+    // whose default (JsonUtility leaves a missing field at it) is already the right value for every save written before
+    // it, which needs no step: version 6's toast flags (HeroSkillsSaveData), false - not yet shown - in every file written
+    // before the toast existed. Kept at version 6 so a build of the previous version still reads the file (a newer
+    // version is never read, ProfileMigration) instead of starting a new profile.
     [Serializable]
     public sealed class ProfileSaveData
     {
@@ -58,13 +62,17 @@ namespace Cryptforge.Save
     }
 
     // A hero's forged skills: its id ("hero_vanguard", "hero_cinder_arcanist") and whether the Forge has forged its skill 2
-    // and its skill 3 (docs/57 section 12: 300 and 500 gold, once floors 2 and 3 have been cleared).
+    // and its skill 3 (docs/57 section 12: 300 and 500 gold, once floors 2 and 3 have been cleared); and whether docs/57
+    // 5.2's one-line toast has introduced each on the first run that carried it (2026-11-25, within version 6: absent, as
+    // in every earlier file, it reads false - not yet shown).
     [Serializable]
     public sealed class HeroSkillsSaveData
     {
         public string hero;
         public bool skillTwo;
         public bool skillThree;
+        public bool skillTwoToastShown;
+        public bool skillThreeToastShown;
     }
 
     // A difficulty tier's record: its id ("forged", "tempered", "inferno", "abyssal"), the deepest floor a run on it has
