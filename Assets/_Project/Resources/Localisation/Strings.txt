@@ -227,6 +227,7 @@ hero_cinder_arcanist.name	Cinder Arcanist	Cinder Arcanist	Proper name like Vangu
 hero_cinder_arcanist.subtitle	Ilya Kest	Ilya Kest	Proper name.
 hero_cinder_arcanist.role	Every hit sets a foe alight. Crucible Vent erupts the burning.	Her vuruş bir düşmanı tutuşturur. Pota Ağzı yananları patlatır.	Map choice hero card.
 hero_cinder_arcanist.unlock_hint	Clear The Foundry with the Staff	Dökümhane katını Asa ile temizle	Locked hero.
+hero.unlock_foundry_clear	Clear The Foundry	Dökümhane katını temizle	Ilya's locked hint under the weapon roster's lever (docs/63 section 6: the clear alone unlocks her there); without the lever her own hint above. "Dökümhane katını": the suffix on the fixed word "kat", as "{1} katını temizledi".
 
 # ---- Floors, rooms (room.<english slug>.name) and floor rules
 floor_ember_halls.name	The Foundry	Dökümhane	Floor 1.

@@ -529,6 +529,11 @@ namespace Cryptforge.Core
         // The hero the next run plays, as the forge's hero chooser has chosen it (the Forge's skills tab shows its skills).
         public HeroDefinition NextRunHero => ChooseHero();
 
+        // A locked hero's unlock hint as the forge's chooser, the map choice and the arena show it: "Clear The Foundry" for
+        // Ilya under the weapon roster's lever (docs/63 section 6: the clear alone unlocks her there, UnlockHeroesForTheFoundry),
+        // the hero's own hint without it.
+        public string UnlockHint(HeroDefinition hero) => HeroText.UnlockHint(hero, DevelopmentStart.WeaponRoster());
+
         // A failed write keeps the in-memory profile; the next change tries again.
         // docs/57's skills 2 and 3, where the run carries them (CarriesSkill: forged at the Forge, or a development file).
         // Their cooldowns take the gear's line as the first's did (GearStats.Apply), and what they reach is handed over: the

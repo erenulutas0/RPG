@@ -155,7 +155,7 @@ namespace Cryptforge.UI
             {
                 if (heroes[i] != null && !_setup.IsHeroPlayable(heroes[i]) && heroes[i].UnlockHint.Length > 0)
                 {
-                    second = string.Format(Loc.Numbers, _text.HeroLockedFormat, HeroText.Name(heroes[i]), HeroText.UnlockHint(heroes[i]));
+                    second = string.Format(Loc.Numbers, _text.HeroLockedFormat, HeroText.Name(heroes[i]), _setup.UnlockHint(heroes[i]));
                     break;
                 }
             }

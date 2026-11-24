@@ -4,7 +4,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using Cryptforge.Combat;
+using Cryptforge.Content;
 using Cryptforge.Core;
+using Cryptforge.Localisation;
 using Cryptforge.Progression;
 using Cryptforge.UI;
 using NUnit.Framework;
@@ -359,6 +361,40 @@ namespace Cryptforge.Tests
             _setup.UnlockHeroesForTheFoundry();
             Assert.That(_setup.Profile.HasUnlockedHero(ArcanistId), Is.True, "No card could hand over the Staff.");
             Assert.That(TestProfile.ReadSaved().HasUnlockedHero(ArcanistId), Is.True);
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // Her locked hint follows (docs/63 section 6): "Clear The Foundry" under the roster, in English and Turkish, where the
+        // chooser, the map choice and the arena read it (CombatSetup.UnlockHint); the Vanguard has none to change.
+        [UnityTest, Timeout(90000)]
+        public IEnumerator UnderTheRosterIlyasHintIsTheClearAlone()
+        {
+            yield return Load(true);
+            HeroDefinition ilya = _setup.Heroes.First(h => h != null && h.Id == ArcanistId);
+            Language? before = Loc.Override;
+            try
+            {
+                Loc.Override = Language.English;
+                Assert.That(_setup.UnlockHint(ilya), Is.EqualTo("Clear The Foundry"));
+                Loc.Override = Language.Turkish;
+                Assert.That(_setup.UnlockHint(ilya), Is.EqualTo("Dökümhane katını temizle"));
+            }
+            finally
+            {
+                Loc.Override = before;
+            }
+            Assert.That(_setup.UnlockHint(_setup.Heroes[0]), Is.EqualTo(HeroText.UnlockHint(_setup.Heroes[0])));
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // Without the roster's file the hint stays exactly as it was: the Staff carried through The Foundry.
+        [UnityTest, Timeout(90000)]
+        public IEnumerator WithTodaysCatalogueIlyasHintIsUnchanged()
+        {
+            yield return Load(false);
+            HeroDefinition ilya = _setup.Heroes.First(h => h != null && h.Id == ArcanistId);
+            Assert.That(_setup.UnlockHint(ilya), Is.EqualTo(HeroText.UnlockHint(ilya)));
+            Assert.That(_setup.UnlockHint(ilya), Is.EqualTo("Clear The Foundry with the Staff"));
             LogAssert.NoUnexpectedReceived();
         }
 
