@@ -714,3 +714,41 @@ pixel blade and the procedural ring kept as the fallback exactly as the Staff's 
   the blade's size, hub, holes, plate and teeth, every texel out of red-orange and orchid, the ring's unit ellipse);
   PlayMode `WeaponRosterFlowTests` (the painted blade turning as it circles, the ring at the circle's edge, and the
   fallback for a strike set without the Saw's strips or with a broken one). Not run here (no Unity in a worktree).
+
+## 14. The confirmation read (2026-11-25): `p3-saw8` passes
+
+The owner's answer of 2026-11-24 ("verify p3-saw8") sent section 13.6's candidate to one confirmation read on the fresh
+block **14801-18000** (docs/56 section 10): `ROSTER_CONFIRM=14801-18000`, `shipped`, `p3-saw8` (the crowd-weapon
+guarantee, the Magma Mortar as built - 34 every 1.8 s, blast 2.5 - and the Cinder Saw striking 8 every 0.2 s within 2.0)
+and the A/A `aa-f1`; four cohorts, both heroes, typical hands, the code of main 8921a7b1 (a frozen build). 76,800
+four-floor runs in 148 minutes.
+
+| Cohort | `p3-saw8` vs today (points, 90 % CI) | The A/A `aa-f1` | docs/56's bar |
+|---|---|---|---|
+| careful | **-0.64** (-1.20 to -0.08) | -0.08 | passes (at least -1.0, the bound at least -1.5) |
+| first-card | +1.77 (+0.83 to +2.69) | -0.70 | passes: an easing |
+| clumsy | **+14.36** (+12.78 to +15.94) | -0.20 | passes: an easing, reported (rule 3) |
+| standing | +7.58 (+6.61 to +8.58) | +0.06 | no bar for a weapon change; reported |
+
+**Ilya's guard** (section 13's, defined before the 1-2000 read) **holds**, narrowly against the Mortar as on the
+exploration seeds: in the runs that hold each shared weapon her Staff deals more than it - 41.3 % against the Mortar's
+39.7 %, 46.3 % against the Saw's 30.2 %, 48.8 % against the Bow's 25.9 %, 59.5 % against the Daggers' 5.6 % - and it is
+her top weapon in 69.7 % of her runs (today 99.9 %). Her Staff's overall share falls from 69.7 % to 49.0 %.
+
+**The Vanguard alone** (the split the owner was asked to see): careful 96.6 % -> 92.5 % (-4.03), first-card 78.5 % ->
+75.6 % (-2.91), standing +2.59, clumsy +11.56. Ilya: careful +2.75, first-card +6.44, standing +12.56, clumsy +17.16.
+The pooled cohorts pass because Ilya gains more than the Vanguard loses. Under the roster the Vanguard holds the Mortar
+in 62.9 % of runs and the Saw in 63.7 %; its Sword deals 26.3 % of its damage (today 29.8 %, when the Staff did 64.3 %).
+
+**What this decides:** `p3-saw8` is the roster's confirmed shape. What stands between it and players is no longer the
+balance rule but the owner's word, because it changes how both heroes play:
+1. **The owner's OK on the split** - the Vanguard about 3-4 points harder for careful and first-card players, Ilya and
+   the clumsy cohort clearly easier.
+2. Built and ready for the switch: the Saw's painted blade and icons (13.10), Ilya's "Clear The Foundry" hint under the
+   lever (docs/57 14.9's branch), the forge's skills band in the rack's place.
+3. Still open: docs/60's review of the new names (Magma Havanı, Ocak Yayı, Kor Testeresi), and the switch itself - the
+   lever turned on by default in the scene and the simulation (`FoundryLevers`, `DevelopmentStart.WeaponRoster`), the
+   default batch re-read with it on, and the Unity suites.
+
+The data: `E:/confirm-li17/roster` (the CSV and `weapon-roster.md`), the bootstrap in
+`E:/confirm-li17/rule-roster/paired-bootstrap.txt` (outside the repository). docs/56's ledger records the block.
