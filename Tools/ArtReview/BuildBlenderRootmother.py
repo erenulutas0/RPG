@@ -1,5 +1,6 @@
 """Rootmother Myrr, the Gloam Gardens' gate boss (docs/44 section 1.8, docs/64): a reproducible stylised model, rig, poses
-and the sprite render for her review sheets (docs/64 stage 4; not yet worn by any prefab).
+and the sprite render for her review sheets and her EnemyArtSet (docs/64 stage 4 and section 14; PackRootmotherSprites.py
+packs the set, no prefab wears it yet).
 
 Run with Blender 4.5 LTS, headless:
 
@@ -8,8 +9,9 @@ Run with Blender 4.5 LTS, headless:
 Options after the "--":
     --out DIR        raw frames and frames.json (default TestResults/rootmother-render, git-ignored)
     --blend PATH     the saved scene (default ArtDirection/2026-11-23/rootmother-01/rootmother.blend)
-    --poses LIST     a comma-separated subset of idle-a,idle-b,windup-0,windup-1,windup-2,strike-0,strike-1,strike-2,
-                     phase-0,phase-1,phase-2,fall-struck,fall-sink,fall-slump,fall-stump
+    --poses LIST     a comma-separated subset of idle-a,idle-b,step-a,pass-a,step-b,pass-b,windup-0,windup-1,windup-2,
+                     windup-step-a,windup-pass-a,windup,windup-pass-b,strike-0,strike-1,strike-2,phase-0,phase-1,
+                     phase-2,fall-struck,fall-sink,fall-slump,fall-stump
     --facings LIST   a comma-separated subset of front,rear
     --variants LIST  cool (the first phase: her buds closed) and hot (the second: the grafted blooms open, the heart and
                      the root veins lit)
@@ -35,6 +37,16 @@ canopy bursts into bloom, she settles), and death (rocked back, sinking into her
 with its canopy fallen and its blooms dark). Both facings look left (the game mirrors them for the right); the camera
 and the key light never move; the root stays on the floor origin, which projects to the same render pixel in every
 frame: the pivot. A holdout at the floor hides what sinks under it.
+
+The rows EnemyArtSet adds to those clips (the Forge Warden's and the Glass Regent's boss contract): the walk - she has no
+legs, she walks on her six root panels, each on its own bone, in two tripods (the front and the two back panels, then the
+two front-side panels and the back), a tripod planted and sliding back under her while the other lifts off the floor and
+reaches forward, the body rising as one passes the other - in its four quarters (step-a contact A, pass-a, step-b
+contact B, pass-b), distance-driven over STRIDE; and the telegraph carried at a walk (windup-step-a, windup-pass-a,
+windup-pass-b, and windup, its contact B, which is also the standing hold): the telegraph's raised hook and thrust root
+hand (windup-1's upper body) over the walking roots. The fall renders on a wider, deeper canvas of its own, as the
+Regent's, so the hook laid flat beside the stump stays inside it, and carries the floor footprint its contact shadow is
+drawn from.
 
 Nothing here is generated imagery: the geometry is lofted rings and primitives, every part rides one bone rigidly, the
 shading is one authored toon node group (BuildBlenderGlassRegent.py's, without its chrome band, lit for dusk), and every
@@ -85,18 +97,33 @@ FACINGS = [('front', 234), ('rear', 130)]
 # Built in design units a little over the Regent's height; drawn at 0.88 so she stands the tallest boss without her root
 # skirt crowding the hero's kite (review pass 1: at 1.0 she stood 1.24x the Regent at phone scale).
 SCALE = 0.88
+# The fall's canvas: deeper under the pivot than the standing one, so the hook laid flat toward the camera beside the
+# stump stays inside it (on CANVAS_PX it ran off the foot), and wider for the slump.
+FALL_CANVAS_PX = (544, 480)
+FALL_PIVOT_PX = (272, 184)
 IDLES = ['idle-a', 'idle-b']
+# Floor units (design) one walk cycle of two tripod steps covers; at SCALE, EnemyArtSet's walk cycle distance. She is
+# slower than the Regent (0.9 against 1.0), so her steps come at about the Regent's cadence.
+STRIDE = 1.0
+WALKS = {'step-a': 0.0, 'pass-a': 0.25, 'step-b': 0.5, 'pass-b': 0.75}
 WINDUPS = ['windup-0', 'windup-1', 'windup-2']
+# The telegraph carried at a walk, at the walk's phase; its contact B is the standing hold (the Warden's contract: one
+# drawing serves standing and stepping), named plainly 'windup' as the Warden's and the Regent's.
+WINDUP_WALK = {'windup-step-a': 0.0, 'windup-pass-a': 0.25, 'windup': 0.5, 'windup-pass-b': 0.75}
 STRIKES = ['strike-0', 'strike-1', 'strike-2']
 PHASES = ['phase-0', 'phase-1', 'phase-2']
 FALLS = ['fall-struck', 'fall-sink', 'fall-slump', 'fall-stump']
 SHARED_FALLS = {'fall-slump', 'fall-stump'}       # the front's drawings serve the rear too (the Regent's rule)
-POSES = [*IDLES, *WINDUPS, *STRIKES, *PHASES, *FALLS]
+POSES = [*IDLES, *WALKS, *WINDUPS, *WINDUP_WALK, *STRIKES, *PHASES, *FALLS]
 VARIANTS = ['cool', 'hot']
 GLOW_SCALE = 0.5
 CHANNELS = {'heart': (1, 0, 0), 'bloom': (0, 1, 0), 'vein': (0, 0, 1)}
-# Each clip's frames, their seconds each, for the review's timing strip and a later EnemyArtSet.
-CLIP_SECONDS = {'idle': 0.6, 'windup': 0.4, 'strike': 0.12, 'phase': 0.3, 'fall': 0.35}
+# Each clip's frames, their seconds each, for the review's timing strip (the walk's at her 0.9 a second over STRIDE).
+CLIP_SECONDS = {'idle': 0.6, 'walk': 0.25, 'windup': 0.4, 'windup-walk': 0.25, 'strike': 0.12, 'phase': 0.3,
+                'fall': 0.35}
+# The boss's own fall in EnemyArtSet (_fallSeconds): the Warden's and the Regent's holds, so the fall keeps their beat -
+# the blow, the sink into her roots held longest ("Something... is growing underneath."), the slump, the stump.
+FALL_SECONDS = {'fall-struck': 0.16, 'fall-sink': 0.44, 'fall-slump': 0.16, 'fall-stump': 0.56}
 
 wanted_poses = option('--poses')
 wanted_facings = option('--facings')
@@ -1108,6 +1135,9 @@ class Pose:
         self.offset = Vector()
         self.hands = {}
         self.free = {}
+        # A bone's own lift, in its parent's frame after its rotation (the walk's root panels stepping up off the
+        # floor); empty in every other pose.
+        self.nudge = {}
         self.flare = 1.0
         self.life = 1.0
 
@@ -1185,6 +1215,8 @@ class Solver:
         D = Matrix.Translation(h) @ R.to_4x4() @ Matrix.Translation(-h)
         if b == 'pelvis':
             D = Matrix.Translation(self.pose.offset) @ D
+        if b in self.pose.nudge:
+            D = Matrix.Translation(self.pose.nudge[b]) @ D
         self.G[b] = Gp @ D
         self.W[b] = W_total
         return D
@@ -1247,7 +1279,11 @@ def local_floor(x_world, y_world, degrees):
 
 
 def skirt(p, flare=0.0, sink=0.0):
-    """Every root panel turned out from her body by flare degrees (rearing), and down onto the floor by sink (dying)."""
+    """Every root panel turned about its hinge at her waist by flare degrees (rearing) and by sink (dying). Note the
+    sense: about the hinge's tangent by minus the angle, which draws each panel in under her (its hem toward her axis
+    and down past the floor's holdout), not out - the approved pass 1.1 frames show it as the telegraph's and the phase
+    change's darker, narrower skirt and the sinking stump, and are kept so (docs/64 section 14). step_roots() turns a
+    panel out with the opposite sense."""
     for k, deg in enumerate(SKIRT_ANGLES):
         out = around(deg, 1.0, 0.0)
         tilt = out.cross(Vector((0, 0, 1))).normalized()       # the panel's hinge, tangent round her waist
@@ -1279,6 +1315,77 @@ def idle(name):
     return p
 
 
+def step_roots(p, phase, reach=10.0, lift=0.065, turn=4.0):
+    """The walk on her roots (she has no legs): two tripods of root panels - 0, 2, 4 (the front and the two back) and
+    1, 3, 5 (the two front sides and the back) - each planted half the cycle, reaching forward at its contact and sliding
+    back under her as she goes on, and lifted the other half, drawn up off the floor and swung forward to its next
+    contact. The first tripod's contact is at phase 0 (contact A), the second's at 0.5 (contact B). reach is the fore and
+    aft swing either side of hanging (degrees about the panel's hinge at her waist); a lifted panel rises by lift
+    (design units, its top hidden in her body) and turns out by turn degrees at the swing's middle - lifted up rather
+    than out, so the stepping roots never spread her drawing wider than her stance's."""
+    for k, deg in enumerate(SKIRT_ANGLES):
+        q = (phase + (0.5 if k % 2 else 0.0)) % 1.0
+        if q < 0.5:
+            swing = lerp(-reach, reach, q / 0.5)
+            up = 0.0
+        else:
+            t = (q - 0.5) / 0.5
+            swing = lerp(reach, -reach, smooth(0.0, 1.0, t))
+            up = math.sin(math.pi * t)
+        out = around(deg, 1.0, 0.0)
+        tilt = out.cross(Vector((0, 0, 1))).normalized()
+        # Fore and aft about her side axis (negative: the hem forward, toward -Y), then turned out from her body - the
+        # sense opposite to skirt()'s flare, which draws the panels in under her - and drawn up.
+        p.add('skirt.%d' % k, Matrix.Rotation(math.radians(swing), 3, 'X'))
+        p.add('skirt.%d' % k, Matrix.Rotation(math.radians(turn * up), 3, tilt))
+        if up > 0:
+            p.nudge['skirt.%d' % k] = Vector((0, 0, lift * up))
+
+
+def walk_body(p, phase):
+    """The body carried on the walking roots: it rises as one tripod passes the other and settles at each contact, sways
+    and rolls a little toward the planted side, the canopy lagging behind the roll. Returns (rise, sway, swing) for the
+    hook and the hands."""
+    swing = math.sin(2 * math.pi * phase)
+    rise = 0.014 * (0.5 - 0.5 * math.cos(4 * math.pi * phase))
+    sway = 0.008 * swing
+    p.offset = p.offset + Vector((sway, 0, rise))
+    p.add('spine', rot(x=2, y=1.5 * swing))
+    p.add('chest', rot(z=-2 * swing))
+    p.add('head', rot(z=1.5 * swing))
+    p.add('canopy', rot(x=-1.5 * rise / 0.014, y=-2.5 * math.sin(2 * math.pi * phase - 0.8)))
+    step_roots(p, phase)
+    return rise, sway, swing
+
+
+def walk(phase):
+    """Her walk (EnemyArtSet's contact and passing frames): the stance's hunch over the walking roots, the hook carried
+    as a staff - its butt lifted off the floor and swung with the stride - and the root hand swinging against it."""
+    p = stance()
+    rise, sway, swing = walk_body(p, phase)
+    butt = Vector((-0.47 + 0.01 * swing, -0.16 - 0.08 * swing, 0.06 + 0.02 * math.cos(4 * math.pi * phase)))
+    p.free['hook'] = hook_placement(butt, Vector((-0.05, -0.06 - 0.06 * swing, 1.0)), 0.0)
+    p.hands['R'] = (on_hook(p, 0.95), Vector((-0.9, 0.5, -0.2)))
+    p.hands['L'] = (Vector((0.36 + sway, -0.3 + 0.07 * swing, 0.95 + 0.015 * abs(swing) + rise)), Vector((0.6, 0.8, -0.2)))
+    return p
+
+
+def raised(p, peak=False, lift=0.0, sway=0.0, dip=0.0):
+    """The telegraph's upper body: reared up, the hook raised high and her root hand thrust out at the hero, the canopy
+    spread; at the peak a little higher. lift and sway carry it on a walk's rise and sway; dip nods the hook on the
+    stride. With none of them it is windup-1's and windup-2's own."""
+    p.add('spine', rot(x=-3))
+    p.add('chest', rot(x=-6 if peak else -3, z=6))
+    p.add('neck', rot(x=-4))
+    p.add('head', rot(x=-14 if peak else -10, z=-4))
+    p.add('canopy', rot(x=-14 if peak else -10, y=3 if peak else 0))
+    grip = Vector((-0.34 + sway, 0.02, (1.98 if peak else 1.9) + lift))
+    p.free['hook'] = hook_placement(grip, Vector((-0.12, (0.2 if peak else 0.1) + dip, 1.0)), 0.9)
+    p.hands['R'] = (grip, Vector((-0.9, 0.2, -0.3)))
+    p.hands['L'] = (Vector((0.3 + sway * 0.5, -0.66, (1.18 if peak else 1.26) + lift * 0.6)), Vector((0.8, 0.3, -0.6)))
+    p.flare = 1.85 if peak else 1.55
+
+
 def windup(name):
     """"Be still. Be planted." - she gathers (0), rears up with the hook raised high and her root hand thrust out at the
     hero, the canopy spread (1), and quivers at its peak, the roots of her skirt lifting (2). Her buds flare."""
@@ -1300,17 +1407,20 @@ def windup(name):
     else:
         peak = stage == 2
         p.offset = Vector((0, 0.04, 0.04 if peak else 0.02))
-        p.add('spine', rot(x=-3))
-        p.add('chest', rot(x=-6 if peak else -3, z=6))
-        p.add('neck', rot(x=-4))
-        p.add('head', rot(x=-14 if peak else -10, z=-4))
-        p.add('canopy', rot(x=-14 if peak else -10, y=3 if peak else 0))
-        grip = Vector((-0.34, 0.02, 1.98 if peak else 1.9))
-        p.free['hook'] = hook_placement(grip, Vector((-0.12, 0.2 if peak else 0.1, 1.0)), 0.9)
-        p.hands['R'] = (grip, Vector((-0.9, 0.2, -0.3)))
-        p.hands['L'] = (Vector((0.3, -0.66, 1.18 if peak else 1.26)), Vector((0.8, 0.3, -0.6)))
+        raised(p, peak)
         skirt(p, flare=12 if peak else 8)
-        p.flare = 1.85 if peak else 1.55
+    return p
+
+
+def windup_walk(phase):
+    """The telegraph carried at a walk (EnemyArtSet._windupWalk), so a Myrr who keeps coming through the snare's creep
+    steps rather than glides: windup-1's raised hook and thrust root hand, and its roots drawn in, over the walking
+    roots at the walk's phase. Its contact B (phase 0.5) is the standing hold the telegraph shows when she stands."""
+    p = Pose()
+    p.offset = Vector((0, 0.04, 0.02))
+    skirt(p, flare=8)
+    rise, sway, _ = walk_body(p, phase)
+    raised(p, lift=rise, sway=sway, dip=0.03 * math.cos(4 * math.pi * phase))
     return p
 
 
@@ -1423,6 +1533,10 @@ def fall(name, degrees):
 def pose_for(name, variant, degrees=FACINGS[0][1]):
     if name in IDLES:
         return idle(name)
+    if name in WALKS:
+        return walk(WALKS[name])
+    if name in WINDUP_WALK:
+        return windup_walk(WINDUP_WALK[name])
     if name in WINDUPS:
         return windup(name)
     if name in STRIKES:
@@ -1547,7 +1661,34 @@ def variants_for(pose_name):
 
 
 def clip_of(pose_name):
+    if pose_name in WALKS:
+        return 'walk'
+    if pose_name in WINDUP_WALK:
+        return 'windup-walk'
     return pose_name.split('-')[0]
+
+
+# The fall's contact with the floor (PackRootmotherSprites.py draws its contact shadow from it, as the Regent's pack):
+# points along each bone with a radius, the hook's haft and its blade.
+FOOTPRINT = [('pelvis', 0.3), ('spine', 0.22), ('chest', 0.24), ('neck', 0.07), ('head', 0.12), ('canopy', 0.3),
+             ('upper_arm.L', 0.06), ('upper_arm.R', 0.06), ('forearm.L', 0.05), ('forearm.R', 0.05), ('hand.L', 0.06),
+             ('hand.R', 0.05), *[('skirt.%d' % k, 0.16) for k in range(len(SKIRT_ANGLES))], ('hook', 0.035)]
+
+
+def footprint(solver):
+    out = []
+    m = rig_matrix()
+    for bone_name, radius in FOOTPRINT:
+        head = REST[bone_name].to_translation()
+        tail = REST_TAIL[bone_name]
+        for i in range(5):
+            world = m @ (solver.G[bone_name] @ head.lerp(tail, i / 4))
+            out.append([round(world.x, 4), round(world.y * math.sin(ELEVATION), 4), round(world.z / HEIGHT, 4),
+                        round(radius * SCALE, 4)])
+    world = m @ (solver.G['hook'] @ HOOK_BLADE_C)
+    out.append([round(world.x, 4), round(world.y * math.sin(ELEVATION), 4), round(world.z / HEIGHT, 4),
+                round(0.1 * SCALE, 4)])
+    return out
 
 
 def render_all():
@@ -1559,6 +1700,9 @@ def render_all():
         for pose_name in POSE_SET:
             if pose_name in SHARED_FALLS and facing != 'front':
                 continue
+            falling = pose_name in FALLS
+            canvas, pivot = (FALL_CANVAS_PX, FALL_PIVOT_PX) if falling else (CANVAS_PX, PIVOT_PX)
+            frame_camera(canvas, pivot)
             for variant in variants_for(pose_name):
                 pose = pose_for(pose_name, variant, degrees)
                 solver = apply(pose)
@@ -1573,17 +1717,23 @@ def render_all():
                     scene.render.filepath = str(path)
                     bpy.ops.render.render(write_still=True)
                 set_state(glow_pass=0.0)
-                records.append(dict(facing=facing, pose=pose_name, clip=clip_of(pose_name), variant=variant,
-                                    seconds=CLIP_SECONDS[clip_of(pose_name)],
-                                    file=str((OUT / facing / (stem + '.png')).relative_to(OUT)).replace('\\', '/'),
-                                    glow=str((OUT / facing / (stem + '_glow.png')).relative_to(OUT)).replace('\\', '/'),
-                                    heart=screen_point(solver, HEART_C, 'chest'),
-                                    head=screen_point(solver, HEAD_C, 'head'),
-                                    blade=screen_point(solver, HOOK_BLADE_C, 'hook')))
+                record = dict(facing=facing, pose=pose_name, clip=clip_of(pose_name), variant=variant,
+                              seconds=FALL_SECONDS[pose_name] if falling else CLIP_SECONDS[clip_of(pose_name)],
+                              file=str((OUT / facing / (stem + '.png')).relative_to(OUT)).replace('\\', '/'),
+                              glow=str((OUT / facing / (stem + '_glow.png')).relative_to(OUT)).replace('\\', '/'),
+                              heart=screen_point(solver, HEART_C, 'chest'),
+                              head=screen_point(solver, HEAD_C, 'head'),
+                              blade=screen_point(solver, HOOK_BLADE_C, 'hook'))
+                if falling:
+                    record.update(canvas=list(canvas), pivot=list(pivot), footprint=footprint(solver))
+                records.append(record)
                 print('ROOTMOTHER_FRAME', facing, pose_name, variant, '%.1fs' % (time.time() - started), flush=True)
+    frame_camera(CANVAS_PX, PIVOT_PX)
     meta = dict(blender=bpy.app.version_string, ppu=PPU, supersample=SS, canvas=list(CANVAS_PX), pivot=list(PIVOT_PX),
-                elevation_degrees=30, height_compensation=HEIGHT, scale=SCALE, glow_scale=GLOW_SCALE, channels=CHANNELS,
-                facings={f: d for f, d in FACINGS}, poses=POSES, clip_seconds=CLIP_SECONDS, frames=records)
+                fall_canvas=list(FALL_CANVAS_PX), fall_pivot=list(FALL_PIVOT_PX), elevation_degrees=30,
+                height_compensation=HEIGHT, scale=SCALE, stride=round(STRIDE * SCALE, 4), glow_scale=GLOW_SCALE,
+                channels=CHANNELS, facings={f: d for f, d in FACINGS}, poses=POSES, clip_seconds=CLIP_SECONDS,
+                fall_seconds=FALL_SECONDS, frames=records)
     existing = OUT / 'frames.json'
     if existing.exists() and (wanted_poses or wanted_facings or wanted_variants):
         old = json.loads(existing.read_text())

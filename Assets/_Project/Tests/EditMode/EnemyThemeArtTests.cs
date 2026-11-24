@@ -9,7 +9,8 @@ namespace Cryptforge.Tests
     // Each painted foundry enemy has a copy per themed floor (EnemyArtSet.ForTheme): frosted on floor 2 (docs/49) and
     // bloomed on floor 3 (docs/51, Tools/ArtReview/GenerateGloamEnemyArt.py), pose for pose with the painted set, the
     // white flashes shared. A copy has no copies of its own, and the foundry has none. Floor 3's own enemies (the Cinder
-    // Bloom, the Pollen Wraith, the Thornling) are born in the garden's palette and have no copies at all.
+    // Bloom, the Pollen Wraith, the Thornling, and its gate boss Rootmother Myrr, docs/64) are born in the garden's
+    // palette and have no copies at all.
     public sealed class EnemyThemeArtTests
     {
         const string Art = "Assets/_Project/Art/Characters/";
@@ -23,6 +24,7 @@ namespace Cryptforge.Tests
         static readonly string[] BornOnFloorThree =
         {
             "CinderBloom/CinderBloomArtSet", "PollenWraith/PollenWraithArtSet", "Thornling/ThornlingArtSet",
+            "RootmotherMyrr/RootmotherMyrrArtSet",
         };
 
         [Test]
