@@ -2404,6 +2404,9 @@ report (steps 7-8) only read, so they need no focus check.
    ```
    The folder holds no `pull.txt`, so the batch report never reads it.
 4. **Install the APK and check its hash.** The APK is `Builds/Android/Cryptforge-Prototype.apk`, the clean build of
+   main 8921a7b1 with the arena's duel drawing the Blender Vanguard (a white hit flash, its Shield Rush dash, the
+   Foundry's lane backdrop), the map choice's two-line title plate, docs/57 15's skills campaign re-read (no trim) and
+   the weapon roster's phase 2 (the Cinder Saw and the crowd-weapon guarantee behind the roster lever, off) on top of
    main 70188d14 with the bosses' barks (the Warden's and the Regent's spawn, first-mark and death lines, EN and TR,
    docs/60) and Rootmother Myrr as floor 3's gate boss behind a simulation lever that is off (docs/64) on top of
    main eb0e67a8 with the result screen's reward offer over offline fakes (docs/58 7.8), the forge's weapon rack
@@ -2448,8 +2451,8 @@ report (steps 7-8) only read, so they need no focus check.
    with a point on every locale; Gradle's 10 MB of holes gone; 36,819,361 bytes). Check the file
    itself, never a hash written down earlier:
    ```
-   (Get-FileHash Builds/Android/Cryptforge-Prototype.apk -Algorithm SHA256).Hash   # 0E00025AFEDEEA09... on 2026-11-23 07:36
-   (Get-Item Builds/Android/Cryptforge-Prototype.apk).Length                        # 64984257
+   (Get-FileHash Builds/Android/Cryptforge-Prototype.apk -Algorithm SHA256).Hash   # 20AC6F4AA1481B66... on 2026-11-25 00:06
+   (Get-Item Builds/Android/Cryptforge-Prototype.apk).Length                        # 65057593
    adb install -r Builds/Android/Cryptforge-Prototype.apk
    ```
    `install -r` keeps the profile and the telemetry. `Cryptforge-Prototype-679df68d.apk` (47 MB, DA3D13FD...) and the
