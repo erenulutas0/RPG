@@ -265,6 +265,7 @@ enemy_cinder_mite.name	Cinder Mite	Kül Akarı	Horde enemy.
 enemy_cinder_bloom.name	Cinder Bloom	Kül Çiçeği	Floor 3 enemy.
 enemy_forge_warden.name	Forge Warden	Ocak Bekçisi	Gate boss.
 enemy_glass_regent.name	Glass Regent	Cam Naibi	Floor 2 boss (naip: regent).
+enemy_rootmother_myrr.name	Rootmother Myrr	Kök Ana Myrr	Floor 3 boss (docs/64). Myrr is her name and stays; Kök Ana: the root mother.
 enemy_mirror_sentry.name	Mirror Sentry	Ayna Nöbetçisi	Floor 2 elite.
 enemy_pollen_wraith.name	Pollen Wraith	Polen Hortlağı	Floor 3 enemy.
 
@@ -275,6 +276,9 @@ bark.forge_warden.death	Door... was never locked for you.	Kapı... sana hiç kil
 bark.glass_regent.spawn	Which one of you is original?	Hanginiz asıl?	Glass Regent walks out of the gate. Asıl: the original, not the copy.
 bark.glass_regent.telegraph	Hold still. I need your face.	Kıpırdama. Yüzün lazım.	Glass Regent, the first lane of each phase. Short and cold, the archivist taking a face.
 bark.glass_regent.death	I kept the wrong one...	Yanlış olanı sakladım...	Glass Regent falls (shatters).
+bark.rootmother_myrr.spawn	Your tomorrow can still take root.	Yarının hâlâ kök salabilir.	Rootmother Myrr walks out of the gate. She grafts lost futures onto trees and would keep the hero's safe the same way (docs/64 section 1).
+bark.rootmother_myrr.telegraph	Be still. Be planted.	Kımıldama. Kök sal.	Rootmother Myrr, the first root snare of each phase. Kımıldama, not the Regent's Kıpırdama, so the two telegraphs open differently (docs/64 section 13, answer 7).
+bark.rootmother_myrr.death	Something... is growing underneath.	Altta... bir şey büyüyor.	Rootmother Myrr falls (withers). The floor's open question: what grows under the tower.
 
 # ---- Hero weapons (<id>.description is the forge card) and their level-up lines
 weapon_sword.name	Sword	Kılıç	Weapon; HUD badge shows up to 5 letters, else 3.

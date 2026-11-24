@@ -16,13 +16,19 @@ namespace Cryptforge.Tests
     // hero stood in it: its length, her beats and snares and the hero's planted seconds, her feet, her saplings and
     // Thornlings, what each part took, the hero's health at the gate and leaving floor 3, and where each run ended.
     //
+    // Since she ships (2026-11-25, docs/64 sections 15-16) `shipped` is Myrr as shipped - share 4.7, no saplings - and
+    // `warden-f3` the Forge Warden back at floor 3's gate at its share then (FoundryLevers.GloamWarden): read the options
+    // against `warden-f3` for what `shipped` meant in sections 9-15. `myrr`, the `myrr-*` parts and the "mr:" strings start
+    // from docs/64 section 3's Myrr as before (the Warden's share 5.102041, two saplings), so `mr:share=4.7:sap=0` is
+    // `shipped` run for run.
+    //
     // Explicit, so a plain `dotnet test` skips it:
     //
     //   dotnet test Tools/CombatChecks -c Release --filter "FullyQualifiedName~MyrrRoundResearch"
     //
     // Environment, all optional: FOUNDRY_SEEDS (200), FOUNDRY_FIRST_SEED (1), FOUNDRY_PARALLEL (4), FOUNDRY_OUT (the
     // repository's TestResults), FOUNDRY_REALISM (typical), MYRR_OPTIONS (comma separated option keys or "mr:" lever strings;
-    // shipped,myrr), MYRR_COHORTS (careful, standing, first-card, clumsy). Writes myrr-round.md and a row a run in
+    // warden-f3,shipped), MYRR_COHORTS (careful, standing, first-card, clumsy). Writes myrr-round.md and a row a run in
     // myrr-round.csv (the leading columns paired_bootstrap.py reads), rewritten after each option.
     [Explicit("Rootmother Myrr's round: run it by name.")]
     public sealed class MyrrRoundResearch
@@ -36,23 +42,33 @@ namespace Cryptforge.Tests
 
         private static IEnumerable<Option> Options()
         {
-            yield return new Option { Key = "shipped", What = "the shipped game: the Forge Warden at floor 3's gate (share 5.102041)" };
-            yield return new Option { Key = "myrr", What = "Rootmother Myrr at floor 3's gate at docs/64 section 3's starting values (FoundryLevers.GloamMyrr)", Set = l => l.GloamMyrr = true };
+            yield return new Option { Key = "shipped", What = "the shipped game: Rootmother Myrr at floor 3's gate (share 4.7, no saplings; since 2026-11-25)" };
+            yield return new Option { Key = "warden-f3", What = "the Forge Warden back at floor 3's gate at its share then, 5.102041 (FoundryLevers.GloamWarden; `shipped` before 2026-11-25)", Set = l => l.GloamWarden = true };
+            yield return new Option { Key = "myrr", What = "Rootmother Myrr at floor 3's gate at docs/64 section 3's starting values (the Warden's share, two saplings)", Set = Docs64Start };
             yield return new Option { Key = "aa-f3", What = "A/A: the shipped game, one unread draw of the pilot's dice on entering floor 3", Set = l => l.NudgeFloor = 3 };
-            // Her parts one at a time (exploration seeds only).
-            yield return new Option { Key = "myrr-nosaplings", What = "Myrr without her saplings (MyrrSaplings 0)", Set = l => { l.GloamMyrr = true; l.MyrrSaplings = 0; } };
-            yield return new Option { Key = "myrr-still", What = "Myrr whose snare stays where it went down (MyrrCreepSpeed 0)", Set = l => { l.GloamMyrr = true; l.MyrrCreepSpeed = 0f; } };
-            yield return new Option { Key = "myrr-nofeet", What = "Myrr holding her hook for a hero at her feet too (MyrrFeetReach 0)", Set = l => { l.GloamMyrr = true; l.MyrrFeetReach = 0f; } };
-            yield return new Option { Key = "myrr-noplant", What = "Myrr whose roots plant nobody (MyrrPlantSeconds 0, the hook held through the recovery)", Set = l => { l.GloamMyrr = true; l.MyrrPlantSeconds = 0f; l.MyrrPlantedFreesHook = false; } };
+            // Her parts one at a time off docs/64 section 3's Myrr (exploration seeds only).
+            yield return new Option { Key = "myrr-nosaplings", What = "Myrr without her saplings (MyrrSaplings 0)", Set = l => { Docs64Start(l); l.MyrrSaplings = 0; } };
+            yield return new Option { Key = "myrr-still", What = "Myrr whose snare stays where it went down (MyrrCreepSpeed 0)", Set = l => { Docs64Start(l); l.MyrrCreepSpeed = 0f; } };
+            yield return new Option { Key = "myrr-nofeet", What = "Myrr holding her hook for a hero at her feet too (MyrrFeetReach 0)", Set = l => { Docs64Start(l); l.MyrrFeetReach = 0f; } };
+            yield return new Option { Key = "myrr-noplant", What = "Myrr whose roots plant nobody (MyrrPlantSeconds 0, the hook held through the recovery)", Set = l => { Docs64Start(l); l.MyrrPlantSeconds = 0f; l.MyrrPlantedFreesHook = false; } };
+        }
+
+        // docs/64 section 3's starting Myrr, which every research option and "mr:" string starts from: the Forge Warden's
+        // share on floor 3 and her two saplings at phase two (the rest of her shipped values are section 3's).
+        private static void Docs64Start(DescentSimulation.FoundryLevers levers)
+        {
+            levers.MyrrHealthShare = DescentSimulation.FloorThreeWardenShare;
+            levers.MyrrSaplings = Cryptforge.Combat.MyrrRule.Saplings;
         }
 
         // A variant named by its levers, for exploration without a build: "mr:" then colon-separated name=value pairs off
-        // docs/64's starting Myrr - share (MyrrHealthShare), hook (MyrrHookDamage), speed (MyrrSpeed), every, every2, t
-        // (MyrrTelegraph), r (MyrrSnareRadius), creep, s (MyrrSnareShare), plant, free (MyrrPlantedFreesHook 0/1), feet,
-        // sap (MyrrSaplings), sapevery, grow, sapshare, sapdist, sapmost, thmost - e.g. "mr:share=4.6:sap=0".
+        // docs/64's starting Myrr (Docs64Start) - share (MyrrHealthShare), hook (MyrrHookDamage), speed (MyrrSpeed), every,
+        // every2, t (MyrrTelegraph), r (MyrrSnareRadius), creep, s (MyrrSnareShare), plant, free (MyrrPlantedFreesHook 0/1),
+        // feet, sap (MyrrSaplings), sapevery, grow, sapshare, sapdist, sapmost, thmost - e.g. "mr:share=4.6:sap=0".
+        // "mr:share=4.7:sap=0" is Myrr as she ships.
         private static Option Variant(string key)
         {
-            var sets = new List<Action<DescentSimulation.FoundryLevers>> { l => l.GloamMyrr = true };
+            var sets = new List<Action<DescentSimulation.FoundryLevers>> { Docs64Start };
             foreach (string part in key.Substring("mr:".Length).Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 string[] pair = part.Split('=');
@@ -108,7 +124,7 @@ namespace Cryptforge.Tests
             int[] seeds = FoundryBatch.Seeds(first, count);
             string output = Environment.GetEnvironmentVariable("FOUNDRY_OUT") ?? Path.Combine(RepositoryRoot(), "TestResults");
             Directory.CreateDirectory(output);
-            string[] keys = List("MYRR_OPTIONS", "shipped,myrr");
+            string[] keys = List("MYRR_OPTIONS", "warden-f3,shipped");
             Option[] options = keys.Select(Named).Where(o => o != null).ToArray();
             Assert.That(options.Length, Is.EqualTo(keys.Length), "every option named exists");
             string[] cohorts = List("MYRR_COHORTS", "careful,standing,first-card,clumsy");

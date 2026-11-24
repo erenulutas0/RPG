@@ -5,20 +5,18 @@ using Cryptforge.Combat;
 
 namespace Cryptforge.Tests
 {
-    // Rootmother Myrr, floor 3's own gate boss (docs/64), as a research lever off by default (FoundryLevers.GloamMyrr): she
-    // takes the Forge Warden's place at the Warden's Grove (GloamChain), its two Cinder Mites kept, on the Warden's clock
-    // with her own mark (MyrrRule): the root snare that creeps after the hero and plants it, her hook free for a hero at her
-    // feet or caught by the roots, and in phase two the grafted saplings that grow into Thornlings if they stand. Stepped
-    // where the scene's WardenSlamService would step her (StepWarden's hooks: the snare's creep before the clock, its mark,
-    // its eruption) and GloamService the saplings (StepGloam). Every behaviour keys on her definition or on her garden, which
-    // exists only while she is fought, so a run that never meets her - every run with the lever off, floors 1 and 2 always -
-    // is the run it was.
+    // Rootmother Myrr, floor 3's own gate boss (docs/64; shipped 2026-11-25 at share 4.7 without saplings, section 15): she
+    // holds the Warden's Grove (GloamGardens, FoundryFloorThree; DescentSimulation.RootmotherMyrr), its two Cinder Mites
+    // beside her, on the Warden's clock with her own mark (MyrrRule): the root snare that creeps after the hero and plants
+    // it, her hook free for a hero at her feet or caught by the roots - and, for the research only (MyrrSaplings above 0,
+    // docs/64 section 3's design), in phase two the grafted saplings that grow into Thornlings if they stand. Stepped where
+    // the scene's WardenSlamService steps her (StepWarden's hooks: the snare's creep before the clock, its mark, its
+    // eruption) and GloamService would the saplings (StepGloam). FoundryLevers.GloamWarden puts the Forge Warden back at her
+    // gate (floor 3 before 2026-11-25) for a comparison on the same seeds. Every behaviour keys on her definition or on her
+    // garden, which exists only while she is fought, so a run that never meets her - floors 1 and 2 always - is the run it
+    // was.
     internal static partial class DescentSimulation
     {
-        // docs/64 section 3's starting values: the Warden's authored 300 and its share (the floor's, FloorThreeGateShare,
-        // unless MyrrHealthShare moves it), her Grafting Hook 5.5 every 1.8 s at the Warden's reach 1.7 (1.0 s before the
-        // first), a slower walk (0.9) and the Warden's 50 gold.
-        public static readonly Enemy RootmotherMyrr = new Enemy { Name = "Rootmother Myrr", Health = 300f, Damage = 5.5f, Interval = 1.8f, InitialDelay = 1f, EnrageAt = .5f, Gold = 50, Experience = 10, Speed = .9f, Reach = 1.7f };
         // Her sapling: rooted, no strike and no reward; its health a share of hers, set as it is planted.
         public static readonly Enemy GraftedSapling = new Enemy { Name = "Grafted sapling", Health = 1f, Damage = .01f, Interval = 1f, Gold = 0, Experience = 0, Speed = 0f, Reach = 1f };
         // What a sapling grows into: docs/52's Thornling body (the Runner's numbers) without its dive, at the floor's tier as a
@@ -39,12 +37,15 @@ namespace Cryptforge.Tests
 
         internal sealed partial class FoundryLevers
         {
-            // docs/64's Rootmother Myrr in the Forge Warden's place at floor 3's gate (research, off by default), and her
-            // tuning: her gate share (0 keeps the floor's, FloorThreeGateShare), her hook and walk, the beat (MyrrRule's
-            // Every, EveryPhaseTwo, Telegraph), the snare (radius, creep, share, plant), her feet, whether roots that caught
-            // the hero free her hook through the recovery, and the saplings (how many at phase two - 0 for none - then one
-            // every MyrrSaplingEvery, their growth, health share, distance, and the most saplings and Thornlings standing).
-            public bool GloamMyrr;
+            // docs/64's Rootmother Myrr at floor 3's gate (shipped 2026-11-25): GloamWarden puts the Forge Warden back there
+            // at its share then (FloorThreeWardenShare; floor 3 before her), for a comparison on the same seeds. Her tuning
+            // (research; each default is the shipped value): her gate share (0 keeps the floor's, FloorThreeGateShare), her
+            // hook and walk, the beat (MyrrRule's Every, EveryPhaseTwo, Telegraph), the snare (radius, creep, share, plant),
+            // her feet, whether roots that caught the hero free her hook through the recovery, and the saplings (how many at
+            // phase two - MyrrRule.ShippedSaplings, none, as she ships; docs/64 section 3's MyrrRule.Saplings for the
+            // research - then one every MyrrSaplingEvery, their growth, health share, distance, and the most saplings and
+            // Thornlings standing).
+            public bool GloamWarden;
             public float MyrrHealthShare;
             public float MyrrHookDamage = RootmotherMyrr.Damage;
             public float MyrrSpeed = RootmotherMyrr.Speed;
@@ -57,7 +58,7 @@ namespace Cryptforge.Tests
             public float MyrrPlantSeconds = MyrrRule.PlantSeconds;
             public float MyrrFeetReach = MyrrRule.FeetReach;
             public bool MyrrPlantedFreesHook = true;
-            public int MyrrSaplings = MyrrRule.Saplings;
+            public int MyrrSaplings = MyrrRule.ShippedSaplings;
             public float MyrrSaplingEvery = MyrrRule.SaplingEvery;
             public float MyrrSaplingGrow = MyrrRule.SaplingGrow;
             public float MyrrSaplingShare = MyrrRule.SaplingShare;
@@ -115,7 +116,7 @@ namespace Cryptforge.Tests
             private static bool IsGrafted(Foe foe) => ReferenceEquals(foe.Definition, GraftedThornling);
 
             // Whether the hero stands planted: no walk this frame.
-            private bool Planted => _seconds < _plantedUntil;
+            private bool Planted => MyrrRule.IsPlanted(_seconds, _plantedUntil);
 
             // StepWarden's new gate boss: Myrr's beat on the clock, her snare at the levers' radius and creep, a garden.
             private void MyrrTune(Foe gate)
@@ -167,7 +168,7 @@ namespace Cryptforge.Tests
                 if (!hit)
                     return false;
                 _result.MyrrSnareHits++;
-                _plantedUntil = _seconds + _levers.MyrrPlantSeconds;
+                _plantedUntil = MyrrRule.PlantedUntil(_seconds, _levers.MyrrPlantSeconds);
                 _result.MyrrPlantedSeconds += _levers.MyrrPlantSeconds;
                 if (_levers.MyrrPlantedFreesHook && !_myrrHookFree)
                 {

@@ -229,8 +229,8 @@ namespace Cryptforge.Tests
         // x1.8032 damage, and its first boss growth (ClimbScaling.Boss(3), x1.15) on the Warden's Grove - floor 1's three
         // horde roles with the Pollen Wraith in the Mite's (since 2026-11-17: the Mite reskinned, PollenWraith), no modifier,
         // none of V0.1's surges or extra elite, the gate held for the floor's clock to read 180 s (FloorThreeGateSeconds),
-        // and the finale below it. Its Warden's share is its own (FloorThreeGateShare), measured to put the fight in docs/40
-        // section 9.6's 45-65 s (docs/48, status 2026-11-12).
+        // and the finale below it. Its gate boss, Rootmother Myrr since 2026-11-25 (docs/64), walks out at the floor's own
+        // share (FloorThreeGateShare), set to keep her fight in docs/40 section 9.6's 45-65 s.
         public static FoundryFloor FoundryFloorThree() => new FoundryFloor
         {
             Id = "floor_gloam_gardens",
@@ -253,12 +253,17 @@ namespace Cryptforge.Tests
         // x1.4 cancelled on its gate boss. FoundryLevers.VaultsWarden puts it back for a comparison on the same seeds.
         public const float FloorTwoWardenShare = 6.071429f;
 
-        // Floor_GloamGardens' _foundryGateHealthShare: the Forge Warden at floor 3's tier walks out with this share of its
-        // authored health (times ClimbScaling's x1.96 and x1.15 and the run's difficulty), WardenRule.GateHealthShareOn -
-        // 11.5 times its authored 300 against floor 1's and floor 2's 8.5 (11.5 / (1.96 x 1.15)). docs/48's status
-        // 2026-11-12 (ThirdFloorResearch, seeds 1-200, human hands): floor 2's 8.5 put the standing cohort's fight at
-        // 41-42 s, under the band; 11.5 puts every playing cohort's P50 at 47-62 s for both heroes.
-        public const float FloorThreeGateShare = 5.102041f;
+        // Floor_GloamGardens' _foundryGateHealthShare: Rootmother Myrr at floor 3's tier walks out with this share of her
+        // authored 300 (times ClimbScaling's x1.96 and x1.15 and the run's difficulty), WardenRule.GateHealthShareOn. docs/64
+        // section 10's candidate `mr:share=4.7:sap=0`, confirmed on seeds 18001-19200 against the Forge Warden (section 15):
+        // the careful pilot's gate fight P50 61.9 / 59.2 s, about 2 s over the Warden's at its own share.
+        public const float FloorThreeGateShare = 4.7f;
+
+        // The Forge Warden's share on floor 3 before Myrr (FoundryLevers.GloamWarden puts it back): 11.5 times its authored
+        // 300 against floor 1's and floor 2's 8.5 (11.5 / (1.96 x 1.15)). docs/48's status 2026-11-12 (ThirdFloorResearch,
+        // seeds 1-200, human hands): floor 2's 8.5 put the standing cohort's fight at 41-42 s, under the band; 11.5 put every
+        // playing cohort's P50 at 47-62 s for both heroes.
+        public const float FloorThreeWardenShare = 5.102041f;
 
         // Floor_GloamGardens' _foundryGateNotBeforeSeconds: floor 3's gate holds for its clock's 3:00, half a minute before
         // floors 1 and 2 open theirs (the lead's round 2, docs/48 status 2026-11-12): measured at the 11.5 share, 13 fewer
@@ -1930,7 +1935,7 @@ namespace Cryptforge.Tests
                     float mx = x - _markX;
                     float my = y - _markY;
                     // docs/64's Myrr's snare is a ring of its own radius (DescentSimulation.Myrr.cs).
-                    float reach = IsMyrr(_slamBoss) ? _levers.MyrrSnareRadius + .6f : WardenRule.SlamRadius + .6f;
+                    float reach = IsMyrr(_slamBoss) ? MyrrRule.EscapeReach(_levers.MyrrSnareRadius) : WardenRule.SlamRadius + .6f;
                     if (mx * mx + my * my < reach * reach &&
                         cohort.EscapeMark(x, y, _markX, _markY, reach + .4f, _slamBoss.X, _slamBoss.Y, glowing, out float gx, out float gy))
                     {
@@ -4029,7 +4034,7 @@ namespace Cryptforge.Tests
                     float mx = x - _markX;
                     float my = y - _markY;
                     // docs/64's Myrr's snare is a ring of its own radius (DescentSimulation.Myrr.cs).
-                    float reach = IsMyrr(_slamBoss) ? _levers.MyrrSnareRadius + .6f : WardenRule.SlamRadius + .6f;
+                    float reach = IsMyrr(_slamBoss) ? MyrrRule.EscapeReach(_levers.MyrrSnareRadius) : WardenRule.SlamRadius + .6f;
                     // The Riftblade's late escape (research 2026-11-11): with its dash ready it holds at the Daggers' reach
                     // of the Warden through the telegraph, and the dash leaves as the blow comes due (PilotDash).
                     if (_dash != null && _rift.HoldsForTheDash && mx * mx + my * my < reach * reach &&

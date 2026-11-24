@@ -6,8 +6,9 @@ using NUnit.Framework;
 namespace Cryptforge.Tests
 {
     // The gate bosses' barks (docs/44 section 1.8; docs/64 stage 1, 2026-11-23), without Unity: each boss's three lines are
-    // docs/44's English under their keys, a bark lasts 1.5-2 s and fades in and out, the telegraph line is said at most once
-    // a phase, and the placement test keeps a plate off the Warden's circle and the Regent's lanes.
+    // docs/44's English under their keys - Rootmother Myrr's too since her scene build (docs/64 section 16) - a bark lasts
+    // 1.5-2 s and fades in and out, the telegraph line is said at most once a phase, and the placement test keeps a plate
+    // off the Warden's circle, the Regent's lanes and Myrr's smaller snare wherever it has crept.
     public sealed class BossBarkRuleTests
     {
         private const float Tolerance = 1e-4f;
@@ -21,9 +22,15 @@ namespace Cryptforge.Tests
             Assert.That(Line(BossBark.RegentId, BarkMoment.Spawn), Is.EqualTo("Which one of you is original?"));
             Assert.That(Line(BossBark.RegentId, BarkMoment.Telegraph), Is.EqualTo("Hold still. I need your face."));
             Assert.That(Line(BossBark.RegentId, BarkMoment.Death), Is.EqualTo("I kept the wrong one..."));
+            Assert.That(Line(BossBark.MyrrId, BarkMoment.Spawn), Is.EqualTo("Your tomorrow can still take root."));
+            Assert.That(Line(BossBark.MyrrId, BarkMoment.Telegraph), Is.EqualTo("Be still. Be planted."));
+            Assert.That(Line(BossBark.MyrrId, BarkMoment.Death), Is.EqualTo("Something... is growing underneath."));
+            Assert.That(BossBark.MyrrId, Is.EqualTo("enemy_rootmother_myrr"));
+            Assert.That(BossBark.TryLine(BossBark.MyrrId, BarkMoment.Spawn, out LocText spawn) && spawn.Key == "bark.rootmother_myrr.spawn",
+                Is.True, "under bark.<boss>.<moment> (docs/60 section 11)");
             Assert.That(BossBark.TryLine("enemy_grunt", BarkMoment.Spawn, out _), Is.False, "Only the gate bosses speak.");
             Assert.That(BossBark.TryLine(null, BarkMoment.Death, out _), Is.False);
-            Assert.That(BossBark.Lines.Length, Is.EqualTo(6));
+            Assert.That(BossBark.Lines.Length, Is.EqualTo(9));
             foreach (LocText line in BossBark.Lines)
                 Assert.That(line.Key, Does.StartWith("bark."), line.English);
         }
@@ -103,6 +110,25 @@ namespace Cryptforge.Tests
             Assert.That(BossBark.ClearOfLane(1f, 2f, 1.5f, 1.8f, 0f, 0f, 2f, 1f, 0f, 10f, half), Is.True);
             // A diagonal lane that crosses the plate without an end or a corner inside it.
             Assert.That(BossBark.ClearOfLane(-.5f, .5f, -.1f, .1f, 0f, -5f, -5f, .7071068f, .7071068f, 14f, .05f), Is.False);
+        }
+
+        // Myrr's snare is a circle of its own radius (MyrrRule.SnareRadius, 1.5), read where it has crept: a plate clear of
+        // it may stand where the Warden's 2.2 circle would cover it, and the same plate is over the snare once it creeps
+        // under it.
+        [Test]
+        public void APlateKeepsClearOfMyrrsSnareWhereverItCreeps()
+        {
+            const float r = MyrrRule.SnareRadius;
+            // The snare at the floor's (0, 0): its top edge is WorldY(1.5) = 0.75 up the screen.
+            Assert.That(BossBark.ClearOfCircle(-1f, 1f, .9f, 1.2f, 0f, 0f, 0f, r), Is.True, "Over the snare's top.");
+            Assert.That(BossBark.ClearOfCircle(-1f, 1f, .9f, 1.2f, 0f, 0f, 0f, WardenRule.SlamRadius), Is.False,
+                "Where the Warden's circle would stand under it.");
+            Assert.That(BossBark.ClearOfCircle(1.8f, 3f, -.2f, .2f, 0f, 0f, 0f, r), Is.True, "Beside it, past its edge and margin.");
+            // It creeps 1.2 units to the right, after the hero: the same plate beside it is now over it.
+            Assert.That(BossBark.ClearOfCircle(1.8f, 3f, -.2f, .2f, 0f, 1.2f, 0f, r), Is.False, "Over it where it crept.");
+            // Up the floor 1 unit (world height 0.5): the plate over its top must rise with it.
+            Assert.That(BossBark.ClearOfCircle(-1f, 1f, .9f, 1.2f, 0f, 0f, 1f, r), Is.False);
+            Assert.That(BossBark.ClearOfCircle(-1f, 1f, 1.4f, 1.7f, 0f, 0f, 1f, r), Is.True);
         }
 
         [Test]

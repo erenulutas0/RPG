@@ -249,6 +249,13 @@ namespace Cryptforge.Tests
         // Warden's body and clock with a lane for its mark (RegentRule). The foundry simulation marks its lanes where the
         // scene's WardenSlamService does (DescentSimulation.Vaults.cs); the old hall-arena simulation fights it as authored.
         public static readonly Enemy GlassRegent = new Enemy { Name = "Glass Regent", Health = 300f, Damage = 5f, Interval = 1.8f, InitialDelay = 1f, EnrageAt = 0.5f, Gold = 50, Experience = 10, Speed = 1f, Reach = 1.7f };
+        // Enemy_RootmotherMyrr and Weapon_GraftingHook (docs/64 section 3; shipped 2026-11-25, section 15): floor 3's gate
+        // boss, the Warden's authored 300 and 50 gold, her Grafting Hook 5.5 every 1.8 s at the Warden's reach 1.7 (1.0 s
+        // before the first) and a slower walk (0.9), on the Warden's clock with her own mark (MyrrRule). The foundry
+        // simulation steps her snare where the scene's WardenSlamService does (DescentSimulation.Myrr.cs); the old
+        // hall-arena simulation fights her as authored. Here, before GloamGardens, so its gate holds her: a static field of
+        // another part of the class may not be set yet when this file's are.
+        public static readonly Enemy RootmotherMyrr = new Enemy { Name = "Rootmother Myrr", Health = 300f, Damage = 5.5f, Interval = 1.8f, InitialDelay = 1f, EnrageAt = .5f, Gold = 50, Experience = 10, Speed = .9f, Reach = 1.7f };
         // Mites come in numbers, so each one is worth only a little experience and no gold.
         public static readonly Enemy Mite = new Enemy { Name = "Cinder Mite", Health = 15f, Damage = 0.6f, Interval = 1.5f, Gold = 0, Experience = 1, Speed = 2.2f, Reach = 1.5f };
         // Enemy_PollenWraith (docs/52 section 3; the lead's decision 2026-11-17): floor 3's horde role 0 and its three halls'
@@ -361,9 +368,9 @@ namespace Cryptforge.Tests
         // Data/Floors/Floor_GloamGardens, the climb's floor 3 (docs/48, phase 1): floor 2's six rooms wave for wave under
         // the garden's names - Ash Orchard, Rootbound Walk and Bloom Gate, whose Mites are Pollen Wraiths since 2026-11-17
         // (the Mite reskinned, PollenWraith), the Grafting Forge, Thorn Post (led since 2026-11-15 by the Cinder Bloom,
-        // docs/52, its two Cinder Mites kept), the Warden's Grove with its Forge Warden and two Cinder Mites - at
-        // ClimbScaling's floor-3 tier (x1.96 health, x1.8032 damage) and no modifier. The foundry plays it as
-        // DescentSimulation.FoundryFloorThree.
+        // docs/52, its two Cinder Mites kept), the Warden's Grove with Rootmother Myrr (since 2026-11-25, docs/64; the Forge
+        // Warden before, FoundryLevers.GloamWarden) and two Cinder Mites - at ClimbScaling's floor-3 tier (x1.96 health,
+        // x1.8032 damage) and no modifier. The foundry plays it as DescentSimulation.FoundryFloorThree.
         public static readonly Floor GloamGardens = new Floor
         {
             Rooms = new[]
@@ -373,7 +380,7 @@ namespace Cryptforge.Tests
                 new[] { new[] { Grunt, Grunt, PollenWraith, PollenWraith, PollenWraith } },
                 null,
                 new[] { new[] { CinderBloom, Grunt, Mite, Mite } },
-                new[] { new[] { Warden, Mite, Mite } }
+                new[] { new[] { RootmotherMyrr, Mite, Mite } }
             },
             HealthMultiplier = 1.96f,
             DamageMultiplier = 1.8032f

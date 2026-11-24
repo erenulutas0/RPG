@@ -5,20 +5,25 @@ using UnityEngine;
 
 namespace Cryptforge.UI
 {
-    // Presentation only - the game-feel pass on the foundry's gate boss (docs/43 section 1, 2026-11-22), the Forge Warden
-    // and the Glass Regent, over what their looks already play (the raised hammer or mirror and the strike pose,
-    // EnemyLookView.WindUp and Slam; the hotter second-phase frames; the painted fall) and WardenSlamView's mark:
+    // Presentation only - the game-feel pass on the foundry's gate boss (docs/43 section 1, 2026-11-22), the Forge Warden,
+    // the Glass Regent and Rootmother Myrr (docs/64 section 4, 2026-11-25), over what their looks already play (the raised
+    // hammer, mirror or hook and the strike pose, EnemyLookView.WindUp and Slam; the hotter second-phase frames; the
+    // painted fall) and WardenSlamView's mark:
     // - the tell: from the moment a mark goes down to the blow the body rises onto its toes, leans back away from the mark
-    //   and glows - a silhouette of its own frame in its colour (ember for the Warden, glass violet for the Regent) gathering
-    //   to the blow and beating with the mark's own edge, the tremble of the last quarter before it lands. It is the
-    //   clock's own progress (WardenSlamClock.TelegraphProgress), read in the same frame as the mark, so it begins on the
-    //   mark's frame and ends on the blow's. The blow kicks the body forward and down and the glow flashes once. A Regent
-    //   keeping its rod at its feet (WardenSlamService.RodAtItsFeet) raises nothing: its cast still reads in the glow.
+    //   and glows - a silhouette of its own frame in its colour (ember for the Warden, glass violet for the Regent, her
+    //   orchid buds for Myrr, docs/64 section 7) gathering to the blow and beating with the mark's own edge, the tremble
+    //   of the last quarter before it lands. It is the clock's own progress (WardenSlamClock.TelegraphProgress), read in
+    //   the same frame as the mark, so it begins on the mark's frame and ends on the blow's. The blow kicks the body
+    //   forward and down and the glow flashes once. A Regent keeping its rod at its feet (WardenSlamService.RodAtItsFeet)
+    //   raises nothing: its cast still reads in the glow; nor does Myrr with the hero at her feet
+    //   (WardenSlamService.HookAtHerFeet).
     // - phase two (WardenSlamService.IsEnraged): a burst - two rings over the floor and embers thrown up - and from then a
     //   slow glow in a hotter colour, a tint shift that never touches the body's own colours (its painted second phase
-    //   draws the enrage; CombatantView keeps no tint for it).
+    //   draws the enrage; CombatantView keeps no tint for it). Myrr's canopy bursts into bloom: orchid rings and petals
+    //   thrown up, and her slow glow the pale bloom's.
     // - death: the Warden's fall opens with a ring and a spray of embers and ends with its remains dissolving in ash; the
-    //   Regent shatters - glass shards flung out and falling, a white ring - and its remains end in glints.
+    //   Regent shatters - glass shards flung out and falling, a white ring - and its remains end in glints; Myrr withers -
+    //   her petals shed from the canopy, tumbling down, a plum ring - and her remains end in a dark husk's dust.
     // Telegraphs stay the clearest thing on screen: through a telegraph the glow never passes GameFeel.TellGlowPeak (only
     // the blow's and phase two's brief flashes go past it, to 0.7), and the rings are thin and gone in half a second.
     //
@@ -39,6 +44,10 @@ namespace Cryptforge.UI
         private const float RegentRise = .08f;
         private const float WardenLean = 6f;
         private const float RegentLean = 4f;
+        // Myrr stoops and rears (docs/64 section 4: the root hand to the floor, then the hook high): a smaller rise under her
+        // canopy, a lean between the Warden's and the Regent's.
+        private const float MyrrRise = .06f;
+        private const float MyrrLean = 5f;
         private const float TrembleFrom = .75f;
         private const float TrembleDegrees = .8f;
         // The blow's kick: forward toward the mark and down, settling over KickSeconds; the glow's flash with it.
@@ -61,6 +70,14 @@ namespace Cryptforge.UI
         private static readonly Color Ash = new Color(.4f, .38f, .38f, .85f);
         private static readonly Color Glass = new Color(.85f, .92f, 1f, .95f);
         private static readonly Color GlassViolet = new Color(.75f, .62f, 1f, .9f);
+        // Rootmother Myrr's (docs/64 section 7): her orchid bud (#D86BD0) for the tell, the open bloom (#F6C2F0) for phase
+        // two, her plum mantle (#5A1F66) and her bark (#4A3B33) as she withers. No red-orange, no gloamlight.
+        private static readonly Color MyrrGlow = new Color(.847f, .42f, .816f, 1f);
+        private static readonly Color MyrrHot = new Color(.965f, .62f, .95f, 1f);
+        private static readonly Color Petal = new Color(.847f, .42f, .816f, .95f);
+        private static readonly Color PetalPale = new Color(.965f, .761f, .941f, .9f);
+        private static readonly Color Plum = new Color(.353f, .122f, .4f, .9f);
+        private static readonly Color Husk = new Color(.29f, .231f, .2f, .85f);
 
         private sealed class Particle
         {
@@ -106,10 +123,11 @@ namespace Cryptforge.UI
         private int _seed;
         private readonly Vector3[] _unit = new Vector3[RingPoints];
 
-        // The boss watched: its health, look and whether it is the Regent; the glow hung under its body.
+        // The boss watched: its health, look and whether it is the Regent or Myrr; the glow hung under its body.
         private Health _boss;
         private EnemyLookView _look;
         private bool _regent;
+        private bool _myrr;
         private SpriteRenderer _glow;
         private Sprite _glowSource;
         private System.Action _onDied;
@@ -123,13 +141,14 @@ namespace Cryptforge.UI
         private bool _enraged;
         private float _burstFlash;
         private float _phaseClock;
-        // The fall's end: when its ash or glints come, where, and whose.
+        // The fall's end: when its ash, glints or husk's dust come, where, and whose.
         private bool _deathPending;
         private float _deathElapsed;
         private float _deathEndsAt;
         private Vector3 _deathFeet;
         private float _deathTop;
         private bool _deathRegent;
+        private bool _deathMyrr;
 
         // For tests and the capture.
         public bool IsTelling => _telling;
@@ -139,6 +158,8 @@ namespace Cryptforge.UI
         public int PhaseTwoBursts { get; private set; }
         public int DeathsShown { get; private set; }
         public bool LastDeathShattered { get; private set; }
+        // Whether the last fall shown withered (Myrr's petals shed).
+        public bool LastDeathWithered { get; private set; }
         public int DeathEndsShown { get; private set; }
         public float GlowAlpha => _glow != null && _glow.enabled ? _glow.color.a : 0f;
         internal SpriteRenderer Glow => _glow;
@@ -324,6 +345,7 @@ namespace Cryptforge.UI
             _boss = boss;
             _boss.TryGetComponent(out _look);
             _regent = _boss.TryGetComponent(out GlassRegent _);
+            _myrr = _boss.TryGetComponent(out RootmotherMyrr _);
             _enraged = false;
             _telling = false;
             _kicking = false;
@@ -376,9 +398,9 @@ namespace Cryptforge.UI
             if (_telling && _look.IsWindingUp)
             {
                 float told = GameFeel.TellEase(TellProgress);
-                rise = (_regent ? RegentRise : WardenRise) * told;
+                rise = (_regent ? RegentRise : _myrr ? MyrrRise : WardenRise) * told;
                 // Back, away from the mark: a mark to the right tips the top left (counter-clockwise).
-                lean = _side * (_regent ? RegentLean : WardenLean) * told;
+                lean = _side * (_regent ? RegentLean : _myrr ? MyrrLean : WardenLean) * told;
                 if (TellProgress > TrembleFrom)
                     lean += TrembleDegrees * Mathf.Sin(Time.time * 70f) * (TellProgress - TrembleFrom) / (1f - TrembleFrom);
                 moving = true;
@@ -443,7 +465,8 @@ namespace Cryptforge.UI
             shown &= _glow.sprite != null;
             if (shown)
             {
-                Color colour = _enraged ? (_regent ? RegentHot : WardenHot) : (_regent ? RegentGlow : WardenGlow);
+                Color colour = _enraged ? (_regent ? RegentHot : _myrr ? MyrrHot : WardenHot)
+                    : (_regent ? RegentGlow : _myrr ? MyrrGlow : WardenGlow);
                 colour.a = Mathf.Min(GameFeel.TellGlowPeak + .2f, strength);
                 _glow.color = colour;
                 // The silhouette mirrors with the body it lies on (the body's own scale carries the mirror).
@@ -461,14 +484,23 @@ namespace Cryptforge.UI
             _burstFlash = BurstFlashSeconds;
             Vector3 feet = Feet(_boss.transform.position);
             float top = _look != null && _look.PaintedArt != null ? _look.PaintedArt.VisualTop : 1.6f;
-            Color hot = _regent ? RegentHot : WardenHot;
+            Color hot = _regent ? RegentHot : _myrr ? MyrrHot : WardenHot;
             ArmRing(feet, 0f, .5f, .3f, 2.4f, .16f, .02f, Fade(hot, .9f));
-            ArmRing(feet, .08f, .45f, .2f, 1.6f, .12f, .02f, Fade(_regent ? Glass : Ember, .8f));
+            ArmRing(feet, .08f, .45f, .2f, 1.6f, .12f, .02f, Fade(_regent ? Glass : _myrr ? Petal : Ember, .8f));
             _seed++;
             for (int i = 0; i < 12; i++)
             {
                 float n = PixelNoise.Value(i, _seed, 83);
                 float a = (i + .5f + (n - .5f) * .5f) * Mathf.PI * 2f / 12f;
+                if (_myrr)
+                {
+                    // Her canopy bursts into bloom: petals thrown up from it, turning as they fall.
+                    Vector3 bloom = feet + new Vector3(Mathf.Cos(a) * .5f, top * (.6f + .3f * n), 0f);
+                    var thrown = new Vector3(Mathf.Cos(a) * (.9f + .8f * n), 1.1f + n, 0f);
+                    ArmParticle(bloom, thrown, 3f, .6f + .3f * n, .05f, .09f, true, (n - .5f) * 600f,
+                        i % 2 == 0 ? PetalPale : Petal, 0f);
+                    continue;
+                }
                 Vector3 from = feet + new Vector3(Mathf.Cos(a) * .3f, top * (.35f + .3f * n), 0f);
                 var velocity = new Vector3(Mathf.Cos(a) * (1.2f + n), 1.4f + 1.2f * n, 0f);
                 ArmParticle(from, velocity, 4f, .55f + .25f * n, .05f, .05f, false, 0f, _regent ? GlassViolet : Ember, 0f);
@@ -484,7 +516,9 @@ namespace Cryptforge.UI
             EnemyArtSet art = _look != null ? _look.PaintedArt : null;
             float top = art != null ? art.VisualTop : 1.6f;
             _deathRegent = _regent;
+            _deathMyrr = _myrr;
             LastDeathShattered = _regent;
+            LastDeathWithered = _myrr;
             _deathFeet = feet;
             _deathTop = top;
             _deathPending = true;
@@ -507,6 +541,22 @@ namespace Cryptforge.UI
                         i % 3 == 0 ? GlassViolet : Glass, 0f);
                 }
             }
+            else if (_myrr)
+            {
+                // Myrr withers: her petals shed from the canopy, drifting out and tumbling down, darkening from bloom to
+                // plum; a plum ring at her roots.
+                ArmRing(feet, 0f, .6f, .3f, 2.0f, .14f, .02f, Fade(Plum, .9f));
+                for (int i = 0; i < 18; i++)
+                {
+                    float n = PixelNoise.Value(i, _seed, 113);
+                    float m = PixelNoise.Value(i, _seed, 127);
+                    float a = (i + .5f + (n - .5f) * .6f) * Mathf.PI * 2f / 18f;
+                    Vector3 from = feet + new Vector3(Mathf.Cos(a) * (.4f + .5f * m), top * (.55f + .4f * m), 0f);
+                    var velocity = new Vector3(Mathf.Cos(a) * (.5f + .7f * n), .3f + .5f * m, 0f);
+                    ArmParticle(from, velocity, 1.1f, .9f + .5f * m, .05f, .09f + .03f * n, true, (n - .5f) * 500f,
+                        i % 3 == 0 ? PetalPale : i % 3 == 1 ? Petal : Plum, (i % 3) * .05f);
+                }
+            }
             else
             {
                 // The Warden's fall opens with a ring and a spray of embers off its body.
@@ -525,7 +575,7 @@ namespace Cryptforge.UI
             Unbind();
         }
 
-        // The fall's end: the Warden's remains dissolve in ash, the Regent's in glints.
+        // The fall's end: the Warden's remains dissolve in ash, the Regent's in glints, Myrr's in her husk's dust.
         private void TickDeath(float dt)
         {
             if (!_deathPending || dt <= 0f)
@@ -536,7 +586,7 @@ namespace Cryptforge.UI
             _deathPending = false;
             DeathEndsShown++;
             _seed++;
-            int count = _deathRegent ? 10 : 16;
+            int count = _deathRegent ? 10 : _deathMyrr ? 14 : 16;
             for (int i = 0; i < count; i++)
             {
                 float n = PixelNoise.Value(i, _seed, 107);
@@ -547,11 +597,17 @@ namespace Cryptforge.UI
                 if (_deathRegent)
                     ArmParticle(from, velocity, 0f, .5f + .3f * m, .03f + .02f * n, .03f + .02f * n, false, 0f, Glass,
                         (i % 4) * .05f);
+                // Her buds withered to a dark husk: its dust rising slow off the stump.
+                else if (_deathMyrr)
+                    ArmParticle(from, velocity * .7f, -.15f, .8f + .4f * m, .04f + .03f * n, .04f + .03f * n, false, 0f,
+                        i % 3 == 0 ? Plum : Husk, (i % 4) * .05f);
                 else
                     ArmParticle(from, velocity, -.2f, .7f + .4f * m, .045f + .03f * n, .045f + .03f * n, false, 0f,
                         i % 3 == 0 ? Ember : Ash, (i % 4) * .04f);
             }
-            if (!_deathRegent)
+            if (_deathMyrr)
+                ArmRing(_deathFeet, 0f, .5f, .5f, 1.4f, .1f, .02f, Fade(Plum, .5f));
+            else if (!_deathRegent)
                 ArmRing(_deathFeet, 0f, .5f, .5f, 1.4f, .1f, .02f, Fade(Ember, .5f));
         }
 

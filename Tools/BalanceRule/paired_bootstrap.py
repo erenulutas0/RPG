@@ -40,7 +40,7 @@ for name in ('gloam-enemies.csv', 'hero-skills-rule.csv', 'difficulty-tiers.csv'
                 runs[(r['option'], r['cohort'], r['hero'], int(r['seed']))] = r['finale_outcome'] == 'WalkedOut'
                 if name == 'difficulty-tiers.csv' and r['option'] != 'shipped':
                     tier_options.add(r['option'])
-                if name == 'myrr-round.csv' and r['option'] not in ('shipped', 'aa-f3'):
+                if name == 'myrr-round.csv' and r['option'] not in ('shipped', 'aa-f3', 'warden-f3'):
                     myrr_options.add(r['option'])
                 if name == 'weapon-roster.csv' and r['option'] != 'shipped':
                     roster_options.add(r['option'])
@@ -67,6 +67,7 @@ COMPARISONS = [
     ('Mirror Sentry vs the Grunt Captain (floor 2 elite, shipped)', 'f2-captain', True),
     ('Glass Regent vs the Forge Warden (floor 2 gate, shipped)', 'f2-warden', True),
     ('Cinder Bloom vs the Grunt Captain (floor 3 elite, shipped)', 'captain', True),
+    ('Rootmother Myrr vs the Forge Warden (floor 3 gate, shipped since 2026-11-25)', 'warden-f3', True),
     ('Thornling `thorn` (0.8 s)', 'thorn', False),
     ('Thornling `thorn-t1.2`', 'thorn-t1.2', False),
     ('Thornling `thorn-dv3-6`', 'thorn-dv3-6', False),
@@ -107,9 +108,14 @@ COMPARISONS = [
 ]
 COMPARISONS += [(f'Tier candidate `{o}` vs Forged ungeared', o, False)
                 for o in sorted(tier_options) if o not in {c[1] for c in COMPARISONS}]
-# docs/64's Rootmother Myrr (MyrrRoundResearch): every option read against `shipped`, the Forge Warden at floor 3's gate.
-COMPARISONS += [(f'Rootmother Myrr `{o}` vs the Forge Warden (floor 3 gate)', o, False)
-                for o in sorted(myrr_options) if o not in {c[1] for c in COMPARISONS}]
+# docs/64's Rootmother Myrr (MyrrRoundResearch): every option read against the Forge Warden at floor 3's gate - `warden-f3`
+# since she ships (2026-11-25), `shipped` in a round run before (a comparison whose base was not run is skipped) - and,
+# in a round run since, against her as she ships (`shipped`).
+MYRR_NEW = [o for o in sorted(myrr_options) if o not in {c[1] for c in COMPARISONS}]
+COMPARISONS += [(f'Rootmother Myrr `{o}` vs the Forge Warden (`warden-f3`, floor 3 gate)', o, False, 'warden-f3')
+                for o in MYRR_NEW]
+COMPARISONS += [(f'Rootmother Myrr `{o}` vs `shipped` (the Forge Warden before 2026-11-25, Myrr since)', o, False)
+                for o in MYRR_NEW]
 COMPARISONS += [(f'docs/63: `{o}`', o, False) for o in sorted(roster_options) if o not in {c[1] for c in COMPARISONS}]
 # first-card is read from now on (docs/56, the lead's decisions of 2026-11-17, point 2).
 COHORTS = ['clumsy', 'careful', 'first-card', 'standing']

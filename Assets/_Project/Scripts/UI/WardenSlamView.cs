@@ -22,6 +22,15 @@ namespace Cryptforge.UI
     // that brightens, widens and pulses through a beat whose mark found the hero inside it, when the Regent keeps its rod
     // swinging through the cast (WardenSlamService.RodAtItsFeet) and raises no windup. A hero beyond the ring as the lane
     // goes down sees the Regent raise its mirror and hold its rod, as the Warden raises its hammer.
+    //
+    // Rootmother Myrr's mark is her root snare (WardenSlamService.Snare; docs/64 sections 4-5): a ring of MyrrRule.SnareRadius
+    // drawn by the ring's rules - its edge red-orange, the telegraph's colour, pulsing faster as the roots near, its fill
+    // growing out to it, the whole snare flashing hot as they erupt - that MOVES: laid each frame at the service's mark, the
+    // snare's centre creeping after the hero. Orchid root tips crown its rim (a creature's colour, docs/52 section 2.1 rule
+    // 3), reaching out as the telegraph fills and bursting as the roots erupt. Her feet ring is the Regent's, in her orchid
+    // over a plum shade, pulsing through a beat whose snare went down with the hero at her feet
+    // (WardenSlamService.HookAtHerFeet: her hook swings, no windup raised). And a hero her roots caught shows them round its
+    // feet, orchid over bark, for the second it stands planted (WardenSlamService.IsHeroPlanted).
     [DefaultExecutionOrder(100)]
     public sealed class WardenSlamView : MonoBehaviour
     {
@@ -43,6 +52,25 @@ namespace Cryptforge.UI
         internal const float FeetPulseWidth = .1f;
         private const float FeetShadeWidth = .15f;
         private const float FeetShadeAlpha = .45f;
+        // Rootmother Myrr's colours (docs/64 section 7): her orchid bud (#D86BD0) for the snare's root tips, her feet ring
+        // and the planted roots, its pale bloom (#F6C2F0) as they burst, a plum shade under her ring, the bark (#4A3B33)
+        // under the planted roots. Nothing of hers is gloamlight (docs/51 rule 5); the snare's own ring is the telegraph's
+        // red-orange.
+        internal static readonly Color Orchid = new Color(.847f, .42f, .816f, 1f);
+        private static readonly Color OrchidPale = new Color(.965f, .761f, .941f, 1f);
+        private static readonly Color OrchidShade = new Color(.2f, .06f, .22f, 1f);
+        private static readonly Color Bark = new Color(.29f, .231f, .2f, 1f);
+        // The snare's root tips: how many round its rim, how far past it they reach at rest, through the telegraph and as
+        // the roots erupt.
+        internal const int RootTips = 14;
+        private const float TipRest = .1f;
+        private const float TipGrow = .18f;
+        private const float TipBurst = .4f;
+        // The planted roots round a caught hero's feet: their ring's radius and how far their tips reach past it, their
+        // fade over the plant's last moment.
+        internal const float PlantedRadius = .42f;
+        private const float PlantedReach = .22f;
+        private const float PlantedFade = .2f;
         private WardenSlamService _service;
         private ArenaView _arena;
         private Material _material;
@@ -60,9 +88,22 @@ namespace Cryptforge.UI
         private readonly float[] _laneWidths = new float[RegentRule.MaxLanes];
         private int _lanes;
         private bool _laneMark;
-        // The ring round the Regent's feet and its shade under it, made as a Regent is first fought.
+        // The ring round the Regent's (or Myrr's) feet and its shade under it, made as either is first fought.
         private LineRenderer _feet;
         private LineRenderer _feetShade;
+        // Myrr's snare: its own transform (laid at the snare's centre each frame), its edge, fill and root tips, made as she
+        // first marks; whether the mark down is hers.
+        private Transform _snare;
+        private LineRenderer _snareEdge;
+        private LineRenderer _snareFill;
+        private LineRenderer _snareRoots;
+        private readonly Vector3[] _rootPoints = new Vector3[RootTips * 2];
+        private bool _snareMark;
+        // The roots round a planted hero's feet and their bark under them, made as the roots first catch it.
+        private Transform _planted;
+        private LineRenderer _plantedRoots;
+        private LineRenderer _plantedShade;
+        private readonly Vector3[] _plantedPoints = new Vector3[RootTips * 2];
         internal LineRenderer FeetRingLine => _feet;
         internal LineRenderer FeetShadeLine => _feetShade;
         public bool IsMarkShown => _mark != null && _mark.gameObject.activeSelf;
@@ -75,6 +116,17 @@ namespace Cryptforge.UI
         // A lane showing, for a check: its sprites' transform (at its start, turned along it) and its fill's size.
         public Transform LaneAt(int lane) => lane < ShownLanes ? _laneEdges[lane].transform : null;
         public Vector2 LaneFillSize(int lane) => lane < ShownLanes ? _laneFills[lane].size : Vector2.zero;
+        // Myrr's snare showing (her mark down, or its eruption's flash), where it is drawn on the floor (its centre, the
+        // foundry's lift taken off), its fill's scale and how far its root tips reach past its rim now.
+        public bool IsSnareShown => _snare != null && _snare.gameObject.activeSelf;
+        public Vector2 SnareShownAt { get; private set; }
+        public float SnareFillScale => _snareFill != null ? _snareFill.transform.localScale.x : 0f;
+        public float SnareTipReach { get; private set; }
+        internal LineRenderer SnareEdgeLine => _snareEdge;
+        internal LineRenderer SnareRootsLine => _snareRoots;
+        // The roots round a planted hero's feet showing.
+        public bool IsPlantedShown => _planted != null && _planted.gameObject.activeSelf;
+        internal LineRenderer PlantedRootsLine => _plantedRoots;
 
         internal void Initialize(WardenSlamService service)
         {
@@ -83,8 +135,8 @@ namespace Cryptforge.UI
             _material = SharedSpriteMaterial.For(_arena);
             _mark = new GameObject("Warden Mark").transform;
             _mark.SetParent(transform, false);
-            _edge = Ring("Warden Mark Edge", .07f);
-            _fill = Ring("Warden Mark Fill", .05f);
+            _edge = Ring(_mark, "Warden Mark Edge", .07f, WardenRule.SlamRadius);
+            _fill = Ring(_mark, "Warden Mark Fill", .05f, WardenRule.SlamRadius);
             _mark.gameObject.SetActive(false);
             service.Marked += OnMarked;
             service.Slammed += _ => _flash = FlashSeconds;
@@ -94,18 +146,26 @@ namespace Cryptforge.UI
         // Where the mark is down, on the floor, in world space.
         private Vector3 MarkPoint => new Vector3(_service.MarkX, ArenaFloor.WorldY(_service.MarkY), 0f);
 
-        private LineRenderer Ring(string name, float width)
+        private LineRenderer Ring(Transform parent, string name, float width, float radius)
         {
             var line = new GameObject(name).AddComponent<LineRenderer>();
-            line.transform.SetParent(_mark, false);
+            line.transform.SetParent(parent, false);
             line.sharedMaterial = _material; line.useWorldSpace = false; line.loop = true; line.numCapVertices = 2;
             line.sortingOrder = 0; line.positionCount = Segments; line.startWidth = line.endWidth = width;
             for (int k = 0; k < Segments; k++)
             {
                 float a = k * Mathf.PI * 2 / Segments;
-                line.SetPosition(k, new Vector3(Mathf.Cos(a) * WardenRule.SlamRadius, ArenaFloor.WorldY(Mathf.Sin(a) * WardenRule.SlamRadius), 0));
+                line.SetPosition(k, new Vector3(Mathf.Cos(a) * radius, ArenaFloor.WorldY(Mathf.Sin(a) * radius), 0));
             }
             return line;
+        }
+
+        // A point on the floor (floor units) as the world draws it, lifted onto the foundry's surface there.
+        private Vector3 Lifted(float floorX, float floorY)
+        {
+            var p = new Vector3(floorX, ArenaFloor.WorldY(floorY), 0f);
+            if (_arena != null && _arena.IsFoundryRegion) p.y += FoundrySurface.Lift(p, _arena.transform.position);
+            return p;
         }
 
         private void OnMarked()
@@ -115,9 +175,18 @@ namespace Cryptforge.UI
             _mark.position = p;
             _flash = 0f;
             LayLanes(p.y - ArenaFloor.WorldY(_service.MarkY));
+            // Myrr's snare: laid where it went down, then each frame where it has crept (LateTick).
+            _snareMark = _service.MarksSnare;
+            if (_snareMark)
+            {
+                if (_snare == null)
+                    MakeSnare();
+                PlaceSnare();
+            }
             Health boss = enabled ? _service.Boss : null;
-            // A Regent that found the hero at its feet raises no windup: its rod keeps swinging through the cast.
-            if (_service.MarksLanes && _service.RodAtItsFeet)
+            // A Regent that found the hero at its feet raises no windup: its rod keeps swinging through the cast. Nor does
+            // Myrr with the hero at her feet: her hook swings through the snare's telegraph.
+            if ((_service.MarksLanes && _service.RodAtItsFeet) || (_service.MarksSnare && _service.HookAtHerFeet))
                 boss = null;
             _windingUp = boss != null ? boss.GetComponent<EnemyLookView>() : null;
             if (_windingUp != null)
@@ -144,6 +213,7 @@ namespace Cryptforge.UI
             if (_flash > 0f)
                 _flash -= Time.deltaTime;
             ShowFeet();
+            ShowPlanted();
             bool marked = enabled && _service.IsFighting && _service.Clock.IsMarked;
             // A mark withdrawn without a blow (the boss fell or changed, the fight stopped): the hammer comes down.
             if (!marked && _windingUp != null)
@@ -153,10 +223,13 @@ namespace Cryptforge.UI
             }
             float flash = Mathf.Clamp01(_flash / FlashSeconds);
             bool shown = marked || flash > 0f;
-            bool ring = shown && !_laneMark;
+            bool ring = shown && !_laneMark && !_snareMark;
             if (_mark.gameObject.activeSelf != ring)
                 _mark.gameObject.SetActive(ring);
             ShowLanes(shown && _laneMark ? _lanes : 0);
+            bool snare = shown && _snareMark && _snare != null;
+            if (_snare != null && _snare.gameObject.activeSelf != snare)
+                _snare.gameObject.SetActive(snare);
             if (!shown)
             {
                 ShownFill = 0f;
@@ -181,18 +254,114 @@ namespace Cryptforge.UI
                 }
                 return;
             }
-            _edge.startColor = _edge.endColor = edge;
             Color fill = Hot;
             fill.a = fillAlpha;
+            if (_snareMark)
+            {
+                // Where the snare has crept to this frame; the root tips reach out with the telegraph and burst with the roots.
+                PlaceSnare();
+                _snareEdge.startColor = _snareEdge.endColor = edge;
+                _snareFill.startColor = _snareFill.endColor = fill;
+                _snareFill.transform.localScale = new Vector3(scale, scale, 1f);
+                SnareTipReach = flash > 0f ? Mathf.Lerp(TipRest + TipGrow, TipBurst, flash) : TipRest + TipGrow * ShownFill;
+                LayRoots(_snareRoots, _rootPoints, MyrrRule.SnareRadius - .03f, MyrrRule.SnareRadius + SnareTipReach);
+                Color tips = flash > 0f ? Color.Lerp(Orchid, OrchidPale, flash) : Orchid;
+                tips.a = flash > 0f ? flash : .75f + .25f * pulse;
+                _snareRoots.startColor = _snareRoots.endColor = tips;
+                return;
+            }
+            _edge.startColor = _edge.endColor = edge;
             _fill.startColor = _fill.endColor = fill;
             _fill.transform.localScale = new Vector3(scale, scale, 1f);
         }
 
+        // Myrr's snare's renderers under a transform of their own: its edge and fill at MyrrRule.SnareRadius, its root tips.
+        private void MakeSnare()
+        {
+            _snare = new GameObject("Myrr Snare").transform;
+            _snare.SetParent(transform, false);
+            _snareEdge = Ring(_snare, "Myrr Snare Edge", .07f, MyrrRule.SnareRadius);
+            _snareFill = Ring(_snare, "Myrr Snare Fill", .05f, MyrrRule.SnareRadius);
+            _snareRoots = RootLine(_snare, "Myrr Snare Roots", .05f, 0);
+            LayRoots(_snareRoots, _rootPoints, MyrrRule.SnareRadius - .03f, MyrrRule.SnareRadius + TipRest);
+            _snare.gameObject.SetActive(false);
+        }
+
+        // The snare at the service's mark - the snare's centre now - lifted as the Warden's ring is.
+        private void PlaceSnare()
+        {
+            _snare.position = Lifted(_service.MarkX, _service.MarkY);
+            SnareShownAt = new Vector2(_service.MarkX, _service.MarkY);
+        }
+
+        // A crown of root tips: RootTips points out at outer, each between two in at inner, a little off their even spacing
+        // so they read as roots, not a cog. Floor units round the line's transform, seen at the floor's depth.
+        private static void LayRoots(LineRenderer line, Vector3[] points, float inner, float outer)
+        {
+            int n = points.Length / 2;
+            for (int k = 0; k < points.Length; k++)
+            {
+                bool tip = (k & 1) == 1;
+                float a = k * Mathf.PI / n + (tip ? .22f * Mathf.PI / n * Mathf.Sin(k * 1.7f) : 0f);
+                float r = tip ? outer : inner;
+                points[k] = new Vector3(Mathf.Cos(a) * r, ArenaFloor.WorldY(Mathf.Sin(a) * r), 0f);
+            }
+            line.SetPositions(points);
+        }
+
+        private LineRenderer RootLine(Transform parent, string name, float width, int order)
+        {
+            var line = new GameObject(name).AddComponent<LineRenderer>();
+            line.transform.SetParent(parent, false);
+            line.sharedMaterial = _material; line.useWorldSpace = false; line.loop = true; line.numCapVertices = 1;
+            line.numCornerVertices = 1;
+            line.sortingOrder = order; line.positionCount = RootTips * 2; line.startWidth = line.endWidth = width;
+            return line;
+        }
+
+        // The roots round a planted hero's feet while it stands planted, fading over the plant's last moment: orchid tips
+        // over a bark ring, on the floor under the hero (its effects' order, under every actor).
+        private void ShowPlanted()
+        {
+            Health hero = _service.Hero;
+            bool planted = enabled && hero != null && hero.IsAlive && _service.IsHeroPlanted;
+            if (!planted)
+            {
+                if (_planted != null && _planted.gameObject.activeSelf)
+                    _planted.gameObject.SetActive(false);
+                return;
+            }
+            if (_planted == null)
+            {
+                _planted = new GameObject("Myrr Planted Roots").transform;
+                _planted.SetParent(transform, false);
+                _plantedShade = RootLine(_planted, "Myrr Planted Bark", .12f, -1);
+                _plantedRoots = RootLine(_planted, "Myrr Planted Tips", .06f, 0);
+                LayRoots(_plantedShade, new Vector3[RootTips * 2], PlantedRadius - .04f, PlantedRadius + PlantedReach * .6f);
+                LayRoots(_plantedRoots, _plantedPoints, PlantedRadius, PlantedRadius + PlantedReach);
+            }
+            if (!_planted.gameObject.activeSelf)
+                _planted.gameObject.SetActive(true);
+            Vector3 p = hero.transform.position;
+            if (_arena != null && _arena.IsFoundryRegion) p.y += FoundrySurface.Lift(p, _arena.transform.position);
+            _planted.position = new Vector3(p.x, p.y, 0f);
+            float left = _service.PlantedUntil - Time.time;
+            float fade = Mathf.Clamp01(left / PlantedFade);
+            Color tips = Orchid;
+            tips.a = .9f * fade;
+            _plantedRoots.startColor = _plantedRoots.endColor = tips;
+            Color bark = Bark;
+            bark.a = .8f * fade;
+            _plantedShade.startColor = _plantedShade.endColor = bark;
+        }
+
         // The ring round the Regent's feet while it is fought: faint, or pulsing violet through a beat whose mark found the hero
-        // inside it (its rod free through the cast).
+        // inside it (its rod free through the cast). Round Myrr's the same ring in her orchid over a plum shade, pulsing
+        // through a beat whose snare went down with the hero at her feet (her hook free through it).
         private void ShowFeet()
         {
-            Health boss = enabled && _service.MarksLanes ? _service.Boss : null;
+            bool myrr = _service.MarksSnare;
+            Health boss = enabled && (_service.MarksLanes || myrr) ? _service.Boss : null;
             if (boss == null)
             {
                 IsFeetPulsing = false;
@@ -207,13 +376,13 @@ namespace Cryptforge.UI
             Vector3 p = boss.transform.position;
             if (_arena != null && _arena.IsFoundryRegion) p.y += FoundrySurface.Lift(p, _arena.transform.position);
             _feet.transform.position = new Vector3(p.x, p.y, 0f);
-            IsFeetPulsing = _service.RodAtItsFeet && _service.Clock.HoldsWeapon;
+            IsFeetPulsing = (myrr ? _service.HookAtHerFeet : _service.RodAtItsFeet) && _service.Clock.HoldsWeapon;
             float beat = IsFeetPulsing ? .5f + .5f * Mathf.Sin(Time.time * 18f) : 0f;
-            Color ring = Violet;
+            Color ring = myrr ? Orchid : Violet;
             ring.a = IsFeetPulsing ? .8f + .2f * beat : FeetRest;
             _feet.startColor = _feet.endColor = ring;
             _feet.startWidth = _feet.endWidth = IsFeetPulsing ? Mathf.Lerp(FeetWidth, FeetPulseWidth, beat) : FeetWidth;
-            Color shade = VioletShade;
+            Color shade = myrr ? OrchidShade : VioletShade;
             shade.a = IsFeetPulsing ? FeetShadeAlpha + .15f * beat : FeetShadeAlpha;
             _feetShade.startColor = _feetShade.endColor = shade;
         }
@@ -233,6 +402,7 @@ namespace Cryptforge.UI
             line.transform.SetParent(parent, false);
             line.sharedMaterial = _material; line.useWorldSpace = false; line.loop = true; line.numCapVertices = 2;
             line.sortingOrder = order; line.positionCount = Segments; line.startWidth = line.endWidth = width;
+            // The Regent's reach and Myrr's are one (MyrrRule.FeetReach is RegentRule.FeetReach): one ring serves both.
             for (int k = 0; k < Segments; k++)
             {
                 float a = k * Mathf.PI * 2 / Segments;

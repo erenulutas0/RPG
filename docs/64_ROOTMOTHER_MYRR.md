@@ -16,6 +16,9 @@ built for it (branch `worktree-agent-a6955bc29a63ebec1`), and only the first cha
 
 Numbers named "measured" come from section 9's runs; every other number is a starting value.
 
+**Since 2026-11-25** she ships: the confirmation read passed (section 15), and the scene build (section 16) made her
+floor 3's gate boss in the game and in the simulation's default, at share 4.7 without saplings.
+
 ## 0. The short version
 
 | | Forge Warden (floors 1 and 3 today) | Glass Regent (floor 2) | **Rootmother Myrr (floor 3, proposed)** |
@@ -595,3 +598,208 @@ Reported beside it (`myrr-round.md`, the careful pilot unless named):
 - **Deaths at her gate:** careful 27 (the Warden 31), standing 95 (88), first-card 93 (102), clumsy 48 (63) of 2,400 runs.
 - The data: `E:/confirm-li17/myrr` (the CSV and `myrr-round.md`), the bootstrap in
   `E:/confirm-li17/rule-myrr/paired-bootstrap.txt` (outside the repository).
+
+## 16. The scene build (2026-11-25)
+
+Section 15's pass, built into the game: Rootmother Myrr is floor 3's gate boss - `Floor_GloamGardens`' Warden's Grove - at
+share 4.7, without saplings, with the creeping snare, the 1.0 s plant with her hook free through it and the 1.2 s
+telegraph (`mr:share=4.7:sap=0`). The Forge Warden stays floor 1's gate boss; the Glass Regent floor 2's. The scene plays
+what the simulation read, and the simulation's default plays her too.
+
+**What was built.**
+- **The shared bodies** (`Scripts/Combat/MyrrRule.cs`). The scene now calls the bodies the simulation read with:
+  `RootSnare` (its `Creep` through `MyrrRule.Creep`, its `Erupt` through `MyrrRule.InSnare`), `MyrrRule.AtHerFeet`,
+  `MyrrRule.HoldsHook` and `MyrrRule.SnareDamage`. Three are new, and the simulation calls them too, so the scene and the
+  simulation share one body each, never inlined: `PlantedUntil` and `IsPlanted` (the plant's clock) and `EscapeReach`
+  (the pilots' escape from a snare: its radius and the Warden's circle's 0.6). `ShippedSaplings` (0) is the shipped value;
+  `Saplings` (2) stays section 3's design, read by the research only.
+- **The beat** (`Core/WardenSlamService.cs`). A gate boss carrying a `RootmotherMyrr` (`Scripts/Combat/RootmotherMyrr.cs`,
+  a marker on her prefab, as `GlassRegent` is on the Regent's) tunes the clock to `MyrrRule.Every`, `EveryPhaseTwo` and
+  `Telegraph`. The service steps her snare as `DescentSimulation.Myrr.cs` does:
+  - every running frame, before the clock, the snare creeps after the hero, and the mark (`MarkX`, `MarkY`) is its centre;
+  - as the mark goes down, the snare goes down at the hero's spot, and her feet are read from where her pack holds her
+    (`HookAtHerFeet`);
+  - as the roots erupt, a hero inside is caught. It takes `SnareDamage` with Myrr as the source (the result screen names
+    her) and is planted until `PlantedUntil(Time.time, PlantSeconds)`. Her hook is then free through the recovery
+    (`HookFree`). The hook's hold is `HoldsHook(clock's hold, HookFree)`.
+- **The planted walk** (`UI/HeroMovementInput.cs`, `IsPlanted`). While the service says the hero is planted, nothing
+  walks it: not the stick, not the Shield Rush's travel, not a pad. That is the simulation's `Frame` block. Its weapons
+  (`AttackController`) and its ability are untouched.
+- **The autopilot** (`Core/DevelopmentAutopilot.cs`). It leaves her snare by `EscapeReach(SnareRadius)` from the snare's
+  centre, read each frame as it creeps, as the simulation's pilot does.
+- **The mark's look** (`UI/WardenSlamView.cs`):
+  - **The ring.** A ring of `SnareRadius` on its own transform, laid each frame at the snare's centre. Its edge and fill
+    use the ring's rules in the telegraph's red-orange: the edge pulses faster as the roots near, and the fill grows to
+    the rim. A crown of 14 orchid root tips (`#D86BD0`) stands on the rim. The tips reach out with the telegraph and
+    burst pale (`#F6C2F0`) as the roots erupt. No Warden's ring shows, and no lane.
+  - **Her feet.** Her feet ring is the Regent's ring in orchid, over a plum shade. It pulses through a beat whose snare
+    went down at her feet. On that beat she raises no windup.
+  - **The planted roots.** Orchid tips over a bark ring (`#4A3B33`) show round the caught hero's feet for its planted
+    second, and fade over the last 0.2 s.
+- **Her body** (`UI/BossFeelView.cs`). The Warden's ember was her default; she now has her own:
+  - **The tell.** An orchid glow. She stoops and rears less than the Warden (rise 0.06, lean 5 degrees).
+  - **Phase two.** She bursts into bloom: an orchid ring and a pale ring, and 12 petals thrown up from the canopy that
+    turn as they fall. Her slow glow then runs in the pale bloom.
+  - **Death.** She withers. A plum ring forms, and 18 petals are shed from the canopy in three waves. They drift out
+    and tumble down, from bloom to plum. Her remains end in a husk's dust (bark and plum) with a faint plum ring.
+    `LastDeathWithered` reports it.
+- **Her lines** (`Art/BossBark.cs`, `UI/BossBarkView.cs`, `Strings.txt`). Spawn, telegraph and death are said under
+  `bark.rootmother_myrr.*`, with section 1's Turkish and the lead's "Kımıldama. Kök sal.". Her name has a row too:
+  `enemy_rootmother_myrr.name`, "Kök Ana Myrr" (for the owner's review; docs/60 section 11). The plate keeps clear of
+  her snare at its own radius. It reads the snare's centre each frame as it creeps, and after the eruption it uses where
+  the snare erupted.
+- **Content**, every asset with a fresh GUID:
+
+  | Asset | What | GUID |
+  |---|---|---|
+  | `Data/Enemies/Enemy_RootmotherMyrr.asset` | 300 health, 50 gold, 10 experience, speed 0.9 | `0a4d9db3f0bb4e1b949740b56a63b537` |
+  | `Data/Weapons/Weapon_GraftingHook.asset` | 5.5 every 1.8 s at 1.7, 1.0 s before the first | `5d3484c578414b75b50cf6fad2a569b5` |
+  | `Prefabs/Enemies/RootmotherMyrr.prefab` | A variant of the Forge Warden's, as the Regent's: `EnemyLookView._paintedArt` = `RootmotherMyrrArtSet`, a `RootmotherMyrr` added, the Warden's `EnrageBehaviour` inherited | `567fcf241adc44579163376a86bdbf7d` |
+  | `Scripts/Combat/RootmotherMyrr.cs` | The marker | `56a2de25f5dd4c3d9ecf74caf80cc176` |
+  | `Resources/Development/Floor_MyrrProof.asset` (`floor_myrr_proof`) | Her alone at the gate | `50b6f3aa2ae14cd9b644a25d62fa6db4` |
+  | `Tests/PlayMode/MyrrFlowTests.cs` | Her flow tests | `51c954e8f5694fb682528696c185f539` |
+
+  `Floor_GloamGardens`' gate wave holds her and two Cinder Mites, and its `_foundryGateHealthShare` is 4.7 (it was
+  5.102041). `git ls-files -z '*.meta' | xargs -0 grep -h '^guid:' | sort | uniq -d` prints nothing.
+- **The room's name stays.** "Warden's Grove" (`room.wardens_grove.name`) is renamed only after the owner's docs/60
+  review (the lead's answer 6).
+
+**The simulation's default.** The shipped game's floor 3 gate is Myrr, and so is the simulation's:
+- `DescentSimulation.GloamGardens`' Grove holds `RootmotherMyrr`. That definition moved to `DescentSimulation.cs`,
+  ahead of the floor, so the static field is set when the floor reads it.
+- `FloorThreeGateShare` is 4.7.
+- `FoundryLevers.MyrrSaplings` defaults to `ShippedSaplings` (0).
+- `GloamMyrr` is gone. `FoundryLevers.GloamWarden` puts the Forge Warden back at her gate at its share then
+  (`FloorThreeWardenShare`, 5.102041), for comparisons on the same seeds, as `VaultsWarden` does on floor 2.
+- `GloamChain` reshapes floor 3 for `GloamWarden` and for Myrr's share, hook or walk. At the shipped levers it is the
+  shipped chain, run for run.
+- In `MyrrRoundResearch`, `shipped` is now Myrr as she ships, and `warden-f3` is the Forge Warden at floor 3. `myrr`, the
+  `myrr-*` parts and every `mr:` string still start from section 3's Myrr (the Warden's share, two saplings;
+  `Docs64Start`), so sections 9-15's strings mean what they meant, and `mr:share=4.7:sap=0` is `shipped` run for run.
+- `paired_bootstrap.py` reads Myrr against the Warden as `warden-f3` (flipped: Myrr minus the Warden), and each research
+  option against `warden-f3` and against `shipped`. A comparison whose base was not run is skipped, so an older
+  `myrr-round.csv`, where `shipped` was the Warden, reads as before.
+- The batch report's floor-3 section names her as floor 3's gate boss.
+
+**The parity points** (scene = simulation, and the check that holds each):
+
+| Point | Scene | Simulation | Held by |
+|---|---|---|---|
+| Her body: 300, hook 5.5 / 1.8 s / 1.7 / 1.0 s, walk 0.9, 50 gold, 10 xp, enrage at half | `Enemy_RootmotherMyrr`, `Weapon_GraftingHook` | `DescentSimulation.RootmotherMyrr` | `TheRootmotherMyrrIsTheSimulations` (`AssertEnemy`), `TheFoundrysThirdFloorIsTheAsset` (`AssertFloor`, wave for wave) |
+| Gate share 4.7 | `Floor_GloamGardens._foundryGateHealthShare` through `WardenRule.GateHealthShareOn` | `FloorThreeGateShare`, `LaterFloorLevers` | `TheFoundrysThirdFloorIsTheAsset`, `ClimbFloorContentTests.FloorThreesGateBossTakesTheBossGrowthAndItsOwnShare`, `FoundryFloorThreeTests` |
+| Beat: 6 s / 4 s, telegraph 1.2 s, the clock's hold to 1.5 s after | `WardenSlamClock.Tune(MyrrRule...)` | `_slam.Tune(levers.Myrr...)`, `WardenRecoverySeconds` | `TheRootmotherMyrrIsTheSimulations` (the shipped levers are `MyrrRule`'s), `MyrrFlowTests` (the telegraph, phase two's beat) |
+| Snare: radius 1.5, creep 1.5 / s | `new RootSnare()` | `new RootSnare(levers...)` at `MyrrRule`'s | the same, and `MyrrFlowTests` |
+| The creep before the clock, after the hero's walk; the mark is the snare's centre | `WardenSlamService` at -40, after `HeroMovementInput` (-60) | `StepWarden`'s `MyrrCreep`, after `Frame`'s walk | `TheScenesScriptOrderIsTheSimulations`; `MyrrFlowTests` |
+| Her feet at 1.5 as the snare goes down, from her pack position | `MyrrRule.AtHerFeet(mark, TryFloorPositionOf(boss), FeetReach)` | `MyrrRule.AtHerFeet(mark, boss.X/Y, MyrrFeetReach)` | `MyrrFlowTests.HerFeetHoldNoHookAndThePlantedHerosWeaponsStillStrike` |
+| The eruption, 10 % with her as the source | `RootSnare.Erupt` (`InSnare`, squares cast to float), `SnareDamage` | the same | `MyrrRuleTests`, `MyrrFlowTests` |
+| The plant, 1.0 s; walking resumes the frame after it ends | `PlantedUntil(Time.time, PlantSeconds)`, `IsPlanted` in `HeroMovementInput` (scaled time: a pause or a panel holds it, as the simulation answers a panel inside its frame) | `PlantedUntil(_seconds, MyrrPlantSeconds)`, `IsPlanted` in `Frame` | `MyrrRuleTests.SheShipsWithoutSaplingsAndHerPlantEndsOnTime`, `MyrrFlowTests` (60 frames at 1/60 s) |
+| The hook: the clock's hold, free at her feet or after a catch | `MyrrRule.HoldsHook(_clock.HoldsWeapon, HookFree)` | `MyrrRule.HoldsHook(HoldsWeaponFor(1.5), _myrrHookFree)`, `MyrrPlantedFreesHook` | `TheRootmotherMyrrIsTheSimulations`, `MyrrFlowTests` |
+| The pilots' escape from the snare | `MyrrRule.EscapeReach(MyrrRule.SnareRadius)` | `MyrrRule.EscapeReach(levers.MyrrSnareRadius)` | `TheRootmotherMyrrIsTheSimulations`, `MyrrFlowTests.TheAutopilotWalksOutOfHerSnares` |
+| The skills' "blow coming" | the Warden's 2.2 round the mark (unchanged) | the Warden's 2.2 round the mark (unchanged) | the same body each side; not hers yet (see what is left) |
+| No saplings | no sapling step | `MyrrSaplings` = `ShippedSaplings` = 0 | `TheRootmotherMyrrIsTheSimulations`, `FoundryMyrrTests.HerFightPlaysHerRules`, `MyrrFlowTests` (no enemy grows at phase two) |
+
+**The default batch** (`FOUNDRY_SEEDS=200 FOUNDRY_LEVERS=0 FOUNDRY_COHORTS=1 FOUNDRY_REALISM=typical FOUNDRY_PARALLEL=6`,
+filter `FullyQualifiedName~FoundryBatchReport.TheFoundryFloorOverASeedBatch`, `FOUNDRY_EDITOR` an empty folder).
+"Before" is `d49ed8a1` (lead-integrate-18, the Forge Warden at floor 3) and "after" is this branch. Each was built in
+its own folder of its own sources and floor assets.
+
+- **`FOUNDRY_FLOORS=2` stops after floor 2** (`FoundryFloorThreeTests.TheFloorsAskedForStopWhereTheySay`), so it never
+  meets her. It is byte-identical: every CSV, `foundry-gate.md` and `foundry-cohorts.md` match byte for byte. In
+  `foundry-batch.md` only the header's clock and the wall-seconds column differ.
+- **`FOUNDRY_FLOORS=4`** plays floor 3 and the finale, so floor 3 changes.
+  - Unchanged: `foundry-batch.csv`, `foundry-batch-floor2.csv` and `foundry-cohorts-floor2.csv` match byte for byte.
+    The `foundry-gate.md` file is unchanged too.
+  - Changed: floor 3's rows, the finale's and the Descent's.
+
+All three floors cleared, of 200 a hero (Vanguard + Ilya), the Warden before and Myrr after:
+
+| Cohort | Warden (before) | Myrr (after) | Change |
+|---|---|---|---|
+| careful | 190 + 194 = 384 | 190 + 193 = 383 | -1 |
+| standing | 164 + 159 = 323 | 165 + 157 = 322 | -1 |
+| first-card | 172 + 184 = 356 | 174 + 184 = 358 | +2 |
+| clumsy | 61 + 99 = 160 | 61 + 101 = 162 | +2 |
+| auto-farmer | 5 + 6 = 11 | 5 + 7 = 12 | +1 |
+
+The Warden's column is section 9's `shipped` row (seeds 1-200), and the first four changes sit inside section 15's
+confirmed CIs.
+
+Floor 3's gate fight, P50 / P90 in seconds, Vanguard; Ilya:
+
+| Cohort | Warden (before) | Myrr (after) |
+|---|---|---|
+| careful | 62 / 75; 57 / 70 | 64 / 78; 59 / 72 |
+| standing | 48 / 59; 46 / 56 | 51 / 63; 50 / 60 |
+| first-card | 56 / 67; 54 / 61 | 58 / 69; 56 / 65 |
+| clumsy | 60 / 73; 62 / 74 | 60 / 69; 63 / 76 |
+| auto-farmer | 37 / 40; 35 / 42 | 37 / 39; 35 / 41 |
+
+- The careful P50 stays inside 45-65 s, about 2 s longer, as section 15 read.
+- Deaths at floor 3's gate fall for the standing cohort (Vanguard 8 to 7; Ilya 4 to 6) and the first-card Vanguard
+  (7 to 5). The killing blows now read "Rootmother Myrr", and "Warden slam" stays the report's word for her snare's
+  eruption.
+- The Descent's P50 moves by 0.1 minutes at most (careful 14.5 / 14.3 either side).
+
+**Tests.**
+- New:
+  - `MyrrFlowTests` (PlayMode, `floor_myrr_proof`):
+    - the snare creeps after a hero that stepped out and stopped, and catches it;
+    - it catches a hero that stood, without moving;
+    - a hero that keeps walking leaves it;
+    - the catch takes 10 % and plants the hero for 60 frames, through which the stick walks it nowhere and her hook stays
+      free;
+    - the view draws the moving ring where the snare is, with no Warden's ring and no lane;
+    - her feet: no hook held and no windup, the orchid ring pulsing, and the planted hero's own weapons still strike;
+    - phase two at half health: her next snare on the 4 s beat, and no enemy grows;
+    - she withers as she falls;
+    - the careful autopilot walks out of three snares (at most one catch).
+  - `FoundrySimulationSceneValueTests.TheRootmotherMyrrIsTheSimulations`.
+  - `MyrrRuleTests.SheShipsWithoutSaplingsAndHerPlantEndsOnTime`.
+  - `BossBarkRuleTests.APlateKeepsClearOfMyrrsSnareWhereverItCreeps`.
+  - `BossBarkFlowTests.MyrrSaysHerOwnLinesAndHerPlateKeepsOffHerCreepingSnare`.
+  - `BossFeelTests.MyrrTellsInOrchidBloomsAtPhaseTwoAndWithersAsSheFalls`.
+  - `FoundryMyrrTests.HerSaplingsForTheResearchAreCutOrGrow`.
+- Changed (they assumed the Warden at floor 3, or six bark lines):
+  - `FoundrySimulationSceneValueTests.TheFoundrysThirdFloorIsTheAsset`.
+  - `ClimbFloorContentTests.FloorThreesGateBossTakesTheBossGrowthAndItsOwnShare`.
+  - `FoundryFloorThreeTests`:
+    - `FloorThreeStandsBetweenFloorTwoAndTheFinale`;
+    - `FloorThreesWardenTakesTheBossGrowthAndItsOwnShare`, renamed `FloorThreesGateBossTakesTheBossGrowthAndItsOwnShare`;
+    - `AFloorTwoClearGoesDownToFloorThreeAndAFloorThreeClearToTheFinale`.
+  - `FoundryMyrrTests`:
+    - `MyrrTakesTheWardensPlaceAtFloorThreesGateAlone`, now `MyrrHoldsFloorThreesGateAndTheWardenComesBackAlone` (it
+      also holds the confirmed `mr:share=4.7:sap=0`, through `GloamChain`, to the shipped run, run for run);
+    - `HerFightPlaysHerRules`;
+    - `HerFightRepeats`.
+  - `BossBarkRuleTests.EachGateBossSaysDocs44sLines` (nine lines).
+  - `BossBarkFlowTests`' plate check (her radius).
+  - `ForgeWardenArtSetTests.OnlyTheForgeWardenWearsTheSet` (her prefab overrides the Warden's set).
+  - `RootmotherMyrrArtSetTests.TheWardenAndTheRegentKeepTheirOwnSets` (her prefab wears her set).
+  - `PerfCensus` counts her snare and roots as the gate boss's mark.
+- `Tools/ArtReview/GameFeelCapture.cs` gains a `myrr` part: her feet ring, the snare creeping after a hero that stepped
+  out and stopped, its roots erupting and the planted roots, her tell, phase two and her fall.
+
+  ```
+  pwsh -File Tools/ArtReview/Run-GameFeelProof.ps1 -Only myrr
+  ```
+
+**What is left.**
+- **Not run in Unity.** No Unity in a worktree. The compile check is green, CombatChecks is green, and the EditMode and
+  PlayMode suites above are the lead's gate.
+- **The owner's look on the S23:**
+  - whether the moving ring reads as homing (the lead's answer 3; the still ring, `MyrrCreepSpeed` 0, is the fallback);
+  - the orchid root tips' size on the ring;
+  - the planted roots;
+  - the withering fall against her painted sink.
+- **The HUD's stick does not grey while planted** (section 5): the game draws no stick, so there is nothing to grey.
+  The planted roots round the hero's feet are the read.
+- **The skills' "blow coming" reads the Warden's 2.2 circle round her snare's centre**, in the scene and the simulation
+  alike, as the simulation read her. A skill that waits for a blow will judge her smaller ring as the Warden's until
+  both sides change together.
+- **The saplings stay research only.** No `GloamService` step was built.
+- **The room's rename** waits for the owner's docs/60 review.
+- **`PerfProbe`'s parts** do not yet include her proof floor.
+- **Older floor-3 research plays her now.** `ThirdFloorResearch`, `GloamEnemiesResearch` and every harness that plays
+  the shipped floor 3 now meet Myrr at its gate. Their earlier reads (the Warden's shares in `ThirdFloorResearch`, the
+  Bloom, Wraith and Thornling rounds) were made with the Warden there; `GloamWarden` puts it back on a chain built by
+  `GloamChain`, and a harness that builds its own floor 3 needs the same switch before it is read again.

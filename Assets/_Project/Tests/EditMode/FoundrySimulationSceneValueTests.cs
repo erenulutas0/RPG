@@ -411,6 +411,78 @@ namespace Cryptforge.Tests
             Assert.That(proof.RoomAt(0).WaveAt(0).EnemyAt(0), Is.SameAs(regent));
         }
 
+        // Rootmother Myrr (MyrrRule; docs/64, shipped 2026-11-25 as floor 3's gate boss, the confirmed `mr:share=4.7:sap=0`):
+        // the scene's Myrr is the Forge Warden's prefab with a RootmotherMyrr and her own Blender-rendered set; the asset is
+        // the simulation's (AssertEnemy) - 300, the Grafting Hook 5.5 every 1.8 s at 1.7, a 0.9 walk - and the simulation's
+        // shipped levers play her fight with MyrrRule's own tuning: the beat, the 1.2 s telegraph, the snare's radius, creep,
+        // share and 1.0 s plant, her feet and her hook freed by the plant, no saplings, the floor's own share; its pilots
+        // leave her snare by the margin DevelopmentAutopilot leaves it by (MyrrRule.EscapeReach). Her proof floor fields her
+        // alone at the gate.
+        [Test]
+        public void TheRootmotherMyrrIsTheSimulations()
+        {
+            var myrr = AssetDatabase.LoadAssetAtPath<EnemyDefinition>("Assets/_Project/Data/Enemies/Enemy_RootmotherMyrr.asset");
+            Assert.That(myrr, Is.Not.Null);
+            AssertEnemy(myrr, DescentSimulation.RootmotherMyrr, myrr.Id);
+            Assert.That(myrr.Id, Is.EqualTo("enemy_rootmother_myrr"));
+            Assert.That(myrr.Id, Is.EqualTo(Cryptforge.Art.BossBark.MyrrId), "her barks key on her id");
+            Assert.That(myrr.Weapon.Id, Is.EqualTo("weapon_grafting_hook"));
+            Assert.That(myrr.Weapon.DisplayName, Is.EqualTo("Grafting Hook"));
+            Assert.That((myrr.MaximumHealth, myrr.Weapon.Damage, myrr.Weapon.Interval, myrr.Weapon.Range, myrr.MoveSpeed),
+                Is.EqualTo((300f, 5.5f, 1.8f, 1.7f, .9f)), "docs/64 section 3's numbers");
+            Assert.That(myrr.Prefab.GetComponent<RootmotherMyrr>(), Is.Not.Null, "her prefab lays root snares");
+            Assert.That(myrr.Prefab.GetComponent<GlassRegent>(), Is.Null, "no lanes");
+            Assert.That(myrr.Prefab.GetComponent<EnrageBehaviour>(), Is.Not.Null, "her phase two, as the Warden's");
+            Assert.That(DescentSimulation.RootmotherMyrr.EnrageAt, Is.EqualTo(DescentSimulation.Warden.EnrageAt));
+            var warden = AssetDatabase.LoadAssetAtPath<EnemyDefinition>("Assets/_Project/Data/Enemies/Enemy_ForgeWarden.asset");
+            Assert.That(warden.Prefab.GetComponent<RootmotherMyrr>(), Is.Null, "the Warden marks circles");
+            var regent = AssetDatabase.LoadAssetAtPath<EnemyDefinition>("Assets/_Project/Data/Enemies/Enemy_GlassRegent.asset");
+            Assert.That(regent.Prefab.GetComponent<RootmotherMyrr>(), Is.Null, "the Regent marks lanes");
+            var look = myrr.Prefab.GetComponent<EnemyLookView>();
+            Assert.That(look, Is.Not.Null);
+            var art = new SerializedObject(look).FindProperty("_paintedArt").objectReferenceValue as Cryptforge.Art.EnemyArtSet;
+            Assert.That(art, Is.Not.Null, "painted");
+            Assert.That(art.name, Is.EqualTo("RootmotherMyrrArtSet"));
+            Assert.That(art.IsValid, Is.True);
+            Assert.That(art.Frosted, Is.Null, "born on floor 3: no themed copy");
+
+            var shipped = new DescentSimulation.FoundryLevers();
+            Assert.That(shipped.GloamWarden, Is.False, "Myrr ships at floor 3's gate");
+            Assert.That(shipped.MyrrHealthShare, Is.Zero, "the floor's own share");
+            Assert.That(shipped.MyrrHookDamage, Is.EqualTo(myrr.Weapon.Damage));
+            Assert.That(shipped.MyrrSpeed, Is.EqualTo(myrr.MoveSpeed));
+            Assert.That(shipped.MyrrEvery, Is.EqualTo(MyrrRule.Every));
+            Assert.That(shipped.MyrrEveryPhaseTwo, Is.EqualTo(MyrrRule.EveryPhaseTwo));
+            Assert.That(shipped.MyrrTelegraph, Is.EqualTo(MyrrRule.Telegraph));
+            Assert.That(MyrrRule.Telegraph, Is.EqualTo(1.2f), "the lead's answer 5");
+            Assert.That(shipped.MyrrSnareRadius, Is.EqualTo(MyrrRule.SnareRadius));
+            Assert.That(shipped.MyrrCreepSpeed, Is.EqualTo(MyrrRule.CreepSpeed));
+            Assert.That(MyrrRule.CreepSpeed, Is.GreaterThan(0f), "the creeping snare stays (the lead's answer 3)");
+            Assert.That(shipped.MyrrSnareShare, Is.EqualTo(MyrrRule.SnareShare));
+            Assert.That(shipped.MyrrPlantSeconds, Is.EqualTo(MyrrRule.PlantSeconds));
+            Assert.That(MyrrRule.PlantSeconds, Is.EqualTo(1f), "the lead's answer 4");
+            Assert.That(shipped.MyrrFeetReach, Is.EqualTo(MyrrRule.FeetReach));
+            Assert.That(shipped.MyrrPlantedFreesHook, Is.True, "her hook free through the plant, as WardenSlamService frees it");
+            Assert.That(shipped.MyrrSaplings, Is.EqualTo(MyrrRule.ShippedSaplings), "no saplings (the lead's answer 2)");
+            Assert.That(MyrrRule.ShippedSaplings, Is.Zero);
+            Assert.That(shipped.WardenRecoverySeconds, Is.EqualTo(WardenRule.RecoverySeconds), "the clock's hold, as WardenSlamClock.HoldsWeapon");
+            Assert.That(myrr.Weapon.Range, Is.GreaterThan(MyrrRule.FeetReach), "her feet lie inside her hook's reach");
+            // The pilots leave her snare by the Warden's circle's margin, as DevelopmentAutopilot does.
+            Assert.That(MyrrRule.EscapeReach(MyrrRule.SnareRadius), Is.EqualTo(MyrrRule.SnareRadius + .6f).Within(1e-6f));
+            Assert.That(MyrrRule.EscapeReach(WardenRule.SlamRadius), Is.EqualTo(WardenRule.SlamRadius + .6f).Within(1e-6f),
+                "the same margin as the Warden's circle");
+
+            FloorDefinition proof = null;
+            foreach (FloorDefinition floor in UnityEngine.Resources.LoadAll<FloorDefinition>(DevelopmentStart.ResourcesFolder))
+                if (floor.Id == "floor_myrr_proof")
+                    proof = floor;
+            Assert.That(proof, Is.Not.Null, "Resources/Development/Floor_MyrrProof");
+            Assert.That(proof.RoomCount, Is.EqualTo(1));
+            Assert.That(proof.RoomAt(0).Kind, Is.EqualTo(RoomKind.Boss));
+            Assert.That(proof.RoomAt(0).WaveAt(0).EnemyCount, Is.EqualTo(1));
+            Assert.That(proof.RoomAt(0).WaveAt(0).EnemyAt(0), Is.SameAs(myrr));
+        }
+
         // The order Unity runs a script in: its Script Execution Order setting where one is set, else its
         // DefaultExecutionOrder, else 0.
         private static int ScriptOrder<T>(string path) where T : UnityEngine.MonoBehaviour
@@ -494,8 +566,9 @@ namespace Cryptforge.Tests
         // Floor_QuicksilverVaults' next floor as the foundry plays it - floor 2's six rooms under the garden's names, climb-
         // scaled at floor 3 (the first floor where ClimbScaling.Boss's x1.15 reaches the gate boss), no modifier, floor 1's
         // three horde roles, no surges or extra elite, the gate held for 3:00 and its Warden's own share, which the
-        // simulation reads through the scene's WardenRule.GateHealthShareOn - its gate boss the Forge Warden with two Cinder
-        // Mites, its halls' Mites and its horde's Pollen Wraiths since 2026-11-17 (the Mite reskinned: the simulation's Mite),
+        // simulation reads through the scene's WardenRule.GateHealthShareOn - its gate boss Rootmother Myrr since 2026-11-25
+        // (docs/64; the Forge Warden before) with two Cinder Mites, its halls' Mites and its horde's Pollen Wraiths since
+        // 2026-11-17 (the Mite reskinned: the simulation's Mite),
         // its own overgrown look (docs/51), the districts the round goes on from, and below it the
         // finale's swarm room, which the simulation plays after a floor-3 clear (FoundryLevers.Floors = 4,
         // TheFoundrysFinaleIsTheAsset).
@@ -518,15 +591,16 @@ namespace Cryptforge.Tests
             Assert.That(asset.EnemyHealthMultiplier, Is.EqualTo(ClimbScaling.Health(3)).Within(1e-5f));
             Assert.That(asset.EnemyDamageMultiplier, Is.EqualTo(ClimbScaling.Damage(3)).Within(1e-5f));
 
-            // Its gate boss: the Forge Warden - floor 1's, where floor 2 has the Glass Regent - two Cinder Mites beside it,
-            // at the floor's own share.
+            // Its gate boss: Rootmother Myrr since 2026-11-25 (docs/64 sections 15-16) - floor 1's is the Forge Warden, floor
+            // 2's the Glass Regent - two Cinder Mites beside her, at the floor's own share, 4.7.
             int boss = System.Array.IndexOf(floor.Kinds, RoomKind.Boss);
-            Assert.That(asset.RoomAt(boss).WaveAt(0).EnemyAt(0).Id, Is.EqualTo(first.RoomAt(boss).WaveAt(0).EnemyAt(0).Id),
-                "floor 1's gate boss, the Forge Warden");
-            Assert.That(asset.RoomAt(boss).WaveAt(0).EnemyAt(0).Id, Is.EqualTo("enemy_forge_warden"));
-            Assert.That(floor.Rooms[boss][0][0], Is.SameAs(DescentSimulation.Warden));
-            Assert.That(floor.Rooms[boss][0].Length, Is.EqualTo(3), "two Cinder Mites beside it");
+            Assert.That(first.RoomAt(boss).WaveAt(0).EnemyAt(0).Id, Is.EqualTo("enemy_forge_warden"), "floor 1's gate boss, the Forge Warden");
+            Assert.That(asset.RoomAt(boss).WaveAt(0).EnemyAt(0).Id, Is.EqualTo("enemy_rootmother_myrr"));
+            Assert.That(asset.RoomAt(boss).DisplayName, Is.EqualTo("Warden's Grove"), "renamed only after the owner's docs/60 review");
+            Assert.That(floor.Rooms[boss][0][0], Is.SameAs(DescentSimulation.RootmotherMyrr));
+            Assert.That(floor.Rooms[boss][0].Length, Is.EqualTo(3), "two Cinder Mites beside her");
             Assert.That(asset.FoundryGateHealthShare, Is.EqualTo(DescentSimulation.FloorThreeGateShare));
+            Assert.That(asset.FoundryGateHealthShare, Is.EqualTo(4.7f), "docs/64 section 15's confirmed share");
             Assert.That(DescentSimulation.LaterFloorLevers(FoundryBatch.Shipped(), floor).WardenHealthShare,
                 Is.EqualTo(WardenRule.GateHealthShareOn(asset.FoundryGateHealthShare)));
             Assert.That(ClimbScaling.Boss(floor.FloorNumber), Is.EqualTo(ClimbScaling.BossGrowth), "floor 3's gate is the first the boss growth reaches");

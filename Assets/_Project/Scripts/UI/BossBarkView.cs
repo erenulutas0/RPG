@@ -8,17 +8,19 @@ using UnityEngine.UI;
 
 namespace Cryptforge.UI
 {
-    // Presentation only - the gate boss's lines (docs/44 section 1.8; docs/64 stage 1, 2026-11-23): the Forge Warden and the
-    // Glass Regent bark as they walk out of the gate, with the first mark of each phase, and as they fall, each line a short
-    // plate over the boss for BossBark.Seconds (fading in and out), the telegraph line at most once a phase (BossBarkMemory).
+    // Presentation only - the gate boss's lines (docs/44 section 1.8; docs/64 stage 1, 2026-11-23): the Forge Warden, the
+    // Glass Regent and Rootmother Myrr (docs/64 section 16) bark as they walk out of the gate, with the first mark of each
+    // phase, and as they fall, each line a short plate over the boss for BossBark.Seconds (fading in and out), the
+    // telegraph line at most once a phase (BossBarkMemory).
     // The plate is the HUD's own: the smoked band behind the boss's name (HudArtSet.BossNamePlate, a flat smoked band
     // without the painted HUD), the HUD's font and its ivory, the line in italics so it reads as speech; one line, or two at
     // the plate's widest, its size fitted to the line (the Turkish runs longer: docs/60).
     //
     // It never stands over the telegraph mark: while a mark is down, and through the blow's flash, the plate takes the first
     // of its places - over the head, under the feet, beside the body, above or below the mark - that keeps clear of the
-    // Warden's circle or of every Regent lane (BossBark.ClearOfCircle, ClearOfLane), and with none clear it hides until one
-    // is. It stays inside the free band between the HUD's panels and the screen's edges.
+    // Warden's circle, of every Regent lane or of Myrr's snare where it has crept this frame (BossBark.ClearOfCircle,
+    // ClearOfLane), and with none clear it hides until one is. It stays inside the free band between the HUD's panels and
+    // the screen's edges.
     //
     // Its own overlay canvas (over the HUD's, under every panel's), made once. It reads the slam service and the boss and
     // writes nothing to either; scaled time, so a pause or a panel holds a bark with the fight. After WardenSlamView (100), so
@@ -74,11 +76,13 @@ namespace Cryptforge.UI
         private float _anchorTop;
         private int _barkFloor;
 
-        // The mark the plate keeps clear of: the Warden's circle or the Regent's lanes as they went down, until the blow's
-        // flash is over.
+        // The mark the plate keeps clear of: the Warden's circle or the Regent's lanes as they went down, or Myrr's snare
+        // where it creeps (read again each frame), until the blow's flash is over.
         private bool _markLive;
         private float _markUntil;
         private bool _markLanes;
+        private bool _markSnare;
+        private float _markRadius = WardenRule.SlamRadius;
         private float _markX, _markY, _markLift;
         private int _laneCount;
         private readonly float[] _laneX = new float[RegentRule.MaxLanes];
@@ -225,10 +229,9 @@ namespace Cryptforge.UI
         {
             _markLive = true;
             _markUntil = float.PositiveInfinity;
-            _markX = _service.MarkX;
-            _markY = _service.MarkY;
-            var p = new Vector3(_markX, ArenaFloor.WorldY(_markY), 0f);
-            _markLift = _arena != null && _arena.IsFoundryRegion ? FoundrySurface.Lift(p, _arena.transform.position) : 0f;
+            _markSnare = _service.MarksSnare;
+            _markRadius = _markSnare ? MyrrRule.SnareRadius : WardenRule.SlamRadius;
+            ReadMark();
             RegentLanes lanes = _service.Lanes;
             _markLanes = _service.MarksLanes && lanes.Count > 0;
             _laneCount = 0;
@@ -243,6 +246,16 @@ namespace Cryptforge.UI
                 _laneLength[i] = lanes.LengthOf(i);
                 _laneCount++;
             }
+        }
+
+        // The mark's centre and the foundry's lift under it, as the service holds it now: where a circle went down, where a
+        // snare has crept.
+        private void ReadMark()
+        {
+            _markX = _service.MarkX;
+            _markY = _service.MarkY;
+            var p = new Vector3(_markX, ArenaFloor.WorldY(_markY), 0f);
+            _markLift = _arena != null && _arena.IsFoundryRegion ? FoundrySurface.Lift(p, _arena.transform.position) : 0f;
         }
 
         // The gate's boss as the service reads it: bound as it walks out - its spawn line - and let go as it falls or the
@@ -410,12 +423,15 @@ namespace Cryptforge.UI
                 return false;
             if (_markLive && !MarkShown)
                 _markLive = false;
+            // Myrr's snare moves: the plate keeps clear of where it is now (after an eruption it stays where it erupted).
+            if (_markLive && _markSnare)
+                ReadMark();
             float unit = WorldPerCanvasUnit();
             float halfW = _plate.sizeDelta.x * .5f * unit, halfH = _plate.sizeDelta.y * .5f * unit;
             Band(out float left, out float right, out float bottom, out float top);
             float x = _anchorFeet.x, feet = _anchorFeet.y, head = feet + _anchorTop;
-            float markTop = ArenaFloor.WorldY(_markY + WardenRule.SlamRadius + BossBark.MarkMargin) + _markLift;
-            float markBottom = ArenaFloor.WorldY(_markY - WardenRule.SlamRadius - BossBark.MarkMargin) + _markLift;
+            float markTop = ArenaFloor.WorldY(_markY + _markRadius + BossBark.MarkMargin) + _markLift;
+            float markBottom = ArenaFloor.WorldY(_markY - _markRadius - BossBark.MarkMargin) + _markLift;
             for (int place = 0; place < 9; place++)
             {
                 float cx = x, cy;
@@ -449,7 +465,7 @@ namespace Cryptforge.UI
         internal bool ClearOfMark(float left, float right, float bottom, float top)
         {
             if (!_markLanes)
-                return BossBark.ClearOfCircle(left, right, bottom, top, _markLift, _markX, _markY, WardenRule.SlamRadius);
+                return BossBark.ClearOfCircle(left, right, bottom, top, _markLift, _markX, _markY, _markRadius);
             for (int i = 0; i < _laneCount; i++)
                 if (!BossBark.ClearOfLane(left, right, bottom, top, _markLift, _laneX[i], _laneY[i], _laneDirX[i],
                         _laneDirY[i], _laneLength[i], _laneHalfWidth))

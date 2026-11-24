@@ -42,6 +42,9 @@ namespace Cryptforge.UI
         public Vector2 Steer => _steer;
         public bool IsMoving { get; private set; }
         public bool IsDragging => _dragging;
+        // Whether Rootmother Myrr's roots hold the hero where it stands (WardenSlamService.IsHeroPlanted): the stick steers
+        // nothing until they let go.
+        public bool IsPlanted => _setup != null && _setup.Warden != null && _setup.Warden.IsHeroPlanted;
         // docs/57's Shield Rush (AbilityController.Dash, handed over by CombatSetup): while it travels it moves the hero in
         // the stick's place. Null for a hero without the Rush.
         public HeroDash Dash { get; set; }
@@ -99,9 +102,14 @@ namespace Cryptforge.UI
             // simulation only steps frames while a wave is alive, and a frame that spends nothing still refills, so a
             // scene frame the simulation does not have would otherwise hand the hero a little more bar than it earned.
             bool fighting = _setup.Encounters != null && _setup.Encounters.AliveEnemyCount > 0;
+            // docs/64's Rootmother Myrr: a hero her roots caught stands planted (WardenSlamService.IsHeroPlanted,
+            // MyrrRule.PlantSeconds) - no walk, no dash's step, no pad - while its weapons and its ability still strike. The
+            // simulation's Frame holds the same walk (DescentSimulation.Myrr.cs, Planted).
+            if (IsPlanted)
+                IsMoving = false;
             // docs/62 P0a's pad, mid-arc, has the walk step (HeroLeap.Move, the simulation's one body), over the pit and past
             // anything in the way; the stick waits. Never without the Outworks.
-            if (Leap != null && Leap.IsAirborne)
+            else if (Leap != null && Leap.IsAirborne)
                 IsMoving = Leap.Move(_motion, Time.deltaTime);
             // docs/57's Shield Rush, travelling, has the walk step (HeroDash.Move, the simulation's one body); the stick
             // waits. Null for a hero without the Rush.
@@ -111,7 +119,7 @@ namespace Cryptforge.UI
                     : _motion.Move(_steer.x, _steer.y, Time.deltaTime * Stamina.SpeedFactor, _arena.Geometry);
             // ...and after the walk a pad launches the hero once it has stood still on the pad's centre for the pad's beat
             // (HeroLeap.TryLaunch, the simulation's one body), while the Outworks phase runs - the Bell's swarm too.
-            if (Leap != null && !Leap.IsAirborne && _setup.Encounters != null && _setup.Encounters.IsInOutworks)
+            if (Leap != null && !Leap.IsAirborne && _setup.Encounters != null && _setup.Encounters.IsInOutworks && !IsPlanted)
                 Leap.TryLaunch(_motion.X, _motion.Y, Time.deltaTime);
             Stamina.Step(Time.deltaTime, fighting && IsMoving);
             if (IsMoving)

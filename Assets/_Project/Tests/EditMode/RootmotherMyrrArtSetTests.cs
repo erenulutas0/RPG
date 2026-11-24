@@ -18,8 +18,8 @@ namespace Cryptforge.Tests
     // the floor origin; she is born on floor 3 in the garden's palette (no themed copy), nothing of hers is the snare's
     // red-orange or the garden's gloamlight, her orchid reads and her idle stands a step lighter than the mid ash loam;
     // the textures import as the Regent's (single sprites at 128 texels a unit, bilinear, no mipmaps, not readable, ASTC
-    // 4x4 on Android - her white flashes ASTC 6x6) with her memory near the Regent's. No prefab wears the set yet (the
-    // fight's wiring waits on the confirmation read, docs/64 section 10): the Warden and the Regent keep their own.
+    // 4x4 on Android - her white flashes ASTC 6x6) with her memory near the Regent's. Her prefab wears it since her scene
+    // build (docs/64 section 16): a variant of the Forge Warden's, as the Regent's; the Warden and the Regent keep their own.
     public sealed class RootmotherMyrrArtSetTests
     {
         private const string Folder = "Assets/_Project/Art/Characters/RootmotherMyrr";
@@ -361,6 +361,7 @@ namespace Cryptforge.Tests
         public void TheWardenAndTheRegentKeepTheirOwnSets()
         {
             EnemyArtSet set = Set();
+            Assert.That(PaintedArtOf("RootmotherMyrr"), Is.SameAs(set), "her prefab wears her set");
             Assert.That(PaintedArtOf("ForgeWarden"), Is.SameAs(Load(WardenPath)));
             Assert.That(PaintedArtOf("GlassRegent"), Is.SameAs(Load(RegentPath)));
             Assert.That(PaintedArtOf("ForgeWarden"), Is.Not.SameAs(set));

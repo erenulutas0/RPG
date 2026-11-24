@@ -17,7 +17,9 @@ namespace Cryptforge.Tests
     // tells each blow - it rises, leans back and glows - from the very frame its mark goes down to the frame the blow
     // lands, on the clock's own progress, then kicks and settles back; phase two bursts and the glow runs hotter without
     // touching the body's colours; the Warden's fall opens in embers and ends in ash, the Regent shatters; the Regent's
-    // violet feet ring reads on the floor over its shade. Visual only: the mark, the hold and the blow are the service's.
+    // violet feet ring reads on the floor over its shade. Rootmother Myrr (docs/64 section 16) tells her snare in orchid,
+    // blooms at phase two and withers as she falls, her feet ring orchid. Visual only: the mark, the hold and the blow are
+    // the service's.
     public sealed class BossFeelTests
     {
         private const string ScenePath = "Assets/_Project/Scenes/Gameplay/Gameplay.unity";
@@ -234,6 +236,93 @@ namespace Cryptforge.Tests
             yield return Until(() => _feel.DeathEndsShown > 0, 5f);
             Assert.That(_feel.DeathEndsShown, Is.EqualTo(1), "Its remains end in glints.");
             LogAssert.NoUnexpectedReceived();
+        }
+
+        // Rootmother Myrr (docs/64 sections 4-5): her snare's telegraph glows on her body in her orchid - not the Warden's
+        // ember nor the Regent's glass violet - from the snare's frame; phase two bursts into bloom, petals thrown up and
+        // turning, her slow glow the pale bloom's; she withers as she falls, petals shed and tumbling, and her remains end in
+        // a husk's dust. Her feet ring is orchid over its shade, under every actor.
+        [UnityTest, Timeout(120000)]
+        public IEnumerator MyrrTellsInOrchidBloomsAtPhaseTwoAndWithersAsSheFalls()
+        {
+            yield return Load("floor_myrr_proof");
+            Health boss = _service.Boss;
+            Assert.That(_service.MarksSnare, Is.True, "Myrr is fought.");
+            var view = _setup.GetComponent<WardenSlamView>();
+            yield return null;
+            Assert.That(view.IsFeetShown, Is.True, "Her ring shows round her feet while she is fought.");
+            LineRenderer ring = view.FeetRingLine, shade = view.FeetShadeLine;
+            Color feet = ring.startColor;
+            Assert.That(feet.r, Is.GreaterThan(feet.b), "Orchid, not the Regent's violet.");
+            Assert.That(feet.b, Is.GreaterThan(feet.g), "A creature's colour, not the telegraph's red-orange.");
+            Assert.That(shade.sortingOrder, Is.LessThan(ring.sortingOrder), "Its shade under it.");
+            Assert.That(ring.sortingOrder, Is.LessThan(GroundedSorting.ActorOrder), "Under every actor.");
+
+            bool tellAtMark = false;
+            System.Action marked = () => tellAtMark = _feel.IsTelling;
+            _service.Marked += marked;
+            yield return Until(() => _service.Clock.IsMarked, MyrrRule.Every + 5f);
+            _service.Marked -= marked;
+            Assert.That(tellAtMark, Is.True, "Her snare is told from its frame.");
+            float glow = 0f;
+            Color shown = Color.clear;
+            for (int i = 0; i < 30 && _service.Clock.IsMarked; i++)
+            {
+                yield return null;
+                if (_feel.GlowAlpha > glow)
+                {
+                    glow = _feel.GlowAlpha;
+                    shown = _feel.Glow.color;
+                }
+                Assert.That(_feel.GlowAlpha, Is.LessThanOrEqualTo(GameFeel.TellGlowPeak + 1e-4f), "Never brighter than the mark.");
+            }
+            Assert.That(glow, Is.GreaterThan(0f), "The snare glows on her body.");
+            Assert.That(shown.b, Is.GreaterThan(shown.g), "In orchid, not the Warden's ember.");
+            Assert.That(shown.r, Is.GreaterThan(shown.b), "Nor the Regent's glass violet.");
+            // Her roots on the floor: orchid tips on the red-orange ring.
+            Color tips = view.SnareRootsLine.startColor, edge = view.SnareEdgeLine.startColor;
+            Assert.That(tips.b, Is.GreaterThan(tips.g), "The root tips are orchid.");
+            Assert.That(edge.g, Is.GreaterThan(edge.b), "The ring's edge is the telegraph's red-orange.");
+
+            boss.ApplyDamage(new DamageContext(boss.Maximum * .55f));
+            yield return null;
+            yield return null;
+            Assert.That(_service.IsEnraged, Is.True);
+            Assert.That(_feel.ShowsPhaseTwo, Is.True, "Her phase two shows.");
+            Assert.That(_feel.PhaseTwoBursts, Is.EqualTo(1));
+            Assert.That(_feel.ShownRings, Is.GreaterThanOrEqualTo(1), "Her rings over the floor.");
+            Assert.That(_feel.ShownParticles, Is.GreaterThanOrEqualTo(10), "Her petals.");
+            Assert.That(Turned(), Is.GreaterThanOrEqualTo(6), "Petals turning as they fly.");
+            for (int i = 0; i < 60; i++)
+                yield return null;
+            Assert.That(_feel.GlowAlpha, Is.GreaterThan(0f), "Phase two's slow glow stays.");
+            Color bloom = _feel.Glow.color;
+            Assert.That(bloom.b, Is.GreaterThan(bloom.g), "In her bloom.");
+            Assert.That(bloom.r, Is.GreaterThan(bloom.b));
+
+            for (int i = 0; i < 60; i++)
+                yield return null;
+            boss.ApplyDamage(new DamageContext(boss.Maximum * 10f));
+            Assert.That(_feel.DeathsShown, Is.EqualTo(1));
+            Assert.That(_feel.LastDeathWithered, Is.True, "She withers.");
+            Assert.That(_feel.LastDeathShattered, Is.False);
+            // Her petals shed in three waves a twentieth of a second apart.
+            for (int i = 0; i < 8; i++)
+                yield return null;
+            Assert.That(Turned(), Is.GreaterThanOrEqualTo(12), "Her petals shed and tumbling.");
+            yield return Until(() => _feel.DeathEndsShown > 0, 5f);
+            Assert.That(_feel.DeathEndsShown, Is.EqualTo(1), "Her remains end in a husk's dust.");
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // The pooled motes flying turned along their flight: shards and petals.
+        private int Turned()
+        {
+            int turned = 0;
+            foreach (SpriteRenderer mote in _feel.Root.GetComponentsInChildren<SpriteRenderer>())
+                if (mote.enabled && mote.sprite == FeelArt.Disc() && mote.transform.rotation != Quaternion.identity)
+                    turned++;
+            return turned;
         }
 
         [UnityTest, Timeout(120000)]
