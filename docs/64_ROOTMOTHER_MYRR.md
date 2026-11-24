@@ -173,7 +173,7 @@ and death (4, a floor holdout hiding what sinks), in the first phase's and the s
 last two death drawings shared, as the Regent's topple and down are) - 44 frames, each a beauty and a glow pass.
 `Tools/ArtReview/review_rootmother.py` lights them (the glow channels coloured orchid, a small halo) and lays out the
 review. The walk (step A/B, pass A/B) and the windup-at-a-walk rows the scene's `EnemyArtSet` needs are not drawn yet:
-the next pass, with the pack, once the confirmation read passes.
+the next pass, with the pack, once the confirmation read passes. (Drawn and packed 2026-11-25: section 14.)
 
 **The review** (`ArtDirection/2026-11-23/rootmother-01/`, untracked): `1-clips-front.png` and `2-clips-rear.png` (every
 clip, both phases, on the ash loam), `3-phone-scale.png` (idle, idle in phase two, the telegraph's peak and the strike at
@@ -480,3 +480,89 @@ gains a sibling canvas; the boss views gain a component).
 8. **The art direction stands:** a hunched tree-matriarch, orchid buds, a pale mask, a verdigris hook. The walk rows
    come with the scene wiring.
 
+## 14. Her art set: the walk rows and the pack (built 2026-11-25)
+
+The owner approved her look after pass 1.1 (section 7). This takes her from review frames to a game-ready
+`EnemyArtSet`, the Glass Regent's way. Nothing wears it yet: the fight's wiring waits on section 10's confirmation read.
+
+**The new rows** (`Tools/ArtReview/BuildBlenderRootmother.py`; the same model, camera, contract - 128 texels a unit,
+rendered at 4x - and pivot):
+- **The walk** on her six root panels, each on its own bone, in two tripods (the front and the two back panels, then the
+  two front sides and the back). One tripod is planted and slides back under her while the other lifts and reaches
+  forward. The body rises as one passes the other. Four quarters (step-a, pass-a, step-b, pass-b) over a stride of 1.0
+  design units: a **walk cycle of 0.88 world units** at her 0.88 scale, about the Regent's cadence at her 0.9 a second.
+  A lifted panel rises (a per-bone lift in the solver, empty in every earlier pose) more than it turns out, so a step
+  never spreads her wider than her stance.
+- **The telegraph at a walk**: windup-1's raised hook and thrust root hand, with its roots drawn in, over the walking
+  roots (windup-step-a, windup-pass-a, windup-pass-b). Its contact B, `windup`, is the standing hold (the Warden's
+  contract).
+- **The fall** renders on a canvas of its own (544 x 480, pivot 272, 184) and records its floor footprint for the
+  contact shadow. On the standing canvas the stump's hook ran off the foot.
+- The approved poses are untouched: idle-a and strike-1 re-render pixel for pixel.
+
+**The pack** (`Tools/ArtReview/PackRootmotherSprites.py`, on `PackGlassRegentSprites.py`):
+- **Glow and outline.** The glow channels are coloured orchid per phase, tuned to the approved review's lighting: about
+  the same near-white share in the buds and blooms, the same pink. Then the one-texel outline in her ink and the bloom
+  halo. The halo's last fringe (alpha under 12) is cut so it never widens a rect.
+- **Rects.** The first phase, the second and the flash share one rect, symmetric about the pivot, in whole 4x4 blocks.
+- **The set's poses.** idle = idle-a, strike = strike-1 (the hook driven into the floor, roots bursting round it; the
+  game shows it for her hook's swing and the snare's eruption alike). The fall is struck, sink, slump, stump at 0.16 /
+  0.44 / 0.16 / 0.56 s (the Regent's 1.32 s). From the slump the two facings share drawings. The sink and the stump are
+  the two remains.
+- **Measures.** visualTop 2.174 (the Regent's 2.01, the Warden's 1.642), shadow 1.2, walk 0.88.
+- **The asset.** `Art/Characters/RootmotherMyrr/RootmotherMyrrArtSet.asset` (guid 25275b3c224747828e689cb76c268d86) is
+  laid out field for field as the Regent's. `_frost` and `_gloam` are empty: she is born on floor 3.
+- **66 textures**, as the Regent's: 20 drawings a phase, 20 flashes the second phase borrows, and the fall's 6.
+- **The import** is the Regent's .meta: one sprite, 128 texels a unit, bilinear, no mipmaps, not readable, Android at
+  most 512 (her largest is 416).
+
+**Memory.** On Android, as ASTC, she takes **4.32 MiB** against the **Regent's 3.27 MiB** (1.32 times). Each of her
+drawings is about 1.6 times the Regent's area (the canopy, the hook beside it, the root skirt), so the white flashes,
+which carry no colour, take ASTC 6x6; the drawings stay 4x4. All at 4x4 she would take 5.22 MiB. The next lever, if the
+lead wants her nearer, is half-resolution flashes (about 3.9 MiB). It is not taken, because it breaks the contract's
+"the flash shares its body's rect".
+
+**Checks** (`review_rootmother.py`'s, run by `Tools/ArtReview/review_rootmother_set.py`):
+
+| Frames | Red-orange texels | Gloamlight texels | Orchid share | Idle luminance (mid loam 0.242) |
+|---|---|---|---|---|
+| The packed set (46 drawings; the flashes aside) | 0 | 0 | 11.8 % | 0.253 |
+| The 32 new raw frames, lit as pass 1 lit its frames | 0 | 0 | 9.7 % | 0.26 |
+
+- Pass 1.1 measured an orchid share of 10.6 %.
+- Walk luminance (phase one): front 0.238-0.261; rear 0.227-0.238. Pass 1.1's rear idle is 0.234, so the rear sits
+  near the loam's value, and the dark outline keeps her separate from the floor.
+
+**Tests.**
+- `RootmotherMyrrArtSetTests` (EditMode) checks:
+  - every row present with its count, in both phases and both facings;
+  - the hold is contact B;
+  - the walk quarters;
+  - the fall's beat and shared drawings;
+  - flash rects and pivots;
+  - every texture in her folder belongs to the set;
+  - no red-orange, no gloamlight, the orchid share, and her idle against the loam (decoded from the source PNGs);
+  - the import and the 4.5 MiB budget, at most 1.4 times the Regent's;
+  - no themed copy;
+  - the Warden and the Regent keep their own sets.
+- `EnemyThemeArtTests` lists her among floor 3's own.
+
+**The review** (`ArtDirection/2026-11-25/rootmother-02/`, untracked):
+- `1-walk-cycle.png`;
+- `2-walk-cycle.gif` (at the phone's scale beside the Regent's and the Warden's walks);
+- `3-phone-scale.png` (both phases beside the Glass Regent and the Forge Warden's floor-3 copy, on three loams, and a
+  squint);
+- `4-art-set.png`;
+- `checks.json`, `frames.json`, `rootmother.blend`.
+
+**What the scene wiring still needs** (not built here):
+- **The prefab.** Her prefab (a variant of the Forge Warden's, as the Regent's) with `EnemyLookView._paintedArt` = this
+  set, and her `EnemyDefinition` on Floor_GloamGardens' gate.
+- **BossFeelView.** It knows only the Warden and the Regent: her tell and phase-two glow want orchid, and her death
+  wants withering petals. Today she would take the Warden's ember.
+- **WardenSlamView.** The creeping red-orange ring with orchid root tips, her orchid feet ring, and the planted roots on
+  a caught hero.
+- **BossBarkView.** Her three `bark.*` rows (section 1).
+- **For the owner's look.** `skirt()`'s "flare" turns the root panels in, not out, despite its docstring. The approved
+  telegraph, phase change and strike show this as a darker, narrower skirt. It is kept as approved, and the walking
+  telegraph keeps it too.
