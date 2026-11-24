@@ -427,7 +427,7 @@ and the Bow in `CombatSetup._rosterWeapons` and the simulation's `RosterWeapons(
 | Shares | 1 on the gate boss and the elites |
 | Evolution | none yet |
 | Look (`CombatEffectsView`) | one blade (`EffectArt.SawFrames`: a 15-texel toothed ember disc, three frames a third of a tooth apart, played in a loop) circles the hero at 0.85 of the circle's radius once every 0.7 s while the loadout holds the Saw, in a slot of its own after the motes' (`SawSlots`, so the foundry's depth test sees it); every fifth strike (once a second) a faint ember ring at the circle's edge round the hero (the Staff's ring sprite, `StrikeEffect.SawBite`). No effect at a target per strike: the hits spark and number as every hit does. No cue on the hero per strike (`GameFeel.CuesEachStrike`); the Staff's glow when it is picked up. The blade and ring painted since 13.10, these kept as the fallback |
-| Icon (`build_upgrade_icons.py`) | a round iron blade with ten hooked ember teeth, three molten vents, a gold hub; its lines the blade small with the stat's mark; a socket icon. Appended: the 42 existing sprites keep their ids and pixels (checked against the committed sheet), the socket strip moves into the last row's free cells, the sheet stays 1020x1020 (ASTC 0.99 MiB) |
+| Icon (`build_upgrade_icons.py`) | a round iron blade with ten hooked ember teeth, three molten vents, a gold hub; its lines the blade small with the stat's mark; a socket icon. Appended: the 42 existing sprites keep their ids and pixels (checked against the committed sheet), the socket strip moves into the last row's free cells, the sheet stays 1020x1020 (ASTC 0.99 MiB). In the painted blade's iron and straw heat since 13.10 |
 | Strings (docs/60) | "Cinder Saw" / "Kor Testeresi" (working name); "{0:0} damage every {1:0.0#}s to every enemy close around the hero" / "Her {1:0.0#} sn'de kahramanın yakın çevresindeki her düşmana {0:0} hasar"; the lines as the Mortar's |
 
 The aura in code, one body for the scene and the simulation:
@@ -698,9 +698,14 @@ pixel blade and the procedural ring kept as the fallback exactly as the Staff's 
   the staff strips; `build_skill_vfx.write_fields` now replaces each script's own fields, so a rebuild of the Staff's
   sheet keeps the Saw's (re-run here: the Staff's files came back byte for byte).
 - **Orbit** - unchanged (0.85 of the circle, lift 0.18): the half-unit blade's teeth reach 1.95 of the base circle's 2.0.
-- **Not changed** - the upgrade icon (`build_upgrade_icons.py`): its teeth use the icon set's EMBER ramp (about 44 % of
-  its vivid texels on the card are under hue 30, the deepest #D43E18 at hue 10), so it no longer matches the blade; it
-  reads clearly on the card and is not redone here (the 42 other icons keep their ids and pixels).
+- **Icons** (2026-11-25, `build_upgrade_icons.py`) - the weapon's card and socket icons and its three lines (each shows
+  the blade) take the blade's palette: a dark forged-iron plate (`SAW_IRON`, #3B404C at its middle) with its slots cut
+  through, a polished steel hub, teeth hot from straw to white (`SAW_HEAT`, every vivid texel of the weapon's card at hue
+  39-58) and a straw halo, where 52 % of the card's vivid texels were under hue 30 (the EMBER ramp, #D43E18); the damage
+  line's mark stays the ember burst every damage line carries. The other 42 card icons and 13 socket icons keep their ids
+  and texels byte for byte (`keep_unchanged`), the sheet's size, meta and rects as they were; EditMode
+  `UpgradeIconSetTests.TheCinderSawsIconsAreItsBladesIronAndStrawHeatNeverTheTelegraphsRedOrange`; review
+  `ArtDirection/2026-11-25/saw-icon-01/` (`review_saw_icons.py`).
 - **Review** - `ArtDirection/2026-11-25/saw-art-01/` (untracked, `Tools/ArtReview/review_cinder_saw.py`): each of the
   lead's frames beside the same frame with the painted blade where the pixel one stood, at the capture's scale
   (`beside-*.png`, `review-sheet.png`), the ring at the aura's edge (`ring-*.png`), the frames at 4x and at the phone's
