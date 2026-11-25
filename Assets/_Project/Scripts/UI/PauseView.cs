@@ -33,6 +33,8 @@ namespace Cryptforge.UI
         [SerializeField, Min(0f)] private float _inputDelay = 0.3f;
         private float _inputEnabledAt;
         private bool _awaitingInputDelay;
+        // The delay is stamped again on the next Update (HoldInputOnReturn).
+        private bool _restampDelay;
         private bool _subscribed;
         private LanguageToggleView _language;
         private SkipVideosButton _skip;
@@ -93,20 +95,59 @@ namespace Cryptforge.UI
             {
                 _panel.SetActive(paused);
                 // A tap that lands as the overlay appears, for example on returning to the app, cannot resume at once.
-                _resumeButton.interactable = false;
-                if (_language != null)
-                    _language.Button.interactable = false;
-                if (_skip != null)
-                    _skip.SetInputEnabled(false);
-                _inputEnabledAt = Time.unscaledTime + _inputDelay;
-                _awaitingInputDelay = paused;
+                HoldInput(paused);
             }
             _pauseButton.gameObject.SetActive(_setup.Pause.CanPause);
         }
 
+        // The overlay's buttons take no tap until the input delay has run, counted from now when awaiting.
+        private void HoldInput(bool awaiting)
+        {
+            _resumeButton.interactable = false;
+            if (_language != null)
+                _language.Button.interactable = false;
+            if (_skip != null)
+                _skip.SetInputEnabled(false);
+            _inputEnabledAt = Time.unscaledTime + _inputDelay;
+            _awaitingInputDelay = awaiting;
+            _restampDelay = false;
+        }
+
+        // Back in the app with the overlay open, its delay runs again. The one started as the app left (OnApplicationPause
+        // (true) opens the overlay) ran out in the background, where unscaled time jumps, so the stray tap that brings the
+        // player back (a call's end button) resumed at once.
+        private void OnApplicationPause(bool paused)
+        {
+            if (!paused)
+                HoldInputOnReturn();
+        }
+
+        private void OnApplicationFocus(bool focused)
+        {
+            if (focused)
+                HoldInputOnReturn();
+        }
+
+        private void HoldInputOnReturn()
+        {
+            if (!_subscribed || !IsOpen)
+                return;
+            HoldInput(true);
+            // The frame's clock may not have caught up with the time away yet: the delay counts from the first frame back.
+            _restampDelay = true;
+        }
+
         private void Update()
         {
-            if (!_awaitingInputDelay || Time.unscaledTime < _inputEnabledAt)
+            if (!_awaitingInputDelay)
+                return;
+            if (_restampDelay)
+            {
+                _restampDelay = false;
+                _inputEnabledAt = Time.unscaledTime + _inputDelay;
+                return;
+            }
+            if (Time.unscaledTime < _inputEnabledAt)
                 return;
 
             _awaitingInputDelay = false;

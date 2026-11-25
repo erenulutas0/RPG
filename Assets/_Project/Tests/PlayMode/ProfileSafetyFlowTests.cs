@@ -136,6 +136,33 @@ namespace Cryptforge.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
+        // A lock and unlock, or a trip out of the app, jumps the unscaled clock, and the notice hid before it was read (the
+        // run flow's review, 2026-11-26): a frame counts at most ProfileNoticeView.MaxStep of real time toward its
+        // ShowSeconds, so it is still there on return and still goes after its time.
+        [UnityTest, Timeout(120000)]
+        public IEnumerator ANoticeOutlastsAJumpOfTheClock()
+        {
+            TestProfile.Begin();
+            yield return LoadScene();
+            ProfileNoticeView.TellSaveFailed(_setup);
+            ProfileNoticeView notice = Notice();
+            Assert.That(notice, Is.Not.Null);
+            Assert.That(notice.IsShowing, Is.True);
+
+            notice.Step(60f);
+            Assert.That(notice.IsShowing, Is.True, "A minute away counts as one short frame.");
+            Assert.That(notice.ShownLine, Is.EqualTo(ProfileNoticeView.SaveFailedText));
+            int steps = 1;
+            while (notice.IsShowing && steps < 1000)
+            {
+                notice.Step(ProfileNoticeView.MaxStep);
+                steps++;
+            }
+            Assert.That(notice.IsShowing, Is.False, "It still goes after its time.");
+            Assert.That(steps, Is.GreaterThanOrEqualTo(Mathf.FloorToInt(ProfileNoticeView.ShowSeconds / ProfileNoticeView.MaxStep) - 1));
+            LogAssert.NoUnexpectedReceived();
+        }
+
         private static ProfileNoticeView Notice() => Object.FindFirstObjectByType<ProfileNoticeView>();
 
         private IEnumerator LoadScene()

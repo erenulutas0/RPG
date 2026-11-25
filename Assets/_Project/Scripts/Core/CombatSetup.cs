@@ -223,6 +223,8 @@ namespace Cryptforge.Core
             Profile.Changed += SaveProfile;
             // Nothing burns on behind the result screen (review, 2026-10-27).
             Run.Ended += BurnStatus.ExtinguishAll;
+            // ...and the result screen lets the phone's screen sleep again (KeepScreenOn).
+            Run.Ended += LetScreenSleep;
             RelicOption equipped = Relics.Equipped;
             if (equipped != null)
             {
@@ -298,6 +300,11 @@ namespace Cryptforge.Core
             // until the player taps a map.
             StartFloor = _encounters.ResolveStartFloor(wanted);
             IsChoosingMap = wanted <= 0 && DevelopmentStart.OffersMapChoice();
+            // Nothing runs while the map is chosen, so nothing can be paused (BeginRun lets go), and the phone's screen
+            // keeps its own timeout.
+            Pause.SetAwaitingStart(IsChoosingMap);
+            if (IsChoosingMap)
+                LetScreenSleep();
             RunTelemetryBridge telemetry = AttachTelemetry(equipped);
             _telemetry = telemetry;
             telemetry.WatchDrops(Drops);
@@ -442,11 +449,38 @@ namespace Cryptforge.Core
                 _encounters.BeginFirstEncounter();
         }
 
-        // The run begins: its telemetry's run_start, and the result screen's video asked for ahead of need (docs/58 7.4).
+        // The run begins: it may be paused from now on, the phone's screen stays on until it ends (KeepScreenOn), its
+        // telemetry's run_start, and the result screen's video asked for ahead of need (docs/58 7.4).
         private void BeginRun()
         {
+            Pause.SetAwaitingStart(false);
+            if (!Run.HasEnded)
+                KeepScreenOn();
             _telemetry.Begin();
             MonetisationRuntime.BeginRun();
+        }
+
+        // The phone's own screen timeout (15-30 s) dimmed and locked the screen mid-run while the player read a card or
+        // stood still auto-firing. A live run - from BeginRun to its end - keeps the screen on; the map choice, the result
+        // screen and the scene going away hand it back to the phone's setting. One run holds it at a time: the scene a
+        // restart loads may begin its run before the old scene's OnDestroy, which then lets go of nothing.
+        private static CombatSetup _screenKeptOnBy;
+
+        // Whether a live run keeps the phone's screen on (SleepTimeout.NeverSleep), for tests.
+        internal static bool KeepsScreenOn => _screenKeptOnBy != null;
+
+        private void KeepScreenOn()
+        {
+            _screenKeptOnBy = this;
+            Screen.sleepTimeout = SleepTimeout.NeverSleep;
+        }
+
+        private void LetScreenSleep()
+        {
+            if (_screenKeptOnBy != null && _screenKeptOnBy != this)
+                return;
+            _screenKeptOnBy = null;
+            Screen.sleepTimeout = SleepTimeout.SystemSetting;
         }
 
         // The run's local event log. Attached before this root subscribes to a checkpoint choice, a kill or a floor clear,
@@ -962,6 +996,22 @@ namespace Cryptforge.Core
                 Pause.TryPause();
         }
 
+        // On a phone, so does losing focus without leaving: the notification shade, the power or volume dialog, an
+        // assistant overlay or split screen send OnApplicationFocus(false) and no pause, so the run went on at full speed
+        // with the stick's touch cancelled and the hero standing in the horde. Neither resumes on return: the player taps
+        // Resume. Only on a mobile platform (FocusLossPauses): the Editor and the batch tests lose focus for other reasons.
+        private void OnApplicationFocus(bool focused)
+        {
+            if (!focused && FocusLossPauses && Pause != null)
+                Pause.TryPause();
+        }
+
+        // For tests: whether losing focus pauses the run, in place of the platform's answer; null asks the platform.
+        // A test that sets it restores null.
+        internal static bool? FocusLossPausesOverride;
+
+        private static bool FocusLossPauses => FocusLossPausesOverride ?? Application.isMobilePlatform;
+
         // Scaled time freezes combat cadence while the run is frozen; uGUI input runs on unscaled time.
         private void ApplyPause()
         {
@@ -996,6 +1046,7 @@ namespace Cryptforge.Core
                 Profile.Changed -= SaveProfile;
             if (_timeFrozen)
                 Time.timeScale = 1f;
+            LetScreenSleep();
         }
     }
 }

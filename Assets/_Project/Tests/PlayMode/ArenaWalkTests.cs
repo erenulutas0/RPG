@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Reflection;
 using Cryptforge.Combat;
 using Cryptforge.Core;
 using Cryptforge.Progression;
@@ -156,6 +157,47 @@ namespace Cryptforge.Tests
             Assert.That(_encounters.HeroFloorX, Is.EqualTo(heroX), "The hero never moved.");
             LogAssert.NoUnexpectedReceived();
         }
+
+        // The stick forgets the finger it held when it is switched off (the gate boss's reveal, the gate's arrival and the
+        // map choice do) and when it is released: the finger may lift unseen meanwhile, and a new touch reusing its id
+        // steered by the old landing point, so the hero walked on its own after the reveal (the run flow's review,
+        // 2026-11-26). The legacy Input cannot be driven from a test, so the finger is set as ReadDrag sets it.
+        [UnityTest]
+        public IEnumerator TheStickForgetsItsFingerWhenSwitchedOffOrReleased()
+        {
+            _hero.GetComponent<AttackController>().enabled = false;
+            HoldFinger(_movement, new Vector2(300f, 600f), new Vector2(500f, 600f));
+            Assert.That(_movement.IsDragging, Is.True);
+            _movement.enabled = false;
+            Assert.That(_movement.IsDragging, Is.False, "Switched off, the stick lets go of its finger.");
+            Assert.That(FingerOf(_movement), Is.EqualTo(-1));
+            Assert.That(_movement.Steer, Is.EqualTo(Vector2.zero), "And steers nothing.");
+            _movement.enabled = true;
+            yield return null;
+            Assert.That(_movement.IsMoving, Is.False, "Watching again, it waits for a new touch.");
+
+            HoldFinger(_movement, new Vector2(300f, 600f), new Vector2(300f, 800f));
+            _movement.Release();
+            Assert.That(_movement.IsDragging, Is.False, "Released, the stick lets go of its finger too.");
+            Assert.That(FingerOf(_movement), Is.EqualTo(-1));
+            yield return null;
+            Assert.That(_movement.IsMoving, Is.False);
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        private const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
+
+        // Finger 0 on the stick, landed at start and now at current, as ReadDrag records a touch it took.
+        internal static void HoldFinger(HeroMovementInput movement, Vector2 start, Vector2 current)
+        {
+            typeof(HeroMovementInput).GetField("_dragging", Private).SetValue(movement, true);
+            typeof(HeroMovementInput).GetField("_fingerId", Private).SetValue(movement, 0);
+            typeof(HeroMovementInput).GetField("_dragStart", Private).SetValue(movement, start);
+            typeof(HeroMovementInput).GetField("_dragCurrent", Private).SetValue(movement, current);
+        }
+
+        internal static int FingerOf(HeroMovementInput movement) =>
+            (int)typeof(HeroMovementInput).GetField("_fingerId", Private).GetValue(movement);
 
         [UnityTest]
         public IEnumerator TheFirstRoomsChestMendsAQuarterWhenTheHeroWalksOntoIt()
