@@ -59,7 +59,12 @@ namespace Cryptforge.UI
         // Holds a steer without any touch, until cleared; tests and later an auto-battle option drive the hero this way.
         public void Hold(Vector2 floorSteer) => _heldSteer = floorSteer;
 
-        public void Release() => _heldSteer = Vector2.zero;
+        // Clears the held steer and lets go of the finger on the stick: the hero steers by nothing until a new touch lands.
+        public void Release()
+        {
+            _heldSteer = Vector2.zero;
+            ForgetDrag();
+        }
 
         private void Awake()
         {
@@ -85,6 +90,23 @@ namespace Cryptforge.UI
         {
             if (_setup != null && _setup.Encounters != null)
                 _setup.Encounters.EncounterStarted -= OnWaveStarted;
+        }
+
+        // Switched off (the gate boss's reveal, the gate's arrival, the map choice), the stick watches no finger: the one it
+        // held may lift meanwhile unseen, and a new touch that reuses its id (finger 0 again) steered by the old landing
+        // point, so the hero walked on its own after the reveal. It forgets the drag, and steers nothing while off.
+        private void OnDisable()
+        {
+            ForgetDrag();
+            _steer = Vector2.zero;
+        }
+
+        private void ForgetDrag()
+        {
+            _dragging = false;
+            _fingerId = -1;
+            _dragStart = Vector2.zero;
+            _dragCurrent = Vector2.zero;
         }
 
         private void OnWaveStarted() => Stamina.Fill();

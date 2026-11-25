@@ -1,5 +1,6 @@
 using System.Collections;
 using System.IO;
+using System.Reflection;
 using Cryptforge.Art;
 using Cryptforge.Combat;
 using Cryptforge.Core;
@@ -168,6 +169,36 @@ namespace Cryptforge.Tests
             yield return Hold(setup,BossRevealView.HoldSeconds+2*BossRevealView.TurnSeconds+.3f);
             Assert.That(reveal.IsRevealing,Is.False,"The camera is back on the hero.");
             Assert.That(reveal.HeldButton,Is.Null,"The button answers its own taps again.");
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // The reveal switches the stick off (BossRevealView), and the stick lets go of the finger it held then: that finger
+        // may lift unseen while the camera is away, and a new touch reusing its id steered by the old landing point, so the
+        // hero walked on its own once the camera was back (the run flow's review, 2026-11-26). The legacy Input cannot be
+        // driven from a test: the finger is set on the stick as ReadDrag sets it, the moment before a reveal begins - the
+        // boss's own has run by then, so the arrival is raised again on the reveal.
+        [UnityTest, Timeout(90000)] public IEnumerator TheRevealLetsGoOfTheFingerOnTheStick()
+        {
+            yield return Load("foundry");
+            var setup=Object.FindFirstObjectByType<CombatSetup>();var encounter=setup.Encounters;
+            var reveal=setup.GetComponent<BossRevealView>();var movement=Object.FindFirstObjectByType<HeroMovementInput>();
+            movement.enabled=true;
+            yield return WaitForBoss(encounter);
+            yield return Hold(setup,BossRevealView.HoldSeconds+2*BossRevealView.TurnSeconds+.3f);
+            Assert.That(reveal.IsRevealing,Is.False,"The boss's own reveal is over.");
+            Assert.That(movement.enabled,Is.True,"The stick watches again.");
+
+            ArenaWalkTests.HoldFinger(movement,new Vector2(300f,600f),new Vector2(500f,600f));
+            Assert.That(movement.IsDragging,Is.True);
+            typeof(BossRevealView).GetMethod("OnGateBossArrived",BindingFlags.Instance|BindingFlags.NonPublic).Invoke(reveal,null);
+            Assert.That(reveal.IsRevealing,Is.True);
+            Assert.That(movement.enabled,Is.False,"The reveal switches the stick off.");
+            Assert.That(movement.IsDragging,Is.False,"And the stick lets go of its finger.");
+            Assert.That(ArenaWalkTests.FingerOf(movement),Is.EqualTo(-1));
+            yield return Hold(setup,BossRevealView.HoldSeconds+2*BossRevealView.TurnSeconds+.3f);
+            Assert.That(reveal.IsRevealing,Is.False);
+            Assert.That(movement.enabled,Is.True,"The camera back, the stick watches again.");
+            Assert.That(movement.IsDragging,Is.False,"With no finger of its own.");
             LogAssert.NoUnexpectedReceived();
         }
 

@@ -3208,3 +3208,34 @@ simulation change.
 Tests: `ProfileStoreTests`, `ArenaLadderTests` and `RewardLedgerTests` (EditMode; the last two in Tools/CombatChecks
 too); `ProfileSafetyFlowTests` (PlayMode: the carry over two reloads with the notice, and a newer build's profile kept
 through a run's end and a reload).
+
+## 2026-11-26 - Six run-flow fixes: focus, the stick, the resume delay, the screen timeout, the map choice, the notice
+
+- **Losing focus pauses the run on a phone.** The notification shade, the power or volume dialog, an assistant overlay
+  and split screen send `OnApplicationFocus(false)` and no pause: the run went on at full speed with the stick's touch
+  cancelled. `CombatSetup.OnApplicationFocus(false)` now pauses as `OnApplicationPause(true)` does, only where
+  `Application.isMobilePlatform` (the Editor and the batch tests lose focus for other reasons; tests set
+  `CombatSetup.FocusLossPausesOverride`). Nothing resumes on return: the player taps Resume.
+- **The stick forgets its finger when switched off.** The gate boss's reveal (and the gate's arrival, the map choice)
+  sets `HeroMovementInput.enabled = false`; the drag survived it, and a new touch reusing finger id 0 steered by the old
+  landing point, so the hero walked on its own after the reveal. `OnDisable` and `Release` now forget the drag (finger,
+  landing and current point), and the switched-off stick steers nothing.
+- **Resume waits its delay again on return.** The pause overlay's 0.3 s input delay, started as the app left, ran out in
+  the background, so the tap that brought the player back (a call's end button) resumed at once. With the overlay open,
+  `OnApplicationPause(false)` and `OnApplicationFocus(true)` hold its buttons again, the delay counted from the first
+  frame back.
+- **A live run keeps the screen on.** Nothing set `Screen.sleepTimeout`: the phone's 15-30 s timeout dimmed and locked
+  the screen while the player read a card or stood auto-firing. `SleepTimeout.NeverSleep` from `CombatSetup.BeginRun`
+  to `Run.Ended`; `SleepTimeout.SystemSetting` on the map choice, the result screen and the scene's destroy. One run holds
+  it at a time, so a reload's new run keeps it whichever scene's `OnDestroy` and `Awake` come first.
+- **No pause on the map choice.** `RunPause.CanPause` was true while the map was chosen: leaving the app there opened the
+  pause overlay under the map choice's canvas and the run began frozen. `RunPause.IsAwaitingStart` (set while
+  `CombatSetup.IsChoosingMap`, cleared by `BeginRun`) refuses the pause and hides the pause button; it freezes nothing.
+- **The save notice outlasts a clock jump.** `ProfileNoticeView` counted `Time.unscaledDeltaTime` unclamped, so a lock and
+  unlock hid it before it was read; a frame now counts at most `ProfileNoticeView.MaxStep` (0.1 s).
+
+Tests: `RunPauseTests` (EditMode, and in Tools/CombatChecks); `PauseFlowTests` (focus on a phone and off it, the delay
+again on return), `ArenaWalkTests` (the stick switched off and released), `GateBossFlowTests` (the reveal lets go of the
+finger), `MapChoiceFlowTests` (no pause on the map choice; the screen on from the run's start to its end, over a live
+run's reload and a deeper start's), `ProfileSafetyFlowTests` (the notice over a clock jump). No save, simulation or
+telemetry change.

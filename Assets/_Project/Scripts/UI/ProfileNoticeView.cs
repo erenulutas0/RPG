@@ -29,6 +29,8 @@ namespace Cryptforge.UI
         public const float ShowSeconds = 6f;
         private const float FadeIn = .25f;
         private const float FadeOut = .5f;
+        // The most real time one frame counts toward ShowSeconds (Step), as RunFeedbackView clamps its own steps.
+        internal const float MaxStep = .1f;
         // On the canvas's 1080-wide reference: the plate's gap under the safe area's top, its width, its smallest and
         // tallest height, its padding; the line's size and its smallest best fit.
         internal const float Top = 24f;
@@ -140,14 +142,18 @@ namespace Cryptforge.UI
             _plate.sizeDelta = new Vector2(Width, Mathf.Clamp(height + 2f * PadY, MinHeight, MaxHeight));
         }
 
-        private void Update()
+        private void Update() => Step(Time.unscaledDeltaTime);
+
+        // One frame of the notice's real time, at most MaxStep of it: a lock and unlock, or a trip out of the app, jumps the
+        // unscaled clock, and the notice hid before it was read.
+        internal void Step(float unscaledDeltaTime)
         {
             if (!_showing)
             {
                 enabled = false;
                 return;
             }
-            _elapsed += Time.unscaledDeltaTime;
+            _elapsed += Mathf.Min(unscaledDeltaTime, MaxStep);
             if (_elapsed >= ShowSeconds)
             {
                 Hide();

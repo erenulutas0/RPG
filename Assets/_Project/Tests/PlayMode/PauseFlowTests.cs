@@ -44,6 +44,7 @@ namespace Cryptforge.Tests
         public IEnumerator UnloadGameplay()
         {
             Time.timeScale = 1f;
+            CombatSetup.FocusLossPausesOverride = null;
             Scene gameplay = SceneManager.GetActiveScene();
             Scene empty = SceneManager.CreateScene("Pause Test Cleanup");
             SceneManager.SetActiveScene(empty);
@@ -115,6 +116,72 @@ namespace Cryptforge.Tests
             _setup.Choices.TrySelect(_setup.Choices.Current, 0);
             Assert.That(Time.timeScale, Is.EqualTo(1f));
             Assert.That(_pauseButton.gameObject.activeInHierarchy, Is.True);
+        }
+
+        // On a phone the notification shade, the power or volume dialog, an assistant overlay or split screen take the focus
+        // without pausing the app: the run went on at full speed with the stick's touch cancelled (the run flow's review,
+        // 2026-11-26). Losing focus pauses it there, and regaining it resumes nothing. The Editor and the batch tests lose
+        // focus for other reasons, so only a mobile platform does (CombatSetup.FocusLossPausesOverride stands in for it).
+        [UnityTest]
+        public IEnumerator LosingFocusOnAPhonePausesTheRunAndRegainingItResumesNothing()
+        {
+            CombatSetup.FocusLossPausesOverride = false;
+            _setup.gameObject.SendMessage("OnApplicationFocus", false);
+            Assert.That(_pause.IsOpen, Is.False, "Off a phone, losing focus pauses nothing.");
+            Assert.That(Time.timeScale, Is.EqualTo(1f));
+
+            CombatSetup.FocusLossPausesOverride = true;
+            _setup.gameObject.SendMessage("OnApplicationFocus", false);
+            Assert.That(_pause.IsOpen, Is.True, "On a phone, the shade pulled down finds the run paused.");
+            Assert.That(_setup.Pause.IsPlayerPaused, Is.True);
+            Assert.That(Time.timeScale, Is.Zero);
+            _setup.gameObject.SendMessage("OnApplicationFocus", true);
+            Assert.That(_pause.IsOpen, Is.True, "Regaining focus does not resume by itself.");
+            Assert.That(Time.timeScale, Is.Zero);
+
+            yield return new WaitForSecondsRealtime(0.6f);
+            Tap(_resumeButton);
+            Assert.That(_pause.IsOpen, Is.False, "The player resumes.");
+            Assert.That(Time.timeScale, Is.EqualTo(1f));
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // The overlay's input delay was started as the app left and ran out in the background, so the tap that brings the
+        // player back (a call's end button) resumed at once (the run flow's review, 2026-11-26). Back in the app with the
+        // overlay open, the delay runs again, from OnApplicationPause(false) and from OnApplicationFocus(true).
+        [UnityTest]
+        public IEnumerator ComingBackToTheAppHoldsTheResumeButtonForItsDelayAgain()
+        {
+            _setup.gameObject.SendMessage("OnApplicationPause", true);
+            Assert.That(_pause.IsOpen, Is.True);
+            // The time away: the delay the overlay started as the app left has run out.
+            yield return new WaitForSecondsRealtime(0.6f);
+            Assert.That(_resumeButton.interactable, Is.True);
+
+            _setup.gameObject.SendMessage("OnApplicationPause", false);
+            _pause.SendMessage("OnApplicationPause", false);
+            Assert.That(_resumeButton.interactable, Is.False, "Back in the app, Resume waits its delay again.");
+            Tap(_resumeButton);
+            yield return null;
+            Tap(_resumeButton);
+            Assert.That(_pause.IsOpen, Is.True, "The tap that brings the player back does not resume.");
+            Assert.That(Time.timeScale, Is.Zero);
+            yield return new WaitForSecondsRealtime(0.6f);
+            Assert.That(_resumeButton.interactable, Is.True, "Then it answers.");
+
+            _pause.SendMessage("OnApplicationFocus", true);
+            Assert.That(_resumeButton.interactable, Is.False, "Focus regained holds it too.");
+            Tap(_resumeButton);
+            Assert.That(_pause.IsOpen, Is.True);
+            yield return new WaitForSecondsRealtime(0.6f);
+            Tap(_resumeButton);
+            Assert.That(_pause.IsOpen, Is.False);
+            Assert.That(Time.timeScale, Is.EqualTo(1f));
+
+            _pause.SendMessage("OnApplicationFocus", true);
+            Assert.That(_pause.IsOpen, Is.False, "With the overlay shut, coming back changes nothing.");
+            Assert.That(Time.timeScale, Is.EqualTo(1f));
+            LogAssert.NoUnexpectedReceived();
         }
 
         // Flow tests click buttons directly, which bypasses raycasting. On a device a touch only reaches a button whose

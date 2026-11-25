@@ -70,5 +70,28 @@ namespace Cryptforge.Tests
             Assert.That(pause.TryPause(), Is.False);
             Assert.That(pause.CanPause, Is.False);
         }
+
+        // The map choice (CombatSetup.IsChoosingMap): nothing runs yet, so leaving the app there pauses nothing - the
+        // overlay opened under the map choice's canvas and the run began frozen (the run flow's review, 2026-11-26).
+        [Test]
+        public void ARunNotYetBegunCannotBePausedAndRunsOnceItBegins()
+        {
+            var pause = new RunPause(new RunState(10));
+            int changes = 0;
+            pause.Changed += () => changes++;
+
+            pause.SetAwaitingStart(true);
+            pause.SetAwaitingStart(true);
+            Assert.That(pause.IsAwaitingStart, Is.True);
+            Assert.That(pause.CanPause, Is.False);
+            Assert.That(pause.TryPause(), Is.False, "Leaving the app on the map choice pauses nothing.");
+            Assert.That(pause.IsPlayerPaused, Is.False);
+            Assert.That(pause.IsFrozen, Is.False, "Waiting for the start freezes nothing.");
+
+            pause.SetAwaitingStart(false);
+            Assert.That(pause.CanPause, Is.True, "Once the run begins it can be paused.");
+            Assert.That(pause.TryPause(), Is.True);
+            Assert.That(changes, Is.EqualTo(3), "Each change of the start's wait, and the pause, are told once.");
+        }
     }
 }

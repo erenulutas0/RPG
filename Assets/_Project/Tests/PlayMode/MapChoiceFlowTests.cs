@@ -116,6 +116,70 @@ namespace Cryptforge.Tests
             Assert.That(Object.FindFirstObjectByType<CombatSetup>(), Is.SameAs(setup));
         }
 
+        // Nothing runs while the map is chosen, so nothing pauses: leaving the app there opened the pause overlay under the
+        // map choice's canvas, and the run then began frozen (the run flow's review, 2026-11-26). And the phone's own screen
+        // timeout stands on the map choice and the result screen, while the live run between them keeps the screen on.
+        [UnityTest, Timeout(120000)]
+        public IEnumerator NothingPausesOnTheMapChoiceAndOnlyTheLiveRunKeepsTheScreenOn()
+        {
+            yield return LoadWithTheMapChoice();
+            var setup = Object.FindFirstObjectByType<CombatSetup>();
+            var view = Object.FindFirstObjectByType<MapChoiceView>();
+            var pause = Object.FindFirstObjectByType<PauseView>();
+            Assert.That(setup.IsChoosingMap, Is.True);
+            Assert.That(setup.Pause.CanPause, Is.False, "Nothing runs yet to pause.");
+            Assert.That(GameObject.Find("Pause Button"), Is.Null, "No pause button under the map choice.");
+            Assert.That(CombatSetup.KeepsScreenOn, Is.False, "The map choice keeps the phone's own screen timeout.");
+
+            CombatSetup.FocusLossPausesOverride = true;
+            try
+            {
+                setup.SendMessage("OnApplicationFocus", false);
+                setup.SendMessage("OnApplicationPause", true);
+                Assert.That(setup.Pause.IsPlayerPaused, Is.False, "Leaving the app on the map choice pauses nothing.");
+                Assert.That(pause.IsOpen, Is.False, "No overlay hidden under the map choice.");
+                setup.SendMessage("OnApplicationPause", false);
+                setup.SendMessage("OnApplicationFocus", true);
+            }
+            finally
+            {
+                CombatSetup.FocusLossPausesOverride = null;
+            }
+
+            yield return Tap(view, 0);
+            Assert.That(setup.IsChoosingMap, Is.False);
+            Assert.That(Time.timeScale, Is.EqualTo(1f), "The run begins running, not frozen.");
+            Assert.That(setup.Pause.CanPause, Is.True, "Begun, the run can be paused.");
+            Assert.That(GameObject.Find("Pause Button"), Is.Not.Null, "Its pause button shows.");
+            Assert.That(CombatSetup.KeepsScreenOn, Is.True, "The live run keeps the screen on.");
+
+            setup.SendMessage("OnApplicationPause", true);
+            Assert.That(pause.IsOpen, Is.True, "Leaving the app now pauses the run.");
+            Assert.That(setup.Pause.TryResume(), Is.True);
+
+            // The live run reloads the scene with floor 1 chosen, as a map tapped does: the new scene's run keeps the screen
+            // on, whichever of the old scene's OnDestroy and the new one's Awake comes first.
+            RunStartRequest.Set(DescentStart.FirstFloor, null, setup.Tier);
+            CombatSetup previous = setup;
+            previous.RestartRun();
+            float deadline = Time.realtimeSinceStartup + 30f;
+            setup = null;
+            while (Time.realtimeSinceStartup < deadline)
+            {
+                setup = previous == null ? Object.FindFirstObjectByType<CombatSetup>() : null;
+                if (setup != null && setup.Run != null)
+                    break;
+                yield return null;
+            }
+            Assert.That(setup, Is.Not.Null, "The scene loaded again.");
+            Assert.That(setup.IsChoosingMap, Is.False, "The chosen load opens no map choice.");
+            Assert.That(CombatSetup.KeepsScreenOn, Is.True, "The reloaded run keeps the screen on.");
+
+            setup.Run.End(RunOutcome.Defeat);
+            Assert.That(CombatSetup.KeepsScreenOn, Is.False, "The result screen lets the screen sleep again.");
+            LogAssert.NoUnexpectedReceived();
+        }
+
         // Every other scene test: map-choice.txt "off" (TestProfile) starts the run at once on floor 1, as before.
         [UnityTest, Timeout(120000)]
         public IEnumerator WithTheMapChoiceOffTheRunStartsOnFloorOneAtOnce()
@@ -169,6 +233,7 @@ namespace Cryptforge.Tests
             Assert.That(RunStartRequest.IsPending, Is.False, "The choice was taken by the load it started.");
             Assert.That(Object.FindFirstObjectByType<MapChoiceView>(), Is.Null, "The chosen load opens no map choice.");
             Assert.That(setup.IsChoosingMap, Is.False);
+            Assert.That(CombatSetup.KeepsScreenOn, Is.True, "Its run is live from the load: the catch-up's cards are read with the screen on.");
 
             // The floor, as the stairs would have reached it.
             EncounterController encounters = setup.Encounters;
