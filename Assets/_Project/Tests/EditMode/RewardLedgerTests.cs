@@ -133,6 +133,52 @@ namespace Cryptforge.Tests
             Assert.Throws<ArgumentNullException>(() => store.Save(null));
         }
 
+        // An older APK installed over a newer one: the newer build's ledger, whichever copy it is (the backup beside a damaged
+        // main too), is never read, written over or deleted; the store is read only and the launch's ledger lives in memory.
+        [TestCase(RewardLedgerStore.FileName, false)]
+        [TestCase(RewardLedgerStore.FileName + ".tmp", false)]
+        [TestCase(RewardLedgerStore.FileName + ".bak", false)]
+        [TestCase(RewardLedgerStore.FileName + ".bak", true)]
+        public void ANewerBuildsLedgerIsNeverWrittenOver(string newerFile, bool corruptMain)
+        {
+            Directory.CreateDirectory(_root);
+            const string newer = "{\"saveVersion\": 2, \"revision\": 9, \"completedRuns\": 40, \"futureKey\": [\"x\"]}";
+            var older = new RewardLedger();
+            older.RecordCompletedRun("old-1");
+            string current = RewardLedgerStore.Write(older);
+            Assert.That(RewardLedgerStore.IsNewerVersion(newer), Is.True);
+            Assert.That(RewardLedgerStore.IsNewerVersion(current), Is.False);
+            Assert.That(RewardLedgerStore.IsNewerVersion("{\"saveVersion\": 1, \"revis"), Is.False, "Damaged, not newer.");
+            Assert.That(RewardLedgerStore.IsNewerVersion(null), Is.False);
+            string main = Path.Combine(_root, RewardLedgerStore.FileName);
+            foreach (string file in new[] { main, main + ".tmp", main + ".bak" })
+            {
+                string name = Path.GetFileName(file);
+                File.WriteAllText(file, name == newerFile ? newer : corruptMain && file == main ? "{\"saveVersion\": 1, \"revis" : current);
+            }
+            var before = new Dictionary<string, string>();
+            foreach (string file in Directory.GetFiles(_root))
+                before[Path.GetFileName(file)] = File.ReadAllText(file);
+
+            var store = new RewardLedgerStore(_root);
+            RewardLedger ledger = store.Load();
+            Assert.That((store.IsReadOnly, store.LastLoadWasNew, ledger.CompletedRuns), Is.EqualTo((true, true, 0)),
+                "A new ledger in memory, not the older copy beside the newer one.");
+            Assert.That(store.LastLoadProblems, Has.Some.Contains(newerFile + " was written by a newer build"));
+            for (int run = 0; run < 3; run++)
+            {
+                ledger.RecordCompletedRun("run-" + run);
+                store.Save(ledger);
+            }
+            Assert.That(ledger.CompletedRuns, Is.EqualTo(3), "Kept in memory.");
+            Assert.That(store.LastLoadProblems, Has.Exactly(1).Contains("Nothing was written"), "Said once.");
+            string[] files = Directory.GetFiles(_root);
+            Assert.That(files.Length, Is.EqualTo(before.Count), "No file made or deleted: " + string.Join(", ", files));
+            foreach (KeyValuePair<string, string> file in before)
+                Assert.That(File.ReadAllText(Path.Combine(_root, file.Key)), Is.EqualTo(file.Value), file.Key + " is unchanged.");
+            Assert.That(new RewardLedgerStore(_root).Load().CompletedRuns, Is.Zero, "Still the newer build's: read by none.");
+        }
+
         [Test]
         public void TheFileIsTheSameBytesWhateverTheThreadsCulture()
         {

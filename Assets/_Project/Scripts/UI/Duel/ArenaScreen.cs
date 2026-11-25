@@ -219,6 +219,10 @@ namespace Cryptforge.UI
             _save = _store.Load(NewSeed());
             foreach (string problem in _store.LastLoadProblems)
                 Debug.LogWarning("[Arena] " + problem);
+            // A newer build's arena save stands: it is kept, and this session's arena lives in memory only (the store writes
+            // nothing); the player hears it once a launch, as of the profile's.
+            if (_store.IsReadOnly && _setup != null)
+                ProfileNoticeView.TellNewerVersion(_setup, _store.Directory);
         }
 
         // A new arena's seed from the clock, never 0.
@@ -237,7 +241,10 @@ namespace Cryptforge.UI
             }
             catch (Exception exception) when (exception is IOException || exception is UnauthorizedAccessException)
             {
+                // The save stays in memory, and the store holds it for the arena's next opening until a write lands.
                 Debug.LogWarning("[Arena] the arena save could not be written: " + exception.Message);
+                if (_setup != null)
+                    ProfileNoticeView.TellSaveFailed(_setup);
             }
         }
 

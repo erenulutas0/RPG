@@ -106,6 +106,47 @@ namespace Cryptforge.Tests
             Assert.That(ArenaLadder.Fight(save, ArenaMode.Ranked, index, first).Rival.pastSelf, Is.True, "a past hero can be fought");
         }
 
+        // The kept list holds five snapshots across both arenas, so a build it has let go of can still stand on its ladder;
+        // keeping that build again put the same past hero there twice, under one "self-" id. Now it stands once.
+        [Test]
+        public void APastHeroStandsOnceAfterTheKeptListLetsItGo()
+        {
+            ArenaSaveData save = ArenaLadder.NewSave(5);
+            ArenaBuild first = ArenaRivals.Ranked(1, 1);
+            Assert.That(ArenaLadder.KeepSnapshot(save, first), Is.True);
+            string hash = ArenaHash.Hex(first.Hash);
+            // Five open builds push it out of the kept list; the ranked ladder still holds it.
+            for (int i = 0; i < ArenaSaveData.MaxPastSnapshots; i++)
+            {
+                save.fights++;
+                Assert.That(ArenaLadder.KeepSnapshot(save, ArenaRivals.Open(3, i, 1000 + 400 * i)), Is.True, $"open build {i}");
+            }
+            Assert.That(save.pastSnapshots.Any(s => s.hash == hash), Is.False, "the kept list let it go");
+            Assert.That(save.ranked.rivals.Count(r => r.pastSelf && r.build.hash == hash), Is.EqualTo(1));
+
+            save.fights++;
+            Assert.That(ArenaLadder.KeepSnapshot(save, first), Is.False, "it still stands on its ladder");
+            Assert.That(save.ranked.rivals.Count(r => r.pastSelf && r.build.hash == hash), Is.EqualTo(1));
+            string[] selves = save.ranked.rivals.Where(r => r.pastSelf).Select(r => r.id).ToArray();
+            Assert.That(selves, Is.Unique, "one past hero an id");
+            Assert.That(save.ranked.rivals.Count, Is.EqualTo(ArenaLadder.Size));
+            Assert.That(save.pastSnapshots.Any(s => s.hash == hash), Is.False, "nothing kept");
+
+            // Whatever is kept from here on, no ladder ever holds two past heroes of one build.
+            for (int i = 2; i < 14; i++)
+            {
+                save.fights++;
+                ArenaLadder.KeepSnapshot(save, i % 3 == 0 ? first : ArenaRivals.Ranked(1, i % 4 + 1));
+                ArenaLadder.KeepSnapshot(save, ArenaRivals.Open(3, i % 6, 1000 + 400 * (i % 6)));
+                foreach (ArenaLadderData ladder in new[] { save.ranked, save.open })
+                {
+                    string[] hashes = ladder.rivals.Where(r => r.pastSelf).Select(r => r.build.hash).ToArray();
+                    Assert.That(hashes, Is.Unique, $"after keep {i}");
+                    Assert.That(ladder.rivals.Where(r => r.pastSelf).Select(r => r.id).ToArray(), Is.Unique, $"after keep {i}");
+                }
+            }
+        }
+
         [Test]
         public void TheSaveRoundTripsThroughJson()
         {
@@ -164,6 +205,121 @@ namespace Cryptforge.Tests
                 if (Directory.Exists(directory))
                     Directory.Delete(directory, true);
             }
+        }
+
+        // An older APK installed over a newer one: the newer build's arena save, whichever of the three files it is, is never
+        // read, written over or deleted (the backup beside a damaged main too); the store is read only, the session's arena
+        // lives in memory and comes back at the arena's next opening.
+        [TestCase(ArenaSaveStore.FileName, false)]
+        [TestCase(ArenaSaveStore.TempFileName, false)]
+        [TestCase(ArenaSaveStore.BackupFileName, false)]
+        [TestCase(ArenaSaveStore.BackupFileName, true)]
+        public void ANewerBuildsArenaSaveIsNeverWrittenOver(string newerFile, bool corruptMain)
+        {
+            string directory = Path.Combine(Path.GetTempPath(), "cryptforge-arena-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                Directory.CreateDirectory(directory);
+                ArenaSaveData older = ArenaLadder.NewSave(21);
+                older.revision = 4;
+                string current = ArenaSaveJson.Write(older);
+                string newer = current.Replace("\"saveVersion\": 2", "\"saveVersion\": 3").Replace("\"revision\": 4", "\"revision\": 9");
+                Assert.That(ArenaSaveJson.IsNewerVersion(newer), Is.True);
+                Assert.That(ArenaSaveJson.IsNewerVersion(current), Is.False);
+                Assert.That(ArenaSaveJson.IsNewerVersion("{ broken"), Is.False, "damaged, not newer");
+                Assert.That(ArenaSaveJson.Version(newer), Is.EqualTo(3));
+                foreach (string file in new[] { ArenaSaveStore.FileName, ArenaSaveStore.TempFileName, ArenaSaveStore.BackupFileName })
+                {
+                    string text = file == newerFile ? newer : corruptMain && file == ArenaSaveStore.FileName ? "{ \"saveVersion\": 2, \"rev" : current;
+                    File.WriteAllText(Path.Combine(directory, file), text);
+                }
+                var before = Directory.GetFiles(directory).ToDictionary(f => Path.GetFileName(f), f => File.ReadAllText(f));
+
+                var store = new ArenaSaveStore(directory);
+                ArenaSaveData save = store.Load(77);
+                Assert.That(store.IsReadOnly, Is.True);
+                Assert.That(store.LastLoadWasNew, Is.True, "a new arena, not the older copy beside the newer one");
+                Assert.That(save.seed, Is.EqualTo(77));
+                Assert.That(store.LastLoadProblems, Has.Some.Contains(newerFile + " was written by a newer build"));
+                for (int fight = 0; fight < 3; fight++)
+                {
+                    ArenaLadder.Fight(save, ArenaMode.Ranked, ArenaLadder.Opponents(save.ranked)[0], ArenaRivals.Ranked(99, 0));
+                    store.Save(save);
+                }
+                Assert.That(store.LastLoadProblems.Count(p => p.Contains("Nothing was written")), Is.EqualTo(1), "said once");
+                AssertUntouched(directory, before);
+
+                // The arena opened again this session: its fights come back, still unwritten.
+                var reopened = new ArenaSaveStore(directory);
+                ArenaSaveData again = reopened.Load(78);
+                Assert.That(reopened.IsReadOnly, Is.True);
+                Assert.That(reopened.LastLoadWasUnsaved, Is.True);
+                Assert.That(again.fights, Is.EqualTo(3));
+                Assert.That(again.seed, Is.EqualTo(77));
+                reopened.Save(again);
+                AssertUntouched(directory, before);
+            }
+            finally
+            {
+                ArenaSaveStore.ForgetUnsaved();
+                if (Directory.Exists(directory))
+                    Directory.Delete(directory, true);
+            }
+        }
+
+        // A full phone: the arena's write fails, the fights stay in memory, and the arena's next opening (each opening
+        // loads) gets them back rather than the older file, until a write lands.
+        [Test]
+        public void AnArenaSaveThatFailsComesBackAtTheNextOpening()
+        {
+            string directory = Path.Combine(Path.GetTempPath(), "cryptforge-arena-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                var store = new ArenaSaveStore(directory);
+                ArenaSaveData save = store.Load(31);
+                store.Save(save);
+                string blocked = Path.Combine(directory, ArenaSaveStore.TempFileName);
+                Directory.CreateDirectory(blocked);
+                save.ranked.rating = 1234;
+                Exception thrown = null;
+                try
+                {
+                    store.Save(save);
+                }
+                catch (Exception exception)
+                {
+                    thrown = exception;
+                }
+                Assert.That(thrown is IOException || thrown is UnauthorizedAccessException, Is.True, "the write fails: " + thrown);
+                Assert.That(ArenaSaveStore.HoldsUnsaved(directory), Is.True);
+
+                var reopened = new ArenaSaveStore(directory);
+                ArenaSaveData back = reopened.Load(32);
+                Assert.That(reopened.LastLoadWasUnsaved, Is.True);
+                Assert.That(back.ranked.rating, Is.EqualTo(1234), "the session's, not the file's");
+                Assert.That(new ArenaSaveStore(directory + "-other").Load(33).seed, Is.EqualTo(33), "another folder's load never takes it");
+
+                Directory.Delete(blocked);
+                reopened.Save(back);
+                Assert.That(ArenaSaveStore.HoldsUnsaved(directory), Is.False, "released once a write lands");
+                var after = new ArenaSaveStore(directory);
+                Assert.That(after.Load(34).ranked.rating, Is.EqualTo(1234));
+                Assert.That(after.LastLoadWasUnsaved, Is.False, "from the file again");
+            }
+            finally
+            {
+                ArenaSaveStore.ForgetUnsaved();
+                if (Directory.Exists(directory))
+                    Directory.Delete(directory, true);
+            }
+        }
+
+        private static void AssertUntouched(string directory, System.Collections.Generic.Dictionary<string, string> before)
+        {
+            string[] files = Directory.GetFiles(directory);
+            Assert.That(files.Length, Is.EqualTo(before.Count), "no file made or deleted: " + string.Join(", ", files));
+            foreach (var file in before)
+                Assert.That(File.ReadAllText(Path.Combine(directory, file.Key)), Is.EqualTo(file.Value), file.Key + " is unchanged");
         }
 
         [Test]

@@ -174,11 +174,14 @@ namespace Cryptforge.Core
             }
 
             Application.targetFrameRate = 60;
-            // The profile is read from disk on every scene load, so a restart needs no persistent service object.
+            // The profile is read from disk on every scene load, so a restart needs no persistent service object - unless a
+            // save of this session did not land (a full phone, or a newer build's file: read only): then the profile it
+            // could not write comes over the reload instead of the older file (UnsavedProfile, ProfileStore.LoadSession).
             _profileStore = new ProfileStore(ProfileLocation.Resolve());
-            Profile = _profileStore.Load();
+            Profile = _profileStore.LoadSession();
             DeepestFloorClearedAtStart = Profile.DeepestFloorCleared;
             ReportLoadProblems();
+            TellProfileState();
             Relics = new RelicShop(Profile, relics);
             // The map, hero and tier chosen before this load (MapChoiceView), if any: taken here, before the hero is chosen.
             int wanted = RunStartRequest.Take(out string requestedHero, out DifficultyTier? requestedTier);
@@ -509,11 +512,26 @@ namespace Cryptforge.Core
 
         private void ReportLoadProblems()
         {
-            if (_profileStore.LastLoadStatus != ProfileLoadStatus.Recovered && _profileStore.LastLoadStatus != ProfileLoadStatus.Reset)
+            if (_profileStore.LastLoadWasUnsaved)
+                Debug.LogWarning($"Profile: the profile this session could not save came over the reload; {_profileStore.Directory} " +
+                    "still holds an older one.", this);
+            if (_profileStore.LastLoadStatus != ProfileLoadStatus.Recovered && _profileStore.LastLoadStatus != ProfileLoadStatus.Reset &&
+                _profileStore.LastLoadStatus != ProfileLoadStatus.NewerVersion)
                 return;
 
             Debug.LogWarning($"Profile {_profileStore.LastLoadStatus} from {_profileStore.Directory}: " +
                 string.Join("; ", _profileStore.LastLoadProblems), this);
+        }
+
+        // The player hears of the save's state (ProfileNoticeView): a newer build's profile on disk once a launch (this
+        // session saves nothing); a profile that came over the reload unsaved is written again at once - room may have been
+        // made since - and a write that fails again says so.
+        private void TellProfileState()
+        {
+            if (_profileStore.IsReadOnly)
+                ProfileNoticeView.TellNewerVersion(this, _profileStore.Directory);
+            else if (_profileStore.LastLoadWasUnsaved)
+                TrySaveProfile();
         }
 
         // Whether this run carries the hero's skill slot (docs/57 phase 4): skill 1 always; skills 2 and 3 once the Forge has
@@ -537,7 +555,6 @@ namespace Cryptforge.Core
         // the hero's own hint without it.
         public string UnlockHint(HeroDefinition hero) => HeroText.UnlockHint(hero, DevelopmentStart.WeaponRoster());
 
-        // A failed write keeps the in-memory profile; the next change tries again.
         // docs/57's skills 2 and 3, where the run carries them (CarriesSkill: forged at the Forge, or a development file).
         // Their cooldowns take the gear's line as the first's did (GearStats.Apply), and what they reach is handed over: the
         // guard's armour onto the hero's sheet, the first weapon the Rush's damage scales by, the stick and the dash, the
@@ -593,18 +610,22 @@ namespace Cryptforge.Core
         // the result saved.
         private void SaveResult() => ResultSaved = TrySaveProfile();
 
+        // A failed write keeps the in-memory profile and the next change tries again; UnsavedProfile carries it over a scene
+        // reload until a write lands (the store holds it), and the player is told (once a scene). While a newer build's
+        // profile stands the store writes nothing (read only): false too, since the result is not on disk.
         private bool TrySaveProfile()
         {
             try
             {
                 _profileStore.Save(Profile);
-                return true;
             }
             catch (Exception exception) when (exception is IOException || exception is UnauthorizedAccessException)
             {
                 Debug.LogError($"Saving the profile to {_profileStore.Directory} failed: {exception}", this);
+                ProfileNoticeView.TellSaveFailed(this);
                 return false;
             }
+            return !_profileStore.IsReadOnly;
         }
 
         // A kill in the Descent drops its reward where the enemy fell; the finale pays it at once, as it was measured and

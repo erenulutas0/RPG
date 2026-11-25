@@ -81,6 +81,27 @@ namespace Cryptforge.Arena
             return save;
         }
 
+        // Whether the text is a whole arena save of a version above this build's - an older APK installed over a newer one
+        // finds it - which Read refuses as it refuses a damaged one, but which must never be written over (ArenaSaveStore).
+        public static bool IsNewerVersion(string json) => Version(json) > ArenaSaveData.CurrentVersion;
+
+        // The save version the text names; 0 for text that is not a JSON object or names none.
+        public static int Version(string json)
+        {
+            if (string.IsNullOrWhiteSpace(json))
+                return 0;
+            object root;
+            try
+            {
+                root = new Reader(json).Document();
+            }
+            catch (FormatException)
+            {
+                return 0;
+            }
+            return root is Dictionary<string, object> o ? Int(o, "saveVersion", 0) : 0;
+        }
+
         // Version 1 had no training rivals: the ranked ladder becomes the training ladder, and each generated rival takes
         // the rung its id names ("ranked-07") and the handicap the rules give that rung. The rating stands; from here on it
         // is a training rating.
