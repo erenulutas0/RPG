@@ -56,16 +56,18 @@ namespace Cryptforge.Tests
 
             string line = TelemetryJson.Line(inRun);
             Assert.That(line, Is.EqualTo(
-                "{\"v\":1,\"seq\":42,\"t\":\"2026-09-15T13:04:05.067Z\",\"st\":12.346,\"session\":\"abc\",\"run\":\"abc-2\"," +
+                "{\"v\":2,\"seq\":42,\"t\":\"2026-09-15T13:04:05.067Z\",\"st\":12.346,\"session\":\"abc\",\"run\":\"abc-2\"," +
                 "\"event\":\"room_start\",\"floor_index\":1,\"floor_id\":\"floor_ember_halls\",\"ratio\":0.250,\"healthy\":true," +
                 "\"room_kind\":\"boss\"}"));
             Assert.That(line, Does.Not.Contain("\n"), "One line without a trailing newline.");
 
             var outsideRun = new TelemetryRecord(43, SampleTime.AddMilliseconds(1), 0, "abc", null, "currency_spent", null);
             Assert.That(TelemetryJson.Line(outsideRun), Is.EqualTo(
-                "{\"v\":1,\"seq\":43,\"t\":\"2026-09-15T13:04:05.068Z\",\"st\":0.000,\"session\":\"abc\",\"event\":\"currency_spent\"}"),
+                "{\"v\":2,\"seq\":43,\"t\":\"2026-09-15T13:04:05.068Z\",\"st\":0.000,\"session\":\"abc\",\"event\":\"currency_spent\"}"),
                 "No run key outside a run, and no fields when there are none.");
-            Assert.That(TelemetryJson.SchemaVersion, Is.EqualTo(1));
+            // 2 since docs/57 5.3's skills telemetry: ability_used per slot, the skills on run_start and run_end, three new
+            // events. Every key schema 1 wrote is where it was.
+            Assert.That(TelemetryJson.SchemaVersion, Is.EqualTo(2));
         }
 
         [Test]
@@ -83,7 +85,7 @@ namespace Cryptforge.Tests
             var fields = new TelemetryFields().Add("item_id", "a\"b\n");
             string line = TelemetryJson.Line(new TelemetryRecord(1, SampleTime, 1, "se\"ss", "run\\1", "chest_opened", fields));
             Assert.That(line, Is.EqualTo(
-                "{\"v\":1,\"seq\":1,\"t\":\"2026-09-15T13:04:05.067Z\",\"st\":1.000,\"session\":\"se\\\"ss\",\"run\":\"run\\\\1\"," +
+                "{\"v\":2,\"seq\":1,\"t\":\"2026-09-15T13:04:05.067Z\",\"st\":1.000,\"session\":\"se\\\"ss\",\"run\":\"run\\\\1\"," +
                 "\"event\":\"chest_opened\",\"item_id\":\"a\\\"b\\u000a\"}"));
         }
 
@@ -109,7 +111,7 @@ namespace Cryptforge.Tests
                 string line = TelemetryJson.Line(new TelemetryRecord(1234567, SampleTime, 3600.5, "s", null, "room_complete", fields));
 
                 Assert.That(line, Is.EqualTo(
-                    "{\"v\":1,\"seq\":1234567,\"t\":\"2026-09-15T13:04:05.067Z\",\"st\":3600.500,\"session\":\"s\",\"event\":\"room_complete\"," +
+                    "{\"v\":2,\"seq\":1234567,\"t\":\"2026-09-15T13:04:05.067Z\",\"st\":3600.500,\"session\":\"s\",\"event\":\"room_complete\"," +
                     "\"heal_fraction\":1.500,\"active_sec\":-1234567.892,\"small\":0.000,\"gold\":-42,\"big\":9007199254740993," +
                     "\"id\":\"\u0130stanbul\"}"));
                 Assert.That(TelemetryFields.IsValidKey("id"), Is.True, "Key rules do not use culture-aware casing.");
@@ -138,7 +140,7 @@ namespace Cryptforge.Tests
 
             string line = TelemetryJson.Line(new TelemetryRecord(7, SampleTime, double.NaN, "s", "s-1", "run_start", fields));
             Assert.That(line, Is.EqualTo(
-                "{\"v\":1,\"seq\":7,\"t\":\"2026-09-15T13:04:05.067Z\",\"st\":null,\"session\":\"s\",\"run\":\"s-1\",\"event\":\"run_start\"," +
+                "{\"v\":2,\"seq\":7,\"t\":\"2026-09-15T13:04:05.067Z\",\"st\":null,\"session\":\"s\",\"run\":\"s-1\",\"event\":\"run_start\"," +
                 "\"relic_id\":null,\"nan\":null,\"up\":null,\"down\":null,\"tiny_negative\":0.000,\"single\":0.100}"));
         }
     }

@@ -8,10 +8,12 @@ using UnityEngine.SceneManagement;
 namespace Cryptforge.Analytics
 {
     // Connects one scene's run recorder to the Unity side: encounter progress, waves, the horde, kills, floor clears, the
-    // ability and the chest reach the pure RunTelemetry through here, as do frames and the app leaving the foreground. The
-    // composition root adds it at runtime (it is never placed in a scene) before its own reactions subscribe, and it goes
-    // away with the scene, unsubscribing and disposing the recorder, so a restart never keeps an old subscription. It only
-    // reads state and never logs: telemetry must not change a run or add console output that scene tests would flag.
+    // ability and the skills (each slot's uses, a use that found nothing in reach, the HUD's refused taps and drags begun on
+    // a button: AbilityController's events) and the chest reach the pure RunTelemetry through here, as do frames and the
+    // app leaving the foreground. The composition root adds it at runtime (it is never placed in a scene) before its own
+    // reactions subscribe, and it goes away with the scene, unsubscribing and disposing the recorder, so a restart never
+    // keeps an old subscription. It only reads state and never logs: telemetry must not change a run or add console output
+    // that scene tests would flag.
     [AddComponentMenu("")]
     public sealed class RunTelemetryBridge : MonoBehaviour
     {
@@ -166,6 +168,10 @@ namespace Cryptforge.Analytics
             _encounters.HordeEnemySpawned += OnHordeEnemySpawned;
             _encounters.HordeReleased += OnHordeReleased;
             _ability.Used += OnAbilityUsed;
+            _ability.SkillUsed += OnSkillUsed;
+            _ability.Wasted += OnAbilityWasted;
+            _ability.PressRefused += OnPressRefused;
+            _ability.DraggedFromButton += OnDraggedFromButton;
             BurnStatus.BurnKill += OnBurnKill;
             BurnStatus.Spread += OnBurnSpread;
             if (_chests != null)
@@ -266,7 +272,34 @@ namespace Cryptforge.Analytics
             _telemetry.RecordFloorCleared(_encounters.FloorNumber, floor != null ? floor.Id : null);
         }
 
-        private void OnAbilityUsed() => _telemetry.RecordAbilityUsed();
+        // docs/57 section 5.3: each slot's use under its own id and slot, a use that found nothing in its reach, and the HUD's
+        // presses that fired nothing (a tap refused, a drag begun on a button).
+        private void OnAbilityUsed() => _telemetry.RecordAbilityUsed(1);
+
+        private void OnSkillUsed(int slot, AbilityRuntime skill) => _telemetry.RecordAbilityUsed(slot);
+
+        private void OnAbilityWasted(int slot, AbilityRuntime skill) => _telemetry.RecordAbilityWasted(slot);
+
+        private void OnPressRefused(int slot, AbilityRefusal reason)
+        {
+            AbilityRuntime skill = _ability.SkillAt(slot);
+            _telemetry.RecordAbilityRefused(slot, RefusalName(reason), skill != null ? skill.Remaining : 0f);
+        }
+
+        private void OnDraggedFromButton(int slot, bool stickHeld) => _telemetry.RecordStickOnButton(slot, stickHeld);
+
+        private static string RefusalName(AbilityRefusal reason)
+        {
+            switch (reason)
+            {
+                case AbilityRefusal.Held:
+                    return RunTelemetry.RefusedHeld;
+                case AbilityRefusal.Locked:
+                    return RunTelemetry.RefusedLocked;
+                default:
+                    return RunTelemetry.RefusedCooling;
+            }
+        }
 
         // The spawner raises Opened after it applied the reward, so chest gold has already reached the run.
         private void OnChestOpened(ChestReward reward, Vector3 position) =>
@@ -314,7 +347,13 @@ namespace Cryptforge.Analytics
                 _encounters.HordeReleased -= OnHordeReleased;
             }
             if (!ReferenceEquals(_ability, null))
+            {
                 _ability.Used -= OnAbilityUsed;
+                _ability.SkillUsed -= OnSkillUsed;
+                _ability.Wasted -= OnAbilityWasted;
+                _ability.PressRefused -= OnPressRefused;
+                _ability.DraggedFromButton -= OnDraggedFromButton;
+            }
             BurnStatus.BurnKill -= OnBurnKill;
             BurnStatus.Spread -= OnBurnSpread;
             if (!ReferenceEquals(_chests, null))

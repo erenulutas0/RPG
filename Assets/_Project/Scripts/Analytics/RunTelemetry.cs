@@ -7,16 +7,24 @@ using Cryptforge.Progression;
 
 namespace Cryptforge.Analytics
 {
-    // Records one run as schema v1 events from the gameplay events that already exist, so telemetry never needs a hook
-    // inside combat. It only reads game state: every handler builds fields from values the services already expose and
-    // hands them to the session, and nothing here can raise a gameplay event. The composition root creates it before its
-    // own reactions subscribe, so a checkpoint choice, kill or floor clear is logged before the run ends or descends in
-    // response. Kills and progress arrive through the Record/Observe calls; the scene forwards them from Unity components.
-    // Every call is cheap and allocation-free unless an event is written, because progress arrives on every hit.
+    // Records one run as schema 2 events (TelemetryJson.SchemaVersion) from the gameplay events that already exist, so
+    // telemetry never needs a hook inside combat. It only reads game state: every handler builds fields from values the
+    // services already expose and hands them to the session, and nothing here can raise a gameplay event. The composition
+    // root creates it before its own reactions subscribe, so a checkpoint choice, kill or floor clear is logged before the
+    // run ends or descends in response. Kills and progress arrive through the Record/Observe calls; the scene forwards them
+    // from Unity components. Every call is cheap and allocation-free unless an event is written, because progress arrives on
+    // every hit.
     public sealed class RunTelemetry : IDisposable
     {
         // How many seconds of the run's active time lie between two horde_sample lines.
         public const double HordeSampleSeconds = 5.0;
+        // docs/57's skill slots: 1 the hero's own ability, 2 and 3 the skills the Forge forges.
+        public const int SkillSlots = 3;
+        // ability_refused's reasons (docs/57 5.3): the skill cooling down, the fight held (the boss's reveal), the slot
+        // locked.
+        public const string RefusedCooling = "cooling";
+        public const string RefusedHeld = "held";
+        public const string RefusedLocked = "locked";
 
         private const string ResultCleared = "cleared";
 
@@ -74,6 +82,10 @@ namespace Cryptforge.Analytics
         private readonly string _weaponId;
         private readonly string _relicId;
         private readonly string _abilityId;
+        // The ability id of each skill slot the run carries (slot 1's is _abilityId), null for a slot it does not carry; and
+        // the uses of each, for run_end.
+        private readonly string[] _skillIds = new string[SkillSlots];
+        private readonly int[] _skillUses = new int[SkillSlots];
         private readonly int _forgeGold;
         private readonly int _deepestFloorCleared;
         private readonly int _seed;
@@ -189,6 +201,13 @@ namespace Cryptforge.Analytics
             if (context.RelicId != null && context.RelicId.Length == 0)
                 throw new ArgumentException("RunTelemetryContext.RelicId is either null or not empty.", nameof(context));
             _relicId = context.RelicId;
+            if (context.SkillTwoId != null && context.SkillTwoId.Length == 0)
+                throw new ArgumentException("RunTelemetryContext.SkillTwoId is either null or not empty.", nameof(context));
+            if (context.SkillThreeId != null && context.SkillThreeId.Length == 0)
+                throw new ArgumentException("RunTelemetryContext.SkillThreeId is either null or not empty.", nameof(context));
+            _skillIds[0] = _abilityId;
+            _skillIds[1] = context.SkillTwoId;
+            _skillIds[2] = context.SkillThreeId;
             if (context.ForgeGold < 0)
                 throw new ArgumentOutOfRangeException(nameof(context), "RunTelemetryContext.ForgeGold cannot be negative.");
             if (context.DeepestFloorCleared < 0)
@@ -255,6 +274,13 @@ namespace Cryptforge.Analytics
             // a Forged run's line stays as it was.
             if (_tier != DifficultyTier.Forged)
                 start.Add("tier", DifficultyTiers.Id(_tier));
+            // The skills the run carries beyond its first (docs/57 5.3; skill 1 is ability_id, as it always was): skill 2's
+            // and skill 3's ability ids, each only where the run carries it, so a run of skill 1 alone keeps its line as it
+            // was. A slot opened (deepest_floor at its floor) and not written here is shown locked on the HUD.
+            if (_skillIds[1] != null)
+                start.Add("skill_2_id", _skillIds[1]);
+            if (_skillIds[2] != null)
+                start.Add("skill_3_id", _skillIds[2]);
             _session.Emit("run_start", start);
 
             // A run that already ended missed its Ended event; close it now so the log never shows it as still running.
@@ -560,17 +586,88 @@ namespace Cryptforge.Analytics
                 .Add("room_index", _roomIndex));
         }
 
-        public void RecordAbilityUsed()
+        // Skill 1, the hero's own ability, as every run before docs/57's skills wrote it.
+        public void RecordAbilityUsed() => RecordAbilityUsed(1);
+
+        // A use of a skill slot the run carries (docs/57 5.3): its own ability id, and its slot after every key schema 1
+        // wrote. A slot the run does not carry writes nothing. Counted for run_end's skill_<slot>_uses.
+        public void RecordAbilityUsed(int slot)
         {
-            if (!IsRecording)
+            string abilityId = SkillId(slot);
+            if (!IsRecording || abilityId == null)
                 return;
 
+            _skillUses[slot - 1]++;
             _session.Emit("ability_used", new TelemetryFields()
-                .Add("ability_id", _abilityId)
+                .Add("ability_id", abilityId)
                 .Add("floor_index", _roomFloor)
                 .Add("room_index", _roomIndex)
-                .Add("room_active_sec", _roomOpen ? _roomTime.Active : 0.0));
+                .Add("room_active_sec", RoomActiveSeconds)
+                .Add("slot", slot));
         }
+
+        // A tap on a skill's button that fired nothing (docs/57 5.3): reason RefusedCooling, RefusedHeld or RefusedLocked
+        // - a mis-tap or impatience - and the seconds its cooldown still had (0 for a ready skill held, or a locked slot,
+        // whose ability_id is null: the run does not carry it). A slot outside 1-3 or no reason writes nothing.
+        public void RecordAbilityRefused(int slot, string reason, double cooldownSeconds)
+        {
+            if (!IsRecording || slot < 1 || slot > SkillSlots || string.IsNullOrEmpty(reason))
+                return;
+
+            _session.Emit("ability_refused", new TelemetryFields()
+                .Add("slot", slot)
+                .Add("ability_id", SkillId(slot))
+                .Add("reason", reason)
+                .Add("cooldown_sec", cooldownSeconds > 0 ? cooldownSeconds : 0.0)
+                .Add("floor_index", _roomFloor)
+                .Add("room_index", _roomIndex)
+                .Add("room_active_sec", RoomActiveSeconds));
+        }
+
+        // A drag that began on a skill's button (docs/57 5.3), once it moved as far as the stick's dead zone: the stick never
+        // takes a touch that begins on the UI, so it walked nothing. stickHeld: another finger held the stick meanwhile (two
+        // thumbs; with it false the player's one thumb meant to steer). ability_id null on a locked slot.
+        public void RecordStickOnButton(int slot, bool stickHeld)
+        {
+            if (!IsRecording || slot < 1 || slot > SkillSlots)
+                return;
+
+            _session.Emit("stick_on_button", new TelemetryFields()
+                .Add("slot", slot)
+                .Add("ability_id", SkillId(slot))
+                .Add("stick_held", stickHeld)
+                .Add("floor_index", _roomFloor)
+                .Add("room_index", _roomIndex)
+                .Add("room_active_sec", RoomActiveSeconds));
+        }
+
+        // A use whose strike found nothing in its own reach (docs/57 5.3, AbilityController.Wasted): a Burst, a Vent, a Rush
+        // at the press, a glyph as it goes out. Follows the use's ability_used (the glyph's comes at its end). The hero's
+        // health beside it: a Rush that escaped along a clear path strikes nothing too.
+        public void RecordAbilityWasted(int slot)
+        {
+            string abilityId = SkillId(slot);
+            if (!IsRecording || abilityId == null)
+                return;
+
+            _session.Emit("ability_wasted", new TelemetryFields()
+                .Add("slot", slot)
+                .Add("ability_id", abilityId)
+                .Add("floor_index", _roomFloor)
+                .Add("room_index", _roomIndex)
+                .Add("room_active_sec", RoomActiveSeconds)
+                .AddHeroHealth(_heroHealth(), _heroMaximumHealth()));
+        }
+
+        // The ability id of a skill slot the run carries; null for a slot it does not carry or outside 1-3.
+        private string SkillId(int slot) => slot >= 1 && slot <= SkillSlots ? _skillIds[slot - 1] : null;
+
+        private static readonly string[] SkillUsesKeys = { "skill_1_uses", "skill_2_uses", "skill_3_uses" };
+
+        // run_end's count of a slot's uses: "skill_1_uses" ... "skill_3_uses".
+        public static string SkillUsesKey(int slot) => SkillUsesKeys[slot - 1];
+
+        private double RoomActiveSeconds => _roomOpen ? _roomTime.Active : 0.0;
 
         // Called when a floor's last room is resolved, before the scene opens the checkpoint or ends the Descent, so
         // floor_complete precedes extract_choice and run_end. Each floor is reported once.
@@ -873,9 +970,16 @@ namespace Cryptforge.Analytics
                 .AddHeroHealth(_heroHealth(), _heroMaximumHealth());
             if (_upgrades.IsCategoryMode)
                 AddBuild(end);
-            // Last, and only on a run where something burned, so every other run_end keeps its keys.
+            // After the build, and only on a run where something burned, so every other run_end keeps its keys.
             if (_burnSeen)
                 end.Add("burn_kills", _burnKills).Add("burn_spreads", _burnSpreads);
+            // Schema 2 (docs/57 5.3), last: the uses of each skill slot the run carries - skill 1's on every run, skills 2
+            // and 3 where run_start named them.
+            for (int slot = 1; slot <= SkillSlots; slot++)
+            {
+                if (_skillIds[slot - 1] != null)
+                    end.Add(SkillUsesKey(slot), _skillUses[slot - 1]);
+            }
             _session.Emit("run_end", end);
             EndSessionRun();
             _session.Flush();

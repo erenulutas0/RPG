@@ -4,6 +4,7 @@ using Cryptforge.Content;
 using Cryptforge.Core;
 using Cryptforge.Progression;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Cryptforge.UI
@@ -23,7 +24,12 @@ namespace Cryptforge.UI
     //     floor is cleared, mid-run included.
     // A button only answers while the run is live, no choice is open, the run is not paused and the fight is not held (the
     // boss's reveal: AbilityController.FightHold), which greys all three.
-    public sealed class AbilityButtonView : MonoBehaviour
+    // docs/57 section 5.3's telemetry: a tap the button did not fire - greyed while its skill cools down, the fight is held
+    // or the slot is locked - is reported (AbilityController.ReportRefusedPress, ability_refused), and so is a press that
+    // began on it and moved as far as the stick's dead zone (ReportDragFromButton, stick_on_button): the stick never takes
+    // a touch that begins on the UI, so that drag walked nothing. Both only while the run is live, with no choice or pause
+    // open. Reports only: the button's taps, the stick and the reveal's skip are what they were.
+    public sealed class AbilityButtonView : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
         // docs/57 section 5.2 on the 1080-wide canvas: the skill buttons' size and their anchored positions.
         public const float SkillSize = 176f;
@@ -61,6 +67,10 @@ namespace Cryptforge.UI
         // Slot 1's copies, made when each slot first shows.
         private AbilityButtonView _skillTwo;
         private AbilityButtonView _skillThree;
+        // The press whose drag this button follows (its pointer id, NoPointer for none), and whether it was reported.
+        private const int NoPointer = int.MinValue;
+        private int _dragPointer = NoPointer;
+        private bool _dragReported;
 
         public int Slot => _slot;
         // The runtime this button fires; null for a slot the run does not carry.
@@ -131,8 +141,8 @@ namespace Cryptforge.UI
                 _glyph = PixelSpriteFactory.CreateSprite(AbilityArt.DrawGlyph(), "Ability Glyph", PixelSpriteFactory.Centre);
                 _icon.sprite = _glyph;
             }
-            if (_slot > 1)
-                _movement = _controller.GetComponent<HeroMovementInput>();
+            // The stick: the Rush's heading at a tap on a skill, and every slot's dead zone for a drag begun on its button.
+            _movement = _controller.GetComponent<HeroMovementInput>();
             _button.onClick.AddListener(OnTap);
             _subscribed = true;
             Refresh();
@@ -243,12 +253,69 @@ namespace Cryptforge.UI
         private void OnTap()
         {
             if (!IsUsable)
+            {
+                // Taken on the last frame's look, refused on this one's (the hold began, or the skill was just spent).
+                ReportRefused();
                 return;
+            }
             if (_slot == 1)
                 _controller.TryUse();
             else
                 _controller.TryUse(_slot, _movement != null ? _movement.Steer : Vector2.zero);
         }
+
+        // A tap the Button did not take (greyed: Button.Press drops a click while it is not interactable). One it took is
+        // OnTap's, whichever of the two hears the click first: the Button's interactable state changes only in Refresh.
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (eventData == null || eventData.button != PointerEventData.InputButton.Left || _button == null ||
+                _button.IsInteractable())
+                return;
+            ReportRefused();
+        }
+
+        public void OnBeginDrag(PointerEventData eventData)
+        {
+            if (eventData == null)
+                return;
+            _dragPointer = eventData.pointerId;
+            _dragReported = false;
+            FollowDrag(eventData);
+        }
+
+        public void OnDrag(PointerEventData eventData) => FollowDrag(eventData);
+
+        public void OnEndDrag(PointerEventData eventData)
+        {
+            if (eventData != null && eventData.pointerId == _dragPointer)
+                _dragPointer = NoPointer;
+        }
+
+        // Once the press that began on this button has moved as far as the stick's dead zone from where it landed - the
+        // drag the stick would have walked the hero by - it is reported, once.
+        private void FollowDrag(PointerEventData eventData)
+        {
+            if (eventData == null || _dragReported || eventData.pointerId != _dragPointer || _movement == null)
+                return;
+            float deadZone = _movement.DeadZonePixels;
+            if ((eventData.position - eventData.pressPosition).sqrMagnitude < deadZone * deadZone)
+                return;
+            _dragReported = true;
+            if (IsRunLive)
+                _controller.ReportDragFromButton(_slot, _movement.IsDragging);
+        }
+
+        // A tap on a greyed button while the run is live: the controller says why (cooling, held, locked), or nothing.
+        private void ReportRefused()
+        {
+            if (IsRunLive)
+                _controller.ReportRefusedPress(_slot);
+        }
+
+        // The run is on with no choice or pause over it: a press on the HUD then was meant for a skill.
+        private bool IsRunLive => _setup != null && _controller != null && _setup.Run != null && !_setup.Run.HasEnded &&
+                                  _setup.Choices != null && !_setup.Choices.IsOpen && _setup.Pause != null &&
+                                  !_setup.Pause.IsPlayerPaused;
 
         private void OnDestroy()
         {

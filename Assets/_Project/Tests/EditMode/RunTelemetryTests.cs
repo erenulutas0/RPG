@@ -43,6 +43,11 @@ namespace Cryptforge.Tests
             "result", "cause", "floors_completed", "rooms_completed", "run_level", "kills", "horde_kills", "upgrades_applied",
             "pulses", "gold", "gold_banked", "gold_lost", "active_sec", "choice_sec", "pause_sec", "background_sec", "hero_hp",
             "hero_max_hp");
+        // Schema 2 (docs/57 5.3): every run_end ends with skill 1's uses, after every key schema 1 wrote.
+        private const string SkillOneUses = "skill_1_uses";
+        // run_start's keys on every run, skill 1 alone (its id is ability_id).
+        private static readonly string[] RunStartKeys = With(Envelope,
+            "run_ordinal", "hero_id", "weapon_id", "relic_id", "ability_id", "forge_gold", "deepest_floor", "seed");
 
         private static string[] With(string[] keys, params string[] more)
         {
@@ -177,7 +182,8 @@ namespace Cryptforge.Tests
                 Is.EqualTo(("extract", 1L, 35L, 35L)), "The choice is logged before the scene ends the run.");
 
             Line end = Single(lines, "run_end");
-            Assert.That(end.Keys, Is.EqualTo(RunEndKeys));
+            Assert.That(end.Keys, Is.EqualTo(With(RunEndKeys, SkillOneUses)));
+            Assert.That(end.Integer(SkillOneUses), Is.EqualTo(0L), "The use after the run ended counts for nothing.");
             Assert.That((end.Text("result"), end.Text("cause"), end.Integer("floors_completed"), end.Integer("rooms_completed")),
                 Is.EqualTo(("extracted", "extracted", 1L, 3L)));
             Assert.That((end.Integer("run_level"), end.Integer("kills"), end.Integer("upgrades_applied")), Is.EqualTo((1L, 3L, 2L)));
@@ -261,7 +267,7 @@ namespace Cryptforge.Tests
 
             Line end = Single(lines, "run_end");
             Assert.That(end.Keys, Is.EqualTo(With(RunEndKeys, "weapon_ids", "weapon_levels", "tome_ids", "tome_levels",
-                "evolutions")));
+                "evolutions", SkillOneUses)));
             Assert.That((end.Text("weapon_ids"), end.Text("weapon_levels")), Is.EqualTo(("weapon_sword,weapon_daggers", "1,2")),
                 "Slot order.");
             Assert.That((end.Text("tome_ids"), end.Text("tome_levels")), Is.EqualTo(("tome_force", "2")),
@@ -666,7 +672,8 @@ namespace Cryptforge.Tests
                 "A horde death after the run ended counts for neither.");
         }
 
-        // Burn (docs/45): a run where something burned ends with its burn kills and spreads, after every other key.
+        // Burn (docs/45): a run where something burned ends with its burn kills and spreads, after every other key schema 1
+        // wrote (schema 2's skill uses follow them).
         [Test]
         public void ARunThatBurnedEndsWithItsBurnCounts()
         {
@@ -683,7 +690,8 @@ namespace Cryptforge.Tests
             recorder.RecordBurnKill();
 
             Line end = Single(telemetry.Lines(), "run_end");
-            Assert.That(end.Keys, Is.EqualTo(With(RunEndKeys, "burn_kills", "burn_spreads")), "Last, after every other key.");
+            Assert.That(end.Keys, Is.EqualTo(With(RunEndKeys, "burn_kills", "burn_spreads", SkillOneUses)),
+                "After every other key schema 1 wrote.");
             Assert.That((end.Integer("burn_kills"), end.Integer("burn_spreads")), Is.EqualTo((1L, 2L)),
                 "A burn after the run ended counts for nothing.");
         }
@@ -1287,6 +1295,169 @@ namespace Cryptforge.Tests
                 recorder.Dispose();
             }
             Assert.Throws<ArgumentOutOfRangeException>(() => new RunTelemetry(Mutated(new Scene(null), new Telemetry(), c => c.Tier = (DifficultyTier)7)));
+        }
+
+        // docs/57 section 5.3: a run carrying skills 2 and 3 names them on run_start after every other key; each use is
+        // ability_used under its own skill's id with its slot appended; run_end counts each slot's uses, last.
+        [Test]
+        public void EachSkillSlotIsLoggedUnderItsOwnIdAndCountedAtRunEnd()
+        {
+            var telemetry = new Telemetry();
+            var scene = new Scene(null);
+            var recorder = new RunTelemetry(Mutated(scene, telemetry, c =>
+            {
+                c.SkillTwoId = "ability_iron_resolve";
+                c.SkillThreeId = "ability_shield_rush";
+            }));
+            recorder.RecordAbilityUsed(2);
+            recorder.Begin();
+            recorder.ObserveProgress(1, Floor1, 1, RoomKind.Combat, "enemy_grunt");
+            recorder.Tick(1.5f, 1.5f);
+            recorder.RecordAbilityUsed(1);
+            recorder.RecordAbilityUsed(2);
+            recorder.Tick(0.5f, 0.5f);
+            recorder.RecordAbilityUsed();
+            recorder.RecordAbilityUsed(3);
+            recorder.RecordAbilityUsed(0);
+            recorder.RecordAbilityUsed(4);
+            scene.Die("enemy_grunt");
+            recorder.RecordAbilityUsed(3);
+
+            List<Line> lines = telemetry.Lines();
+            AssertLogShape(lines);
+            Line start = Single(lines, "run_start");
+            Assert.That(start.Keys, Is.EqualTo(With(RunStartKeys, "skill_2_id", "skill_3_id")));
+            Assert.That((start.Text("ability_id"), start.Text("skill_2_id"), start.Text("skill_3_id")),
+                Is.EqualTo(("ability_forge_burst", "ability_iron_resolve", "ability_shield_rush")));
+
+            List<Line> used = All(lines, "ability_used");
+            Assert.That(used.Count, Is.EqualTo(4), "Nothing before Begin, for a slot outside 1-3 or after the end.");
+            Assert.That(used[0].Keys, Is.EqualTo(With(Envelope, "ability_id", "floor_index", "room_index", "room_active_sec", "slot")),
+                "Schema 1's keys where they were, the slot appended.");
+            var pressed = new List<(long, string)>();
+            foreach (Line line in used)
+                pressed.Add((line.Integer("slot"), line.Text("ability_id")));
+            Assert.That(pressed, Is.EqualTo(new[]
+            {
+                (1L, "ability_forge_burst"), (2L, "ability_iron_resolve"), (1L, "ability_forge_burst"), (3L, "ability_shield_rush")
+            }));
+            Assert.That((used[1].Integer("floor_index"), used[1].Integer("room_index"), used[1].Number("room_active_sec")),
+                Is.EqualTo((1L, 1L, 1.5)));
+            Assert.That(used[3].Number("room_active_sec"), Is.EqualTo(2.0));
+
+            Line end = Single(lines, "run_end");
+            Assert.That(end.Keys, Is.EqualTo(With(RunEndKeys, "skill_1_uses", "skill_2_uses", "skill_3_uses")));
+            Assert.That((end.Integer("skill_1_uses"), end.Integer("skill_2_uses"), end.Integer("skill_3_uses")),
+                Is.EqualTo((2L, 1L, 1L)), "The presses, slot by slot.");
+            Assert.That(RunTelemetry.SkillUsesKey(2), Is.EqualTo("skill_2_uses"));
+            recorder.Dispose();
+        }
+
+        // A run of skill 1 alone keeps run_start's keys exactly as schema 1 wrote them; a slot it does not carry writes no
+        // ability_used, and run_end counts skill 1's uses alone.
+        [Test]
+        public void ARunOfSkillOneAloneKeepsItsStartAndCountsOneSlot()
+        {
+            var telemetry = new Telemetry();
+            var scene = new Scene(telemetry.Session);
+            scene.Recorder.Begin();
+            scene.Room(1, Floor1, 1, RoomKind.Combat, "enemy_grunt");
+            scene.Recorder.RecordAbilityUsed(2);
+            scene.Recorder.RecordAbilityUsed(3);
+            scene.Recorder.RecordAbilityWasted(2);
+            scene.Recorder.RecordAbilityUsed(1);
+            scene.Die("enemy_grunt");
+
+            List<Line> lines = telemetry.Lines();
+            AssertLogShape(lines);
+            Assert.That(Single(lines, "run_start").Keys, Is.EqualTo(RunStartKeys));
+            Assert.That(Single(lines, "ability_used").Integer("slot"), Is.EqualTo(1L));
+            Assert.That(All(lines, "ability_wasted"), Is.Empty, "A slot the run does not carry wastes nothing.");
+            Line end = Single(lines, "run_end");
+            Assert.That(end.Keys, Is.EqualTo(With(RunEndKeys, SkillOneUses)));
+            Assert.That(end.Integer(SkillOneUses), Is.EqualTo(1L));
+
+            Assert.Throws<ArgumentException>(() => new RunTelemetry(Mutated(new Scene(null), new Telemetry(), c => c.SkillTwoId = "")));
+            Assert.Throws<ArgumentException>(() => new RunTelemetry(Mutated(new Scene(null), new Telemetry(), c => c.SkillThreeId = "")));
+        }
+
+        // docs/57 section 5.3's three new events, each inside its room: a tap the HUD refused (cooling, with the seconds left;
+        // held; a locked slot, whose skill the run does not carry: ability_id null), a drag begun on a button, and a use that
+        // found nothing in its reach (with the hero's health). Nothing before Begin or after the run's end.
+        [Test]
+        public void RefusedTapsDragsOnAButtonAndWastedUsesAreLoggedInTheirRoom()
+        {
+            var telemetry = new Telemetry();
+            var scene = new Scene(null);
+            var recorder = new RunTelemetry(Mutated(scene, telemetry, c => c.SkillTwoId = "ability_iron_resolve"));
+            recorder.RecordAbilityRefused(1, RunTelemetry.RefusedCooling, 3);
+            recorder.RecordStickOnButton(1, false);
+            recorder.RecordAbilityWasted(1);
+            recorder.Begin();
+            recorder.ObserveProgress(1, Floor1, 2, RoomKind.Combat, "enemy_grunt");
+            recorder.Tick(2.25f, 2.25f);
+            recorder.RecordAbilityUsed(2);
+            recorder.RecordAbilityRefused(2, RunTelemetry.RefusedCooling, 17.5f);
+            recorder.RecordAbilityRefused(1, RunTelemetry.RefusedHeld, 0f);
+            recorder.RecordAbilityRefused(3, RunTelemetry.RefusedLocked, -1f);
+            recorder.RecordAbilityRefused(0, RunTelemetry.RefusedCooling, 1f);
+            recorder.RecordAbilityRefused(1, null, 1f);
+            recorder.RecordStickOnButton(1, false);
+            recorder.RecordStickOnButton(2, true);
+            recorder.RecordStickOnButton(3, false);
+            recorder.RecordStickOnButton(4, false);
+            recorder.RecordAbilityUsed(1);
+            scene.Hero.Current = 62.5f;
+            recorder.RecordAbilityWasted(1);
+            recorder.RecordAbilityWasted(3);
+            scene.Die("enemy_grunt");
+            recorder.RecordAbilityRefused(1, RunTelemetry.RefusedCooling, 3f);
+            recorder.RecordStickOnButton(1, false);
+            recorder.RecordAbilityWasted(1);
+
+            List<Line> lines = telemetry.Lines();
+            AssertLogShape(lines);
+            Assert.That(Events(lines), Is.EqualTo(new[]
+            {
+                "session_start", "run_start", "room_start", "ability_used",
+                "ability_refused", "ability_refused", "ability_refused",
+                "stick_on_button", "stick_on_button", "stick_on_button",
+                "ability_used", "ability_wasted", "room_complete", "run_end"
+            }));
+
+            List<Line> refused = All(lines, "ability_refused");
+            Assert.That(refused[0].Keys, Is.EqualTo(With(Envelope,
+                "slot", "ability_id", "reason", "cooldown_sec", "floor_index", "room_index", "room_active_sec")));
+            Assert.That((refused[0].Integer("slot"), refused[0].Text("ability_id"), refused[0].Text("reason"), refused[0].Number("cooldown_sec")),
+                Is.EqualTo((2L, "ability_iron_resolve", "cooling", 17.5)), "Impatience: how early the press came.");
+            Assert.That((refused[0].Integer("floor_index"), refused[0].Integer("room_index"), refused[0].Number("room_active_sec")),
+                Is.EqualTo((1L, 2L, 2.25)));
+            Assert.That((refused[1].Integer("slot"), refused[1].Text("ability_id"), refused[1].Text("reason"), refused[1].Number("cooldown_sec")),
+                Is.EqualTo((1L, "ability_forge_burst", "held", 0.0)));
+            Assert.That((refused[2].Integer("slot"), refused[2].IsNull("ability_id"), refused[2].Text("reason"), refused[2].Number("cooldown_sec")),
+                Is.EqualTo((3L, true, "locked", 0.0)), "A locked slot: the run carries no skill there.");
+
+            List<Line> drags = All(lines, "stick_on_button");
+            Assert.That(drags[0].Keys, Is.EqualTo(With(Envelope,
+                "slot", "ability_id", "stick_held", "floor_index", "room_index", "room_active_sec")));
+            Assert.That((drags[0].Integer("slot"), drags[0].Text("ability_id"), drags[0].Bool("stick_held")),
+                Is.EqualTo((1L, "ability_forge_burst", false)), "One thumb, meant to steer.");
+            Assert.That((drags[1].Integer("slot"), drags[1].Text("ability_id"), drags[1].Bool("stick_held")),
+                Is.EqualTo((2L, "ability_iron_resolve", true)), "Two thumbs, the other on the stick.");
+            Assert.That((drags[2].Integer("slot"), drags[2].IsNull("ability_id")), Is.EqualTo((3L, true)));
+
+            Line wasted = Single(lines, "ability_wasted");
+            Assert.That(wasted.Keys, Is.EqualTo(With(Envelope,
+                "slot", "ability_id", "floor_index", "room_index", "room_active_sec", "hero_hp", "hero_max_hp")));
+            Assert.That((wasted.Integer("slot"), wasted.Text("ability_id"), wasted.Number("hero_hp"), wasted.Number("hero_max_hp")),
+                Is.EqualTo((1L, "ability_forge_burst", 62.5, 100.0)));
+            Assert.That(lines.IndexOf(wasted), Is.EqualTo(lines.IndexOf(All(lines, "ability_used")[1]) + 1), "It follows its use.");
+
+            Line end = Single(lines, "run_end");
+            Assert.That((end.Integer("skill_1_uses"), end.Integer("skill_2_uses")), Is.EqualTo((1L, 1L)),
+                "Refused taps, drags and waste are not uses; a wasted use is one.");
+            Assert.That(end.Has("skill_3_uses"), Is.False, "The run does not carry skill 3.");
+            recorder.Dispose();
         }
 
         [Test]

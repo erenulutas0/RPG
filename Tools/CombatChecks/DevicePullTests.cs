@@ -277,8 +277,9 @@ namespace Cryptforge.Tests
 
         private static readonly DateTime Day = new DateTime(2026, 11, 13, 9, 0, 0, DateTimeKind.Utc);
 
-        private static string Event(string session, int seq, double seconds, string run, string name, string fields = "") =>
-            $"{{\"v\":1,\"seq\":{seq},\"t\":\"{Day.AddSeconds(seconds):yyyy-MM-dd'T'HH:mm:ss.fff'Z'}\",\"st\":{seconds.ToString(System.Globalization.CultureInfo.InvariantCulture)},\"session\":\"{session}\"" +
+        // A telemetry line as RunTelemetry writes it; v the schema (1 before docs/57 5.3's skills telemetry, 2 since).
+        private static string Event(string session, int seq, double seconds, string run, string name, string fields = "", int v = 1) =>
+            $"{{\"v\":{v},\"seq\":{seq},\"t\":\"{Day.AddSeconds(seconds):yyyy-MM-dd'T'HH:mm:ss.fff'Z'}\",\"st\":{seconds.ToString(System.Globalization.CultureInfo.InvariantCulture)},\"session\":\"{session}\"" +
             (run != null ? $",\"run\":\"{run}\"" : string.Empty) + $",\"event\":\"{name}\"" + (fields.Length > 0 ? "," + fields : string.Empty) + "}";
 
         private static string Room(int floor, string kind) =>
@@ -573,6 +574,84 @@ namespace Cryptforge.Tests
                 FoundryGate.DeviceEvidence device = DevicePull.Read(new[] { folder });
                 Assert.That(device.RampWork.Select(f => (f.Ms, f.Play)), Is.EqualTo(new[] { (41.3f, true), (39.9f, false) }));
                 Assert.That(device.LongFrames.Select(f => (f.Ms, f.Ramp, f.Play)), Is.EqualTo(new[] { (41.3f, true, true), (39.9f, true, false) }));
+                return 0;
+            });
+        }
+
+        // docs/57 section 5.3's skills (schema 2), read run by run and summed by hero and slot over the owner's runs: each
+        // slot's uses, the taps the HUD refused by reason, the uses that found nothing in reach and the drags begun on a
+        // button. A schema 1 ability_used names no slot and is read as skill 1's (the only one that could write it), but a
+        // schema 1 run is left out of the skills' line, which it could never have filled; with none of schema 2 the report
+        // says nothing of the skills, so an older pull's report reads as it did.
+        [Test]
+        public void TheSkillsOfSchemaTwoAreReadSlotBySlot()
+        {
+            const string Place = "\"floor_index\":1,\"room_index\":1,\"room_active_sec\":12.000";
+            const string Burst = "\"slot\":1,\"ability_id\":\"ability_forge_burst\"";
+            string[] schemaOne =
+            {
+                Event("s1", 1, 0, null, "session_start", "\"schema\":1"),
+                Event("s1", 2, 1, "s1-1", "run_start", "\"run_ordinal\":1,\"hero_id\":\"hero_vanguard\",\"ability_id\":\"ability_forge_burst\""),
+                Event("s1", 3, 20, "s1-1", "ability_used", "\"ability_id\":\"ability_forge_burst\"," + Place),
+                Event("s1", 4, 30, "s1-1", "ability_used", "\"ability_id\":\"ability_forge_burst\"," + Place),
+                Event("s1", 5, 60, "s1-1", "run_end", "\"result\":\"defeat\",\"cause\":\"killed\",\"floors_completed\":0,\"active_sec\":59.000")
+            };
+            string[] schemaTwo =
+            {
+                Event("s2", 1, 100, null, "session_start", "\"schema\":2", 2),
+                Event("s2", 2, 101, "s2-1", "run_start",
+                    "\"run_ordinal\":1,\"hero_id\":\"hero_vanguard\",\"ability_id\":\"ability_forge_burst\",\"deepest_floor\":3,\"seed\":5,\"skill_2_id\":\"ability_iron_resolve\"", 2),
+                Event("s2", 3, 110, "s2-1", "ability_used", "\"ability_id\":\"ability_forge_burst\"," + Place + ",\"slot\":1", 2),
+                Event("s2", 4, 110, "s2-1", "ability_wasted", Burst + "," + Place + ",\"hero_hp\":80.000,\"hero_max_hp\":100.000", 2),
+                Event("s2", 5, 111, "s2-1", "ability_refused", Burst + ",\"reason\":\"cooling\",\"cooldown_sec\":7.000," + Place, 2),
+                Event("s2", 6, 112, "s2-1", "ability_refused", Burst + ",\"reason\":\"held\",\"cooldown_sec\":6.000," + Place, 2),
+                Event("s2", 7, 120, "s2-1", "ability_used", "\"ability_id\":\"ability_iron_resolve\"," + Place + ",\"slot\":2", 2),
+                Event("s2", 8, 125, "s2-1", "stick_on_button", "\"slot\":2,\"ability_id\":\"ability_iron_resolve\",\"stick_held\":false," + Place, 2),
+                Event("s2", 9, 126, "s2-1", "stick_on_button", Burst + ",\"stick_held\":true," + Place, 2),
+                Event("s2", 10, 127, "s2-1", "ability_refused", "\"slot\":3,\"ability_id\":null,\"reason\":\"locked\",\"cooldown_sec\":0.000," + Place, 2),
+                Event("s2", 11, 160, "s2-1", "ability_used", "\"ability_id\":\"ability_forge_burst\"," + Place + ",\"slot\":1", 2),
+                Event("s2", 12, 220, "s2-1", "run_end",
+                    "\"result\":\"defeat\",\"cause\":\"killed\",\"floors_completed\":0,\"active_sec\":120.000,\"skill_1_uses\":2,\"skill_2_uses\":1", 2)
+            };
+
+            InTemp(root =>
+            {
+                string folder = Path.Combine(root, "device-20261126-120000");
+                Directory.CreateDirectory(Path.Combine(folder, "telemetry"));
+                File.WriteAllLines(Path.Combine(folder, "telemetry", "events.jsonl"), schemaOne.Concat(schemaTwo));
+                File.WriteAllLines(Path.Combine(folder, DevicePull.ManifestName), new[] { "pulled_utc: 2026-11-13T12:00:00Z", "logcat_offset: +0000" });
+
+                List<DevicePull.RunRecord> runs = DevicePull.Runs(DevicePull.ReadEvents(new[] { Path.Combine(folder, "telemetry") }));
+                Assert.That(runs.Select(r => (r.Id, r.Schema)), Is.EqualTo(new[] { ("s1-1", 1), ("s2-1", 2) }));
+                Assert.That(runs[0].Skills[0].Uses, Is.EqualTo(2), "a schema 1 ability_used is skill 1's");
+                Assert.That(runs[0].SkillIds, Is.EqualTo(new[] { "ability_forge_burst", null, null }));
+                DevicePull.RunRecord two = runs[1];
+                Assert.That(two.SkillIds, Is.EqualTo(new[] { "ability_forge_burst", "ability_iron_resolve", null }));
+                Assert.That(two.Skills.Select(s => (s.Uses, s.Cooling, s.Held, s.Locked, s.Wasted, s.Drags, s.DragsOneThumb)),
+                    Is.EqualTo(new[] { (2, 1, 1, 0, 1, 1, 0), (1, 0, 0, 0, 0, 1, 1), (0, 0, 0, 1, 0, 0, 0) }));
+                Assert.That(two.ActiveSeconds, Is.EqualTo(120f));
+
+                FoundryGate.DeviceEvidence device = DevicePull.Read(new[] { folder });
+                Assert.That(device.Runs, Is.EqualTo(2), "the floors read both runs, whatever their schema");
+                Assert.That(device.Skills.Select(s => (s.HeroId, s.Slot, s.AbilityId, s.Runs, s.Seconds, s.Uses)), Is.EqualTo(new[]
+                {
+                    ("hero_vanguard", 1, "ability_forge_burst", 1, 120f, 2), ("hero_vanguard", 2, "ability_iron_resolve", 1, 120f, 1),
+                    ("hero_vanguard", 3, (string)null, 0, 0f, 0)
+                }), "the schema 2 run alone");
+                string section = FoundryGate.Section(Batches(), null, new FoundryGate.Evidence { Device = device });
+                Assert.That(section, Does.Contain(
+                    "Skills on the device (docs/57 section 5.3, the owner's schema 2 runs on that APK; reported, no criterion): Vanguard - " +
+                    "skill 1 (ability_forge_burst): 2 uses in 1 run carrying it, 1.0 a minute of active play, 2 taps refused (1 cooling, 1 held, 0 locked), " +
+                    "1 wasted (nothing in its reach), 1 drag begun on its button (0 with no finger on the stick); " +
+                    "skill 2 (ability_iron_resolve): 1 use in 1 run carrying it, 0.5 a minute of active play, 0 taps refused (0 cooling, 0 held, 0 locked), " +
+                    "0 wasted (nothing in its reach), 1 drag begun on its button (1 with no finger on the stick); " +
+                    "skill 3 (shown locked): 0 uses in 0 runs carrying it, 1 tap refused (0 cooling, 0 held, 1 locked), " +
+                    "0 wasted (nothing in its reach), 0 drags begun on its button (0 with no finger on the stick)."));
+
+                File.WriteAllLines(Path.Combine(folder, "telemetry", "events.jsonl"), schemaOne);
+                FoundryGate.DeviceEvidence older = DevicePull.Read(new[] { folder });
+                Assert.That(older.Skills, Is.Empty);
+                Assert.That(FoundryGate.Section(Batches(), null, new FoundryGate.Evidence { Device = older }), Does.Not.Contain("Skills on the device"));
                 return 0;
             });
         }

@@ -34,9 +34,9 @@ namespace Cryptforge.Tests
 
             Assert.That(store.Lines(), Is.EqualTo(new[]
             {
-                "{\"v\":1,\"seq\":1,\"t\":\"2026-09-15T12:00:00.250Z\",\"st\":0.250,\"session\":\"s1\",\"event\":\"session_start\"," +
-                "\"schema\":1,\"app_version\":\"0.1.0\",\"platform\":\"android\",\"development\":true}",
-                "{\"v\":1,\"seq\":2,\"t\":\"2026-09-15T12:00:00.250Z\",\"st\":0.250,\"session\":\"s1\",\"event\":\"app_background\"," +
+                "{\"v\":2,\"seq\":1,\"t\":\"2026-09-15T12:00:00.250Z\",\"st\":0.250,\"session\":\"s1\",\"event\":\"session_start\"," +
+                "\"schema\":2,\"app_version\":\"0.1.0\",\"platform\":\"android\",\"development\":true}",
+                "{\"v\":2,\"seq\":2,\"t\":\"2026-09-15T12:00:00.250Z\",\"st\":0.250,\"session\":\"s1\",\"event\":\"app_background\"," +
                 "\"run_active\":false}"
             }));
             Assert.That(session.Clock, Is.SameAs(clock));
@@ -46,7 +46,7 @@ namespace Cryptforge.Tests
             Assert.That(noFields.HasStarted, Is.False);
             noFields.Start(null);
             noFields.Flush();
-            Assert.That(store.Lines()[2], Does.EndWith("\"session\":\"s2\",\"event\":\"session_start\",\"schema\":1}"));
+            Assert.That(store.Lines()[2], Does.EndWith("\"session\":\"s2\",\"event\":\"session_start\",\"schema\":2}"));
         }
 
         [Test]

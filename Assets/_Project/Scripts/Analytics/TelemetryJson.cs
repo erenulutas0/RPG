@@ -8,7 +8,11 @@ namespace Cryptforge.Analytics
     // every number goes through the invariant culture so a phone set to Turkish still writes "1.500", not "1,500".
     public static class TelemetryJson
     {
-        public const int SchemaVersion = 1;
+        // 2 since docs/57 section 5.3 (2026-11-25): ability_used is written for each skill slot, with that skill's own
+        // ability_id and its slot, so it no longer means "skill 1 was used"; run_start names skills 2 and 3, run_end counts
+        // each slot's uses, and ability_refused, stick_on_button and ability_wasted are new. Every key schema 1 wrote is
+        // where it was. A reader of schema 1 lines reads each ability_used as slot 1, the only slot that could write one.
+        public const int SchemaVersion = 2;
 
         // One JSON object on one line without a trailing newline: "v", "seq", "t", "st", "session", "run" (only inside a
         // run), "event", then the fields in the order they were added.

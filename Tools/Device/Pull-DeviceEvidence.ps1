@@ -245,7 +245,17 @@ try {
   $probes = @{}
   $floors = @{}
   $sessions = @{}
+  # docs/57 5.3's skills (schema 2): each slot's uses, the taps the HUD refused by reason, the uses that found nothing in
+  # reach, the drags begun on a skill button. A schema 1 file holds none of them (its ability_used names no slot).
+  $skillUses = @{}
+  $refusals = @{}
+  $wasted = 0
+  $drags = 0
   foreach ($entry in $lines) {
+    if ($entry -match '"event":"ability_used".*?"slot":(?<slot>\d)') { $skillUses[[int]$Matches.slot] = 1 + [int]$skillUses[[int]$Matches.slot] }
+    elseif ($entry -match '"event":"ability_refused".*?"reason":"(?<reason>[a-z_]+)"') { $refusals[$Matches.reason] = 1 + [int]$refusals[$Matches.reason] }
+    elseif ($entry -match '"event":"ability_wasted"') { $wasted++ }
+    elseif ($entry -match '"event":"stick_on_button"') { $drags++ }
     if ($entry -match '"session":"(?<session>[^"]+)"') { $sessions[$Matches.session] = 1 }
     if ($entry -match '"event":"run_start".*?"hero_id":"(?<hero>[^"]+)"') { $heroes[$Matches.hero] = 1 + [int]$heroes[$Matches.hero] }
     elseif ($entry -match '"event":"run_end".*?"result":"(?<result>[^"]+)"') {
@@ -278,6 +288,11 @@ try {
       "floors cleared: $(if ($floors.Count) { ($floors.GetEnumerator() | Sort-Object Name | ForEach-Object { "floor $($_.Name) $($_.Value)" }) -join ', ' } else { 'none' })")
     if ($causes.Count -gt 0) { Write-Output "    deaths by run_end's cause: $(($causes.GetEnumerator() | Sort-Object Name | ForEach-Object { "$($_.Name) $($_.Value)" }) -join ', ')" }
     if ($probes.Count -gt 0) { Write-Output "    the density probe's runs (its hero at a million health): $($probes.Count), left out of the owner's floors" }
+    if ($skillUses.Count + $refusals.Count + $wasted + $drags -gt 0) {
+      Write-Output ("    skills (schema 2, docs/57 5.3): uses by slot $(if ($skillUses.Count) { ($skillUses.GetEnumerator() | Sort-Object Name | ForEach-Object { "$($_.Name): $($_.Value)" }) -join ', ' } else { 'none' }); " +
+        "taps refused $(if ($refusals.Count) { ($refusals.GetEnumerator() | Sort-Object Name | ForEach-Object { "$($_.Name) $($_.Value)" }) -join ', ' } else { 'none' }); " +
+        "wasted (nothing in reach) $wasted; drags begun on a skill button $drags")
+    }
   }
   Write-Output "  development flags: $(if ($flags.Count) { ($flags | ForEach-Object { "$($_.Name) ($((Get-Content -LiteralPath $_.FullName -TotalCount 1) -join ''))" }) -join ', ' } else { 'none' })"
   Write-Output "  log: $($logLines.Count) Unity lines ($logFormat; buffer $(if ($buffer) { $buffer.Trim() } else { 'not read' })): $($perf.Count) [Perf] windows, $($render.Count) [RenderStats] windows, $($slow.Count) long frames, $($ground.Count) ground projection lines ($($groundRamp.Count) at a ramp)"
