@@ -370,7 +370,10 @@ namespace Cryptforge.Arena
 
         // Keeps the player's build as a past hero (docs/55 section 6: "the player's past snapshots"): stored with the
         // player's rating, and standing in its arena's ladder - in place of the generated rival rated nearest it, or of the
-        // oldest past hero once MaxPastSnapshots stand. False, and nothing kept, when the same build already stands.
+        // oldest past hero once MaxPastSnapshots stand. False, and nothing kept, when the same build already stands: among
+        // the kept snapshots, or on the ladder itself - the kept list holds MaxPastSnapshots across both arenas, so a build
+        // it has let go of can still stand on its ladder, and keeping it again would put the same past hero (the same
+        // "self-" id) there twice. Bookkeeping only: no duel rule, and nothing ArenaRules' hash covers, changes.
         public static bool KeepSnapshot(ArenaSaveData save, ArenaBuild build)
         {
             if (save == null)
@@ -382,6 +385,11 @@ namespace Cryptforge.Arena
             foreach (ArenaSnapshotData kept in save.pastSnapshots)
             {
                 if (kept.hash == hash)
+                    return false;
+            }
+            foreach (ArenaRivalData standing in ladder.rivals)
+            {
+                if (standing.pastSelf && standing.build != null && standing.build.hash == hash)
                     return false;
             }
             ArenaSnapshotData data = ArenaSnapshots.ToData(build, ladder.rating, save.fights);
