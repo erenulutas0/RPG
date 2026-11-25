@@ -47,7 +47,7 @@ namespace Cryptforge.Tests
             List<string> lines = seamStore.Lines();
             Assert.That(lines.Count, Is.EqualTo(4));
             Assert.That(lines[2], Is.EqualTo(
-                "{\"v\":1,\"seq\":3,\"t\":\"2026-09-15T12:00:01.500Z\",\"st\":1.500,\"session\":\"s1\",\"run\":\"s1-1\"," +
+                "{\"v\":2,\"seq\":3,\"t\":\"2026-09-15T12:00:01.500Z\",\"st\":1.500,\"session\":\"s1\",\"run\":\"s1-1\"," +
                 "\"event\":\"reward_offer\",\"offer\":\"video\",\"run_gold\":15,\"bonus_gold\":8,\"multiplier_pct\":150,\"completed_runs\":2}"));
             Assert.That(lines[3], Does.EndWith(
                 "\"session\":\"s1\",\"event\":\"ad_counters\",\"requests\":0,\"matches\":0,\"shows\":0,\"show_failures\":0," +

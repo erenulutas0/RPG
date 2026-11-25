@@ -42,6 +42,9 @@ namespace Cryptforge.UI
         public Vector2 Steer => _steer;
         public bool IsMoving { get; private set; }
         public bool IsDragging => _dragging;
+        // The drag in screen pixels before the stick steers at all: a finger that has moved this far from where it landed
+        // would have walked the hero. docs/57 5.3's stick_on_button reads a drag begun on a skill button against it.
+        public float DeadZonePixels => _deadZonePixels;
         // Whether Rootmother Myrr's roots hold the hero where it stands (WardenSlamService.IsHeroPlanted): the stick steers
         // nothing until they let go.
         public bool IsPlanted => _setup != null && _setup.Warden != null && _setup.Warden.IsHeroPlanted;

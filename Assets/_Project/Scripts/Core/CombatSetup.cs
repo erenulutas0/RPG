@@ -466,6 +466,9 @@ namespace Cryptforge.Core
                 WeaponId = HeroWeapon.Id,
                 RelicId = equippedRelic != null ? equippedRelic.Id : null,
                 AbilityId = Hero.Ability.Id,
+                // The skills the run carries in slots 2 and 3 (StartSkills ran first): run_start names them (docs/57 5.3).
+                SkillTwoId = _ability.SkillAt(2) != null ? Hero.SkillAt(2).Id : null,
+                SkillThreeId = _ability.SkillAt(3) != null ? Hero.SkillAt(3).Id : null,
                 ForgeGold = Profile.Gold,
                 DeepestFloorCleared = Profile.DeepestFloorCleared,
                 Seed = Run.Seed,

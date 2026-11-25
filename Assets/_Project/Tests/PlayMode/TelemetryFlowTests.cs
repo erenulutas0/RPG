@@ -385,8 +385,9 @@ namespace Cryptforge.Tests
             Assert.That(_setup.Choices.Current.Kind, Is.EqualTo(ChoiceKind.Upgrade));
         }
 
-        // Every file of the set, oldest first, split into lines; each line must be one complete JSON object.
-        private static List<Line> ReadLog()
+        // Every file of the set, oldest first, split into lines; each line must be one complete JSON object. Shared with
+        // SkillTelemetryFlowTests, which reads the same folder.
+        internal static List<Line> ReadLog()
         {
             string directory = Path.Combine(TestProfile.Folder, TelemetryLocation.FolderName);
             var lines = new List<Line>();
@@ -524,9 +525,10 @@ namespace Cryptforge.Tests
             return text.ToString();
         }
 
-        // One parsed log line: a flat JSON object of strings, numbers, booleans and nulls, keys kept in written order.
+        // One parsed log line: a flat JSON object of strings, numbers, booleans and nulls, keys kept in written order (also
+        // SkillTelemetryFlowTests').
         // Parsing is strict, so a malformed or split line fails the test that reads it.
-        private sealed class Line
+        internal sealed class Line
         {
             private readonly List<string> _keys = new List<string>();
             private readonly Dictionary<string, object> _values = new Dictionary<string, object>(StringComparer.Ordinal);

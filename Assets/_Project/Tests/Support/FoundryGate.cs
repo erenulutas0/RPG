@@ -177,6 +177,29 @@ namespace Cryptforge.Tests
             public List<DeviceFrame> RampWork = new List<DeviceFrame>();
             // Whether the log's times could be set against the telemetry's (both the phone's clock).
             public bool Placed;
+            // docs/57 section 5.3's skills telemetry (schema 2) of the owner's runs on that APK, by hero and slot; empty
+            // when no run of schema 2 was read, and then the report writes nothing of it.
+            public List<DeviceSkill> Skills = new List<DeviceSkill>();
+        }
+
+        // One hero's skill slot over the owner's schema 2 runs on the APK (DevicePull): the ability id run_start named (null
+        // for a slot only ever shown locked), the runs that carried it and their active seconds, its uses, the taps the HUD
+        // refused (cooling, held, locked), the uses that found nothing in reach, and the drags begun on its button (those
+        // with no other finger on the stick: the player's one thumb meant to steer).
+        internal sealed class DeviceSkill
+        {
+            public string HeroId;
+            public int Slot;
+            public string AbilityId;
+            public int Runs;
+            public float Seconds;
+            public int Uses;
+            public int Cooling;
+            public int Held;
+            public int Locked;
+            public int Wasted;
+            public int Drags;
+            public int DragsOneThumb;
         }
 
         // A floor of one of the owner's runs: cleared, or the one it died on; its active seconds, floor_complete's
@@ -972,6 +995,8 @@ namespace Cryptforge.Tests
             md.AppendLine(EditorLine(heroes, evidence)).AppendLine();
             if (evidence.Device != null)
                 md.AppendLine(DeviceLine(evidence.Device)).AppendLine();
+            if (evidence.Device != null && evidence.Device.Skills.Count > 0)
+                md.AppendLine(SkillsLine(evidence.Device, heroes)).AppendLine();
             md.AppendLine("| Criterion | Target | Simulation | Editor | Status | Basis |");
             md.AppendLine("|---|---|---|---|---|---|");
             foreach (Row row in rows)
@@ -1006,6 +1031,32 @@ namespace Cryptforge.Tests
                       (file.OtherFloor != null ? " - **another floor**: " + file.OtherFloor : " - the simulated floor's levers"));
             }
             return "Editor files: " + string.Join("; ", parts) + ". A file names its floor's levers (surges, extra elites, the gate's time), not the Warden's version or the autopilot's.";
+        }
+
+        // docs/57 section 5.3's skills on the phone, for the S23 session to read against the autopilot's numbers (section
+        // 13): reported, not a criterion, and only where a run of schema 2 was read - an older pull's report is unchanged.
+        internal static string SkillsLine(DeviceEvidence device, IReadOnlyList<FoundryBatch.Batch> heroes)
+        {
+            int Order(string heroId)
+            {
+                for (int i = 0; i < heroes.Count; i++)
+                    if (heroes[i].Hero.Id == heroId)
+                        return i;
+                return heroes.Count;
+            }
+
+            string Name(string heroId) => heroes.FirstOrDefault(b => b.Hero.Id == heroId)?.Hero.Name ?? heroId ?? "a hero not named";
+            var parts = new List<string>();
+            foreach (IGrouping<string, DeviceSkill> hero in device.Skills.GroupBy(s => s.HeroId)
+                         .OrderBy(g => Order(g.Key)).ThenBy(g => g.Key, StringComparer.Ordinal))
+                parts.Add(Name(hero.Key) + " - " + string.Join("; ", hero.OrderBy(s => s.Slot).Select(s =>
+                    $"skill {s.Slot} ({s.AbilityId ?? "shown locked"}): {Many(s.Uses, "use")} in {Many(s.Runs, "run")} carrying it" +
+                    (s.Seconds > 0f ? $", {F(s.Uses / (s.Seconds / 60.0), "0.0")} a minute of active play" : string.Empty) +
+                    $", {Many(s.Cooling + s.Held + s.Locked, "tap")} refused ({s.Cooling} cooling, {s.Held} held, {s.Locked} locked), " +
+                    $"{s.Wasted} wasted (nothing in its reach), {Many(s.Drags, "drag")} begun on its button ({s.DragsOneThumb} with no finger on the stick)")));
+            return "Skills on the device (docs/57 section 5.3, the owner's schema 2 runs on that APK; reported, no criterion): " +
+                   string.Join(". ", parts) + ". A refused tap fired nothing; a wasted use is a use. The autopilot's careful pilot " +
+                   "fires the Burst 2.0-3.1 times a minute and the Vent 0.7-1.0 (docs/57 section 2).";
         }
 
         // What the two device rows read, where a pull of the phone's was read.

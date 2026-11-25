@@ -12,7 +12,8 @@ namespace Cryptforge.Tests
     // The phone's evidence for the V0.1 gate's two device rows (FoundryGate.DeviceEvidence), from the folders
     // Tools/Device/Pull-DeviceEvidence.ps1 pulls into TestResults/device-<yyyyMMdd-HHmmss>/: pull.txt (the phone, the
     // installed APK's SHA-256 and install time, the phone's UTC offset, the development flags), the game's telemetry
-    // (telemetry/events*.jsonl, RunTelemetry's schema 1) and the Unity log (logcat*.txt: FrameTimeProbe's [Perf] lines and
+    // (telemetry/events*.jsonl, RunTelemetry's schema 1 or 2: schema 2, docs/57 section 5.3, adds the skills' events, which
+    // a schema 1 file never holds, and is read beside it) and the Unity log (logcat*.txt: FrameTimeProbe's [Perf] lines and
     // RenderStatsProbe's [RenderStats] ones). Every pull is read together - the phone keeps about three files of 256 KB of
     // telemetry, so a pull between runs keeps what its rotation drops - and a line two pulls share is read once.
     //
@@ -94,6 +95,8 @@ namespace Cryptforge.Tests
                     device.ProbeRuns++;
                     continue;
                 }
+                // The skills (docs/57 5.3) are the owner's hands whatever the map, tier or gear: every run on the APK.
+                AddSkills(device.Skills, run);
                 // Begun on a deeper map (the map choice, run_start's start_floor): its floors are not the floors a run
                 // walks down to, nor its hero the one a walk would bring, so the owner's floor rows leave it out.
                 if (run.StartFloor > 1)
@@ -212,6 +215,8 @@ namespace Cryptforge.Tests
             public DateTime Utc;
             public string Run;
             public string Name;
+            // The envelope's v: the schema the line was written in (1 before docs/57 5.3's skills telemetry, 2 since).
+            public int Version = 1;
             public JsonElement Fields;
         }
 
@@ -248,7 +253,8 @@ namespace Cryptforge.Tests
                         continue;
                     events.Add(new TelemetryEvent
                     {
-                        Session = session, Seq = number, Utc = utc.Value, Name = name, Fields = e, Run = Text(e, "run")
+                        Session = session, Seq = number, Utc = utc.Value, Name = name, Fields = e, Run = Text(e, "run"),
+                        Version = Int(e, "v", 1)
                     });
                 }
             }
@@ -307,6 +313,71 @@ namespace Cryptforge.Tests
             // A floor begun and never finished, or one the run died on whose floors before it are not all in the log.
             public bool Unfinished;
             public List<(DateTime Utc, int Alive)> Samples = new List<(DateTime, int)>();
+            // docs/57 5.3's skills, slot by slot (index 0 is skill 1): the schema run_start was written in (0 without one),
+            // the ability ids it names (ability_id, skill_2_id, skill_3_id; null for a slot not carried), and the run's
+            // tallies. A schema 1 ability_used, which names no slot, is skill 1's: no other slot could write one then.
+            public int Schema;
+            public string[] SkillIds = new string[3];
+            public SkillTally[] Skills = { new SkillTally(), new SkillTally(), new SkillTally() };
+            // run_end's or run_interrupted's active_sec: the run's play the skills' uses are read over.
+            public float ActiveSeconds = float.NaN;
+        }
+
+        // One skill slot of one run: its uses, the taps the HUD refused (by reason), the uses that found nothing in reach,
+        // and the drags begun on its button (those with no other finger on the stick apart).
+        internal sealed class SkillTally
+        {
+            public int Uses;
+            public int Cooling;
+            public int Held;
+            public int Locked;
+            public int Wasted;
+            public int Drags;
+            public int DragsOneThumb;
+
+            public bool Any => Uses + Cooling + Held + Locked + Wasted + Drags > 0;
+        }
+
+        // The run's skills (schema 2 alone: a schema 1 run wrote no refusals, waste or drags, so its uses beside them would
+        // read as a player who never mis-tapped) onto the hero's rows, slot by slot.
+        private static void AddSkills(List<FoundryGate.DeviceSkill> skills, RunRecord run)
+        {
+            if (!run.Started || run.Schema < 2)
+                return;
+            for (int slot = 1; slot <= 3; slot++)
+            {
+                string abilityId = run.SkillIds[slot - 1];
+                SkillTally tally = run.Skills[slot - 1];
+                if (abilityId == null && !tally.Any)
+                    continue;
+                FoundryGate.DeviceSkill row = skills.FirstOrDefault(s => s.HeroId == run.HeroId && s.Slot == slot);
+                if (row == null)
+                {
+                    row = new FoundryGate.DeviceSkill { HeroId = run.HeroId, Slot = slot };
+                    skills.Add(row);
+                }
+                if (abilityId != null)
+                {
+                    row.AbilityId = row.AbilityId ?? abilityId;
+                    row.Runs++;
+                    if (!float.IsNaN(run.ActiveSeconds))
+                        row.Seconds += run.ActiveSeconds;
+                }
+                row.Uses += tally.Uses;
+                row.Cooling += tally.Cooling;
+                row.Held += tally.Held;
+                row.Locked += tally.Locked;
+                row.Wasted += tally.Wasted;
+                row.Drags += tally.Drags;
+                row.DragsOneThumb += tally.DragsOneThumb;
+            }
+        }
+
+        // A skills line's slot (1-3), or 0 for none: schema 2 writes it; a schema 1 ability_used is skill 1's.
+        private static int SlotOf(TelemetryEvent e)
+        {
+            int slot = Int(e.Fields, "slot", e.Version < 2 && e.Name == "ability_used" ? 1 : 0);
+            return slot >= 1 && slot <= 3 ? slot : 0;
         }
 
         // The runs of the events: a floor cleared is floor_complete's active_sec (which restarts at each floor_complete,
@@ -338,6 +409,42 @@ namespace Cryptforge.Tests
                             run.GearPower = Int(f, "gear_power", -1);
                             run.GearLevels = Text(f, "gear_levels");
                             run.Tier = Text(f, "tier");
+                            run.Schema = e.Version;
+                            run.SkillIds[0] = Text(f, "ability_id");
+                            run.SkillIds[1] = Text(f, "skill_2_id");
+                            run.SkillIds[2] = Text(f, "skill_3_id");
+                            break;
+                        case "ability_used":
+                        case "ability_refused":
+                        case "ability_wasted":
+                        case "stick_on_button":
+                            int slot = SlotOf(e);
+                            if (slot == 0)
+                                break;
+                            SkillTally tally = run.Skills[slot - 1];
+                            if (e.Name == "ability_used")
+                                tally.Uses++;
+                            else if (e.Name == "ability_wasted")
+                                tally.Wasted++;
+                            else if (e.Name == "stick_on_button")
+                            {
+                                tally.Drags++;
+                                if (!(f.TryGetProperty("stick_held", out JsonElement held) && held.ValueKind == JsonValueKind.True))
+                                    tally.DragsOneThumb++;
+                            }
+                            else
+                                switch (Text(f, "reason"))
+                                {
+                                    case "held":
+                                        tally.Held++;
+                                        break;
+                                    case "locked":
+                                        tally.Locked++;
+                                        break;
+                                    default:
+                                        tally.Cooling++;
+                                        break;
+                                }
                             break;
                         case "room_start":
                             floor = Int(f, "floor_index", floor);
@@ -366,6 +473,7 @@ namespace Cryptforge.Tests
                             run.Result = Text(f, "result");
                             run.Cause = Text(f, "cause");
                             run.Seconds = Float(f, "active_sec");
+                            run.ActiveSeconds = run.Seconds;
                             if (run.Result == "defeat")
                             {
                                 if (Int(f, "floors_completed", -1) == run.Cleared.Count)
@@ -382,6 +490,7 @@ namespace Cryptforge.Tests
                         case "run_interrupted":
                             run.End = e.Utc;
                             run.Result = "interrupted";
+                            run.ActiveSeconds = Float(f, "active_sec");
                             break;
                     }
                 }

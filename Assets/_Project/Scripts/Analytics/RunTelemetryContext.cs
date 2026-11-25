@@ -22,11 +22,15 @@ namespace Cryptforge.Analytics
         public Economy.RunLoot Loot;
         public Anvil Anvil;
 
-        // Stable content ids of the run's loadout. RelicId is null when no relic is equipped.
+        // Stable content ids of the run's loadout. RelicId is null when no relic is equipped. AbilityId is skill 1's, the
+        // hero's own; SkillTwoId and SkillThreeId the skills the run carries in slots 2 and 3 (docs/57: forged at the Forge,
+        // or development/skills.txt), null for a slot it does not carry.
         public string HeroId;
         public string WeaponId;
         public string RelicId;
         public string AbilityId;
+        public string SkillTwoId;
+        public string SkillThreeId;
 
         // PlayerProfile.Gold and DeepestFloorCleared as they were when the run started.
         public int ForgeGold;

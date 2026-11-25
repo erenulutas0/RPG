@@ -4,6 +4,15 @@ using UnityEngine;
 
 namespace Cryptforge.Combat
 {
+    // Why a press on a skill's button fired nothing (docs/57 section 5.3's ability_refused): its skill cooling down, the
+    // fight held (the boss's reveal greys every button), or the slot locked (its floor cleared, the Forge not yet forged it).
+    public enum AbilityRefusal
+    {
+        Cooling = 0,
+        Held = 1,
+        Locked = 2
+    }
+
     // Fires the hero's abilities on request. Slot 1 is the hero's shipped ability: every living enemy within its radius of
     // the hero on the floor takes its damage at once (a Burst), or every burning one erupts (a Vent). Slots 2 and 3 are
     // docs/57's skills (AbilityKind Guard, Rush, Sigil, Ward), empty until a run is handed them (InitializeSkills): the guard
@@ -26,6 +35,9 @@ namespace Cryptforge.Combat
         private readonly bool[] _active = new bool[SlotCount];
         // The last heading the hero walked, for a Rush pressed with no finger down and nothing in its seek.
         private Vector2 _facing = new Vector2(0f, -1f);
+        // The glyph's slot, and the enemies its ticks have found inside it since it was drawn (Wasted at its end).
+        private int _sigilSlot;
+        private int _sigilReached;
 
         // A Vent's eruptions: the burning enemy, and the stacks it spent. For the effects and the tests.
         public event Action<Health, int> Vented;
@@ -37,6 +49,18 @@ namespace Cryptforge.Combat
         public event Action Used;
         // A use of slot 2 or 3: the slot and its runtime (docs/57 phase 3's effects and telemetry listen here).
         public event Action<int, AbilityRuntime> SkillUsed;
+        // docs/57 section 5.3's ability_wasted: a use whose strike found nothing in its own reach, read off the very body
+        // that strikes - a Burst with no living enemy in the circle it struck, a Vent with nothing burning in the circle it
+        // erupts, a Rush that struck nothing on its path, and a glyph whose ticks found no enemy inside it for its whole life
+        // (raised as it goes out). Raised after Used or SkillUsed. The guard and the ward reach nothing by design (they
+        // guard the hero), so they are never wasted here. Telemetry listens; nothing here acts on it.
+        public event Action<int, AbilityRuntime> Wasted;
+        // docs/57 section 5.3: the HUD's presses that fired nothing, reported by the buttons (AbilityButtonView) for telemetry
+        // (RunTelemetryBridge) - a tap on a slot's button refused (ReportRefusedPress: why), and a drag that began on a
+        // slot's button, which the stick never takes (ReportDragFromButton: whether another finger held the stick). Nothing
+        // here acts on them.
+        public event Action<int, AbilityRefusal> PressRefused;
+        public event Action<int, bool> DraggedFromButton;
         // A hold on every slot, asked on each use, as AttackController.FightHold is on each strike: while it answers true
         // TryUse refuses. The foundry's boss reveal holds the fight while the camera is at the gate (EncounterController.
         // FightHold), and the ability is part of the fight; the composition root hands it over. Null where nothing holds it.
@@ -84,7 +108,10 @@ namespace Cryptforge.Combat
                 if (_slots[i].Kind == AbilityKind.Rush)
                     Dash = new HeroDash(_slots[i].Amount, _slots[i].Duration);
                 if (_slots[i].Kind == AbilityKind.Sigil)
+                {
                     Sigil = new SigilZone();
+                    _sigilSlot = i + 1;
+                }
             }
         }
 
@@ -119,22 +146,27 @@ namespace Cryptforge.Combat
                 return false;
 
             bool used;
+            // What the press reached in its own reach (Wasted): -1 for a kind that reaches nothing at the press.
+            int reached = -1;
             switch (ability.Kind)
             {
                 case AbilityKind.Vent:
                     _targeting.CollectNear(_owner, ability.Radius, _targets);
                     used = Vent(ability);
+                    reached = _vented.Count;
                     _targets.Clear();
                     break;
                 case AbilityKind.Burst:
                     _targeting.CollectNear(_owner, ability.Radius, _targets);
+                    // The living enemies of the very circle the Burst strikes (AbilityRuntime.TryUse strikes each living one).
+                    reached = Living(_targets);
                     used = ability.TryUse(_owner, _targets);
                     _targets.Clear();
                     break;
                 default:
                     used = ability.TrySpend();
                     if (used)
-                        Begin(ability);
+                        reached = Begin(ability);
                     break;
             }
             if (!used)
@@ -143,11 +175,56 @@ namespace Cryptforge.Combat
                 Used?.Invoke();
             else
                 SkillUsed?.Invoke(slot, ability);
+            if (reached == 0)
+                Wasted?.Invoke(slot, ability);
             return true;
         }
 
-        // A skill's effect at the press.
-        private void Begin(AbilityRuntime skill)
+        // A tap on slot's button that fired nothing (docs/57 5.3), reported by the button: while the fight is held, the skill
+        // cools down, or the slot is locked (no runtime: the run does not carry it). False, and nothing raised, for a press
+        // refused for anything else - the button greyed by a choice, the pause or the run's end is not a skill's refusal.
+        public bool ReportRefusedPress(int slot)
+        {
+            if (slot < 1 || slot > SlotCount)
+                return false;
+            AbilityRuntime ability = SkillAt(slot);
+            AbilityRefusal reason;
+            if (ability == null)
+                reason = AbilityRefusal.Locked;
+            else if (IsHeld)
+                reason = AbilityRefusal.Held;
+            else if (!ability.IsReady)
+                reason = AbilityRefusal.Cooling;
+            else
+                return false;
+            PressRefused?.Invoke(slot, reason);
+            return true;
+        }
+
+        // A drag that began on slot's button (docs/57 5.3's stick_on_button), reported by the button once a press on it moves
+        // as far as the stick's dead zone: the stick never takes a touch that began on the UI (HeroMovementInput), so that
+        // drag steered nothing. stickHeld: another finger held the stick meanwhile.
+        public void ReportDragFromButton(int slot, bool stickHeld)
+        {
+            if (slot >= 1 && slot <= SlotCount)
+                DraggedFromButton?.Invoke(slot, stickHeld);
+        }
+
+        // The living targets of a collected list, as a strike reads them.
+        private static int Living(List<IDamageable> targets)
+        {
+            int living = 0;
+            for (int i = 0; i < targets.Count; i++)
+            {
+                IDamageable target = targets[i];
+                if (target != null && target.IsAlive)
+                    living++;
+            }
+            return living;
+        }
+
+        // A skill's effect at the press; what it struck at the press (the Rush), or -1 for a skill that strikes nothing then.
+        private int Begin(AbilityRuntime skill)
         {
             switch (skill.Kind)
             {
@@ -160,11 +237,12 @@ namespace Cryptforge.Combat
                 case AbilityKind.Sigil:
                     Sigil.Begin(transform.position.x, ArenaFloor.FloorY(transform.position.y), skill.Radius, skill.Duration,
                         skill.Amount);
+                    _sigilReached = 0;
                     break;
                 case AbilityKind.Rush:
-                    Rush(skill);
-                    break;
+                    return Rush(skill);
             }
+            return -1;
         }
 
         // A skill's effect as it ends.
@@ -178,8 +256,8 @@ namespace Cryptforge.Combat
 
         // Shield Rush: along the stick's heading, or with no finger down at the nearest enemy within its seek, or the way
         // the hero last walked. Every enemy within the path's radius takes the damage scaled by the first weapon and, but the
-        // gate boss, a daze; the dash itself begins at the next walk step (HeroMovementInput).
-        private void Rush(AbilityRuntime skill)
+        // gate boss, a daze; the dash itself begins at the next walk step (HeroMovementInput). Returns how many it struck.
+        private int Rush(AbilityRuntime skill)
         {
             float x = transform.position.x, y = ArenaFloor.FloorY(transform.position.y);
             Vector2 heading = _pressHeading.sqrMagnitude >= .05f * .05f ? _pressHeading
@@ -232,16 +310,19 @@ namespace Cryptforge.Combat
                 }
             }
             Dash.Begin(hx, hy, travel);
+            int struck = 0;
             for (int i = 0; i < _targets.Count; i++)
             {
                 var enemy = (Health)_targets[i];
                 if (!enemy.IsAlive)
                     continue;
+                struck++;
                 enemy.ApplyDamage(new DamageContext(damage, _owner));
                 if (enemy.IsAlive && (IsGateBoss == null || !IsGateBoss(enemy)))
                     SlowStatus.On(enemy)?.State.Daze(SkillRule.DazeSeconds);
             }
             _targets.Clear();
+            return struck;
         }
 
         // One tick of the glyph: every enemy inside slowed (half on the gate boss) and heated until the next, an unburnt one
@@ -256,6 +337,7 @@ namespace Cryptforge.Combat
                 Vector3 at = enemy.transform.position;
                 if (!Sigil.Contains(at.x, ArenaFloor.FloorY(at.y)))
                     continue;
+                _sigilReached++;
                 SlowStatus slow = SlowStatus.On(enemy);
                 if (slow == null)
                     continue;
@@ -330,8 +412,13 @@ namespace Cryptforge.Combat
                     End(skill);
             }
             if (Sigil != null && Sigil.IsLive)
+            {
                 for (int ticks = Sigil.Tick(deltaTime); ticks > 0; ticks--)
                     SigilTick();
+                // The glyph has gone out: wasted if none of its ticks found an enemy inside it.
+                if (!Sigil.IsLive && _sigilReached == 0)
+                    Wasted?.Invoke(_sigilSlot, _slots[_sigilSlot - 1]);
+            }
         }
     }
 }
