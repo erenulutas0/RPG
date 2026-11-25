@@ -25,6 +25,9 @@ namespace Cryptforge.Tests
             // delete this. No map chosen by an earlier test carries into this one either.
             File.WriteAllText(DevelopmentStart.MapChoicePath, "off");
             RunStartRequest.Clear();
+            // No profile or arena save an earlier test could not write carries into this one either.
+            UnsavedProfile.Clear();
+            ArenaSaveStore.ForgetUnsaved();
             if (seed != null)
                 new ProfileStore(Folder).Save(seed);
         }
@@ -47,6 +50,8 @@ namespace Cryptforge.Tests
         public static void End()
         {
             ProfileLocation.DirectoryOverride = null;
+            UnsavedProfile.Clear();
+            ArenaSaveStore.ForgetUnsaved();
             if (Folder != null && Directory.Exists(Folder))
                 Directory.Delete(Folder, true);
             Folder = null;

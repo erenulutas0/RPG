@@ -23,6 +23,7 @@ namespace Cryptforge.Tests
         [TearDown]
         public void DeleteFolder()
         {
+            UnsavedProfile.Clear();
             if (Directory.Exists(_directory))
                 Directory.Delete(_directory, true);
         }
@@ -260,11 +261,165 @@ namespace Cryptforge.Tests
             var store = new ProfileStore(_directory);
             PlayerProfile profile = store.Load();
 
-            Assert.That(store.LastLoadStatus, Is.EqualTo(ProfileLoadStatus.Reset));
+            // Not damaged: a newer build's (an older APK installed over a newer one), so its own status, and read only.
+            Assert.That(store.LastLoadStatus, Is.EqualTo(ProfileLoadStatus.NewerVersion));
+            Assert.That(store.IsReadOnly, Is.True);
             Assert.That(profile.Gold, Is.Zero);
             Assert.That(store.LastLoadProblems, Has.Some.Contains("99"));
             Assert.That(File.ReadAllText(Path.Combine(_directory, ProfileStore.UnreadableFileName)), Does.Contain("900"));
             Assert.That(ProfileMigration.Upgrade(new ProfileSaveData { saveVersion = 0 }), Is.Null, "A missing version is never guessed.");
+        }
+
+        // An older APK installed over a newer one (a rollback build, a tester's adb install -r -d): the newer profile was
+        // reset and its file rotated into the backup by the first save, then deleted by the second. Now no load and no save
+        // of the session moves, writes over or deletes it, whichever of the three files it is, and the copies beside it
+        // stay as they were too; the session plays on a new profile in memory, carried over a reload.
+        [TestCase(ProfileStore.FileName)]
+        [TestCase(ProfileStore.TempFileName)]
+        [TestCase(ProfileStore.BackupFileName)]
+        public void ANewerBuildsFileIsNeverWrittenOverNorDeleted(string newerFile)
+        {
+            string newer = JsonUtility.ToJson(new ProfileSaveData { saveVersion = ProfileSaveData.CurrentVersion + 1, revision = 7, gold = 900 }, true);
+            string current = JsonUtility.ToJson(new ProfileSaveData { saveVersion = ProfileSaveData.CurrentVersion, revision = 5, gold = 40 }, true);
+            foreach (string file in new[] { ProfileStore.FileName, ProfileStore.TempFileName, ProfileStore.BackupFileName })
+                File.WriteAllText(Path.Combine(_directory, file), file == newerFile ? newer : current);
+            var before = new System.Collections.Generic.Dictionary<string, string>();
+            foreach (string file in Directory.GetFiles(_directory))
+                before[Path.GetFileName(file)] = File.ReadAllText(file);
+
+            var store = new ProfileStore(_directory);
+            PlayerProfile profile = store.LoadSession();
+            Assert.That(store.LastLoadStatus, Is.EqualTo(ProfileLoadStatus.NewerVersion), "Any of the three a newer build's.");
+            Assert.That(store.IsReadOnly, Is.True);
+            Assert.That(profile.Gold, Is.Zero, "A new profile, not the older copy beside the newer one.");
+            Assert.That(store.LastLoadProblems, Has.Some.Contains(newerFile + " was written by a newer build"));
+            // A newer main is copied aside as an unreadable one always was; a copy, the main left where it stands.
+            string unreadable = Path.Combine(_directory, ProfileStore.UnreadableFileName);
+            Assert.That(File.Exists(unreadable), Is.EqualTo(newerFile == ProfileStore.FileName));
+            if (File.Exists(unreadable))
+                before[ProfileStore.UnreadableFileName] = before[ProfileStore.FileName];
+
+            profile.Deposit(25);
+            store.Save(profile);
+            profile.Deposit(5);
+            store.Save(profile);
+            store.Save(profile);
+            Assert.That(store.LastLoadProblems, Has.Exactly(1).Contains("Nothing was written"), "Said once, whatever the saves.");
+            AssertUntouched(before);
+
+            // A reload (Restart, another map): the session's profile comes back, and is still not written.
+            var reloaded = new ProfileStore(_directory);
+            PlayerProfile carried = reloaded.LoadSession();
+            Assert.That(reloaded.LastLoadStatus, Is.EqualTo(ProfileLoadStatus.NewerVersion));
+            Assert.That(reloaded.LastLoadWasUnsaved, Is.True);
+            Assert.That(carried.Gold, Is.EqualTo(30), "The session's progress, in memory.");
+            carried.Deposit(10);
+            reloaded.Save(carried);
+            AssertUntouched(before);
+            Assert.That(new ProfileStore(_directory).LoadSession().Gold, Is.EqualTo(40));
+            Assert.That(new ProfileStore(_directory).Load().Gold, Is.Zero, "The disk's own load reads none of it.");
+            AssertUntouched(before);
+        }
+
+        // The backup a newer build left beside a damaged main file (its save cut short): before, the corrupt main was set
+        // aside, the profile reset and the newer backup deleted by the first save; now nothing is written at all.
+        [Test]
+        public void ANewerBackupBesideACorruptMainIsNeverWrittenOver()
+        {
+            File.WriteAllText(Path.Combine(_directory, ProfileStore.FileName), "{\"saveVersion\":6,\"revis");
+            File.WriteAllText(Path.Combine(_directory, ProfileStore.BackupFileName),
+                JsonUtility.ToJson(new ProfileSaveData { saveVersion = ProfileSaveData.CurrentVersion + 3, revision = 12, gold = 700 }));
+            var before = new System.Collections.Generic.Dictionary<string, string>();
+            foreach (string file in Directory.GetFiles(_directory))
+                before[Path.GetFileName(file)] = File.ReadAllText(file);
+
+            var store = new ProfileStore(_directory);
+            PlayerProfile profile = store.LoadSession();
+            Assert.That(store.LastLoadStatus, Is.EqualTo(ProfileLoadStatus.NewerVersion), "The newer backup decides, not the corrupt main.");
+            Assert.That(store.IsReadOnly, Is.True);
+            Assert.That(profile.Gold, Is.Zero);
+            // The damaged main is still set aside as before (a copy; the main itself is left where it is).
+            before[ProfileStore.UnreadableFileName] = File.ReadAllText(Path.Combine(_directory, ProfileStore.UnreadableFileName));
+            Assert.That(before[ProfileStore.UnreadableFileName], Is.EqualTo(before[ProfileStore.FileName]));
+
+            for (int i = 0; i < 3; i++)
+            {
+                profile.Deposit(10);
+                store.Save(profile);
+            }
+            AssertUntouched(before);
+            Assert.That(new ProfileStore(_directory).LoadSession().Gold, Is.EqualTo(30), "The session's, carried.");
+            AssertUntouched(before);
+        }
+
+        // A full phone: every save throws. The profile the save could not write is held (UnsavedProfile) and the next scene's
+        // load hands it back instead of the older file - however many reloads - until a save lands, which releases it. The
+        // disk's own load (Load) reads the disk.
+        [Test]
+        public void AFailedSaveIsCarriedToTheNextLoadUntilASaveLands()
+        {
+            var store = new ProfileStore(_directory);
+            store.Load();
+            store.Save(new PlayerProfile(10, null, null, 1));
+            // A folder where the temp file goes makes every save fail, as RewardOfferFlowTests' full phone does.
+            string blocked = Path.Combine(_directory, ProfileStore.TempFileName);
+            Directory.CreateDirectory(blocked);
+
+            var session = new ProfileStore(_directory);
+            PlayerProfile profile = session.LoadSession();
+            Assert.That(session.LastLoadWasUnsaved, Is.False);
+            profile.Deposit(25);
+            Exception thrown = null;
+            try
+            {
+                session.Save(profile);
+            }
+            catch (Exception exception)
+            {
+                thrown = exception;
+            }
+            Assert.That(thrown is IOException || thrown is UnauthorizedAccessException, Is.True, "The failed write throws: " + thrown);
+            Assert.That(UnsavedProfile.IsHeldFor(_directory), Is.True);
+            Assert.That(UnsavedProfile.IsHeldFor(_directory + "-other"), Is.False);
+            Assert.That(new ProfileStore(_directory).Load().Gold, Is.EqualTo(10), "The disk still holds the older profile.");
+
+            for (int reload = 0; reload < 2; reload++)
+            {
+                var next = new ProfileStore(_directory);
+                PlayerProfile carried = next.LoadSession();
+                Assert.That(carried, Is.Not.SameAs(profile), "A fresh profile each load: no listener of a scene gone.");
+                Assert.That(carried.Gold, Is.EqualTo(35), $"Reload {reload}: the unsaved gold, not the file's.");
+                Assert.That(carried.DeepestFloorCleared, Is.EqualTo(1));
+                Assert.That(next.LastLoadWasUnsaved, Is.True);
+                Assert.That(next.LastLoadStatus, Is.EqualTo(ProfileLoadStatus.Loaded), "The disk's own status.");
+                Assert.That(next.Revision, Is.EqualTo(1));
+            }
+            Assert.That(UnsavedProfile.IsHeldFor(_directory), Is.True, "A load does not use it up.");
+            Assert.That(new ProfileStore(_directory + "-other").LoadSession().Gold, Is.Zero, "Another folder's load never takes it.");
+
+            Directory.Delete(blocked);
+            var landed = new ProfileStore(_directory);
+            PlayerProfile kept = landed.LoadSession();
+            kept.Deposit(5);
+            landed.Save(kept);
+            Assert.That(UnsavedProfile.IsHeld, Is.False, "Released once a save lands.");
+            Assert.That(File.ReadAllText(Path.Combine(_directory, ProfileStore.FileName)),
+                Does.Contain("\"revision\": 2").And.Contain("\"gold\": 40"));
+            var after = new ProfileStore(_directory);
+            Assert.That(after.LoadSession().Gold, Is.EqualTo(40));
+            Assert.That(after.LastLoadWasUnsaved, Is.False, "From the disk again.");
+        }
+
+        private void AssertUntouched(System.Collections.Generic.Dictionary<string, string> before)
+        {
+            string[] files = Directory.GetFiles(_directory);
+            Assert.That(files.Length, Is.EqualTo(before.Count), "No file made or deleted: " + string.Join(", ", files));
+            foreach (var file in before)
+            {
+                string path = Path.Combine(_directory, file.Key);
+                Assert.That(File.Exists(path), Is.True, file.Key + " is still there.");
+                Assert.That(File.ReadAllText(path), Is.EqualTo(file.Value), file.Key + " is unchanged.");
+            }
         }
 
         [Test]

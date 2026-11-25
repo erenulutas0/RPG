@@ -3181,3 +3181,30 @@ button past the stick's dead zone) and `ability_wasted` (a Burst, Vent or Rush w
 empty for its life). Every schema 1 key is where it was. `DevicePull`, the gate section's new "Skills on the device"
 line (only for a pull holding schema 2 runs) and `Pull-DeviceEvidence.ps1`'s summary read them. No save change, no
 simulation change.
+
+## 2026-11-26 - Three player-data fixes: a newer build's save, a failed save over a reload, a past hero twice
+
+- **A newer build's save is no longer destroyed.** An older APK installed over a newer one (a rollback build, a tester's
+  `adb install -r -d`) read a profile of a higher save version as corrupt, reset it, and its next two saves rotated it
+  into the backup and deleted it. Now `ProfileStore` tells the two apart: when the main, temp or backup file is a newer
+  build's, the load says `ProfileLoadStatus.NewerVersion`, the session plays on a new profile in memory, and the store is
+  read only (`IsReadOnly`): `Save` writes, moves and deletes nothing and says so once in its problems. The arena's store
+  (`ArenaSaveJson.IsNewerVersion`) and the reward ledger's (`RewardLedgerStore.IsNewerVersion`) do the same. The result
+  of a read-only session is not "saved" (`CombatSetup.ResultSaved` false: no video, docs/58 3.1).
+- **A failed save survives the scene reload.** With the phone's storage full every profile save threw; the run's gold,
+  items, clears, unlocks and forge buys lived in memory only, and Restart, another map, hero or tier, or a language
+  switch reloaded the scene, whose load read the older file. Now a save that does not land (failed, or read only) holds
+  the profile in `UnsavedProfile` (a static holder in `RunStartRequest`'s style, keyed by the profile folder, the JSON the
+  save would have written); `ProfileStore.LoadSession` (CombatSetup's load) hands it to the next scene instead of the
+  disk's, the new scene writes it again at once, and the first save that lands releases it. The arena's store holds its
+  unsaved save the same way for the arena's next opening; the ledger lives in memory for the launch already.
+- **The player is told** (`ProfileNoticeView`: one line on a smoked plate at the top of the screen, over every panel,
+  six seconds, no tap caught): `save.newer_version` once a launch, `save.failed` once a scene (docs/60 section 12).
+- **A past hero stands once.** `ArenaLadder.KeepSnapshot` checked only the five kept snapshots (both arenas together);
+  a build they had let go of but still standing on its ladder was kept again, two rivals with one `self-<hash8>` id. It
+  now also skips a build whose past hero stands on the ladder. Bookkeeping only: no duel rule and nothing `ArenaRules`'
+  hash covers changes (docs/55 10.8).
+
+Tests: `ProfileStoreTests`, `ArenaLadderTests` and `RewardLedgerTests` (EditMode; the last two in Tools/CombatChecks
+too); `ProfileSafetyFlowTests` (PlayMode: the carry over two reloads with the notice, and a newer build's profile kept
+through a run's end and a reload).
