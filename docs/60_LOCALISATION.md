@@ -129,6 +129,10 @@ to English.
 | a skill opens (its floor's first clear) | yetenek açılır ("Yeni yetenek açıldı: Demir İrade. Kalıntı Ocağı'nda döv") | 2026-11-25, the result screen's line. The suffix goes on the fixed name with its apostrophe ("Kalıntı Ocağı'nda"), never on the skill's placeholder |
 | the stick (the movement joystick) | kol ("kolun yönünde", "kolun yönüne hücum et") | Shield Rush's description and its toast |
 | tap when ... (a skill's moment, the first-run toast) | ... dokun ("darbeler gelince dokun", "bossun darbesi inmeden hemen önce dokun") | 2026-11-25, docs/57 5.2. Lower case: the hint follows the skill's name ("Demir İrade: darbeler gelince dokun") |
+| save (the game's saved progress, a noun) / to save | kayıt / kaydetmek ("Bu kayıt", "hiçbir şey kaydedilmez") | 2026-11-26, the save's notices (section 12) |
+| progress (what a save keeps) | ilerleme ("İlerlemen kaydedilemedi") | 2026-11-26. The possessive "-n" (your) on the fixed word, never on a placeholder |
+| version (of the game) / update the game | sürüm / oyunu güncelle | 2026-11-26. "Sürüm", the Play Store's own word ("Sürüm 1.2"), over "versiyon" |
+| free some space (on the phone) | yer aç ("Telefonda biraz yer aç") | 2026-11-26. Android's own Turkish ("Yer açın"), here in "sen" |
 
 **Proper names stay as they are:** Cryptforge, Ilya Kest, Vanguard (the lead, 2026-11-18). **Cinder Arcanist is kept
 as a proper name in pass 1** for symmetry with Vanguard; if the owner prefers it translated, "Kül Büyücüsü" goes in its
@@ -300,6 +304,11 @@ Pass 2's (2026-11-19):
     +60 gold"; the pause overlay's entry, once bought, "Ödüllü videolar atlanıyor". Literal alternatives: "Atlama sende:
     +60 altın", "Ödüllü videoları atla: satın alındı" (a third longer than the English).
 
+2026-11-26's (the save's notices, section 12):
+
+13. "Kayıt" for a save and "sürüm" for the game's version ("Bu kayıt oyunun daha yeni bir sürümüne ait")? "Kayıt dosyası"
+    (save file) is the longer, plainer alternative; "versiyon" is common in speech but "sürüm" is what the Play Store says.
+
 ## 10. The Ascent (2026-11-22)
 
 **The decision.** The fiction is a climb up the tower: the hero always climbs (docs/44 section 1, "oyuncu aşağı inmez;
@@ -385,3 +394,20 @@ Her death line is the longest English of the nine, still one line inside the pla
 in Arial italic, above); `BossBarkFlowTests.EveryLineFitsItsPlateInTurkish` reads every line of
 `BossBark.Lines`, hers among them. The room's row, `room.wardens_grove.name` ("Warden's Grove" / "Bekçinin Korusu"),
 stays as it is until the owner's review of this table: the lead's answer 6 renames it then (docs/64 section 16).
+
+## 12. The save's notices (2026-11-26)
+
+Two lines a player may meet once the save cannot do its job, shown by `ProfileNoticeView` (one line on a smoked plate at
+the top of the screen, over every panel, six seconds; nothing of it catches a tap). Two rows under `save.*`, the
+Turkish in "sen" (style rule 1), the capital İ dotted (rule 6), no placeholder:
+
+| Key | English | Turkish | When |
+|---|---|---|---|
+| `save.newer_version` | This save is from a newer version of the game. Update the game to keep playing it - nothing is saved until then. | Bu kayıt oyunun daha yeni bir sürümüne ait. Kaldığın yerden devam etmek için oyunu güncelle; o zamana kadar hiçbir şey kaydedilmez. | An older build found a profile (or arena) save a newer build wrote: it keeps it untouched and saves nothing this session. Once a launch |
+| `save.failed` | Could not save your progress. Free some space on the phone; the game will try again. | İlerlemen kaydedilemedi. Telefonda biraz yer aç; oyun yeniden deneyecek. | A save failed (the phone's storage full): the progress is kept in memory, carried over a reload and written at the next change. Once a scene |
+
+**Fit.** The plate is 960 of the 1080 canvas units wide and grows to the line's height (84 to 240 units); the line sits at
+34 and fits down to 24. The longest, the Turkish newer-version line (about 130 characters), should take about three
+lines at 34 (an estimate from Arial's average width, not yet measured in the Editor; the plate's 240 holds five).
+The glossary's new rows (section 3): kayıt, ilerleme, sürüm / oyunu güncelle, yer aç; question 13 (section 9) asks the
+owner about "kayıt" and "sürüm".

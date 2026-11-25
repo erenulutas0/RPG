@@ -669,14 +669,18 @@ low), and Ilya against the Staff Vanguard 47-59 %. Ranked is tuned; open is casu
   with its seed, rules version and hash, and fingerprint, so any of them re-runs and checks itself.
 - **The player's own past heroes** (`KeepSnapshot`): a build is kept with the player's rating at the time (five at most,
   oldest dropped) and stands in its arena's ladder in place of the generated rival rated nearest it (or of the oldest past
-  hero once five stand); the same build is kept once. When to keep one (a changed build, every N fights) is the view's
-  call.
+  hero once five stand); the same build is kept once - checked against the kept snapshots and, since 2026-11-26, the
+  ladder's own past heroes too (the five are counted across both arenas, so a build they let go of can still stand on its
+  ladder; it was kept a second time, two rivals with one `self-` id). Bookkeeping, not a duel rule: the rules' version
+  and hash are untouched. When to keep one (a changed build, every N fights) is the view's call.
 - **The save** (`ArenaSaveData`, `arena.json`): version 1, its own file and its own version, never inside the profile:
   `saveVersion`, `revision`, `rulesVersion`, `seed`, `fights`, both ladders (rating, wins, losses, draws, rivals, history),
   the player's ranked and open builds (ids; the open build's gear is read from the profile at each fight) and the past
   heroes. JSON in camelCase, written and read by `ArenaSaveJson` in pure C# (a round trip writes the same text; unknown keys
   ignored, missing keys default, a newer version refused rather than guessed); `ArenaSaveStore` only moves the text to and
-  from the file. A missing or broken arena save starts the arena afresh and never touches the profile.
+  from the file. A missing or broken arena save starts the arena afresh and never touches the profile. A newer build's
+  save (`ArenaSaveJson.IsNewerVersion`, since 2026-11-26) is not broken: it is kept untouched, the store is read only for
+  the session, and a save that could not be written is held in memory for the arena's next opening (docs/21 2026-11-26).
 - **`arena_fight`** (`ArenaFightTelemetry.Fields`, in this order): `mode`, `rules_version`, `rules_hash`, `seed`, `fight`,
   `hero_id`, `weapon_id`, `policy`, `skill_ids`, `line_ids`, `gear_power`, `rival_id`, `rival_past_self`, `rival_hero_id`,
   `rival_weapon_id`, `rival_policy`, `rival_line_ids`, `rival_gear_power`, `rival_rating`, `result`, `rounds`, `rounds_won`,
