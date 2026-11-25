@@ -48,6 +48,8 @@ namespace Cryptforge.Tests
             if (heroId != null)
                 File.WriteAllText(DevelopmentStart.HeroPath, heroId);
             File.WriteAllText(DevelopmentStart.SkillsPath, "3");
+            // The development file announces the skills it forces on (CombatSetup); that line is expected here.
+            LogAssert.Expect(LogType.Log, new System.Text.RegularExpressions.Regex(@"^\[Skills\] the run carries"));
             Time.timeScale = 1;
             Time.captureDeltaTime = Frame;
             yield return SceneManager.LoadSceneAsync(ScenePath);
