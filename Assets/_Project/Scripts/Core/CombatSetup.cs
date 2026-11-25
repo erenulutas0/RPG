@@ -514,7 +514,7 @@ namespace Cryptforge.Core
         {
             if (_profileStore.LastLoadWasUnsaved)
                 Debug.LogWarning($"Profile: the profile this session could not save came over the reload; {_profileStore.Directory} " +
-                    "still holds an older one.", this);
+                    "still holds the one it could not replace.", this);
             if (_profileStore.LastLoadStatus != ProfileLoadStatus.Recovered && _profileStore.LastLoadStatus != ProfileLoadStatus.Reset &&
                 _profileStore.LastLoadStatus != ProfileLoadStatus.NewerVersion)
                 return;

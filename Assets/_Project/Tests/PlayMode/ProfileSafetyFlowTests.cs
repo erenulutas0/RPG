@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 using Cryptforge.Combat;
 using Cryptforge.Core;
 using Cryptforge.Save;
@@ -108,6 +109,9 @@ namespace Cryptforge.Tests
                 deepestFloorCleared = 3
             }, true);
             File.WriteAllText(path, newer);
+            // Each load logs the newer build's file (ReportLoadProblems); the reload also logs the profile it carried.
+            var newerLog = new Regex(@"^Profile NewerVersion from .*written by a newer build");
+            LogAssert.Expect(LogType.Warning, newerLog);
             yield return LoadScene();
 
             Assert.That(_setup.Profile.Gold, Is.Zero, "A new profile in memory, the newer one unread.");
@@ -122,6 +126,8 @@ namespace Cryptforge.Tests
             Assert.That(_setup.ResultSaved, Is.False, "Nothing is on disk, so no video is offered (docs/58 3.1).");
             Assert.That(File.ReadAllText(path), Is.EqualTo(newer), "The newer build's profile is untouched.");
 
+            LogAssert.Expect(LogType.Warning, new Regex(@"^Profile: the profile this session could not save came over the reload"));
+            LogAssert.Expect(LogType.Warning, newerLog);
             yield return Reload();
             Assert.That(_setup.Profile.Gold, Is.EqualTo(25), "The session's gold came over the reload, in memory.");
             Assert.That(Notice() == null || !Notice().IsShowing, Is.True, "Told once a launch: a reload says nothing new.");
