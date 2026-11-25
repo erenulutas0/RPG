@@ -456,6 +456,10 @@ uses per slot. New: `ability_refused` (a press while cooling or held - a mis-tap
 drag that began on a button and so did not steer), and `ability_wasted` (a Burst, Rush or ring with nothing in reach).
 The S23 session reads these against the autopilot's numbers, as docs/46 asked for the dash.
 
+**Built on 2026-11-25 (14.11), telemetry schema 2:** as above, with a locked slot's tap as a third refusal, the Vent and
+the glyph wasted by their own reach too, and the guard and the ward never (they reach nothing by design); the device
+pull and the batch report read them.
+
 ## 6. Balance plan
 
 ### 6.1 The cohorts and the simulation
@@ -900,8 +904,8 @@ are read against.
 
 The owner's answers (section 12) as built: the six skills as designed, three buttons for two-handed play with no
 automatic skills, ranks later, and the unlock below. Nothing of the simulation moves: `FoundryLevers.Skills` stays 1, and
-the default batch is byte-identical (14.6). What is not built: section 5.3's telemetry events and the Rush's puppet clip
-(phase 3's art); the four effect strips were painted on 2026-11-25 (14.10). The result screen's unlock line and 5.2's
+the default batch is byte-identical (14.6). What is not built: the Rush's puppet clip (phase 3's art); the four effect
+strips were painted on 2026-11-25 (14.10), and section 5.3's telemetry events were built the same day (14.11). The result screen's unlock line and 5.2's
 one-line toast (14.7), and the Skills entry's move into the forge's empty band (docs/63 section 12, answer 7), were built
 on 2026-11-25 (14.9).
 
@@ -966,9 +970,9 @@ forges each for 300 and 500 gold.** Precisely (`Progression/HeroSkillUnlock.cs`)
   lifts). One finger reads as before. **Shield Rush** fires along the stick's steer at the tap (`TryUse(slot, heading)`);
   with no finger down, toward the nearest enemy (`AbilityController.Rush`, as phase 1 built it).
 - **The boss's reveal** greys all three, and a tap on any shown button skips it (`BossRevealView.HeldButtons`).
-- Not built: section 5.3's events (`ability_used`'s slot, `ability_refused`, `stick_on_button`, `ability_wasted`); phase
-  5's device session needs them to count mis-taps. 5.2's one-line toast on the first run with a new button was built on
-  2026-11-25 (14.9).
+- Section 5.3's events (`ability_used`'s slot, `ability_refused`, `stick_on_button`, `ability_wasted`), which phase 5's
+  device session needs to count mis-taps, were built on 2026-11-25 (14.11). 5.2's one-line toast on the first run with a
+  new button was built the same day (14.9).
 
 ### 14.4 Save version 6
 
@@ -1250,12 +1254,99 @@ among a crowd on the lava and on the Gloam's loam, and the ward's gusts at 120 p
 **Still open:**
 - **The Rush's puppet clip.** The rendered Vanguard already plays its own `shield-rush` clip; a `PuppetMotion` clip is only
   needed if the procedural puppet is to show the Rush too.
-- **Section 5.3's telemetry events** (`ability_used`'s slot, `ability_refused`, `stick_on_button`, `ability_wasted`).
+- ~~Section 5.3's telemetry events~~: built on 2026-11-25 (14.11).
 - The rest of section 3's "On the phone" lists, which are not effect strips: the Vanguard's plates flashing steel-white on
   its own sprite, the shield glyph over the health bar and the anvil clang; struck enemies flashing and three daze sparks
   over a dazed one; enemies inside the glyph burning at the "hot" tint and a size up, with a soot trail; the ward's
   ash-white bar over the health bar, Ilya's flasks brightening and her goggles' "angry" face. And the skills' sounds.
 - A device read of the four on the S23 (phase 5).
+
+### 14.11 The skills' telemetry, built (2026-11-25)
+
+Section 5.3, the last unbuilt part of the skills' phases. Presentation and logging only: no body the simulation runs
+changed (CombatChecks compiles the recorder, the device reader and the report, none of which the simulation calls),
+`FoundryLevers` are as they were, and the default batch cannot move - the report's one new line is written only for a
+pull that holds a run of schema 2. The scene's strikes count what they reach and do exactly what they did.
+
+**Schema 2.** `TelemetryJson.SchemaVersion` goes from 1 to 2 (every line's `v`, `session_start`'s `schema`). Earlier
+additions kept 1; this one does not, because `ability_used` changes meaning: it is now written for every slot, so a
+reader that counted it as "the Burst was used" would count Iron Resolve and the Rush too. Every key schema 1 wrote stays
+where it was, the new keys are appended after every other key of their line, and lines of both schemas sit side by side
+in one pull. A schema 1 `ability_used` is slot 1's: the bridge heard skill 1's `Used` alone. Nothing refuses either
+schema - `DevicePull` reads both, and the pull script's summary counts the skills' lines of schema 2.
+
+| Event | Keys after the envelope (new in bold) | When |
+|---|---|---|
+| `ability_used` | `ability_id` (now the slot's own skill), `floor_index`, `room_index`, `room_active_sec`, **`slot`** | each use of a slot the run carries (`AbilityController.Used` for slot 1, `SkillUsed` for 2 and 3) |
+| `run_start` | ... `tier` as before, then **`skill_2_id`**, **`skill_3_id`**, each only where the run carries it | skill 1 is `ability_id`, as it always was, so a run of skill 1 alone keeps its line exactly; a slot opened (`deepest_floor` at its floor, 14.1) and not named here is shown locked |
+| `run_end` | ... the build and `burn_*` as before, then **`skill_1_uses`** on every run, **`skill_2_uses`** and **`skill_3_uses`** for the carried slots, last | the uses that fired, slot by slot |
+| **`ability_refused`** | `slot`, `ability_id`, `reason` (`cooling`, `held`, `locked`), `cooldown_sec`, `floor_index`, `room_index`, `room_active_sec` | a tap on a skill's button that fired nothing: the skill cooling (`cooldown_sec`: how early - impatience), the fight held (the boss's reveal greys all three; the tap still skips the reveal), or a locked slot (`ability_id` null: the run carries no skill there; not in 5.3's words, the same mis-tap on a button the padlock did not stop). Only while the run is live, with no choice or pause open |
+| **`stick_on_button`** | `slot`, `ability_id`, `stick_held`, `floor_index`, `room_index`, `room_active_sec` | a press that began on a skill's button (locked too) and moved as far as the stick's dead zone (`HeroMovementInput.DeadZonePixels`, 24 px) - the drag the stick would have walked the hero by, which it never takes from the UI. Once a press. `stick_held`: another finger held the stick (two thumbs); false, the one thumb meant to steer |
+| **`ability_wasted`** | `slot`, `ability_id`, `floor_index`, `room_index`, `room_active_sec`, `hero_hp`, `hero_max_hp` | a use that found nothing in its own reach, right after its `ability_used` (the glyph's as it goes out) |
+
+Sample lines (the envelope's times and session shortened):
+
+    {"v":2,"seq":41,...,"event":"ability_used","ability_id":"ability_iron_resolve","floor_index":2,"room_index":3,"room_active_sec":41.250,"slot":2}
+    {"v":2,"seq":42,...,"event":"ability_refused","slot":1,"ability_id":"ability_forge_burst","reason":"cooling","cooldown_sec":5.317,"floor_index":2,"room_index":3,"room_active_sec":42.100}
+    {"v":2,"seq":43,...,"event":"stick_on_button","slot":3,"ability_id":"ability_shield_rush","stick_held":false,"floor_index":2,"room_index":3,"room_active_sec":43.000}
+    {"v":2,"seq":44,...,"event":"ability_wasted","slot":1,"ability_id":"ability_forge_burst","floor_index":2,"room_index":3,"room_active_sec":44.500,"hero_hp":61.000,"hero_max_hp":120.000}
+    {"v":2,"seq":2,...,"event":"run_start","run_ordinal":1,...,"deepest_floor":3,"seed":1234,"skill_2_id":"ability_iron_resolve","skill_3_id":"ability_shield_rush"}
+    {"v":2,"seq":90,...,"event":"run_end","result":"defeat",...,"hero_max_hp":120.000,"skill_1_uses":14,"skill_2_uses":3,"skill_3_uses":2}
+
+**"Nothing in reach" is each skill's own** (`AbilityController.Wasted`, read off the body that strikes; no new geometry):
+- **Forge Burst:** no living enemy in the circle `Targeting.CollectNear` gathered for the strike - the very targets
+  `AbilityRuntime.TryUse` strikes.
+- **Crucible Vent:** nothing burning in its circle, so nothing erupted (`_vented`, the list it erupts). Not in 5.3's words,
+  but it is Ilya's Burst, and its own rule already reads "a Vent with nothing burning in reach is still spent".
+- **Shield Rush:** struck nothing on its path (the enemies `Rush` damages, after the stop on impact). A Rush that escaped
+  along a clear path - the careful pilot's escape - strikes nothing too; the line carries the hero's health so a reader
+  can tell a low-health escape from a charge at nothing.
+- **Flame Sigil (5.3's "ring", the floor ring of 14.10):** judged over its whole life, not at the press - the glyph is
+  drawn to lead a crowd through - so it is wasted when none of its ticks (`SigilTick`, `SigilZone.Contains`) found an
+  enemy inside, written as it goes out.
+- **Skipped: Iron Resolve and Cinder Ward.** They guard the hero and reach nothing by design; "no blow came while it
+  held" is not a reach and would need a new reading of the blows. Section 3.3's Backdraft ring was never built.
+
+**Built:**
+- `Analytics/RunTelemetry.cs` (`RecordAbilityUsed(slot)`, `RecordAbilityRefused`, `RecordStickOnButton`,
+  `RecordAbilityWasted`, the run_start and run_end keys), `RunTelemetryContext.cs` (`SkillTwoId`, `SkillThreeId`),
+  `TelemetryJson.cs` (schema 2); `Analytics/Unity/RunTelemetryBridge.cs` (`AbilityController`'s `SkillUsed`, `Wasted`,
+  `PressRefused`, `DraggedFromButton`); `Core/CombatSetup.cs` (the carried skills' ids).
+- `Combat/AbilityController.cs`: `Wasted`, `AbilityRefusal`, `ReportRefusedPress` (it says why - locked, held, cooling -
+  or that the press was no skill's: a choice, the pause, the run's end), `ReportDragFromButton`.
+- `UI/AbilityButtonView.cs`: a tap the greyed button did not take (`IPointerClickHandler` beside the Button's own; the
+  Button drops a click while not interactable, and its state changes only in `Refresh`, so a tap it took is never
+  counted), and a drag begun on it (`IBeginDragHandler`, `IDragHandler`, `IEndDragHandler`: the EventSystem routes a drag
+  to the button the press began on; a press dragged and released on it still clicks, as before). `UI/HeroMovementInput.cs`:
+  `DeadZonePixels`.
+- The readers: `Tools/CombatChecks/DevicePull.cs` reads each line's schema and each run's skills slot by slot (a schema 1
+  `ability_used` as skill 1's); `Tests/Support/FoundryGate.cs` writes a "Skills on the device" line under the gate
+  section's `Device:` line - each hero's slots: uses and uses a minute of active play, the taps refused by reason, the
+  wasted uses, the drags begun on its button (one thumb apart), beside the autopilot's careful Burst and Vent rates
+  (section 2) - only over the runs of schema 2, so an older pull's report reads as it did; `Tools/Device/
+  Pull-DeviceEvidence.ps1` prints the schema 2 counts in its summary.
+
+**Checked:** the Unity compile check 0 errors; CombatChecks green (1,162, `Başarılı`; with the three new recorder tests
+and the reader's new one). Unity itself is the lead's:
+
+    pwsh -File Tools/Run-UnityTests.ps1 -Platform EditMode -SkipApk -Filter "Cryptforge.Tests.RunTelemetryTests;Cryptforge.Tests.TelemetryJsonTests;Cryptforge.Tests.TelemetrySessionTests;Cryptforge.Tests.TelemetryLogTests;Cryptforge.Tests.TelemetryStoreTests;Cryptforge.Tests.AnalyticsSeamTests;Cryptforge.Tests.RevealSkipTests"
+    pwsh -File Tools/Run-UnityTests.ps1 -Platform PlayMode -SkipApk -Filter "Cryptforge.Tests.SkillTelemetryFlowTests;Cryptforge.Tests.TelemetryFlowTests;Cryptforge.Tests.SkillButtonsFlowTests;Cryptforge.Tests.AbilityFlowTests;Cryptforge.Tests.HeroSkillsFlowTests;Cryptforge.Tests.PaintedHeroSkillEffectFlowTests;Cryptforge.Tests.CinderArcanistTests;Cryptforge.Tests.GateBossFlowTests;Cryptforge.Tests.SkillNoticeFlowTests;Cryptforge.Tests.PaintedHudFlowTests"
+
+New: `RunTelemetryTests.EachSkillSlotIsLoggedUnderItsOwnIdAndCountedAtRunEnd`, `ARunOfSkillOneAloneKeepsItsStartAndCountsOneSlot`
+and `RefusedTapsDragsOnAButtonAndWastedUsesAreLoggedInTheirRoom` (EditMode and CombatChecks);
+`DevicePullTests.TheSkillsOfSchemaTwoAreReadSlotBySlot` (CombatChecks); `SkillTelemetryFlowTests` (PlayMode: a tap on
+the cooling Burst and on a held one; a drag begun on the button, short of and past the dead zone, the hero unmoved; the
+Burst with no enemy near and the Rush with nothing on its path wasted, a Burst that strikes and the guard not; the Vent
+with nothing burning and a glyph empty for its life wasted, the latter as it goes out; a glyph an enemy stood in not;
+run_end's per-slot counts against the taps, a refused tap no use). Changed: `RunTelemetryTests`' run_end pins
+(`skill_1_uses` last), `TelemetryJsonTests`, `TelemetrySessionTests` and `AnalyticsSeamTests` (`v` and `schema` 2);
+`TelemetryFlowTests`' log reader and line are shared (internal) with the new tests. Worth re-running: the button tests
+above, whose taps on a cooling, held or locked button now write a line.
+
+**For the S23 session (phase 5):** with the skills forged or `skills.txt` on the phone, `Pull-DeviceEvidence.ps1 -Report`
+prints the counts, and `foundry-gate.md` the line per hero and slot - the uses a minute against the autopilot's, the
+refused taps (impatience, the reveal, the padlock), the drags that began on a button with no other finger on the stick
+(the one-thumb player 5.2 counts before anything is built for it), and the wasted presses.
 
 ## 15. The live re-read (2026-11-23)
 

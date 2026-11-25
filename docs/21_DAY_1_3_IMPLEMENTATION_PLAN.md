@@ -852,7 +852,7 @@ Verified: Unity EditMode 210/210, PlayMode 54/54, `Verify-Project.ps1`, .NET Com
 
 Handoff item D (`25`), specified in the owner's prompt through Astra's shared roadmap: a bounded local event log for device sessions, with no backend, SDK or network, beside the profile and separate from it. Built by a five-agent workflow in dependency order: the log core and the gameplay events in parallel, then the recorder, the Unity bridge and an adversarial review. The review found one real defect and fixed it: an old scene disposed after a new run began wrote `run_interrupted` under the new run's id.
 
-- **File:** `<persistentDataPath>/telemetry/events.jsonl`; on Android `/sdcard/Android/data/com.cryptforge.prototype/files/telemetry/`. The format is JSON Lines, schema 1, UTF-8 without a byte-order mark. At 256 KB the file rotates into `events.1.jsonl` and `events.2.jsonl`, never more than three files, and a line never splits across files.
+- **File:** `<persistentDataPath>/telemetry/events.jsonl`; on Android `/sdcard/Android/data/com.cryptforge.prototype/files/telemetry/`. The format is JSON Lines, schema 1 (schema 2 since 2026-11-25: the skills' events, docs/57 14.11 and the entry at the end of this file), UTF-8 without a byte-order mark. At 256 KB the file rotates into `events.1.jsonl` and `events.2.jsonl`, never more than three files, and a line never splits across files.
 - **Envelope:** each line carries, in order:
   - `v`: the schema version.
   - `seq`: strictly increasing within a session, across runs and restarts.
@@ -3170,3 +3170,14 @@ runbook names the APK, 61,419,957 bytes, SHA-256 5A47661C...
 Open: hero skills phases 3-4 (docs/57 section 14) are on `lead-integrate-10`, not main; the S23 device row, the app icon
 and productName in PlayerSettings, the owner's review lists and the next balance read (docs/57 13.8) are in docs/41's
 2026-11-19 (night) status.
+
+## 2026-11-25 - The skills' telemetry, schema 2
+
+`ce043b84` (docs/57 section 5.3, built; section 14.11): the local log goes to **schema 2**. `ability_used` is written for each skill
+slot under that skill's own `ability_id`, `slot` appended (schema 1's was skill 1's alone, which is how a reader takes a
+schema 1 line); `run_start` appends `skill_2_id` and `skill_3_id` where the run carries them; `run_end` appends each
+carried slot's uses last; new `ability_refused` (cooling, held, locked), `stick_on_button` (a drag begun on a skill
+button past the stick's dead zone) and `ability_wasted` (a Burst, Vent or Rush with nothing in its own reach, a glyph
+empty for its life). Every schema 1 key is where it was. `DevicePull`, the gate section's new "Skills on the device"
+line (only for a pull holding schema 2 runs) and `Pull-DeviceEvidence.ps1`'s summary read them. No save change, no
+simulation change.

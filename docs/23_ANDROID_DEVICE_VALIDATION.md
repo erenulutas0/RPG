@@ -2314,7 +2314,8 @@ this: the script ran against a stand-in for adb, and the parsers and rows agains
 What the phone holds (a development APK of `com.cryptforge.prototype`):
 - **Telemetry**, in `/sdcard/Android/data/com.cryptforge.prototype/files/telemetry/` (persistentDataPath, beside the
   profile): `events.jsonl`, rotated at 256 KB into `events.1.jsonl` and `events.2.jsonl`, the oldest dropped - about three
-  long runs. JSON Lines of schema 1: `run_start` names the hero, `floor_complete` carries the floor's own `active_sec`,
+  long runs. JSON Lines of schema 1 (schema 2 since 2026-11-25 adds the skills' events, docs/57 14.11; the reader takes
+  both): `run_start` names the hero, `floor_complete` carries the floor's own `active_sec`,
   `run_end` the run's `active_sec` and `floors_completed` (or `run_interrupted` when the app closed mid-run), and
   `horde_sample` the enemies standing (`horde_alive` and `wave_alive`) every 5 active seconds.
 - **Frame stats in no file.** `FrameTimeProbe` logs to logcat in every development player: a `[Perf] window` line every
@@ -2492,7 +2493,9 @@ report (steps 7-8) only read, so they need no focus check.
    It writes `TestResults/device-<yyyyMMdd-HHmmss>/` and prints the installed APK's hash and install time, the
    sessions, the runs by hero, how they ended (deaths by cause), the floors cleared by floor, the probe's run, the
    `[Perf]` and `[RenderStats]` windows, the long frames, the ground projection lines (at a ramp or not) and any flag
-   still on. Without `-Report` it only pulls; the report reads every pull together, so run it after the last pull.
+   still on; on an APK with docs/57 14.11's telemetry (schema 2), the skills' counts too (uses by slot, taps refused by
+   reason, wasted uses, drags begun on a skill button). Without `-Report` it only pulls; the report reads every pull
+   together, so run it after the last pull.
 8. **Read the two rows** (printed at the end, and in `TestResults/foundry-gate.md`):
    - **Floor time (the owner's play)**: met when the Vanguard's floor 1 P50 over every run since the install (clears
      and deaths) is within 240-360 s. Beside it: each hero's floors - floor 2, whose gate also opens at 210 s, read
@@ -2505,6 +2508,10 @@ report (steps 7-8) only read, so they need no focus check.
      over). Not met names the frames over 35 ms; one "at a ramp's first entry" is the pre-warm missing a ramp. Frames
      over 35 ms out of play (the load, menus, card offers) and the finale's windows (its swarm writes no
      `horde_sample`, so they have no alive count) are listed apart and not judged.
+   - **Skills on the device** (a line under the gate section's `Device:` line, only for runs of schema 2; reported, no
+     criterion): each hero's slots - uses a minute of active play beside the autopilot's, the taps refused (cooling,
+     held, locked), the wasted presses and the drags begun on a button with no other finger on the stick (docs/57 14.11,
+     phase 5's mis-tap count).
 9. **Afterwards**: the game left as the owner wants it, the flags gone, the pulls kept in `TestResults/device-*`. If
    the profile went wrong, the step-3 backup restores it (the owner's OK, the game closed, `adb push` each file back,
    compare the hashes).
