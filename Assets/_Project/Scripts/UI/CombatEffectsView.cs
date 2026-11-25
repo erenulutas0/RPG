@@ -1533,9 +1533,11 @@ namespace Cryptforge.UI
                 AnchorOf(watch, striker), _sortingOrder + SparkOrder, Vector3.zero, 0f, 1f, false), FeetOf(watch, striker));
         }
 
-        // Each frame, after every Update (LateTick): the shells follow the hero and move from rising to holding to ending
-        // as their skill does, the wake rides the dash and the impact shows where it ends, and the glyph grows, burns and
-        // dims with its zone. Nothing here is read by the fight.
+        // Each frame, before the effects step and after the hero's walk and dash step (HeroMovementInput runs first, at
+        // -60): the shells follow the hero and move from rising to holding to ending as their skill does, the wake rides the
+        // dash and the impact shows where it ends, and the glyph grows, burns and dims with its zone. A skill's clock may
+        // tick before or after this in a frame (AbilityController's order is the default's), so a shell may end a frame
+        // late, never early. Nothing here is read by the fight.
         private void TickSkills(float deltaTime)
         {
             if (_guardStage != SkillStage.Off)
@@ -1838,6 +1840,7 @@ namespace Cryptforge.UI
         private void Tick(float deltaTime)
         {
             TickSaw(deltaTime);
+            TickSkills(deltaTime);
             for (int i = 0; i < _effects.Length; i++)
             {
                 Effect effect = _effects[i];
@@ -1951,10 +1954,8 @@ namespace Cryptforge.UI
         private void LateTick()
         {
             // After every Update has moved the enemies and lit, spent or put out their burns, so each flame stands on its
-            // enemy in the frame it is drawn, and on scaled time, so a pause holds the flicker as it holds the burn. The new
-            // skills' shells, wake and glyph likewise, after the hero's walk and dash steps and the skills' own clocks.
+            // enemy in the frame it is drawn, and on scaled time, so a pause holds the flicker as it holds the burn.
             _flames.Tick(Time.deltaTime);
-            TickSkills(Time.deltaTime);
             if (_shakeRemaining <= 0f)
                 return;
 
