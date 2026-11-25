@@ -15,7 +15,8 @@ namespace Cryptforge.Tests
     {
         private const string SetPath = "Assets/_Project/Art/Effects/Skills/SkillEffectArtSet.asset";
         private const string ScenePath = "Assets/_Project/Scenes/Gameplay/Gameplay.unity";
-        // Every painted skill sheet together as ASTC 4x4 (a byte a texel): well under the 3 MB the effects may spend.
+        // The first three painted skill sheets together as ASTC 4x4 (a byte a texel): well under the 3 MB the effects may
+        // spend (PaintedHeroSkillEffectTests holds every skill sheet, docs/57's four families too, under it).
         private const int BudgetBytes = 2 * 1024 * 1024;
 
         private SkillEffectArtSet _set;
@@ -55,6 +56,11 @@ namespace Cryptforge.Tests
 
             Texture2D burn = _set.Flames(1).Sheet, vent = _set.VentColumn.Sheet, forge = _set.Shockwave.Sheet;
             Assert.That(new[] { burn, vent, forge }, Is.Unique, "A sheet for each effect family.");
+            // docs/57's four new skills ride sheets of their own beside these (PaintedHeroSkillEffectTests).
+            Assert.That(_set.HasIronResolve && _set.HasShieldRush && _set.HasFlameSigil && _set.HasCinderWard, Is.True,
+                "And the four new skills' families.");
+            Assert.That(new[] { burn, vent, forge, _set.ResolveHold.Sheet, _set.RushStreak.Sheet, _set.SigilGlyph.Sheet,
+                _set.WardShell.Sheet }, Is.Unique, "Each of them on a sheet of its own.");
             int frames = _set.Flames(1).Length;
             Assert.That(frames, Is.GreaterThanOrEqualTo(6), "A smooth loop, longer than the pixel flame's four frames.");
             for (int stacks = 1; stacks <= BurnRule.MaxStacks; stacks++)

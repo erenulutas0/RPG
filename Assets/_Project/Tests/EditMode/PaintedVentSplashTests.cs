@@ -16,8 +16,8 @@ namespace Cryptforge.Tests
         private const string SetPath = "Assets/_Project/Art/Effects/Skills/SkillEffectArtSet.asset";
         private const string StrikeSetPath = "Assets/_Project/Art/Effects/FoundryStrikes/FoundryStrikeArtSet.asset";
         private const string ScenePath = "Assets/_Project/Scenes/Gameplay/Gameplay.unity";
-        // The sheet as ASTC 4x4 (a byte a texel): the eruption ring may spend about 0.4 MB on the phone, and every painted
-        // skill sheet together stays under the 2 MB PaintedSkillEffectTests holds the three before it to.
+        // The sheet as ASTC 4x4 (a byte a texel): the eruption ring may spend about 0.4 MB on the phone, and it and the three
+        // sheets before it stay under the 2 MB PaintedSkillEffectTests holds those three to.
         private const int BudgetBytes = 419430;
         private const int SkillsBudgetBytes = 2 * 1024 * 1024;
 
@@ -98,7 +98,9 @@ namespace Cryptforge.Tests
                     skills += (long)strip.SheetWidth * strip.SheetHeight;
             }
             Assert.That(seen.Count, Is.EqualTo(4));
-            Assert.That(skills, Is.LessThan(SkillsBudgetBytes), "The painted skills together still stay under 2 MB.");
+            Assert.That(skills, Is.LessThan(SkillsBudgetBytes),
+                "The first four painted skill sheets together still stay under 2 MB (docs/57's four families ride beside " +
+                "them, every skill sheet under 3 MB: PaintedHeroSkillEffectTests).");
         }
 
         [Test]

@@ -23,7 +23,10 @@ namespace Cryptforge.UI
     // strike set carries its ring and burst (cut here likewise), and otherwise the procedural ring StaffSplashArt draws,
     // which the Vent's eruptions fall back to, tinted ember, when the skill set carries no painted eruption ring. The
     // Cinder Saw's blade and edge ring are painted the same way when the strike set carries them, and otherwise
-    // EffectArt's pixel blade and the procedural ring, tinted.
+    // EffectArt's pixel blade and the procedural ring, tinted. docs/57's four new skills draw here when the skill set
+    // carries their painted families (each optional): Iron Resolve's iron bell over the hero and its ring of rivets, the
+    // Shield Rush's wake and impact, the Flame Sigil's burning glyph on the floor and Cinder Ward's whirling shell and its
+    // flares at the strikers; without a family its skill draws nothing of its own, as before they were painted.
     public sealed class CombatEffectsView : MonoBehaviour
     {
         private sealed class Effect
@@ -248,6 +251,33 @@ namespace Cryptforge.UI
         private const int ShakeSeed = 47;
         private const int VentEmberSeed = 57;
         private const int ForgeSparkSeed = 59;
+        // docs/57's four new skills (SkillEffectArtSet's optional families, painted by build_hero_skill_vfx.py). Iron
+        // Resolve's bell closes over the hero, holds while the guard does and falls away as it ends, following the hero in
+        // a slot of its own, and its rivets stamp the floor a unit round the feet over 0.3 s (docs/57 3.1).
+        internal const float ResolveCloseFrameDuration = .06f;
+        internal const float ResolveHoldFrameDuration = .15f;
+        internal const float ResolveEndFrameDuration = .07f;
+        private const float ResolveRivetFrameDuration = .1f;
+        internal const float ResolveRivetRadius = 1f;
+        // Shield Rush: the wake rides the hero's middle, this high over its feet, for the dash and finishes where it ends;
+        // the impact stands this far before the hero along the dash, where its shield meets what stopped it.
+        private const float RushStreakFrameDuration = .06f;
+        private const float RushImpactFrameDuration = .05f;
+        internal const float RushLift = .45f;
+        internal const float RushImpactReach = .3f;
+        // Flame Sigil: ignited from Ilya's feet outward over IgniteSeconds, the glyph grown from this share of its radius
+        // to all of it, then burning in a loop until the zone fades, dimming over its last second to this share.
+        internal const float SigilIgniteSeconds = .2f;
+        internal const float SigilIgniteStart = .3f;
+        private const float SigilFrameDuration = .1f;
+        private const float SigilDimSeconds = 1f;
+        internal const float SigilDimTo = .3f;
+        // Cinder Ward: its shell rising round Ilya, whirling while the ward holds and blowing apart as it ends or is spent,
+        // following her in a slot of its own; a flare at each striker whose blow it absorbed.
+        internal const float WardRaiseFrameDuration = .06f;
+        private const float WardShellFrameDuration = .08f;
+        internal const float WardBreakFrameDuration = .07f;
+        private const float WardFlareFrameDuration = .05f;
 
         [SerializeField] private EncounterController _encounter;
         [SerializeField] private Health _hero;
@@ -326,6 +356,33 @@ namespace Cryptforge.UI
         private Sprite[] _forgeFlash;
         // Painted only, when the skill set carries it: the Vent's eruption ring; without it, the procedural _ring in ember.
         private Sprite[] _ventSplash;
+        // Painted only, when the skill set carries their families: docs/57's four new skills. Without a family its skill
+        // draws nothing of its own, as before they were painted (the Vanguard's rendered dash still plays the Rush).
+        private Sprite[] _resolveClose;
+        private Sprite[] _resolveHold;
+        private Sprite[] _resolveEnd;
+        private Sprite[] _resolveRivets;
+        private Sprite[] _rushStreak;
+        private Sprite[] _rushImpact;
+        private Sprite[] _sigilIgnite;
+        private Sprite[] _sigilGlyph;
+        private Sprite[] _wardRaise;
+        private Sprite[] _wardShell;
+        private Sprite[] _wardBreak;
+        private Sprite[] _wardFlare;
+        // Where each skill's own slot stands: a shell rising, holding or falling away; the glyph igniting or burning.
+        internal enum SkillStage { Off, Rising, Holding, Ending }
+        private SkillStage _guardStage;
+        private SkillStage _wardStage;
+        private SkillStage _sigilStage;
+        private AbilityRuntime _guard;
+        private AbilityRuntime _ward;
+        // The health state whose absorbed blows flare (the hero's, bound at its first ward), the glyph's time since it was
+        // drawn, and the Rush's screen heading while its wake rides the hero.
+        private HealthState _wardHealth;
+        private float _sigilTime;
+        private bool _rushRiding;
+        private float _rushAngle;
         // The frame times of the art in use, painted or pixel, and the shockwave sprite's world radius at scale 1.
         private float _ventColumnFrameDuration;
         private float _ventEmberFrameDuration;
@@ -433,6 +490,32 @@ namespace Cryptforge.UI
         // held (TickSaw), so the foundry's depth test sees it as it sees every other effect standing on the floor.
         private const int SawSlots = 1;
         private int SawSlot => AshStart + AshSlots;
+        // docs/57's new skills: a slot each after the saw's for what follows the hero or stays on the floor for the
+        // skill's seconds (Iron Resolve's bell, Cinder Ward's shell, the Flame Sigil's glyph, the Shield Rush's wake), so
+        // a crowd's bursts never cut them short and the foundry's depth test sees them as every other effect.
+        private const int SkillSlots = 4;
+        private int ResolveSlot => SawSlot + SawSlots;
+        private int WardSlot => ResolveSlot + 1;
+        private int SigilSlot => ResolveSlot + 2;
+        private int RushSlot => ResolveSlot + 3;
+        // The renderer each new skill shows in its own slot (null while it shows nothing there) and where its shell or
+        // glyph stands: for the tests and the captures.
+        internal SpriteRenderer SkillShown(AbilityKind kind)
+        {
+            if (_effects == null)
+                return null;
+            int slot = kind == AbilityKind.Guard ? ResolveSlot : kind == AbilityKind.Ward ? WardSlot
+                : kind == AbilityKind.Sigil ? SigilSlot : kind == AbilityKind.Rush ? RushSlot : -1;
+            return slot >= 0 && _effects[slot].Active ? _effects[slot].Renderer : null;
+        }
+
+        internal SkillStage StageOf(AbilityKind kind) =>
+            kind == AbilityKind.Guard ? _guardStage : kind == AbilityKind.Ward ? _wardStage
+            : kind == AbilityKind.Sigil ? _sigilStage : SkillStage.Off;
+
+        internal bool PaintsSkill(AbilityKind kind) =>
+            kind == AbilityKind.Guard ? _resolveClose != null : kind == AbilityKind.Ward ? _wardShell != null
+            : kind == AbilityKind.Sigil ? _sigilGlyph != null : kind == AbilityKind.Rush && _rushStreak != null;
         // The saw's blade over the floor, its turn round the hero (a full circle every SawOrbitSeconds) and how far out it
         // circles as a share of the aura's radius, so it runs just inside the circle that strikes: the painted blade is half
         // a unit across, so its teeth reach 0.85 x 2.0 + 0.25 = 1.95 of the base circle's 2.0. Its frames' time, pixel
@@ -541,6 +624,7 @@ namespace Cryptforge.UI
             {
                 _heroAbility.Used += OnAbilityUsed;
                 _heroAbility.Vented += OnVented;
+                _heroAbility.SkillUsed += OnSkillUsed;
             }
             if (_chests != null)
                 _chests.Opened += OnChestOpened;
@@ -572,7 +656,9 @@ namespace Cryptforge.UI
                 {
                     _heroAbility.Used -= OnAbilityUsed;
                     _heroAbility.Vented -= OnVented;
+                    _heroAbility.SkillUsed -= OnSkillUsed;
                 }
+                ListenForWardBlows(null);
                 if (_chests != null)
                     _chests.Opened -= OnChestOpened;
                 BurnStatus.Burned -= OnBurned;
@@ -655,6 +741,32 @@ namespace Cryptforge.UI
                 _shockwave = Cut(_skillArt.Shockwave, "VFX Forge Shockwave ");
                 _forgeSpark = Cut(_skillArt.ForgeSpark, "VFX Forge Spark ");
                 _forgeFlash = Cut(_skillArt.ForgeFlash, "VFX Forge Flash ");
+                // docs/57's four new skills, each where its family is whole: the shells pin at the hero's feet, the
+                // wake and the impact at their heads, the rivets and the glyph at their centres on the floor.
+                if (_skillArt.HasIronResolve)
+                {
+                    _resolveClose = Cut(_skillArt.ResolveClose, "VFX Resolve Close ");
+                    _resolveHold = Cut(_skillArt.ResolveHold, "VFX Resolve Hold ");
+                    _resolveEnd = Cut(_skillArt.ResolveEnd, "VFX Resolve End ");
+                    _resolveRivets = Cut(_skillArt.ResolveRivets, "VFX Resolve Rivets ");
+                }
+                if (_skillArt.HasShieldRush)
+                {
+                    _rushStreak = Cut(_skillArt.RushStreak, "VFX Rush Streak ");
+                    _rushImpact = Cut(_skillArt.RushImpact, "VFX Rush Impact ");
+                }
+                if (_skillArt.HasFlameSigil)
+                {
+                    _sigilIgnite = Cut(_skillArt.SigilIgnite, "VFX Sigil Ignite ");
+                    _sigilGlyph = Cut(_skillArt.SigilGlyph, "VFX Sigil Glyph ");
+                }
+                if (_skillArt.HasCinderWard)
+                {
+                    _wardRaise = Cut(_skillArt.WardRaise, "VFX Ward Raise ");
+                    _wardShell = Cut(_skillArt.WardShell, "VFX Ward Shell ");
+                    _wardBreak = Cut(_skillArt.WardBreak, "VFX Ward Break ");
+                    _wardFlare = Cut(_skillArt.WardFlare, "VFX Ward Flare ");
+                }
                 _ventColumnFrameDuration = PaintedVentColumnFrameDuration;
                 _ventEmberFrameDuration = PaintedVentEmberFrameDuration;
                 _shockwaveFrameDuration = PaintedShockwaveFrameDuration;
@@ -754,7 +866,8 @@ namespace Cryptforge.UI
             _poolRoot = new GameObject("Combat Effects");
             _poolRoot.transform.SetParent(transform, false);
 
-            _effects = new Effect[_effectPoolSize + PuffSlots + BurstSlots + FallSlots + DeathSlots + AshSlots + SawSlots];
+            _effects = new Effect[_effectPoolSize + PuffSlots + BurstSlots + FallSlots + DeathSlots + AshSlots + SawSlots +
+                                  SkillSlots];
             for (int i = 0; i < _effects.Length; i++)
             {
                 SpriteRenderer renderer = CreateRenderer($"Effect {i}", _poolRoot.transform, _sortingOrder);
@@ -1305,6 +1418,220 @@ namespace Cryptforge.UI
             }
         }
 
+        // docs/57's skills 2 and 3 at the press, each painted where the skill set carries its family; without it the skill
+        // draws nothing of its own here, as before its strips were painted.
+        private void OnSkillUsed(int slot, AbilityRuntime skill)
+        {
+            if (skill == null || !_hero.IsAlive)
+                return;
+            switch (skill.Kind)
+            {
+                case AbilityKind.Guard:
+                    if (_resolveClose != null)
+                        BeginGuard(skill);
+                    break;
+                case AbilityKind.Rush:
+                    if (_rushStreak != null)
+                        BeginRush();
+                    break;
+                case AbilityKind.Sigil:
+                    if (_sigilGlyph != null)
+                        BeginSigil();
+                    break;
+                case AbilityKind.Ward:
+                    if (_wardShell != null)
+                        BeginWard(skill);
+                    break;
+            }
+        }
+
+        // Iron Resolve: the bell closes over the hero (and holds, and falls away: TickSkills) while its rivets stamp the
+        // floor round the feet at their radius. The bell draws over the hero, under its strikes.
+        private void BeginGuard(AbilityRuntime skill)
+        {
+            Vector3 feet = _hero.transform.position;
+            _guard = skill;
+            _guardStage = SkillStage.Rising;
+            StandOn(Arm(_effects[ResolveSlot], _resolveClose, ResolveCloseFrameDuration, float.MaxValue, feet,
+                _sortingOrder + SparkOrder, Vector3.zero, 0f, false, 1f), feet);
+            ShowBurst(_resolveRivets, ResolveRivetFrameDuration, _resolveRivets.Length * ResolveRivetFrameDuration, feet,
+                _groundOrder, Vector3.zero, 0f, ResolveRivetRadius, false);
+        }
+
+        // Shield Rush: the wake rides the hero's middle along the dash's heading on screen (the floor's depth halved), and
+        // where the dash ends the impact shows (TickSkills). It draws at the effects' lowest order, under the strikes.
+        private void BeginRush()
+        {
+            HeroDash dash = _heroAbility.Dash;
+            if (dash == null)
+                return;
+            Vector3 feet = _hero.transform.position;
+            _rushAngle = Mathf.Atan2(ArenaFloor.WorldY(dash.HeadingY), dash.HeadingX) * Mathf.Rad2Deg;
+            Effect wake = StandOn(Arm(_effects[RushSlot], _rushStreak, RushStreakFrameDuration,
+                _rushStreak.Length * RushStreakFrameDuration, feet + Vector3.up * RushLift, _sortingOrder + FlameOrder,
+                Vector3.zero, 0f, false, 1f), feet);
+            wake.Fade = true;
+            wake.Transform.localRotation = Quaternion.Euler(0f, 0f, _rushAngle);
+            _rushRiding = true;
+        }
+
+        private void ShowRushImpact()
+        {
+            Vector3 feet = _hero.transform.position;
+            float angle = _rushAngle * Mathf.Deg2Rad;
+            Vector3 ahead = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0f) * RushImpactReach;
+            Effect impact = StandOn(ShowBurst(_rushImpact, RushImpactFrameDuration,
+                _rushImpact.Length * RushImpactFrameDuration, feet + ahead + Vector3.up * RushLift,
+                _sortingOrder + SparkOrder, Vector3.zero, 0f, 1f, false), feet + ahead);
+            impact.Transform.localRotation = Quaternion.Euler(0f, 0f, _rushAngle);
+        }
+
+        // Flame Sigil: the glyph on the floor where Ilya drew it, under the actors, ignited from her feet outward and grown
+        // to the zone's radius (TickSkills), burning while the zone lives.
+        private void BeginSigil()
+        {
+            SigilZone zone = _heroAbility.Sigil;
+            if (zone == null || !zone.IsLive)
+                return;
+            var at = new Vector3(zone.X, ArenaFloor.WorldY(zone.Y), _hero.transform.position.z);
+            _sigilTime = 0f;
+            _sigilStage = SkillStage.Rising;
+            Arm(_effects[SigilSlot], _sigilIgnite, SigilIgniteSeconds / _sigilIgnite.Length, float.MaxValue, at,
+                _groundOrder, Vector3.zero, 0f, false, zone.Radius * SigilIgniteStart);
+        }
+
+        // Cinder Ward: the shell rises round Ilya (and whirls, and blows apart: TickSkills); every blow it absorbs from
+        // here on flares at the striker.
+        private void BeginWard(AbilityRuntime skill)
+        {
+            Vector3 feet = _hero.transform.position;
+            _ward = skill;
+            _wardStage = SkillStage.Rising;
+            StandOn(Arm(_effects[WardSlot], _wardRaise, WardRaiseFrameDuration, float.MaxValue, feet,
+                _sortingOrder + SparkOrder, Vector3.zero, 0f, false, 1f), feet);
+            ListenForWardBlows(_hero.State);
+        }
+
+        // The health state whose absorbed blows flare: the hero's, bound at its first ward and again should it change.
+        private void ListenForWardBlows(HealthState state)
+        {
+            if (ReferenceEquals(state, _wardHealth))
+                return;
+            if (_wardHealth != null)
+                _wardHealth.WardAbsorbed -= OnWardAbsorbed;
+            _wardHealth = state;
+            if (_wardHealth != null)
+                _wardHealth.WardAbsorbed += OnWardAbsorbed;
+        }
+
+        private void OnWardAbsorbed(DamageContext context, float absorbed)
+        {
+            if (_wardFlare == null || !(context.Source is Health striker) || striker == null)
+                return;
+            EnemyWatch watch = FindWatch(striker);
+            StandOn(ShowBurst(_wardFlare, WardFlareFrameDuration, _wardFlare.Length * WardFlareFrameDuration,
+                AnchorOf(watch, striker), _sortingOrder + SparkOrder, Vector3.zero, 0f, 1f, false), FeetOf(watch, striker));
+        }
+
+        // Each frame, after every Update (LateTick): the shells follow the hero and move from rising to holding to ending
+        // as their skill does, the wake rides the dash and the impact shows where it ends, and the glyph grows, burns and
+        // dims with its zone. Nothing here is read by the fight.
+        private void TickSkills(float deltaTime)
+        {
+            if (_guardStage != SkillStage.Off)
+                TickShell(_effects[ResolveSlot], ref _guardStage, ref _guard, _resolveClose.Length * ResolveCloseFrameDuration,
+                    _resolveHold, ResolveHoldFrameDuration, _resolveEnd, ResolveEndFrameDuration, false);
+            if (_wardStage != SkillStage.Off)
+                TickShell(_effects[WardSlot], ref _wardStage, ref _ward, _wardRaise.Length * WardRaiseFrameDuration,
+                    _wardShell, WardShellFrameDuration, _wardBreak, WardBreakFrameDuration, true);
+            TickSigil(deltaTime);
+            if (_rushRiding)
+            {
+                Effect wake = _effects[RushSlot];
+                Vector3 feet = _hero.transform.position;
+                if (wake.Active)
+                {
+                    wake.Ground = feet;
+                    wake.Origin = feet + Vector3.up * RushLift;
+                    wake.Transform.position = wake.Origin;
+                }
+                HeroDash dash = _heroAbility != null ? _heroAbility.Dash : null;
+                if (dash == null || !dash.IsDashing || !_hero.IsAlive)
+                {
+                    _rushRiding = false;
+                    if (_hero.IsAlive)
+                        ShowRushImpact();
+                }
+            }
+        }
+
+        // A shell on the hero: rising until its first frames are shown, holding (a loop) while its skill does - and, for
+        // the ward, while its pool lasts - then ending once; gone with the hero.
+        private void TickShell(Effect shell, ref SkillStage stage, ref AbilityRuntime skill, float riseSeconds,
+            Sprite[] hold, float holdFrame, Sprite[] end, float endFrame, bool pool)
+        {
+            if (!shell.Active || !_hero.IsAlive || skill == null)
+            {
+                if (shell.Active)
+                    Hide(shell);
+                stage = SkillStage.Off;
+                skill = null;
+                return;
+            }
+            Vector3 feet = _hero.transform.position;
+            shell.Origin = shell.Ground = feet;
+            shell.Transform.position = feet;
+            if (stage == SkillStage.Rising && shell.Elapsed >= riseSeconds)
+            {
+                Restart(shell, hold, holdFrame, float.MaxValue, true);
+                stage = SkillStage.Holding;
+            }
+            bool holds = skill.IsActive && (!pool || (_hero.State != null && _hero.State.Ward > 0f));
+            if (stage != SkillStage.Ending && !holds)
+            {
+                Restart(shell, end, endFrame, end.Length * endFrame, false);
+                stage = SkillStage.Ending;
+            }
+        }
+
+        private void TickSigil(float deltaTime)
+        {
+            if (_sigilStage == SkillStage.Off)
+                return;
+            Effect glyph = _effects[SigilSlot];
+            SigilZone zone = _heroAbility != null ? _heroAbility.Sigil : null;
+            if (zone == null || !zone.IsLive || !glyph.Active)
+            {
+                if (glyph.Active)
+                    Hide(glyph);
+                _sigilStage = SkillStage.Off;
+                return;
+            }
+            _sigilTime += deltaTime;
+            float grow = Mathf.Clamp01(_sigilTime / SigilIgniteSeconds);
+            float size = zone.Radius * Mathf.Lerp(SigilIgniteStart, 1f, 1f - (1f - grow) * (1f - grow));
+            glyph.Transform.localScale = new Vector3(size, size, 1f);
+            if (_sigilStage == SkillStage.Rising && _sigilTime >= SigilIgniteSeconds)
+            {
+                Restart(glyph, _sigilGlyph, SigilFrameDuration, float.MaxValue, true);
+                _sigilStage = SkillStage.Holding;
+            }
+            Color tint = Color.white;
+            tint.a = Mathf.Lerp(SigilDimTo, 1f, Mathf.Clamp01((zone.Duration - _sigilTime) / SigilDimSeconds));
+            glyph.Renderer.color = tint;
+        }
+
+        // An effect on show starts over on other frames, where it stands.
+        private static void Restart(Effect effect, Sprite[] frames, float frameDuration, float lifetime, bool loop)
+        {
+            effect.Frames = frames;
+            effect.FrameDuration = frameDuration;
+            effect.Lifetime = lifetime;
+            effect.Elapsed = 0f;
+            effect.Loop = loop;
+            effect.Renderer.sprite = frames[0];
+        }
+
         private void OnEnemyDefeated(Health enemy)
         {
             EnemyWatch watch = FindWatch(enemy);
@@ -1624,8 +1951,10 @@ namespace Cryptforge.UI
         private void LateTick()
         {
             // After every Update has moved the enemies and lit, spent or put out their burns, so each flame stands on its
-            // enemy in the frame it is drawn, and on scaled time, so a pause holds the flicker as it holds the burn.
+            // enemy in the frame it is drawn, and on scaled time, so a pause holds the flicker as it holds the burn. The new
+            // skills' shells, wake and glyph likewise, after the hero's walk and dash steps and the skills' own clocks.
             _flames.Tick(Time.deltaTime);
+            TickSkills(Time.deltaTime);
             if (_shakeRemaining <= 0f)
                 return;
 
@@ -1675,6 +2004,9 @@ namespace Cryptforge.UI
         {
             for (int i = 0; _effects != null && i < _effects.Length; i++)
                 Hide(_effects[i]);
+            _guardStage = _wardStage = _sigilStage = SkillStage.Off;
+            _guard = _ward = null;
+            _rushRiding = false;
             for (int i = 0; _numbers != null && i < _numbers.Length; i++)
                 Hide(_numbers[i]);
         }
