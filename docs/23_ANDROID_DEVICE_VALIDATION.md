@@ -2405,6 +2405,9 @@ report (steps 7-8) only read, so they need no focus check.
    ```
    The folder holds no `pull.txt`, so the batch report never reads it.
 4. **Install the APK and check its hash.** The APK is `Builds/Android/Cryptforge-Prototype.apk`, the clean build of
+   main 07053c2f with the save's safety (a newer build's profile is kept whole and the session saves nothing, with a
+   notice; a save that does not land is held across scene reloads and the player is told; the arena ladder keeps one
+   past self per build) on top of
    main 782f9882 with the pilots reading Myrr's snare by its own ring and the device pull's skills rate over timed runs
    only (development and research tools; nothing a player sees changes) on top of
    main 79c2c96a with the heroes' four painted skill effects (Iron Resolve's bell, Shield Rush's wake, Flame Sigil's
@@ -2461,8 +2464,8 @@ report (steps 7-8) only read, so they need no focus check.
    with a point on every locale; Gradle's 10 MB of holes gone; 36,819,361 bytes). Check the file
    itself, never a hash written down earlier:
    ```
-   (Get-FileHash Builds/Android/Cryptforge-Prototype.apk -Algorithm SHA256).Hash   # 542DE536F2CF7EEB... on 2026-11-26 01:29
-   (Get-Item Builds/Android/Cryptforge-Prototype.apk).Length                        # 67505151
+   (Get-FileHash Builds/Android/Cryptforge-Prototype.apk -Algorithm SHA256).Hash   # C5089FF960DE3273... on 2026-11-26 02:30
+   (Get-Item Builds/Android/Cryptforge-Prototype.apk).Length                        # 67515671
    adb install -r Builds/Android/Cryptforge-Prototype.apk
    ```
    `install -r` keeps the profile and the telemetry. `Cryptforge-Prototype-679df68d.apk` (47 MB, DA3D13FD...) and the
