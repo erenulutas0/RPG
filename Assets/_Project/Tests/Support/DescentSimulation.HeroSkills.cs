@@ -392,7 +392,9 @@ namespace Cryptforge.Tests
                     return false;
                 if (IsRegent(boss))
                     return _regentLanes != null && _regentLanes.Holds(HeroX, HeroY, 0f);
-                return SkillRule.Within(HeroX, HeroY, _markX, _markY, WardenRule.SlamRadius);
+                // Myrr's snare erupts over its own ring, not the Warden's circle (as the scene's autopilot reads it).
+                float radius = IsMyrr(boss) && _snare != null ? _snare.Radius : WardenRule.SlamRadius;
+                return SkillRule.Within(HeroX, HeroY, _markX, _markY, radius);
             }
 
             // Out of a surround: the kite's heading, unless it crosses a glowing band the cohort keeps out of.

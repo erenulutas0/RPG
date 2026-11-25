@@ -364,6 +364,8 @@ namespace Cryptforge.Tests
                         row.Seconds += run.ActiveSeconds;
                 }
                 row.Uses += tally.Uses;
+                if (!float.IsNaN(run.ActiveSeconds))
+                    row.TimedUses += tally.Uses;
                 row.Cooling += tally.Cooling;
                 row.Held += tally.Held;
                 row.Locked += tally.Locked;

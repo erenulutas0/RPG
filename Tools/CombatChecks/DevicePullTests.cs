@@ -656,6 +656,42 @@ namespace Cryptforge.Tests
             });
         }
 
+        // A run with no closing line (the app swiped away or the phone pulled mid-run) has no active seconds: its uses are
+        // counted, but the minute rate reads only the runs whose time is known, so it is not inflated by uses against no time.
+        [Test]
+        public void ARunWithNoClosingLineDoesNotInflateTheSkillsRate()
+        {
+            const string Place = "\"floor_index\":1,\"room_index\":1,\"room_active_sec\":12.000";
+            var lines = new List<string>
+            {
+                Event("s2", 1, 100, null, "session_start", "\"schema\":2", 2),
+                Event("s2", 2, 101, "s2-1", "run_start", "\"run_ordinal\":1,\"hero_id\":\"hero_vanguard\",\"ability_id\":\"ability_forge_burst\"", 2),
+                Event("s2", 3, 110, "s2-1", "ability_used", "\"ability_id\":\"ability_forge_burst\"," + Place + ",\"slot\":1", 2),
+                Event("s2", 4, 160, "s2-1", "ability_used", "\"ability_id\":\"ability_forge_burst\"," + Place + ",\"slot\":1", 2),
+                Event("s2", 5, 220, "s2-1", "run_end",
+                    "\"result\":\"defeat\",\"cause\":\"killed\",\"floors_completed\":0,\"active_sec\":120.000,\"skill_1_uses\":2", 2),
+                Event("s3", 1, 300, null, "session_start", "\"schema\":2", 2),
+                Event("s3", 2, 301, "s3-1", "run_start", "\"run_ordinal\":2,\"hero_id\":\"hero_vanguard\",\"ability_id\":\"ability_forge_burst\"", 2)
+            };
+            for (int i = 0; i < 10; i++)
+                lines.Add(Event("s3", 3 + i, 310 + i * 5, "s3-1", "ability_used", "\"ability_id\":\"ability_forge_burst\"," + Place + ",\"slot\":1", 2));
+
+            InTemp(root =>
+            {
+                string folder = Path.Combine(root, "device-20261126-130000");
+                Directory.CreateDirectory(Path.Combine(folder, "telemetry"));
+                File.WriteAllLines(Path.Combine(folder, "telemetry", "events.jsonl"), lines);
+                File.WriteAllLines(Path.Combine(folder, DevicePull.ManifestName), new[] { "pulled_utc: 2026-11-13T12:00:00Z", "logcat_offset: +0000" });
+
+                FoundryGate.DeviceEvidence device = DevicePull.Read(new[] { folder });
+                FoundryGate.DeviceSkill burst = device.Skills.Single(s => s.Slot == 1);
+                Assert.That((burst.Uses, burst.TimedUses, burst.Seconds), Is.EqualTo((12, 2, 120f)));
+                Assert.That(FoundryGate.Section(Batches(), null, new FoundryGate.Evidence { Device = device }),
+                    Does.Contain("1.0 a minute of active play"), "2 uses over 2 timed minutes, the open run's 10 left out of the rate");
+                return 0;
+            });
+        }
+
         // The sample pulls' two frames past 35 ms are both out of play: counted apart, never judged.
         [Test]
         public void LongFramesOutOfPlayAreCountedApart()

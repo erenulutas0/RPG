@@ -227,16 +227,19 @@ namespace Cryptforge.Core
             }
         }
 
-        // The gate boss's blow on its way to the hero and due within window: its mark (or the Regent's lanes) round the hero.
+        // The gate boss's blow on its way to the hero and due within window: its mark (Myrr's snare, or the Regent's lanes) round
+        // the hero.
         private bool BlowComing(float x, float y, float window)
         {
             WardenSlamService warden = _setup.Warden;
             if (warden == null || !warden.IsFighting || !warden.Clock.IsMarked ||
                 !SkillFootwork.BlowDueWithin(warden.Clock.TelegraphProgress, warden.Clock.Telegraph, window, Time.deltaTime))
                 return false;
-            return warden.MarksLanes
-                ? warden.Lanes.Holds(x, y, 0f)
-                : SkillRule.Within(x, y, warden.MarkX, warden.MarkY, WardenRule.SlamRadius);
+            if (warden.MarksLanes)
+                return warden.Lanes.Holds(x, y, 0f);
+            // Myrr's snare erupts over its own ring, not the Warden's circle.
+            float radius = warden.MarksSnare ? warden.Snare.Radius : WardenRule.SlamRadius;
+            return SkillRule.Within(x, y, warden.MarkX, warden.MarkY, radius);
         }
 
         private bool RushEscape(float x, float y, AbilityRuntime skill, out float hx, out float hy)

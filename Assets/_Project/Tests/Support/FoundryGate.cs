@@ -194,6 +194,9 @@ namespace Cryptforge.Tests
             public int Runs;
             public float Seconds;
             public int Uses;
+            // The uses of the runs whose active seconds are known (a run_end or run_interrupted): the rate's numerator, so a
+            // run killed mid-play (no closing line) does not count its uses against no time.
+            public int TimedUses;
             public int Cooling;
             public int Held;
             public int Locked;
@@ -1051,7 +1054,7 @@ namespace Cryptforge.Tests
                          .OrderBy(g => Order(g.Key)).ThenBy(g => g.Key, StringComparer.Ordinal))
                 parts.Add(Name(hero.Key) + " - " + string.Join("; ", hero.OrderBy(s => s.Slot).Select(s =>
                     $"skill {s.Slot} ({s.AbilityId ?? "shown locked"}): {Many(s.Uses, "use")} in {Many(s.Runs, "run")} carrying it" +
-                    (s.Seconds > 0f ? $", {F(s.Uses / (s.Seconds / 60.0), "0.0")} a minute of active play" : string.Empty) +
+                    (s.Seconds > 0f ? $", {F(s.TimedUses / (s.Seconds / 60.0), "0.0")} a minute of active play" : string.Empty) +
                     $", {Many(s.Cooling + s.Held + s.Locked, "tap")} refused ({s.Cooling} cooling, {s.Held} held, {s.Locked} locked), " +
                     $"{s.Wasted} wasted (nothing in its reach), {Many(s.Drags, "drag")} begun on its button ({s.DragsOneThumb} with no finger on the stick)")));
             return "Skills on the device (docs/57 section 5.3, the owner's schema 2 runs on that APK; reported, no criterion): " +
