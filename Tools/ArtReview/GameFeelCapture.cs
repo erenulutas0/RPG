@@ -4,8 +4,11 @@
 // ash, an enemy's flinch, dissolve and a horde newcomer rising out of embers, the Forge Warden's tell through a
 // telegraph, its phase two and its fall, the Glass Regent's cast, feet ring and shatter, and Rootmother Myrr's (docs/64
 // section 16): her feet ring, her snare creeping after a hero that stepped out and stopped, its roots erupting and the
-// planted roots round the hero's feet, her tell, her bloom and her withering fall. Every frame is framed on its subject at
-// a fixed size so motion reads against the floor. Nothing here ships; nothing is saved to the project.
+// planted roots round the hero's feet, her tell, her bloom and her withering fall; and docs/57's four new skills painted
+// (2026-11-25, section 14.10): Iron Resolve's bell closing, holding and falling away, the Shield Rush's wake and impact,
+// the Flame Sigil's glyph igniting, burning and dimming, and Cinder Ward's shell, its flare at a striker and its break.
+// Every frame is framed on its subject at a fixed size so motion reads against the floor. Nothing here ships; nothing
+// is saved to the project.
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -44,15 +47,20 @@ namespace Cryptforge.Tests
             if (Wanted(only, "warden")) yield return Warden();
             if (Wanted(only, "regent")) yield return Regent();
             if (Wanted(only, "myrr")) yield return Myrr();
+            if (Wanted(only, "skills")) yield return Skills();
             File.WriteAllLines(Output + "frames.txt", _frames);
         }
 
         private static bool Wanted(string only, string part) => string.IsNullOrEmpty(only) || only.Contains(part);
 
-        private IEnumerator Open(string floor)
+        private IEnumerator Open(string floor, string hero = null, string skills = null)
         {
             TestProfile.Begin();
             File.WriteAllText(DevelopmentStart.RegionPreviewPath, "foundry");
+            if (hero != null)
+                File.WriteAllText(DevelopmentStart.HeroPath, hero);
+            if (skills != null)
+                File.WriteAllText(DevelopmentStart.SkillsPath, skills);
             if (floor != null)
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(DevelopmentStart.StartFloorPath));
@@ -300,6 +308,64 @@ namespace Cryptforge.Tests
             boss.ApplyDamage(new DamageContext(boss.Maximum * 10f));
             yield return Frames("myrr-death", 160, () => fell + Vector3.up * .9f, 2.8f, 2, setup);
             yield return Close("myrr");
+        }
+
+        // docs/57's four new skills, pressed for real (development/skills.txt "3") with the fight held: the Vanguard's guard
+        // through its 4 s and its Rush along the floor to a target it stops short of; Ilya's glyph through its 5 s and her
+        // ward taking two blows from a striker, the second spending it.
+        private IEnumerator Skills()
+        {
+            yield return Open(null, null, "3");
+            StopAttacks();
+            Object.FindFirstObjectByType<EncounterController>().enabled = false;
+            foreach (var enemy in Object.FindObjectsByType<EnemyLookView>(FindObjectsSortMode.None)) enemy.gameObject.SetActive(false);
+            var movement = Object.FindFirstObjectByType<HeroMovementInput>();
+            var hero = movement.GetComponent<Health>();
+            var ability = hero.GetComponent<AbilityController>();
+            var targeting = hero.GetComponent<Targeting>();
+            targeting.SetCandidates(new Health[0]);
+            System.Func<Vector3> on = () => hero.transform.position + Vector3.up * .6f;
+            Assert.That(ability.TryUse(2), Is.True, "Iron Resolve");
+            yield return Frames("skill-resolve-close", 18, on, 1.35f);
+            yield return Frames("skill-resolve-hold", 48, on, 1.35f, 4);
+            while (ability.SkillAt(2).IsActive) yield return null;
+            yield return Frames("skill-resolve-end", 18, on, 1.35f);
+            var target = new GameObject("Capture target").AddComponent<Health>();
+            target.Initialize(1000000);
+            target.transform.position = hero.transform.position + new Vector3(2.6f, 0f, 0f);
+            targeting.SetCandidates(new[] { target });
+            Vector3 dash = hero.transform.position + new Vector3(1.1f, .5f, 0f);
+            // The walk step moves the dash (HeroMovementInput), which the capture otherwise holds still.
+            movement.enabled = true;
+            Assert.That(ability.TryUse(3, Vector2.right), Is.True, "Shield Rush");
+            yield return Frames("skill-rush", 36, () => dash, 1.8f);
+            movement.enabled = false;
+            yield return Close("skills-vanguard");
+
+            yield return Open(null, "hero_cinder_arcanist", "3");
+            StopAttacks();
+            Object.FindFirstObjectByType<EncounterController>().enabled = false;
+            foreach (var enemy in Object.FindObjectsByType<EnemyLookView>(FindObjectsSortMode.None)) enemy.gameObject.SetActive(false);
+            hero = Object.FindFirstObjectByType<HeroMovementInput>().GetComponent<Health>();
+            ability = hero.GetComponent<AbilityController>();
+            ability.GetComponent<Targeting>().SetCandidates(new Health[0]);
+            Vector3 drawn = hero.transform.position + Vector3.up * .3f;
+            Assert.That(ability.TryUse(2), Is.True, "Flame Sigil");
+            yield return Frames("skill-sigil-ignite", 16, () => drawn, 2.6f);
+            yield return Frames("skill-sigil-burn", 180, () => drawn, 2.6f, 12);
+            while (ability.Sigil.IsLive) yield return Frames("skill-sigil-dim", 6, () => drawn, 2.6f, 6);
+            on = () => hero.transform.position + Vector3.up * .6f;
+            var striker = new GameObject("Capture striker").AddComponent<Health>();
+            striker.Initialize(1000000);
+            striker.transform.position = hero.transform.position + new Vector3(1.1f, 0f, 0f);
+            Assert.That(ability.TryUse(3), Is.True, "Cinder Ward");
+            yield return Frames("skill-ward-raise", 18, () => on() + Vector3.right * .4f, 1.5f);
+            hero.ApplyDamage(new DamageContext(8f, striker));
+            yield return Frames("skill-ward-flare", 12, () => on() + Vector3.right * .4f, 1.5f);
+            yield return Frames("skill-ward-shell", 30, () => on() + Vector3.right * .4f, 1.5f, 3);
+            hero.ApplyDamage(new DamageContext(20f, striker));
+            yield return Frames("skill-ward-break", 18, () => on() + Vector3.right * .4f, 1.5f);
+            yield return Close("skills-ilya");
         }
 
         // One frame of a section, framed on focus at a fixed orthographic size, square.

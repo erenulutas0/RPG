@@ -3,12 +3,14 @@
 # slot cues (a Sword's flourish, a Staff's pulse, the Daggers' flick, alone and among real strikes), the hero's recoil,
 # level pop, picked weapon and death into ash, an enemy's flinch from either side, its dissolve and a crowd's, a horde
 # newcomer rising out of embers, the Forge Warden's tell, phase two and fall, the Glass Regent's feet ring, cast and
-# shatter, and Rootmother Myrr's feet ring, creeping snare, planted roots, tell, bloom and withering fall (docs/64 section
-# 16) - each framed on its subject at 540x540. No authored import, scene save, APK or device operation. Frames land
+# shatter, Rootmother Myrr's feet ring, creeping snare, planted roots, tell, bloom and withering fall (docs/64 section
+# 16), and docs/57's four new skills painted (section 14.10: the guard's bell, the Rush's wake and impact, the glyph, the
+# ward's shell, flare and break) - each framed on its subject at 540x540. No authored import, scene save, APK or device operation. Frames land
 # in ArtDirection/2026-11-22/game-feel-01 as PNG named by section and frame (slot-flourish-003.png), with frames.txt
 # beside them (untracked).
 #   pwsh -File Tools/ArtReview/Run-GameFeelProof.ps1
-# -Only captures some parts: hero, enemy, horde, warden, regent, myrr (comma separated).
+# -Only captures some parts: hero, enemy, horde, warden, regent, myrr, skills (comma separated).
+#   pwsh -File Tools/ArtReview/Run-GameFeelProof.ps1 -Only skills
 #   pwsh -File Tools/ArtReview/Run-GameFeelProof.ps1 -Only warden,regent,myrr
 param([string]$Only = '', [string]$UnityEditor = 'E:/Unity/Editors/6000.0.65f1/Editor/Unity.exe')
 $ErrorActionPreference = 'Stop'
