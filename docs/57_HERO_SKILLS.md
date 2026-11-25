@@ -589,7 +589,7 @@ Vitality), not more buttons. P2b's tapped skills are these three buttons, laid o
 | 0 (this branch) | The design, the duel's six skills, the Descent read | - | this document |
 | 1. Core and simulation (**done 2026-11-18**, section 13.1) | `AbilityKind` gains Guard, Rush, Sigil, Ward; `HeroDefinition` three abilities, `AbilityController` three slots; `HeroDash` (one body with docs/46's dash), `SlowStatus` (read by `PackMotion`), `SigilZone` (on `BurnRule`'s clock), the guard as a timed armour modifier, the ward as a pool in `HealthState`, build scaling; the assets; `FoundryLevers.Skills`, the pilot's rules and `TimesTheSkills`; EditMode and parity tests | **5** | skills off: the default batch byte-identical, every test green; the parity table for skills on |
 | 2. Measurement (**done 2026-11-18**, sections 13.2-13.4) | section 6.2's rows for each skill and for all three, both heroes, seeds 1-400, both hands; tuning; this document's numbers replaced by measured ones | **2-3** | the rows pass, or the lead chooses which bind |
-| 3. HUD, art, telemetry (**buttons and icons built 2026-11-19**, section 14; the four effect strips, the Rush's clip and section 5.3's events open) | three `AbilityButtonView` slots (section 5.2), the reveal's hold over all three, four icons (`build_ability_icons.py`'s family), four effect strips (`build_skill_vfx.py`), the Rush's puppet clip; section 5.3's events | **3** | a PlayMode flow fires each slot; telemetry in the log |
+| 3. HUD, art, telemetry (**buttons and icons built 2026-11-19**, section 14; **the four effect strips painted 2026-11-25**, section 14.10; the Rush's puppet clip and section 5.3's events open) | three `AbilityButtonView` slots (section 5.2), the reveal's hold over all three, four icons (`build_ability_icons.py`'s family), four effect strips (`build_skill_vfx.py`), the Rush's puppet clip; section 5.3's events | **3** | a PlayMode flow fires each slot; telemetry in the log |
 | 4. Unlock and the Forge (**built 2026-11-19**, section 14, but the result screen's line) | save version 6 (opened and forged skills per hero, migration adds empties; version 5 went to docs/54's difficulty tiers), the first-clear opening, the Forge's skills tab with the 300 / 500 prices, the result screen's unlock line | **2** | a profile opens and forges skill 2 after a floor-2 clear; `ProfileStoreTests` round-trip and migrate |
 | 5. Device | the owner plays both heroes with three skills on the S23: mis-taps, frame time, and whether it is more fun | **1** + the owner | the owner's verdict, telemetry read |
 | 6. Ranks (later) | ranks I-V, save, the Forge's rank strip, the simulation's rank lever, the power index note | **2-3** | rank V inside section 4.3's +2-4 % |
@@ -900,9 +900,10 @@ are read against.
 
 The owner's answers (section 12) as built: the six skills as designed, three buttons for two-handed play with no
 automatic skills, ranks later, and the unlock below. Nothing of the simulation moves: `FoundryLevers.Skills` stays 1, and
-the default batch is byte-identical (14.6). What is not built: section 5.3's telemetry events, the four effect strips and
-the Rush's puppet clip (phase 3's art). The result screen's unlock line and 5.2's one-line toast (14.7), and the Skills
-entry's move into the forge's empty band (docs/63 section 12, answer 7), were built on 2026-11-25 (14.9).
+the default batch is byte-identical (14.6). What is not built: section 5.3's telemetry events and the Rush's puppet clip
+(phase 3's art); the four effect strips were painted on 2026-11-25 (14.10). The result screen's unlock line and 5.2's
+one-line toast (14.7), and the Skills entry's move into the forge's empty band (docs/63 section 12, answer 7), were built
+on 2026-11-25 (14.9).
 
 ### 14.1 The unlock rule as built
 
@@ -1161,6 +1162,100 @@ card (the fixture's profile: Iron Resolve, forge for 300 gold), and a second pas
 `20-result-skills-opened` (the result's line for both skills), `21-forge-skills-card`, `22-skills-tab`,
 `23-skills-tab-forged`, `24-forge-skills-card-next` (Shield Rush, short of gold) and `25-run-skill-toast` (the next run's
 toast over the arc), in `ArtDirection/2026-11-17/anvil-ui-01` and `anvil-ui-01-tr`.
+
+### 14.10 The four effect strips, painted (2026-11-25)
+
+Phase 3's art: the four new skills' effects, painted in the actors' smooth style by
+`Tools/ArtReview/build_hero_skill_vfx.py` (build_skill_vfx's primitives, packing and export: frames painted 4x supersampled
+in world units, box-filtered down in sRGB, straight alpha with colour bled into the clear texels), and drawn by
+`CombatEffectsView`. Presentation only: no file the simulation compiles changed (CombatChecks compiles neither the view nor
+the art set), `FoundryLevers` are as they were, and the default batch cannot move.
+
+**What the game drew before: nothing.** The scene drew no effect of its own for skills 2 and 3 - the guard, the glyph and
+the ward were invisible but for their HUD buttons, and the Rush showed only the rendered Vanguard's own `shield-rush` clip
+(four frames, `RenderedCharacterAnimator` on `SkillUsed`). The arena's duel draws its own procedural rings and discs
+(`DuelPlaybackView`), untouched here. So the fallback is that: a skill set without a skill's family (or with one of its
+strips broken) draws nothing of its own for that skill, as before. The Forge Burst's and the Staff's fallbacks are pixel art
+that existed first; these four never had any.
+
+| Skill | Strips (frames x size, texels a unit) | As the view plays them |
+|---|---|---|
+| Iron Resolve | `resolveClose` 3 x 158x184 @75, `resolveHold` 4 x 136x196 @100 (a loop), `resolveEnd` 3 x 143x161 @75, `resolveRivets` 3 x 160x86 @75 | an iron bell (a 0.64-radius dome on 0.74 of wall, eight riveted staves, two hoops) flies in as solid plate and locks with a white clang over 0.18 s; holds as a steel-blue sheen the hero shows through, its glint sweeping round it every 0.6 s, for exactly the guard's seconds; then flashes, cracks and falls away in flakes over 0.21 s - a clear start and end. Under it sixteen rivets stamp the floor at radius 1 over 0.3 s (3.1's "radius 1, 0.3 s"). The bell follows the hero in a slot of its own, over it, under its strikes |
+| Shield Rush | `rushStreak` 5 x 159x76 @80, `rushImpact` 5 x 115x118 @80 | a steel-blue wake with speed lines and a bow wave before the shield, turned along the dash as the screen shows it (the floor's depth halved), riding the hero's middle 0.45 over its feet for the dash (0.3 s, 0.06 a frame); where the dash stops, 0.3 ahead of the hero, a white flash, a crescent of shocked air, steel sparks flung forward and floor dust (0.25 s) |
+| Flame Sigil | `sigilIgnite` 2 x 212x121 @100, `sigilGlyph` 4 x 275x148 @130 (a loop) | a unit floor glyph the view grows to the zone's radius (2.5): a gold double band of twelve furnace runes over a soot rim, an inner ring with six spokes like a furnace grate, a faint warm wash over the floor it holds, short licks off its far side only (the near side stays clear before what stands in it). Ignited from Ilya's feet outward over 0.2 s (grown from 0.3 of the radius, the grate then the band white-hot), burning in a loop at 0.1 s a frame with the runes' heat running round it, dimmed to 0.3 over its last second, gone with the zone. On the floor where it was drawn, under the actors, as the pit's band is |
+| Cinder Ward | `wardRaise` 3 x 114x128 @75, `wardShell` 6 x 128x169 @100 (a loop), `wardBreak` 3 x 155x129 @75, `wardFlare` 3 x 81x82 @100 | ash and cinders whirl up from the floor into a faint ash shell round Ilya (0.18 s), then round her in three tilted orbits - gusts of ash-white led by gold cinders, dimmer where they pass behind her - while the ward holds; the shell blows apart (0.21 s) as its 2 s end **or as its pool is spent**, whichever comes first; each blow it absorbs flares at the striker (white-hot in a gold glow, cinders flung out, a puff of ash; 0.15 s) |
+
+**Colour** (docs/52 section 2.1 rule 3, docs/51): no vivid texel (saturation and value at least 0.35) of any strip lies at
+hue under 30 or from 345 degrees - the red-orange of what hurts on a timer - nor at 280-330, the enemies' orchid; every
+bright, coloured texel is its hero's own: the Vanguard's steel at hue 190-240, Ilya's furnace gold at 32-60. The soot under
+them is a neutral dark (`#191817`), never the burn's red soot, so no blend turns red. **The Sigil is gold, not section
+3.2's "ember-orange":** a hero's floor ring of radius 2.5 in Burn's ember (`#E77232`, hue 21) would read as the Warden's
+red-orange mark, a ring on the floor that hurts on a timer. Its gold (hue 34-47, `#FFC64D` at its brightest) keeps the
+Vent's warmth and the burn's family without the threat. The build script checks the rule on every texel before it writes;
+`PaintedHeroSkillEffectTests` reads it back as `PaintedCinderSawTests` does.
+
+**Memory** (ASTC 4x4, a byte a texel; one sheet a skill in `Art/Effects/Skills`, imported as the other skill sheets):
+`VFX_Skill_Resolve` 552x636 343 KiB, `VFX_Skill_Rush` 744x196 142 KiB, `VFX_Skill_Sigil` 1536x148 222 KiB,
+`VFX_Skill_Ward` 936x300 274 KiB: **981 KiB (0.96 MiB) for the four**, 2.86 MiB for every painted skill sheet (under the
+3 MB `PaintedSkillEffectTests` names for the effects). The 4 s and 5 s loops are painted at the heroes' 100 texels a unit
+(the glyph at 130, grown 2.5 times), the fifth-of-a-second transitions at 75-80.
+
+**Built:**
+- `Art/Unity/SkillEffectArtSet.cs`: twelve optional strips (`_resolveClose` ... `_wardFlare`) after `_forgeFlash`, and
+  `HasIronResolve`, `HasShieldRush`, `HasFlameSigil`, `HasCinderWard` (each family whole); `IsValid` never asks, so a set
+  painted before them is still whole.
+- `UI/CombatEffectsView.cs`: listens to `AbilityController.SkillUsed`; four slots of its own after the saw's (the bell, the
+  shell, the glyph, the wake), stepped each frame after the hero's walk and dash step (`HeroMovementInput` runs at -60), so
+  what follows the hero never trails it; the ward's flare on the hero's `HealthState.WardAbsorbed`; internal `SkillShown`,
+  `StageOf` and `PaintsSkill` for the tests.
+- `Tools/ArtReview/build_hero_skill_vfx.py` (the sheets, their metas and the art set's strips, every other line of the
+  asset kept) and `review_hero_skill_vfx.py` (the review below). `build_skill_vfx.write_asset` now rewrites only its own
+  fields in an existing asset, so a repaint of the first sheets keeps these (checked: it round-trips today's asset byte for
+  byte).
+- `Tools/ArtReview/GameFeelCapture.cs` and `Run-GameFeelProof.ps1`: a `skills` part (below).
+
+**Review:** `ArtDirection/2026-11-25/skill-vfx-01/` (untracked; `python Tools/ArtReview/review_hero_skill_vfx.py` writes
+it, and `python Tools/ArtReview/build_hero_skill_vfx.py` repaints the sheets in about four minutes). For each skill
+`<skill>-frames.png` (every frame at 4x and at the phone's 120 pixels a unit, beside the rendered Vanguard or Ilya, on the
+Foundry's court, its lava and the Gloam's loam), `<skill>-play.png` (the skill as it plays, sampled through its seconds, on
+the three floors) and `<skill>.gif` (real timing, on the court); `shield-rush-diagonal.png` (a dash up the floor) and
+`review-sheet.png` (the four side by side).
+
+**For the lead: the Unity filters.**
+
+    pwsh -File Tools/Run-UnityTests.ps1 -Platform EditMode -SkipApk -Filter "Cryptforge.Tests.PaintedHeroSkillEffectTests;Cryptforge.Tests.PaintedSkillEffectTests;Cryptforge.Tests.PaintedVentSplashTests;Cryptforge.Tests.PaintedCinderSawTests;Cryptforge.Tests.PaintedStaffImpactTests"
+    pwsh -File Tools/Run-UnityTests.ps1 -Platform PlayMode -SkipApk -Filter "Cryptforge.Tests.PaintedHeroSkillEffectFlowTests;Cryptforge.Tests.PaintedVentEruptionTests;Cryptforge.Tests.HeroSkillsFlowTests;Cryptforge.Tests.SkillButtonsFlowTests;Cryptforge.Tests.AbilityFlowTests;Cryptforge.Tests.CinderArcanistTests;Cryptforge.Tests.VanguardRenderedAnimationTests;Cryptforge.Tests.WeaponRosterFlowTests;Cryptforge.Tests.FoundryActorDepthTests;Cryptforge.Tests.DepthProofArrangementTests;Cryptforge.Tests.EnemyFeelTests"
+
+New: `PaintedHeroSkillEffectTests` (EditMode: the four families whole, each on a sheet of its own, cells cut alike and
+apart; their importers line for line the Vent's, within a MiB together and every skill sheet under 3 MB; the colour rule on
+every texel; the bell clear over the hero's middle with its outline at its sides and top, closing wider than it holds with
+a white clang, flashing at its end and thinning to flakes; the rivets a unit floor ring; the wake trailing well behind its
+head, the impact's crescent ahead; the glyph a unit floor ring, a clear middle, runes between its lines, hotter as it
+ignites; the shell's ash and cinders round a clear middle, whirling, blowing wider; the flare white-hot at its middle) and
+`PaintedHeroSkillEffectFlowTests` (PlayMode, each skill pressed for real through development/skills.txt: the bell over the
+Vanguard following it, holding exactly as long as the guard and ending; the rivets on the floor at radius 1; the wake along
+the dash and turned with it up the floor, the impact where it stops; the glyph where it was drawn at the zone's radius,
+dimming in its last second, gone with the zone; the shell round Ilya, its flare at the striker, its break when spent and
+when its seconds end; and for each hero a set without the families and one with a family broken, drawing nothing of their
+own while the sibling family still paints). Changed: `PaintedSkillEffectTests.TheSceneBorrowsACompleteSetWithOneSheetPerFamily`
+(the four families on sheets of their own) and the budget wording there and in `PaintedVentSplashTests`. Worth re-running:
+the foundry's depth tests, which iterate every effect slot (four more now).
+
+**Captures worth taking:** `pwsh -File Tools/ArtReview/Run-GameFeelProof.ps1 -Only skills` - the guard's bell closing,
+holding and falling away, the Rush to a target, the glyph igniting, burning and dimming, the ward rising, flaring at a
+striker and breaking, each framed at 540x540 in `ArtDirection/2026-11-22/game-feel-01` (`skill-*.png`). Then the S23 with
+`skills.txt` `3`: the bell's sheen over the Vanguard's blue (whether the hero still reads through it), the glyph at 2.5
+among a crowd on the lava and on the Gloam's loam, and the ward's gusts at 120 pixels a unit.
+
+**Still open:**
+- **The Rush's puppet clip.** The rendered Vanguard already plays its own `shield-rush` clip; a `PuppetMotion` clip is only
+  needed if the procedural puppet is to show the Rush too.
+- **Section 5.3's telemetry events** (`ability_used`'s slot, `ability_refused`, `stick_on_button`, `ability_wasted`).
+- The rest of section 3's "On the phone" lists, which are not effect strips: the Vanguard's plates flashing steel-white on
+  its own sprite, the shield glyph over the health bar and the anvil clang; struck enemies flashing and three daze sparks
+  over a dazed one; enemies inside the glyph burning at the "hot" tint and a size up, with a soot trail; the ward's
+  ash-white bar over the health bar, Ilya's flasks brightening and her goggles' "angry" face. And the skills' sounds.
+- A device read of the four on the S23 (phase 5).
 
 ## 15. The live re-read (2026-11-23)
 

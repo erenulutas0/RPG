@@ -1134,17 +1134,17 @@ def write_asset(families, script_guid):
     for family in families.values():
         for strip in family["strips"]:
             fields[strip.name] = (strip, family["guid"], family["sheet"])
-    body.append("  _flames:")
-    for stacks in range(1, MAX_STACKS + 1):
-        strip, guid, sheet = fields[f"flame{stacks}"]
-        body.append("  - " + strip_yaml(strip, guid, sheet, 4)[4:])
+    blocks = [("_flames", "\n".join(["  _flames:"] + ["  - " + strip_yaml(*fields[f"flame{stacks}"], 4)[4:]
+                                                      for stacks in range(1, MAX_STACKS + 1)]))]
     for field, name in (("_emberArc", "emberArc"), ("_ventColumn", "ventColumn"), ("_ventEmbers", "ventEmbers"),
                         ("_ventRing", "ventRing"), ("_ventSplash", "ventSplash"), ("_shockwave", "shockwave"),
                         ("_forgeSpark", "forgeSpark"), ("_forgeFlash", "forgeFlash")):
-        strip, guid, sheet = fields[name]
-        body.append(f"  {field}:")
-        body.append(strip_yaml(strip, guid, sheet, 4))
-    write(ASSET_PATH, "\n".join(body) + "\n")
+        blocks.append((field, f"  {field}:\n" + strip_yaml(*fields[name], 4)))
+    if os.path.exists(ASSET_PATH):
+        # build_hero_skill_vfx.py writes docs/57's skills' strips into this asset too: its fields are kept as they are.
+        write_fields(ASSET_PATH, blocks, after=None)
+    else:
+        write(ASSET_PATH, "\n".join(body + [block for _, block in blocks]) + "\n")
 
 
 # ----------------------------------------------------------------------------------------------------------------------
