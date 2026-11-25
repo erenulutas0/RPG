@@ -6,7 +6,9 @@ namespace Cryptforge.Art
 {
     // The skills' painted effects (docs/45), drawn to match the painted actors: a burning enemy's flame at each Burn stack
     // count, Ember Memory's passed ember, the Crucible Vent's eruption, embers, cast ring and eruption ring, and the Forge
-    // Burst's shockwave, sparks and flash. Tools/ArtReview/build_skill_vfx.py paints the sheets and writes this asset. Each
+    // Burst's shockwave, sparks and flash; and docs/57's four new skills (Iron Resolve, Shield Rush, Flame Sigil, Cinder
+    // Ward), which Tools/ArtReview/build_hero_skill_vfx.py paints onto sheets of their own and writes into this asset
+    // beside the rest. Tools/ArtReview/build_skill_vfx.py paints the first sheets and writes this asset. Each
     // effect family is one texture, so a crowd of burning enemies or a Vent across a crowd batches (the optional eruption
     // ring rides one of its own, drawn on the floor apart from the column and embers); each strip is a run of frames on
     // its family's sheet, which the views cut into sprites at startup. Views borrow the sheets and own those sprites.
@@ -85,6 +87,28 @@ namespace Cryptforge.Art
         [SerializeField] private Strip _shockwave;
         [SerializeField] private Strip _forgeSpark;
         [SerializeField] private Strip _forgeFlash;
+        // docs/57's four new skills (Tools/ArtReview/build_hero_skill_vfx.py), each a family on a sheet of its own and all
+        // optional, as the eruption ring is: a set painted before them is still whole, and a skill whose strips are
+        // missing draws nothing of its own, as before they were painted.
+        // Iron Resolve: the iron bell closing over the hero, holding as a sheen (a loop) and falling away, all pinned at the
+        // hero's feet; and the unit ring of rivets it stamps on the floor.
+        [SerializeField] private Strip _resolveClose;
+        [SerializeField] private Strip _resolveHold;
+        [SerializeField] private Strip _resolveEnd;
+        [SerializeField] private Strip _resolveRivets;
+        // Shield Rush: the wake behind the hero and the impact where the dash stops, both facing +x with their heads at
+        // the pivot, which the view turns along the dash.
+        [SerializeField] private Strip _rushStreak;
+        [SerializeField] private Strip _rushImpact;
+        // Flame Sigil: the glyph's ignition and its loop, a unit floor ring the view grows to the glyph's radius.
+        [SerializeField] private Strip _sigilIgnite;
+        [SerializeField] private Strip _sigilGlyph;
+        // Cinder Ward: the shell rising round Ilya, whirling (a loop) and blowing apart, pinned at her feet; and the
+        // flare at a striker whose blow it absorbed, pinned at its middle.
+        [SerializeField] private Strip _wardRaise;
+        [SerializeField] private Strip _wardShell;
+        [SerializeField] private Strip _wardBreak;
+        [SerializeField] private Strip _wardFlare;
 
         public Strip Flames(int stacks) => _flames[stacks - 1];
         public int FlameStackCount => _flames != null ? _flames.Length : 0;
@@ -101,6 +125,27 @@ namespace Cryptforge.Art
         public Strip Shockwave => _shockwave;
         public Strip ForgeSpark => _forgeSpark;
         public Strip ForgeFlash => _forgeFlash;
+        public Strip ResolveClose => _resolveClose;
+        public Strip ResolveHold => _resolveHold;
+        public Strip ResolveEnd => _resolveEnd;
+        // A unit-radius floor ring, as the Vent's.
+        public Strip ResolveRivets => _resolveRivets;
+        public Strip RushStreak => _rushStreak;
+        public Strip RushImpact => _rushImpact;
+        // Unit-radius floor rings: the view grows them to the glyph's radius.
+        public Strip SigilIgnite => _sigilIgnite;
+        public Strip SigilGlyph => _sigilGlyph;
+        public Strip WardRaise => _wardRaise;
+        public Strip WardShell => _wardShell;
+        public Strip WardBreak => _wardBreak;
+        public Strip WardFlare => _wardFlare;
+        // Each family whole, or the skill draws nothing of its own (IsValid never asks).
+        public bool HasIronResolve =>
+            Valid(_resolveClose) && Valid(_resolveHold) && Valid(_resolveEnd) && Valid(_resolveRivets);
+        public bool HasShieldRush => Valid(_rushStreak) && Valid(_rushImpact);
+        public bool HasFlameSigil => Valid(_sigilIgnite) && Valid(_sigilGlyph);
+        public bool HasCinderWard =>
+            Valid(_wardRaise) && Valid(_wardShell) && Valid(_wardBreak) && Valid(_wardFlare);
 
         public bool IsValid
         {

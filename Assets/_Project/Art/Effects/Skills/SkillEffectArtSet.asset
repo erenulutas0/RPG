@@ -399,3 +399,263 @@ MonoBehaviour:
       Y: 2
       Width: 190
       Height: 158
+  _resolveClose:
+    Sheet: {fileID: 2800000, guid: d0e6d53dbfaf497ca74bf4756910786b, type: 3}
+    SheetWidth: 552
+    SheetHeight: 636
+    TexelsPerUnit: 75
+    Pivot: {x: 0.5, y: 0.2105978}
+    Frames:
+    - X: 0
+      Y: 254
+      Width: 158
+      Height: 184
+    - X: 160
+      Y: 254
+      Width: 158
+      Height: 184
+    - X: 320
+      Y: 254
+      Width: 158
+      Height: 184
+  _resolveHold:
+    Sheet: {fileID: 2800000, guid: d0e6d53dbfaf497ca74bf4756910786b, type: 3}
+    SheetWidth: 552
+    SheetHeight: 636
+    TexelsPerUnit: 100
+    Pivot: {x: 0.5, y: 0.1836735}
+    Frames:
+    - X: 0
+      Y: 440
+      Width: 136
+      Height: 196
+    - X: 138
+      Y: 440
+      Width: 136
+      Height: 196
+    - X: 276
+      Y: 440
+      Width: 136
+      Height: 196
+    - X: 414
+      Y: 440
+      Width: 136
+      Height: 196
+  _resolveEnd:
+    Sheet: {fileID: 2800000, guid: d0e6d53dbfaf497ca74bf4756910786b, type: 3}
+    SheetWidth: 552
+    SheetHeight: 636
+    TexelsPerUnit: 75
+    Pivot: {x: 0.4895105, y: 0.2468944}
+    Frames:
+    - X: 0
+      Y: 91
+      Width: 143
+      Height: 161
+    - X: 145
+      Y: 91
+      Width: 143
+      Height: 161
+    - X: 290
+      Y: 91
+      Width: 143
+      Height: 161
+  _resolveRivets:
+    Sheet: {fileID: 2800000, guid: d0e6d53dbfaf497ca74bf4756910786b, type: 3}
+    SheetWidth: 552
+    SheetHeight: 636
+    TexelsPerUnit: 75
+    Pivot: {x: 0.496875, y: 0.494186}
+    Frames:
+    - X: 0
+      Y: 3
+      Width: 160
+      Height: 86
+    - X: 162
+      Y: 3
+      Width: 160
+      Height: 86
+    - X: 324
+      Y: 3
+      Width: 160
+      Height: 86
+  _rushStreak:
+    Sheet: {fileID: 2800000, guid: 9d4688514a0d4b43803c686cfba27972, type: 3}
+    SheetWidth: 744
+    SheetHeight: 196
+    TexelsPerUnit: 80
+    Pivot: {x: 0.8238994, y: 0.5026316}
+    Frames:
+    - X: 585
+      Y: 120
+      Width: 159
+      Height: 76
+    - X: 0
+      Y: 0
+      Width: 159
+      Height: 76
+    - X: 161
+      Y: 0
+      Width: 159
+      Height: 76
+    - X: 322
+      Y: 0
+      Width: 159
+      Height: 76
+    - X: 483
+      Y: 0
+      Width: 159
+      Height: 76
+  _rushImpact:
+    Sheet: {fileID: 2800000, guid: 9d4688514a0d4b43803c686cfba27972, type: 3}
+    SheetWidth: 744
+    SheetHeight: 196
+    TexelsPerUnit: 80
+    Pivot: {x: 0.4869565, y: 0.5}
+    Frames:
+    - X: 0
+      Y: 78
+      Width: 115
+      Height: 118
+    - X: 117
+      Y: 78
+      Width: 115
+      Height: 118
+    - X: 234
+      Y: 78
+      Width: 115
+      Height: 118
+    - X: 351
+      Y: 78
+      Width: 115
+      Height: 118
+    - X: 468
+      Y: 78
+      Width: 115
+      Height: 118
+  _sigilIgnite:
+    Sheet: {fileID: 2800000, guid: 590e5962f305452cb6c6229548746389, type: 3}
+    SheetWidth: 1536
+    SheetHeight: 148
+    TexelsPerUnit: 100
+    Pivot: {x: 0.5, y: 0.446281}
+    Frames:
+    - X: 1108
+      Y: 27
+      Width: 212
+      Height: 121
+    - X: 1322
+      Y: 27
+      Width: 212
+      Height: 121
+  _sigilGlyph:
+    Sheet: {fileID: 2800000, guid: 590e5962f305452cb6c6229548746389, type: 3}
+    SheetWidth: 1536
+    SheetHeight: 148
+    TexelsPerUnit: 130
+    Pivot: {x: 0.5003636, y: 0.4716216}
+    Frames:
+    - X: 0
+      Y: 0
+      Width: 275
+      Height: 148
+    - X: 277
+      Y: 0
+      Width: 275
+      Height: 148
+    - X: 554
+      Y: 0
+      Width: 275
+      Height: 148
+    - X: 831
+      Y: 0
+      Width: 275
+      Height: 148
+  _wardRaise:
+    Sheet: {fileID: 2800000, guid: bbc07b02a0c543e8aa89cbd0a61eeeeb, type: 3}
+    SheetWidth: 936
+    SheetHeight: 300
+    TexelsPerUnit: 75
+    Pivot: {x: 0.5197368, y: 0.1699219}
+    Frames:
+    - X: 314
+      Y: 1
+      Width: 114
+      Height: 128
+    - X: 430
+      Y: 1
+      Width: 114
+      Height: 128
+    - X: 546
+      Y: 1
+      Width: 114
+      Height: 128
+  _wardShell:
+    Sheet: {fileID: 2800000, guid: bbc07b02a0c543e8aa89cbd0a61eeeeb, type: 3}
+    SheetWidth: 936
+    SheetHeight: 300
+    TexelsPerUnit: 100
+    Pivot: {x: 0.5, y: 0.1656805}
+    Frames:
+    - X: 0
+      Y: 131
+      Width: 128
+      Height: 169
+    - X: 130
+      Y: 131
+      Width: 128
+      Height: 169
+    - X: 260
+      Y: 131
+      Width: 128
+      Height: 169
+    - X: 390
+      Y: 131
+      Width: 128
+      Height: 169
+    - X: 520
+      Y: 131
+      Width: 128
+      Height: 169
+    - X: 650
+      Y: 131
+      Width: 128
+      Height: 169
+  _wardBreak:
+    Sheet: {fileID: 2800000, guid: bbc07b02a0c543e8aa89cbd0a61eeeeb, type: 3}
+    SheetWidth: 936
+    SheetHeight: 300
+    TexelsPerUnit: 75
+    Pivot: {x: 0.5193548, y: 0.1744186}
+    Frames:
+    - X: 780
+      Y: 171
+      Width: 155
+      Height: 129
+    - X: 0
+      Y: 0
+      Width: 155
+      Height: 129
+    - X: 157
+      Y: 0
+      Width: 155
+      Height: 129
+  _wardFlare:
+    Sheet: {fileID: 2800000, guid: bbc07b02a0c543e8aa89cbd0a61eeeeb, type: 3}
+    SheetWidth: 936
+    SheetHeight: 300
+    TexelsPerUnit: 100
+    Pivot: {x: 0.5061728, y: 0.5121951}
+    Frames:
+    - X: 662
+      Y: 47
+      Width: 81
+      Height: 82
+    - X: 745
+      Y: 47
+      Width: 81
+      Height: 82
+    - X: 828
+      Y: 47
+      Width: 81
+      Height: 82
