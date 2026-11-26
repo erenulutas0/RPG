@@ -146,6 +146,7 @@ namespace Cryptforge.Tests
             _anvil.PickBagItem(gear.FindItem(8));
             _anvil.PickBagItem(gear.FindItem(7));
             Tap(_anvil.InheritButton);
+            yield return Settle();
             _anvil.PickBagItem(gear.FindItem(5));
             yield return Settle();
             Shoot("13-bag-inherit", "Inherit +5 from Bark Mail onto the Quicksilver Hauberk: " + _anvil.InheritText.Replace('\n', ' '));

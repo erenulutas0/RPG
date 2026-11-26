@@ -98,10 +98,14 @@ namespace Cryptforge.UI
         private ChoicePrompt _shownPrompt;
         private ChoiceCardPainter _painter;
         private float _inputEnabledAt;
+        // The frame that showed the cards: the input delay is stamped on the first Update of a later frame.
+        private int _shownFrame;
         private bool _awaitingInputDelay;
         private bool _subscribed;
 
         public bool IsOpen => _shownPrompt != null;
+        // For tests: when the cards take taps, +infinity until the first frame after they were shown stamps the delay.
+        public float InputEnabledAt => _inputEnabledAt;
         // For tests: how many cards the panel can show, and the kind line a card shows (empty when it shows none).
         public int CardSlots => _buttons != null ? _buttons.Length : 0;
         public Button CardButton(int slot) => _buttons[slot];
@@ -469,7 +473,10 @@ namespace Cryptforge.UI
                 ChoiceKind.Checkpoint => _text.CheckpointChoiceTitle,
                 _ => _text.UpgradeChoiceTitle
             };
-            _inputEnabledAt = Time.unscaledTime + _inputDelay;
+            // The delay runs from the first frame after this one (MapChoiceView's): this frame's clock is its start, and a
+            // deeper start's first level-up opens in the loading frame (CombatSetup.Awake), which can outlast the delay.
+            _inputEnabledAt = float.PositiveInfinity;
+            _shownFrame = Time.frameCount;
             int wanted = Mathf.Min(prompt.Cards.Count, MaxCards);
             while (_canRestack && _buttons.Length < wanted)
                 AddSlot();
@@ -624,6 +631,8 @@ namespace Cryptforge.UI
         {
             if (_painter != null && _shownPrompt != null)
                 _painter.Tick(Time.unscaledTime);
+            if (_awaitingInputDelay && float.IsPositiveInfinity(_inputEnabledAt) && Time.frameCount > _shownFrame)
+                _inputEnabledAt = Time.unscaledTime + _inputDelay;
             if (!_awaitingInputDelay || Time.unscaledTime < _inputEnabledAt)
                 return;
 

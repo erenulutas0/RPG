@@ -30,6 +30,8 @@ namespace Cryptforge.UI
         private Text _label;
         private int _shownPending = -1;
         private float _readyAt;
+        // The frame that last held the taps: the delay is stamped on the first Update of a later frame.
+        private int _heldFrame;
         private GameObject _summaryCanvas;
         private float _summaryUntil;
         private bool _done;
@@ -83,8 +85,18 @@ namespace Cryptforge.UI
                 // A new offer: the count, and the tap delay again.
                 _shownPending = pending;
                 _label.text = Loc.Format("catchup.auto_pick", "Auto-pick {count} level-ups", ("count", pending));
-                _readyAt = Time.unscaledTime + InputDelay;
+                HoldTaps();
             }
+            if (float.IsPositiveInfinity(_readyAt) && Time.frameCount > _heldFrame)
+                _readyAt = Time.unscaledTime + InputDelay;
+        }
+
+        // No tap until the delay has run from the first frame after this one (RunChoiceView's cards): this frame's clock is
+        // its start, and the button is first built in the deeper start's loading frame, which can outlast the delay.
+        private void HoldTaps()
+        {
+            _readyAt = float.PositiveInfinity;
+            _heldFrame = Time.frameCount;
         }
 
         private void Build()
@@ -129,7 +141,7 @@ namespace Cryptforge.UI
             labelRect.offsetMin = new Vector2(28f, 14f);
             labelRect.offsetMax = new Vector2(-28f, -14f);
             _label = Label(labelObject, source, 46, TextAnchor.MiddleCenter);
-            _readyAt = Time.unscaledTime + InputDelay;
+            HoldTaps();
         }
 
         public void OnAutoPick()

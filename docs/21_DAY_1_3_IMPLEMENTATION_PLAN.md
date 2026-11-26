@@ -3239,3 +3239,38 @@ again on return), `ArenaWalkTests` (the stick switched off and released), `GateB
 finger), `MapChoiceFlowTests` (no pause on the map choice; the screen on from the run's start to its end, over a live
 run's reload and a deeper start's), `ProfileSafetyFlowTests` (the notice over a clock jump). No save, simulation or
 telemetry change.
+
+## 2026-11-26 - Five double-tap and stale-state fixes: Efsun and the Bag, Melt, the loading frame, the Anvil's weapon, the arena
+
+- **Efsun and the Bag take one action a tap.** Keep old and Take new appear where the rerolls stood (and the rerolls
+  again where those stood), and only a tab change restarted the Anvil's 0.25 s input delay: a double tap rerolled and
+  then kept or took the new lines unseen, a double tap on Keep old rerolled again, and one on the Binding Rune spent two
+  runes. `AnvilView.HoldInput` restarts the delay after every reroll, keep or take, rune, equip, inherit and melt, as a
+  skill forged already did.
+- **Melt asks for good.** Its first tap arms "Melt: +X gold" on the same button; the second tap of a double tap melted
+  the item. The arming tap restarts the delay, so the confirmation waits it out.
+- **The loading frame no longer spends the input delay.** `CombatSetup.Awake` builds the map choice, and a deeper
+  start opens its first level-up, in the scene's loading frame, whose clock (`Time.unscaledTime`) is that frame's start;
+  a loaded scene also updates in that frame, on the same clock. A load longer than the delay spent it before the panel
+  was seen: the second tap of Restart on the result screen landed on a map card (the Quicksilver Vaults), and the second
+  tap of a deeper map card on a level-up card or the Auto-pick. `MapChoiceView`, `RunChoiceView` and
+  `CatchUpAutoPickView` now hold their taps (`float.PositiveInfinity`) and stamp the delay on the first Update of a later
+  frame than the one that showed them, as `PauseView` restamps its delay on return. A run's own level-ups wait one frame
+  more.
+- **The Anvil follows the hero chooser.** It kept its selection between openings, so after the forge's hero chooser
+  moved from the Vanguard to Ilya it still worked on the Sword - Strike, Seal, Hammer and Efsun spending on it - while
+  the equipped row showed the Staff. `AnvilView.Open` reselects the next run's weapon when the selection is a weapon that
+  is not it, or a piece no longer owned; an armour, amulet or ring stays picked.
+- **The arena waits the map choice's 0.35 s.** Continue (the build) and Next fight (the result) stand where Fight stands,
+  and Skip over its corner: at `ArenaScreen.InputDelay` 0.2 s a second tap after Continue or Next fight fought the
+  default rival unchosen and saved the rating change, and Skip had no delay at all. The delay is 0.35 s, and Skip waits
+  it like the other pages' buttons (`DuelPlaybackView`'s skip action, `ArenaScreen.SkipPlayback`), going to the result
+  at once. UI timing only: `ArenaRules.Hash` and the duel are unchanged (docs/55).
+
+Tests: `AnvilFlowTests` (a double tap on Efsun and on the Bag takes one action and Melt still asks; the weapon
+reselected after the hero changes, the ring kept; the reroll and bag tests wait the delay between actions),
+`MapChoiceFlowTests` (a loading frame held 0.6 s spends neither the map choice's delay nor a deeper start's first
+level-up's, the Auto-pick's included), `TurkishTierScreensTests` (the toggle's closed check no longer judged only while
+the delay lasts), `ArenaScreenTests` (a double tap on Continue, Fight, Skip and Next fight lands on nothing; Skip after
+its delay). `Tools/ArtReview/AnvilUiCapture.cs` waits the delay before the inheritance's target. No save, simulation,
+telemetry or arena-rule change.
