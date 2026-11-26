@@ -334,7 +334,7 @@ namespace Cryptforge.UI
                 _setup.Profile.Changed += OnProfileChanged;
                 _subscribed = true;
             }
-            if (_piece == null && _weaponId == null)
+            if ((_piece == null && _weaponId == null) || SelectionIsStale())
                 SelectSlot(0);
             Show(tab == Tab.Forge ? Tab.Anvil : tab);
         }
@@ -397,6 +397,17 @@ namespace Cryptforge.UI
 
         // The weapon the next run carries: the next hero's own (CombatSetup.NextWeapon; docs/63), as the forge shows it.
         private string EquippedWeaponId() => _setup.NextWeapon != null ? _setup.NextWeapon.Id : null;
+
+        // The selection is kept between openings unless it went stale: a piece no longer owned, or a weapon that is not the
+        // one the next run carries - the forge's hero chooser changed the hero since, and the Anvil struck, sealed and
+        // rerolled the Vanguard's Sword while the equipped row showed Ilya's Staff.
+        private bool SelectionIsStale()
+        {
+            if (_piece != null && !_setup.Profile.Gear.Owns(_piece))
+                return true;
+            string weapon = _weaponId ?? (_piece != null && _piece.IsWeapon ? _piece.ItemId : null);
+            return weapon != null && weapon != EquippedWeaponId();
+        }
 
         private void OnProfileChanged()
         {
@@ -1063,12 +1074,14 @@ namespace Cryptforge.UI
                 return;
             _piece = piece;
             _setup.Anvil.TryReroll(piece, scroll);
+            HoldInput();
             Refresh();
         }
 
         private void Resolve(bool keepNew)
         {
             _setup.Anvil.ResolveReroll(keepNew);
+            HoldInput();
             Refresh();
         }
 
@@ -1081,6 +1094,7 @@ namespace Cryptforge.UI
                 return;
             _piece = piece;
             _setup.Anvil.TryAddLine(piece);
+            HoldInput();
             Refresh();
         }
 
@@ -1109,14 +1123,17 @@ namespace Cryptforge.UI
         {
             if (_bagPick != null)
                 _setup.Anvil.TryEquip(_bagPick);
+            HoldInput();
             Refresh();
         }
 
-        // The first tap arms the melt and says what it pays; the second melts.
+        // The first tap arms the melt and says what it pays; the second, once the input delay has run again, melts: the
+        // confirmation stands where Melt stood, and a double tap melted the item for good.
         private void MeltPick()
         {
             if (_bagPick == null)
                 return;
+            HoldInput();
             if (!_meltArmed)
             {
                 _meltArmed = true;
@@ -1133,6 +1150,7 @@ namespace Cryptforge.UI
         // button then pays and moves the level. With no target yet it cancels.
         private void InheritPick()
         {
+            HoldInput();
             if (_inheritSource == null)
             {
                 if (_bagPick == null || _bagPick.Level == 0)
@@ -1176,6 +1194,11 @@ namespace Cryptforge.UI
         }
 
         private bool Ready() => IsOpen && Time.unscaledTime >= _inputEnabledAt;
+
+        // The input delay again after an Efsun or Bag action (as a skill forged, OnSkillCard): its result can put another
+        // button under the finger - Keep old and Take new where the rerolls stood, the rerolls back where those stood, Melt's
+        // confirmation on Melt - and the second tap of a double tap must not take it unseen.
+        private void HoldInput() => _inputEnabledAt = Time.unscaledTime + InputDelay;
 
         private void Update()
         {

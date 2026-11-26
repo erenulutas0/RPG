@@ -71,7 +71,8 @@ namespace Cryptforge.Tests
 
     // The Forge's Anvil, Efsun and Bag tabs in the scene (docs/54 phase 4): the tabs open and close; a held strike holds or
     // fails and never breaks or lowers the item, and a tap is not a strike; a reroll is kept old or taken new; melt asks
-    // twice; inherit moves the level for its 10 %; equip; a full bag shows thirty; each item shows its own painted icon.
+    // twice; inherit moves the level for its 10 %; equip; a double tap takes one Efsun or Bag action; the weapon picked
+    // follows the forge's hero chooser; a full bag shows thirty; each item shows its own painted icon.
     public sealed class AnvilFlowTests
     {
         private const string ScenePath = "Assets/_Project/Scenes/Gameplay/Gameplay.unity";
@@ -213,14 +214,18 @@ namespace Cryptforge.Tests
             Assert.That(_setup.Profile.Gold, Is.EqualTo(AnvilFixtures.Gold - 160), "An Epic's reroll.");
             Assert.That(_anvil.NewLinesText, Is.Not.Empty, "The new set beside the old.");
             Assert.That(_anvil.CurrentLinesText, Is.EqualTo(before));
+            yield return Settle();
             Tap(_anvil.KeepOld);
             Assert.That(_anvil.CurrentLinesText, Is.EqualTo(before), "Kept the old.");
+            yield return Settle();
             Tap(_anvil.RerollWithScroll);
             Assert.That(_setup.Profile.Gear.Booster(BoosterKind.EfsunScroll), Is.EqualTo(3));
             string shown = _anvil.NewLinesText;
+            yield return Settle();
             Tap(_anvil.TakeNew);
             Assert.That(_anvil.CurrentLinesText, Is.EqualTo(shown), "Took the new.");
             Assert.That(locket.Lines.Count, Is.EqualTo(3));
+            yield return Settle();
             Tap(_anvil.AddLine);
             Assert.That(locket.Lines.Count, Is.EqualTo(4), "A Binding Rune's line.");
             LogAssert.NoUnexpectedReceived();
@@ -239,6 +244,7 @@ namespace Cryptforge.Tests
             _anvil.PickBagItem(hauberk);
             Tap(_anvil.EquipButton);
             Assert.That(gear.Equipped(GearSlot.Armour), Is.SameAs(hauberk));
+            yield return Settle();
 
             ItemInstance signet = gear.FindItem(8);
             _anvil.PickBagItem(signet);
@@ -246,14 +252,17 @@ namespace Cryptforge.Tests
             Tap(_anvil.MeltButton);
             Assert.That(gear.Owns(signet), Is.True, "The first tap only asks.");
             Assert.That(_anvil.MeltText, Does.Contain("+20 gold"));
+            yield return Settle();
             Tap(_anvil.MeltButton);
             Assert.That(gear.Owns(signet), Is.False);
             Assert.That(_setup.Profile.Gold, Is.EqualTo(gold + 20));
+            yield return Settle();
 
             ItemInstance bark = gear.FindItem(7);
             ItemInstance mail = gear.FindItem(1);
             _anvil.PickBagItem(bark);
             Tap(_anvil.InheritButton);
+            yield return Settle();
             _anvil.PickBagItem(mail);
             Assert.That(_anvil.InheritText, Does.Contain("+5"));
             gold = _setup.Profile.Gold;
@@ -261,6 +270,138 @@ namespace Cryptforge.Tests
             Assert.That(mail.Level, Is.EqualTo(5));
             Assert.That(gear.Owns(bark), Is.False, "The source is used up.");
             Assert.That(gold - _setup.Profile.Gold, Is.EqualTo(AnvilRule.InheritGold(5)));
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // A double tap on Efsun takes one action (the run flow's review, 2026-11-26): Keep old and Take new appear where the
+        // rerolls stood, and the rerolls again where those stood, so the second tap of a reroll kept or took the new lines
+        // unseen, and the second tap of Keep old rerolled again; a Binding Rune's spent two runes. Each action holds the page
+        // for its input delay again.
+        [UnityTest]
+        public IEnumerator ADoubleTapOnEfsunTakesOneAction()
+        {
+            yield return OpenForge(AnvilFixtures.Profile());
+            Tap(_anvil.AnvilEntry);
+            yield return Settle();
+            Tap(_anvil.PieceButton(2));
+            Tap(_anvil.TabButton(AnvilView.Tab.Efsun));
+            yield return Settle();
+            ProfileGear gear = _setup.Profile.Gear;
+            ItemInstance locket = _anvil.Selected;
+            string before = _anvil.CurrentLinesText;
+
+            Tap(_anvil.RerollWithGold);
+            Assert.That(gear.PendingRerollPiece, Is.SameAs(locket));
+            string shown = _anvil.NewLinesText;
+            Assert.That(_anvil.KeepOld.gameObject.activeInHierarchy && _anvil.TakeNew.gameObject.activeInHierarchy, Is.True,
+                "Keep old and Take new stand where the rerolls stood.");
+            Tap(_anvil.TakeNew);
+            Tap(_anvil.KeepOld);
+            Assert.That(gear.PendingRerollPiece, Is.SameAs(locket), "The second tap neither takes nor keeps: the new lines wait.");
+            Assert.That(_anvil.NewLinesText, Is.EqualTo(shown));
+            Assert.That(_anvil.CurrentLinesText, Is.EqualTo(before));
+            Assert.That(_setup.Profile.Gold, Is.EqualTo(AnvilFixtures.Gold - 160), "One reroll paid.");
+
+            yield return Settle();
+            Tap(_anvil.KeepOld);
+            Assert.That(gear.PendingRerollPiece, Is.Null, "Kept the old.");
+            Assert.That(_anvil.RerollWithGold.gameObject.activeInHierarchy, Is.True, "The rerolls stand there again.");
+            Tap(_anvil.RerollWithGold);
+            Tap(_anvil.RerollWithScroll);
+            Assert.That(gear.PendingRerollPiece, Is.Null, "The second tap of Keep old rerolls nothing.");
+            Assert.That(_setup.Profile.Gold, Is.EqualTo(AnvilFixtures.Gold - 160));
+            Assert.That(gear.Booster(BoosterKind.EfsunScroll), Is.EqualTo(4));
+            Assert.That(_anvil.CurrentLinesText, Is.EqualTo(before));
+
+            yield return Settle();
+            int runes = gear.Booster(BoosterKind.BindingRune);
+            Tap(_anvil.AddLine);
+            Tap(_anvil.AddLine);
+            Assert.That(locket.Lines.Count, Is.EqualTo(4), "One line for one tap.");
+            Assert.That(gear.Booster(BoosterKind.BindingRune), Is.EqualTo(runes - 1), "One rune spent.");
+            yield return Settle();
+            Tap(_anvil.AddLine);
+            Assert.That(locket.Lines.Count, Is.EqualTo(5), "After the delay the rune adds again.");
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // A double tap on the Bag takes one action: Melt's second tap inside the delay does not confirm (the confirmation
+        // stands on Melt, and a double tap melted the item for good); Inherit's does not cancel the inheritance it began.
+        [UnityTest]
+        public IEnumerator ADoubleTapOnTheBagTakesOneActionAndMeltStillAsks()
+        {
+            yield return OpenForge(AnvilFixtures.Profile());
+            Tap(_anvil.BagEntry);
+            yield return Settle();
+            ProfileGear gear = _setup.Profile.Gear;
+            ItemInstance signet = gear.FindItem(8);
+            int gold = _setup.Profile.Gold;
+            _anvil.PickBagItem(signet);
+            Tap(_anvil.MeltButton);
+            Tap(_anvil.MeltButton);
+            Assert.That(gear.Owns(signet), Is.True, "The second tap of a double tap does not melt.");
+            Assert.That(_anvil.MeltText, Does.Contain("+20 gold"), "The melt still asks.");
+            Assert.That(_setup.Profile.Gold, Is.EqualTo(gold));
+            yield return Settle();
+            Tap(_anvil.MeltButton);
+            Assert.That(gear.Owns(signet), Is.False, "Confirmed after the delay.");
+            Assert.That(_setup.Profile.Gold, Is.EqualTo(gold + 20));
+            yield return Settle();
+
+            ItemInstance bark = gear.FindItem(7);
+            _anvil.PickBagItem(bark);
+            Tap(_anvil.InheritButton);
+            Tap(_anvil.InheritButton);
+            Assert.That(_anvil.InheritText, Is.EqualTo("Cancel"), "The inheritance begun stands: its second tap cancels nothing.");
+            Assert.That(_anvil.DetailText, Does.Contain("Inherit +5 from"));
+            Assert.That(gear.Owns(bark), Is.True);
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // The Anvil reselects the next run's weapon when the hero changes behind it (the run flow's review, 2026-11-26): it
+        // kept the Vanguard's Sword after the forge's hero chooser moved to another hero, and its strike, seals and efsun
+        // spent on the Sword while the equipped row showed the new hero's weapon. A piece that is not a weapon (the ring)
+        // stays picked.
+        [UnityTest]
+        public IEnumerator TheAnvilReselectsTheWeaponWhenTheHeroChanges()
+        {
+            yield return OpenForge(AnvilFixtures.Profile());
+            Tap(_anvil.AnvilEntry);
+            yield return Settle();
+            Assert.That(_anvil.WeaponId, Is.EqualTo("weapon_sword"));
+            Assert.That(_anvil.Selected.ItemId, Is.EqualTo("weapon_sword"));
+            Tap(_anvil.TabButton(AnvilView.Tab.Forge));
+            Assert.That(_anvil.IsOpen, Is.False);
+
+            Assert.That(_forge.HeroChoice, Is.Not.Null, "The forge's hero chooser.");
+            _forge.HeroChoice.Cycle();
+            yield return null;
+            string weapon = _setup.NextWeapon.Id;
+            Assert.That(weapon, Is.Not.EqualTo("weapon_sword"), "Another hero, another weapon: " + _setup.NextRunHero.Id);
+            Tap(_anvil.AnvilEntry);
+            yield return Settle();
+            Assert.That(_anvil.WeaponId, Is.EqualTo(weapon), "The next run's weapon, as the equipped row shows it.");
+            Assert.That(_anvil.Selected, Is.SameAs(_setup.Profile.Gear.WeaponGear(weapon)));
+            Assert.That(_anvil.PieceText(0), Does.EndWith(_setup.ItemDisplayName(weapon)));
+            Tap(_anvil.TabButton(AnvilView.Tab.Efsun));
+            yield return Settle();
+            Tap(_anvil.RerollWithGold);
+            Assert.That(_setup.Profile.Gear.PendingRerollPiece, Is.Not.Null);
+            Assert.That(_setup.Profile.Gear.PendingRerollPiece.ItemId, Is.EqualTo(weapon), "Efsun works on the new hero's weapon.");
+            Assert.That(_setup.Profile.Gear.WeaponGear("weapon_sword").Lines.Count, Is.EqualTo(2), "The Sword is not touched.");
+            yield return Settle();
+            Tap(_anvil.KeepOld);
+            yield return Settle();
+
+            Tap(_anvil.PieceButton(3));
+            ItemInstance ring = _anvil.Selected;
+            Assert.That(ring.ItemId, Is.EqualTo("item_cinder_ring"));
+            Tap(_anvil.TabButton(AnvilView.Tab.Forge));
+            _forge.HeroChoice.Cycle();
+            yield return null;
+            Tap(_anvil.AnvilEntry);
+            yield return Settle();
+            Assert.That(_anvil.Selected, Is.SameAs(ring), "The ring is every hero's: it stays picked.");
             LogAssert.NoUnexpectedReceived();
         }
 
