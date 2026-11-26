@@ -20,7 +20,8 @@ namespace Cryptforge.Tests
     // Gloam Gardens reload the scene, which starts on that floor as a descent would have reached it - its FloorNumber and
     // climb scaling, its theme and dress, its enemies' palette, the halls above it, the floors after it - with no frost or
     // melt, and the hero at the simulation's arrival level, every level-up of it offered before the first wave. With
-    // map-choice.txt "off" (every other scene test) the run starts at once on floor 1, as it always did.
+    // map-choice.txt "off" (every other scene test) the run starts at once on floor 1, as it always did. A slow loading
+    // frame spends neither the panel's input delay nor that of a deeper start's first level-up.
     public sealed class MapChoiceFlowTests
     {
         private const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
@@ -56,6 +57,110 @@ namespace Cryptforge.Tests
                 yield return null;
             Assert.That(view.CardButton(slot).interactable, Is.True, "The card can be tapped after its delay.");
             view.CardButton(slot).onClick.Invoke();
+        }
+
+        // A slow load: the loading frame held this long (a phone's load, or a batch run's), past every input delay here.
+        private const int SlowLoadMilliseconds = 600;
+
+        // The foundry loaded through a slow loading frame. loaded gets that frame's clock (Time.unscaledTime, the frame's
+        // start), read once the scene has had its Awake - CombatSetup's, which builds the map choice or opens a deeper start's
+        // first level-up - and before its first Update.
+        private static IEnumerator LoadSlowly(Action<float> loaded)
+        {
+            File.WriteAllText(DevelopmentStart.RegionPreviewPath, "foundry");
+            UnityEngine.Events.UnityAction<Scene, LoadSceneMode> slow = (scene, mode) =>
+            {
+                loaded(Time.unscaledTime);
+                System.Threading.Thread.Sleep(SlowLoadMilliseconds);
+            };
+            SceneManager.sceneLoaded += slow;
+            try
+            {
+                yield return SceneManager.LoadSceneAsync(Scene);
+            }
+            finally
+            {
+                SceneManager.sceneLoaded -= slow;
+            }
+        }
+
+        // The map choice's input delay counts from the panel's first frame after the load (the run flow's review,
+        // 2026-11-26). CombatSetup.Awake builds the panel in the loading frame, whose clock is that frame's start, so a load
+        // longer than the delay had spent it before the panel was seen, and the second tap of Restart on the result screen
+        // landed on a map card. After a slow loading frame no card, toggle or arena button takes a tap inside the delay; then
+        // the Foundry begins the run as ever.
+        [UnityTest, Timeout(120000)]
+        public IEnumerator ASlowLoadStillHoldsTheMapChoiceForItsDelay()
+        {
+            File.Delete(DevelopmentStart.MapChoicePath);
+            float loadingFrame = -1f;
+            yield return LoadSlowly(clock => loadingFrame = clock);
+            var setup = Object.FindFirstObjectByType<CombatSetup>();
+            var view = Object.FindFirstObjectByType<MapChoiceView>();
+            Assert.That(view, Is.Not.Null, "The map choice opens before the run.");
+            Assert.That(loadingFrame, Is.GreaterThanOrEqualTo(0f), "The scene came through the slow loading frame.");
+            // The frame after the slow one, where the panel stamps its delay.
+            int frames = 0;
+            do
+                yield return null;
+            while (float.IsPositiveInfinity(view.InputEnabledAt) && ++frames < 10);
+            Assert.That(Time.unscaledTime, Is.GreaterThanOrEqualTo(loadingFrame + .5f), "A frame after the slow one.");
+            Assert.That(Time.unscaledTime, Is.LessThan(view.InputEnabledAt), "Still inside the delay: it was not spent loading.");
+            Assert.That(view.InputEnabledAt, Is.GreaterThanOrEqualTo(loadingFrame + .5f + MapChoiceView.InputDelay));
+            for (int i = 0; i < view.CardCount; i++)
+                Assert.That(view.CardButton(i).interactable, Is.False, "Card " + i + " waits out the delay.");
+            Assert.That(view.LanguageToggle.Button.interactable || view.ArenaButton.interactable, Is.False);
+            view.CardButton(0).onClick.Invoke();
+            view.ArenaButton.onClick.Invoke();
+            Assert.That(view.IsOpen, Is.True, "A tap inside the delay chooses nothing.");
+            Assert.That(setup.IsChoosingMap, Is.True);
+            Assert.That(setup.Encounters.IsFirstEncounterPending, Is.True);
+            Assert.That(ArenaScreen.Current == null, Is.True, "Nor opens the arena.");
+
+            yield return Tap(view, 0);
+            Assert.That(view.IsOpen, Is.False, "After the delay the Foundry begins the run.");
+            Assert.That(setup.IsChoosingMap, Is.False);
+        }
+
+        // The same for a deeper start's first level-up, which opens in the loading frame (CombatSetup.Awake): its cards and
+        // the Auto-pick beside them wait their delay from the first frame after the load, so the second tap of the map card
+        // that started it picks nothing; after the delay a card takes the tap.
+        [UnityTest, Timeout(180000)]
+        public IEnumerator ASlowLoadStillHoldsADeeperStartsFirstLevelUpForItsDelay()
+        {
+            TestProfile.Begin(new PlayerProfile(0, null, null, 1));
+            RunStartRequest.Set(2);
+            float loadingFrame = -1f;
+            yield return LoadSlowly(clock => loadingFrame = clock);
+            var setup = Object.FindFirstObjectByType<CombatSetup>();
+            var choices = Object.FindFirstObjectByType<RunChoiceView>();
+            Assert.That(loadingFrame, Is.GreaterThanOrEqualTo(0f), "The scene came through the slow loading frame.");
+            Assert.That(setup.StartFloor, Is.EqualTo(2));
+            Assert.That(setup.IsCatchingUp, Is.True, "The first catch-up level-up is offered.");
+            Assert.That(choices.IsOpen, Is.True);
+            int frames = 0;
+            do
+                yield return null;
+            while (float.IsPositiveInfinity(choices.InputEnabledAt) && ++frames < 10);
+            Assert.That(Time.unscaledTime, Is.GreaterThanOrEqualTo(loadingFrame + .5f), "A frame after the slow one.");
+            Assert.That(Time.unscaledTime, Is.LessThan(choices.InputEnabledAt), "Still inside the delay: it was not spent loading.");
+            var autoPick = Object.FindFirstObjectByType<CatchUpAutoPickView>();
+            Assert.That(autoPick, Is.Not.Null);
+            Assert.That(autoPick.IsShown, Is.True, "Auto-pick stands beside the cards.");
+            Assert.That(choices.CardButton(0).interactable, Is.False, "The cards wait out the delay.");
+            choices.CardButton(0).onClick.Invoke();
+            autoPick.Button.onClick.Invoke();
+            Assert.That(setup.Run.UpgradesApplied, Is.Zero, "Neither a card nor the Auto-pick takes a tap inside the delay.");
+            Assert.That(setup.IsCatchingUp, Is.True);
+            Assert.That(autoPick.Summary, Is.Empty);
+
+            // A loaded machine can be a frame late to lift the delay: wait for it, up to 2 s.
+            float lifted = Time.realtimeSinceStartup + 2f;
+            while (!choices.CardButton(0).interactable && Time.realtimeSinceStartup < lifted)
+                yield return null;
+            Assert.That(choices.CardButton(0).interactable, Is.True, "The cards take taps once the delay is over.");
+            choices.CardButton(0).onClick.Invoke();
+            Assert.That(setup.Run.UpgradesApplied, Is.EqualTo(1), "After the delay a card is taken.");
         }
 
         [UnityTest, Timeout(180000)]

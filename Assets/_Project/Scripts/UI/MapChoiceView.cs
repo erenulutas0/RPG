@@ -133,6 +133,8 @@ namespace Cryptforge.UI
         private RectTransform _surface;
         private float _height;
         private float _inputEnabledAt;
+        // The frame that built the panel: the input delay is stamped on the first Update of a later frame.
+        private int _builtFrame;
         private bool _chosen;
         // Whether a hero may be chosen: CombatSetup.IsHeroPlayable, or a test's stand-in (TreatHeroesAs).
         private Func<HeroDefinition, bool> _isPlayable;
@@ -204,6 +206,7 @@ namespace Cryptforge.UI
         // The arena's entry at the band's left (docs/55 section 11.5) and the word it shows, for tests and captures.
         public Button ArenaButton => _arena;
         public string ArenaLabelText => _arenaLabel != null ? _arenaLabel.text : string.Empty;
+        // When the panel takes taps: +infinity until its first frame after the build stamps the delay.
         public float InputEnabledAt => _inputEnabledAt;
 
         public void Initialize(CombatSetup setup, HeroMovementInput movement)
@@ -317,7 +320,13 @@ namespace Cryptforge.UI
             _tierDetail = Label(surface.transform, "Tier Detail", descriptionSource, fallback, 24, TextAnchor.MiddleCenter);
             Place(_tierDetail.rectTransform, tierTop + TierCardHeight + TierDetailGap, TierDetailHeight, CardInset);
             _tierDetail.supportRichText = true;
-            _inputEnabledAt = Time.unscaledTime + InputDelay;
+            // No tap until the delay has run from the panel's first frame after this one. This frame's clock is its start,
+            // and the loading frame that builds the panel (CombatSetup.Awake) can outlast the delay, so a delay counted from
+            // it was spent before the panel's first frame, and the second tap of a Restart landed on a map card. Its Update
+            // in this frame (a loaded scene updates in its loading frame) would read the same clock: Update stamps it from
+            // the next frame on, as PauseView restamps its delay after a return.
+            _inputEnabledAt = float.PositiveInfinity;
+            _builtFrame = Time.frameCount;
             SetInteractable(false);
             RefreshHeroCards();
             RefreshTierCards();
@@ -748,6 +757,8 @@ namespace Cryptforge.UI
         {
             if (!IsOpen)
                 return;
+            if (float.IsPositiveInfinity(_inputEnabledAt) && Time.frameCount > _builtFrame)
+                _inputEnabledAt = Time.unscaledTime + InputDelay;
             if (Time.unscaledTime >= _inputEnabledAt && !_chosen && _cards.Count > 0 && !_cards[0].interactable)
                 SetInteractable(true);
             FitToSafeArea();
