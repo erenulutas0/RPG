@@ -2405,6 +2405,8 @@ report (steps 7-8) only read, so they need no focus check.
    ```
    The folder holds no `pull.txt`, so the batch report never reads it.
 4. **Install the APK and check its hash.** The APK is `Builds/Android/Cryptforge-Prototype.apk`, the clean build of
+   main 3ef2cfdd with the Turkish auto-pick summary as one sentence before its cards ("44 seviyeden 2 tanesi otomatik
+   seçildi: Kılıç x2") on top of
    main e1d4770a with the run's phone lifecycle (losing focus - the notification shade, a dialog - pauses the run; the
    stick forgets its finger across the boss reveal; Resume's delay holds again on return; a live run keeps the screen
    on; no pause on the map choice) on top of
@@ -2467,8 +2469,8 @@ report (steps 7-8) only read, so they need no focus check.
    with a point on every locale; Gradle's 10 MB of holes gone; 36,819,361 bytes). Check the file
    itself, never a hash written down earlier:
    ```
-   (Get-FileHash Builds/Android/Cryptforge-Prototype.apk -Algorithm SHA256).Hash   # 805017A423705578... on 2026-11-26 03:19
-   (Get-Item Builds/Android/Cryptforge-Prototype.apk).Length                        # 67515147
+   (Get-FileHash Builds/Android/Cryptforge-Prototype.apk -Algorithm SHA256).Hash   # 7E50A3660E0676D7... on 2026-11-26 05:51
+   (Get-Item Builds/Android/Cryptforge-Prototype.apk).Length                        # 67515095
    adb install -r Builds/Android/Cryptforge-Prototype.apk
    ```
    `install -r` keeps the profile and the telemetry. `Cryptforge-Prototype-679df68d.apk` (47 MB, DA3D13FD...) and the
