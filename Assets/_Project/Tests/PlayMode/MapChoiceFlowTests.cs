@@ -134,6 +134,9 @@ namespace Cryptforge.Tests
             yield return LoadSlowly(clock => loadingFrame = clock);
             var setup = Object.FindFirstObjectByType<CombatSetup>();
             var choices = Object.FindFirstObjectByType<RunChoiceView>();
+            // The level-up panel shows its first prompt on the frame after the load, as the other deeper starts read it.
+            for (int wait = 0; wait < 10 && !choices.IsOpen; wait++)
+                yield return null;
             Assert.That(loadingFrame, Is.GreaterThanOrEqualTo(0f), "The scene came through the slow loading frame.");
             Assert.That(setup.StartFloor, Is.EqualTo(2));
             Assert.That(setup.IsCatchingUp, Is.True, "The first catch-up level-up is offered.");
