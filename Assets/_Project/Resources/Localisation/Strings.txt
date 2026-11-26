@@ -91,8 +91,8 @@ map.unlock_hint	Clear floor {0} to unlock	Açmak için {0}. katı temizle	Map ch
 
 # ---- Catch-up auto-pick (a higher start)
 catchup.auto_pick	Auto-pick {count} level-ups	{count} seviyeyi otomatik seç	Level-up panel button on a higher start.
-catchup.summary	Auto-picked {taken} level-ups	Otomatik seçilen seviye: {taken}	Summary line; the cards follow after ": ".
-catchup.summary_of	Auto-picked {taken} level-ups of {levels}	Otomatik seçilen seviye: {taken} / {levels}	When the player picked some by hand.
+catchup.summary	Auto-picked {taken} level-ups	{taken} seviye otomatik seçildi	Summary line; the cards follow after ": ", so the sentence must not end on a colon.
+catchup.summary_of	Auto-picked {taken} level-ups of {levels}	{levels} seviyeden {taken} tanesi otomatik seçildi	When the player picked some by hand; the cards follow after ": ".
 
 # ---- The Anvil, Efsun and Bag (AnvilView)
 anvil.title	The Anvil	Örs	Anvil panel title.

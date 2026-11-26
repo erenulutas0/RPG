@@ -3,6 +3,7 @@ using System.Threading;
 using Cryptforge.Combat;
 using Cryptforge.Content;
 using Cryptforge.Core;
+using Cryptforge.Localisation;
 using Cryptforge.Progression;
 using Cryptforge.UI;
 using NUnit.Framework;
@@ -100,6 +101,29 @@ namespace Cryptforge.Tests
             finally
             {
                 Thread.CurrentThread.CurrentCulture = before;
+            }
+        }
+
+        // The Turkish line is a whole sentence too, and the cards follow after one colon: the Turkish cells once ended on
+        // "seviye: {taken}", and the list's own ": " made "Otomatik seçilen seviye: 44: Kılıç x8".
+        [Test]
+        public void TheTurkishAutoPickSummaryHasOneColon()
+        {
+            Language? before = Loc.Override;
+            LocTable table = Loc.Table;
+            try
+            {
+                Loc.UseTable(LocalisationChecks.LoadTable(LocalisationChecks.Root()));
+                Loc.Override = Language.Turkish;
+                Assert.That(CatchUpAutoPickView.SummaryOf(44, new[] { "Kılıç", "Kılıç" }),
+                    Is.EqualTo("44 seviyeden 2 tanesi otomatik seçildi: Kılıç x2"));
+                Assert.That(CatchUpAutoPickView.SummaryOf(2, new[] { "Kılıç", "Kuvvet" }),
+                    Is.EqualTo("2 seviye otomatik seçildi: Kılıç, Kuvvet"));
+            }
+            finally
+            {
+                Loc.UseTable(table);
+                Loc.Override = before;
             }
         }
 
