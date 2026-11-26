@@ -45,7 +45,11 @@ namespace Cryptforge.UI
         public const string CanvasName = "Arena Screen";
         // Above the map choice it is opened from (MapChoiceView.SortingOrder, 100).
         public const int SortingOrder = 110;
-        public const float InputDelay = .2f;
+        // A page's buttons wait this long after it appears: the map choice's delay (MapChoiceView.InputDelay). Continue (the
+        // build) and Next fight (the result) stand where Fight (the ladder) stands, and Skip (the playback) over its corner:
+        // at 0.2 s a second tap after Continue or Next fight fought the default rival unchosen. UI timing, not a duel rule:
+        // ArenaRules.Hash does not hold it.
+        public const float InputDelay = .35f;
         public const float SurfaceWidth = 1000f;
         public const float SurfaceHeight = 1800f;
         private const float FitMargin = 12f;
@@ -741,11 +745,12 @@ namespace Cryptforge.UI
             }
             BuildBuildPage((RectTransform)_pages[(int)Page.Build].transform);
             BuildLadderPage((RectTransform)_pages[(int)Page.Ladder].transform);
-            // The playback's speed and skip act at once (its own buttons); the other pages' wait out the input delay.
+            // The playback's speed acts at once (its own button). Its Skip, whose corner overlaps Fight's, waits out the input
+            // delay like the other pages' buttons and shows the result at once (SkipPlayback).
             // The lane's ground in the Foundry's own materials, which the scene's arena already holds.
             var arena = FindFirstObjectByType<ArenaView>(FindObjectsInactive.Include);
             _playback = new DuelPlaybackView(_ui, (RectTransform)_pages[(int)Page.Playback].transform,
-                arena != null ? arena.PlatformMaterials : null);
+                arena != null ? arena.PlatformMaterials : null, () => { if (Ready()) SkipPlayback(); });
             BuildResultPage((RectTransform)_pages[(int)Page.Result].transform);
         }
 

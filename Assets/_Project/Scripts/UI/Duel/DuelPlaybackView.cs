@@ -119,8 +119,9 @@ namespace Cryptforge.UI
         }
 
         // materials: the scene's Foundry materials the lane's ground is drawn with (ArenaView.PlatformMaterials); null
-        // draws it in plain colours.
-        public DuelPlaybackView(ArenaUi ui, RectTransform page, PlatformMaterialSet materials = null)
+        // draws it in plain colours. skip: what the Skip button does (the arena's: after its input delay, to the result);
+        // null skips the clock at once.
+        public DuelPlaybackView(ArenaUi ui, RectTransform page, PlatformMaterialSet materials = null, Action skip = null)
         {
             _ui = ui;
             _page = page;
@@ -163,7 +164,7 @@ namespace Cryptforge.UI
 
             _speed = ui.Button(page, "Arena Speed Button", 48, out _speedLabel, ToggleSpeed);
             ArenaUi.Place((RectTransform)_speed.transform, 20f, 1660f, 300f, 120f);
-            _skip = ui.Button(page, "Arena Skip Button", 44, out _skipLabel, Skip);
+            _skip = ui.Button(page, "Arena Skip Button", 44, out _skipLabel, skip ?? Skip);
             ArenaUi.Place((RectTransform)_skip.transform, 680f, 1660f, 300f, 120f);
         }
 

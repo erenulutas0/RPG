@@ -21,8 +21,8 @@ namespace Cryptforge.Tests
 {
     // P0's arena screen in the game (docs/55 section 11): opened over the map choice, as its button will open it - the build
     // chosen and kept, a training fight fought, saved and sent as arena_fight, played from its log at x1 and x2 and skipped
-    // to its result; a changed build kept as a past hero; the open arena's three offers fought; and every label of every
-    // page fitting in Turkish.
+    // to its result; a double tap that fights nothing unchosen and skips nothing unseen; a changed build kept as a past hero;
+    // the open arena's three offers fought; and every label of every page fitting in Turkish.
     public sealed class ArenaScreenTests
     {
         private const string ScenePath = "Assets/_Project/Scenes/Gameplay/Gameplay.unity";
@@ -121,6 +121,8 @@ namespace Cryptforge.Tests
             Assert.That(screen.Playback.BannerText, Is.EqualTo("Round 1"));
             Assert.That(screen.Playback.HealthText(0), Does.EndWith(" / " + DuelNumbers.Points(outcome.Match.Rounds[0].MaxHealthA)));
 
+            // Skip waits out the page's input delay as every other page's button does.
+            yield return Settle();
             screen.Playback.SkipButton.onClick.Invoke();
             yield return null;
             Assert.That(screen.Shown, Is.EqualTo(ArenaScreen.Page.Result));
@@ -146,6 +148,48 @@ namespace Cryptforge.Tests
             Assert.That(closed, Is.True);
             Assert.That(ArenaScreen.Current == null, Is.True);
             Assert.That(_setup.IsChoosingMap, Is.True, "The map choice still holds the run.");
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        // A double tap fights nothing unchosen and skips nothing unseen (the run flow's review, 2026-11-26): Continue (the
+        // build) and Next fight (the result) stand where Fight stands, and Skip over Fight's corner. Every page holds its
+        // buttons for the map choice's 0.35 s, Skip's too, so the second tap of Continue, Fight, Skip or Next fight lands on
+        // nothing; at 0.2 s a second tap after Continue or Next fight fought the default rival and saved the rating change.
+        [UnityTest]
+        public IEnumerator ADoubleTapFightsNothingUnchosenAndSkipsNothingUnseen()
+        {
+            Assert.That(ArenaScreen.InputDelay, Is.EqualTo(MapChoiceView.InputDelay), "The map choice's delay.");
+            ArenaScreen screen = ArenaScreen.Open(_setup);
+            yield return null;
+            Assert.That(screen.Shown, Is.EqualTo(ArenaScreen.Page.Build));
+            yield return Settle();
+            screen.ContinueButton.onClick.Invoke();
+            Assert.That(screen.Shown, Is.EqualTo(ArenaScreen.Page.Ladder));
+            screen.FightButton.onClick.Invoke();
+            Assert.That(screen.Shown, Is.EqualTo(ArenaScreen.Page.Ladder), "The second tap of Continue fights nothing.");
+            Assert.That(screen.LastOutcome, Is.Null);
+            Assert.That(screen.SaveData.fights, Is.Zero);
+
+            yield return Settle();
+            screen.FightButton.onClick.Invoke();
+            Assert.That(screen.Shown, Is.EqualTo(ArenaScreen.Page.Playback));
+            Assert.That(screen.SaveData.fights, Is.EqualTo(1));
+            screen.Playback.SkipButton.onClick.Invoke();
+            Assert.That(screen.Shown, Is.EqualTo(ArenaScreen.Page.Playback), "The second tap of Fight skips nothing.");
+            Assert.That(screen.Playback.Finished, Is.False);
+            yield return Settle();
+            screen.Playback.SkipButton.onClick.Invoke();
+            Assert.That(screen.Shown, Is.EqualTo(ArenaScreen.Page.Result), "Skip goes to the result after its delay.");
+            screen.NextButton.onClick.Invoke();
+            Assert.That(screen.Shown, Is.EqualTo(ArenaScreen.Page.Result), "The second tap of Skip moves on to nothing.");
+
+            yield return Settle();
+            screen.NextButton.onClick.Invoke();
+            Assert.That(screen.Shown, Is.EqualTo(ArenaScreen.Page.Ladder));
+            screen.FightButton.onClick.Invoke();
+            Assert.That(screen.Shown, Is.EqualTo(ArenaScreen.Page.Ladder), "The second tap of Next fight fights nothing.");
+            Assert.That(screen.SaveData.fights, Is.EqualTo(1), "One fight.");
+            Assert.That(new ArenaSaveStore(ProfileLocation.Resolve()).Load(1).fights, Is.EqualTo(1), "One fight saved.");
             LogAssert.NoUnexpectedReceived();
         }
 
